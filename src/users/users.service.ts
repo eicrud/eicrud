@@ -15,6 +15,7 @@ export interface User{
   createdAt: Date;
   updatedAt: Date;
   revokedCount: number;
+  verifiedEmail: boolean;
 };
 @Injectable()
 export class UsersService extends CrudService<User> {
@@ -38,17 +39,20 @@ export class UsersService extends CrudService<User> {
 
   override async unsecure_fastUpdate(query: User, newEntity: User) {
     await this.checkPassword(newEntity);
+    this.checkFieldsThatResetRevokedCount(newEntity);
     return super.unsecure_fastUpdate(query, newEntity);
   }
 
   // UNSECURE : no user imput
   override async unsecure_fastUpdateOne(id: string, newEntity: User) {
     await this.checkPassword(newEntity);
+    this.checkFieldsThatResetRevokedCount(newEntity);
     return super.unsecure_fastUpdateOne(id, newEntity);
   }
 
   override async safe_updateEntity(entity: User, newEntity: User, context: CrudContext) {
     await this.checkPassword(newEntity);
+    this.checkFieldsThatResetRevokedCount(newEntity);
     return super.safe_updateEntity(entity, newEntity, context);
   }
 
@@ -58,13 +62,11 @@ export class UsersService extends CrudService<User> {
     }
   }
 
-  async checkFieldsThatResetRevokedCount(newEntity: User){
+  checkFieldsThatResetRevokedCount(newEntity: User){
     const fieldsThatResetRevokedCount = ['email', 'password'];
     if(fieldsThatResetRevokedCount.some(field => newEntity[field])){
       newEntity.revokedCount = 0;
     }
-
   }
-
 
 }

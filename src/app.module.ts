@@ -6,6 +6,7 @@ import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { CrudController } from './crud/crud.controller';
 import { AuthService } from './auth/auth.service';
 import { UsersService } from './users/users.service';
+import { AccountManagementService } from './account-management/account-management.service';
 
 @Module({
   imports: [
@@ -19,6 +20,6 @@ import { UsersService } from './users/users.service';
     }),
 ],
   controllers: [AppController, CrudController],
-  providers: [AppService, CrudService, AuthService, UsersService],
+  providers: [AppService, CrudService, AuthService, UsersService, AccountManagementService],
 })
 export class AppModule {}
