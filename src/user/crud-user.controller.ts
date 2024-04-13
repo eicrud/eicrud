@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Patch, Post, Query } from '@nestjs/common';
-import { Context, CrudContext } from '../auth/auth.utils';
+import { CrudContext, CrudContext } from '../auth/auth.utils';
 import { CrudUser } from './entity/CrudUser';
 import { CrudController } from '../crud/crud.controller';
 import { CrudUserService } from './crud-user.service';
@@ -16,12 +16,12 @@ export class CrudUserController extends CrudController<CrudUser> {
         }
  
     @Post()
-    async create(@Body() newEntity: CrudUser, @Context()ctx: CrudContext){
+    async create(@Body() newEntity: CrudUser, @CrudContext()ctx: CrudContext){
         return this._create(newEntity, ctx);
     };
 
     @Delete()
-    delete(@Query() query: CrudUser, @Context()ctx: CrudContext){
+    delete(@Query() query: CrudUser, @CrudContext()ctx: CrudContext){
         return this._delete(query, ctx);
     };
 
@@ -36,12 +36,12 @@ export class CrudUserController extends CrudController<CrudUser> {
     };
 
     @Patch('one')
-    patchOne(@Query()query: CrudUser, @Body()newEntity: CrudUser, @Context()ctx: CrudContext){
+    patchOne(@Query()query: CrudUser, @Body()newEntity: CrudUser, @CrudContext()ctx: CrudContext){
         return this._patchOne(query, newEntity, ctx);
     };
 
     @Patch('many')
-    patch(@Query()query: CrudUser, @Body()newEntity: CrudUser, @Context()ctx: CrudContext){
+    patch(@Query()query: CrudUser, @Body()newEntity: CrudUser, @CrudContext()ctx: CrudContext){
         return this._patch(query, newEntity, ctx);
     };
 

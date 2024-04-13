@@ -1,10 +1,10 @@
-import { CrudEntity } from "../../crud/model/crudEntity";
+import { CrudDto, CrudEntity } from "../../crud/model/CrudEntity";
 
 // This should be a real class/interface representing a user entity
-export class CrudUser extends CrudEntity{
-
+export interface CrudUser extends CrudEntity{
     email: string;
     password: string;
+
     lastLoginAttempt: Date;
     failedLoginCount: number;
     
@@ -12,4 +12,6 @@ export class CrudUser extends CrudEntity{
   
     revokedCount: number;
     verifiedEmail: boolean;
+
+    crudMap: Record<string, number>
   };

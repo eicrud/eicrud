@@ -1,4 +1,4 @@
-import { CrudEntity } from "../../crud/model/crudEntity";
+import { CrudEntity } from "../../crud/model/CrudEntity";
 
 export enum LogType {
     INFO = "INFO",

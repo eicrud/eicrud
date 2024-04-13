@@ -9,7 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { AuthUtils } from './auth.utils';
 import { CrudService } from '../crud/crud.service';
-import { CrudDto, CrudEntity } from '../crud/model/crudEntity';
+import { CrudDto, CrudEntity } from '../crud/model/CrudEntity';
 import { CrudContext } from './model/CrudContext';
 import { CrudSecurity } from './model/CrudSecurity';
 
@@ -43,9 +43,9 @@ export class AuthGuard implements CanActivate {
         // 💡 We're assigning the payload to the request object here
         // so that we can access it in our route handlers
         if(request.method == 'POST'){
-          user = await this.usersService.findOne(payload);
+          user = await this.usersService.findOne(payload, null);
         }else{
-          user = await this.usersService.findOneCached(payload);
+          user = await this.usersService.findOneCached(payload, null);
         }
 
         if(user?.revokedCount != payload.revokedCount){

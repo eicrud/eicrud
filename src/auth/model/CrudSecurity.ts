@@ -1,5 +1,5 @@
 import { AbilityBuilder, createAliasResolver } from "@casl/ability";
-import { CrudContext } from "../auth.utils";
+import { CrudContext } from "./CrudContext";
 
 export class CrudSecurity {
 
@@ -33,8 +33,12 @@ export interface CrudSecurityRights {
 
     fields: string[];
 
-    defineAbility(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], context: CrudContext);
+    defineCRUDAbility(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], context: CrudContext);
+    
+    defineCMDAbility(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], context: CrudContext);
 
+    defineOPTAbility(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], context: CrudContext);
+    
 }
 
 
