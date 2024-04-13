@@ -1,0 +1,5 @@
+- Use one controller for all crud services
+- Add cmd & batch methods
+- Add cmd rights
+- add before, after & error hooks
+- make sur to pass ctx for datadog trace tracking

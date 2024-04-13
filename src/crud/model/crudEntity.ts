@@ -3,7 +3,7 @@ import { CrudSecurity } from "../../auth/model/CrudSecurity";
 
 
 export class CrudEntity {
-
+    _id: string;
     _dto?: CrudDto;
     security: CrudSecurity = new CrudSecurity();
     createdAt: Date = new Date();
