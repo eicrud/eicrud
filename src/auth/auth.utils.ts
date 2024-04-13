@@ -3,20 +3,12 @@ import { SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { CrudSecurity } from './model/CrudSecurity';
+import { CrudContext } from './model/CrudContext';
 
 
 export const IS_PUBLIC_KEY = 'isPublic';
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
-
-export interface CrudContext {
-    serviceName: string;
-    user: any;
-    security: CrudSecurity;
-    method: string;
-    query: any;
-    data: any;
-}
 
 export const Context = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {

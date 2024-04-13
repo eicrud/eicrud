@@ -1,15 +1,19 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CrudEntity } from './model/crudEntity';
+import { CrudEntity } from './model/CrudEntity';
 import { EntityManager, EntityName, wrap } from '@mikro-orm/core';
 import { CrudSecurity } from '../auth/model/CrudSecurity';
 import { Cache } from 'cache-manager';
-import { CrudContext } from '../auth/auth.utils';
+import { CrudContext } from '../auth/model/CrudContext';
 
 @Injectable()
 export class CrudService<T extends CrudEntity> {
 
     CACHE_TTL = 60 * 10 * 1000; // 10 minutes
 
+    name: string;
+    security: CrudSecurity;
+    entity: CrudEntity;
+    
     constructor(protected entityName: EntityName<any>, 
         protected entityManager: EntityManager,
         protected cacheManager: Cache,
@@ -24,31 +28,31 @@ export class CrudService<T extends CrudEntity> {
                 throw new Error('Too many items in DB.');
             }
         }
-        const opts = this.getReadOptions(newEntity);
+        const opts = this.getReadOptions(context);
         newEntity.createdAt = new Date();
         const entity = em.create(this.entityName, newEntity, opts as any);
         await em.persistAndFlush(entity);
         return entity;
     }
 
-    async unsecure_fastCreate(newEntity: T) {
+    async unsecure_fastCreate(newEntity: T, context: CrudContext) {
         const em = this.entityManager.fork();
-        const opts = this.getReadOptions(newEntity);
+        const opts = this.getReadOptions(context);
         newEntity.createdAt = new Date();
         const entity = em.create(this.entityName, newEntity, opts as any);
         await em.persistAndFlush(entity);
         return entity;
     }
     
-    async find(entity: T) {
+    async find(entity: T, context: CrudContext) {
         const em = this.entityManager.fork();
-        const opts = this.getReadOptions(entity);
+        const opts = this.getReadOptions(context);
         const result = await em.find(this.entityName, entity, opts as any);
         return result;
     }
 
-    getReadOptions(entity: T) {
-        const opts = entity._dto || {};
+    getReadOptions(context: CrudContext) {
+        const opts = context.options || {};
         return opts as any;
     }
 
@@ -56,20 +60,20 @@ export class CrudService<T extends CrudEntity> {
         return this.entityName + entity[this.id_field].toString();
     }
 
-    async findOne(entity: T) {
+    async findOne(entity: T, context: CrudContext) {
         const em = this.entityManager.fork();
-        const opts = this.getReadOptions(entity);
+        const opts = this.getReadOptions(context);
         const result = await em.findOne(this.entityName, entity, opts as any);
         return result;    
     }
 
-    async findOneCached(entity: T) {
+    async findOneCached(entity: T, context: CrudContext) {
         let cacheKey = this.getCacheKey(entity);
         const cached = await this.cacheManager.get(cacheKey);
         if(cached) {
             return cached;
         }
-        const result = await this.findOne(entity);
+        const result = await this.findOne(entity, context);
         this.cacheManager.set(cacheKey, result, this.CACHE_TTL);
         return result; 
     }
@@ -81,23 +85,23 @@ export class CrudService<T extends CrudEntity> {
         return results;
     }
 
-    async unsecure_fastPatch(query: T, newEntity: T){
+    async unsecure_fastPatch(query: T, newEntity: T, context: CrudContext){
         return await this.patch(query, newEntity, null, false);
     }
 
     async patchOne(id: string, newEntity: T, context: CrudContext, secure: boolean = true) {
         const em = this.entityManager.fork();
-        const result = await this.doOnePatch(id, newEntity, context, em, secure);
+        const result = await this.doOnePatch(id, newEntity, context, em, secure, context);
         await em.flush();
         return result;
     }
 
-    async unsecure_fastPatchOne(id: string, newEntity: T){
+    async unsecure_fastPatchOne(id: string, newEntity: T, context: CrudContext){
         return await this.patchOne(id, newEntity, null, false);
     }
 
     private async doQueryPatch(query: T, newEntity: T, ctx:CrudContext, em: EntityManager, secure: boolean){
-        const opts = this.getReadOptions(query);
+        const opts = this.getReadOptions(ctx);
         const results = await em.find(this.entityName, query, opts as any);
         for(let result of results) {
             this.doUpdate(result, newEntity, ctx, secure);
@@ -105,8 +109,8 @@ export class CrudService<T extends CrudEntity> {
         return results;
     }
 
-    private async doOnePatch(id: string, newEntity: T, ctx:CrudContext, em: EntityManager, secure: boolean){
-        const opts = this.getReadOptions(newEntity);
+    private async doOnePatch(id: string, newEntity: T, ctx:CrudContext, em: EntityManager, secure: boolean, context: CrudContext){
+        const opts = this.getReadOptions(context);
         const result = await em.findOne(this.entityName, id, opts as any);
         this.doUpdate(result, newEntity, ctx, secure);
         return result;
@@ -129,7 +133,7 @@ export class CrudService<T extends CrudEntity> {
         return result;
     }
 
-    async unsecure_fastPutOne(newEntity: T){
+    async unsecure_fastPutOne(newEntity: T, context: CrudContext){
         return await this.putOne(newEntity, null, false);
     }
 
@@ -141,9 +145,9 @@ export class CrudService<T extends CrudEntity> {
     }
 
 
-    async remove(query: T) {
+    async remove(query: T, context:CrudContext) {
         const em = this.entityManager.fork();
-        const opts = this.getReadOptions(query);
+        const opts = this.getReadOptions(context);
         const results = await em.find(this.entityName, query, opts as any);
         const length = results.length;
         for(let result of results) {

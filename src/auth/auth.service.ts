@@ -14,18 +14,20 @@ export class AuthService {
     protected JWT_SECRET: string,
     protected FIELDS_IN_PAYLOAD: string[] = ['_id', 'revokedCount'],
     protected USERNAME_FIELD = 'email',
+    protected id_field = '_id',
+
   ) {}
 
   rateLimitCount = 6;
 
   async updateUserLoginDetails(user){
-    await this.usersService.unsecure_fastPatchOne(user._id, {failedLoginCount: user.failedLoginCount, lastLoginAttempt: user.lastLoginAttempt});
+    await this.usersService.unsecure_fastPatchOne(user[this.id_field], {failedLoginCount: user.failedLoginCount, lastLoginAttempt: user.lastLoginAttempt}, null);
   }
 
   async signIn(email, pass) {
     const entity = {};
     entity[this.USERNAME_FIELD] = email;
-    const user = await this.usersService.findOne(entity);
+    const user = await this.usersService.findOne(entity, null);
     if(!user){
       throw new UnauthorizedException("Unknown user.");
     }

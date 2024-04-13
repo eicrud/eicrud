@@ -1,28 +1,50 @@
-import { Controller } from '@nestjs/common';
-import { CrudEntity } from './model/crudEntity';
+import { Body, Controller, Delete, Post, Query } from '@nestjs/common';
+import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
-import { CrudContext } from '../auth/auth.utils';
+import { CrudContext } from '../auth/model/CrudContext';
+import { Context } from '../auth/auth.utils';
+import { CrudQuery } from './model/CrudQuery';
+import { CrudAuthorization } from './crud.authorization.service';
 
+@Controller({
+    path: "crud",
+    version: "1"
+})
 export class CrudController<T extends CrudEntity> {
 
     constructor(protected crudService: CrudService<T>,
         protected userService: CrudService<any>,
         protected id_field = '_id',
+        protected crudAuthorization: CrudAuthorization
         ) {}
 
 
-    async _create(newEntity: T, ctx: CrudContext) {
+    @Post('one')
+    async _create(@Query() query: CrudQuery, @Body() newEntity: T, @Context() ctx: CrudContext) {
+        try{
+            ctx.method = "POST"
+            ctx.serviceName = query.service
+            ctx.query = newEntity;
+            ctx.data = newEntity;
+            ctx.options = query.options;
+            this.crudAuthorization.authorize(ctx);
+
         const res = await this.crudService.create(newEntity, ctx);
+
         if(ctx?.user && ctx?.serviceName) {
             const count = ctx?.user.crudMap[ctx.serviceName] || 0;
             ctx.user.crudMap[ctx.serviceName] = count + 1;
-            this.userService.unsecure_fastPatchOne(ctx?.user[this.id_field], {crudMap: ctx.user.crudMap});
+            this.userService.unsecure_fastPatchOne(ctx?.user[this.id_field], {crudMap: ctx.user.crudMap}, ctx);
         }
 
         return res;
+        }catch(e){
+
+        }
     }
 
 
+    @Delete('one')
     async _delete(query: T, ctx?: CrudContext) {
         let res;
         if(query[this.id_field]) {
@@ -33,7 +55,7 @@ export class CrudController<T extends CrudEntity> {
         if(ctx?.user && ctx?.serviceName) {
             const count = ctx?.user.crudMap[ctx.serviceName] || 0;
             ctx.user.crudMap[ctx.serviceName] = count - (res || 1);
-            this.userService.unsecure_fastPatchOne(ctx?.user[this.id_field], {crudMap: ctx.user.crudMap});
+            this.userService.unsecure_fastPatchOne(ctx?.user[this.id_field], {crudMap: ctx.user.crudMap}, ctx);
         }
         return res;
     }

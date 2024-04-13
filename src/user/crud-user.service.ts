@@ -21,46 +21,46 @@ export class CrudUserService extends CrudService<CrudUser> {
     },
   ];
 
-  override async create(newEntity: CrudUser, context: CrudContext): Promise<any> {
+  override async create(newEntity: CrudUser, ctx: CrudContext): Promise<any> {
     await this.checkPassword(newEntity);
-    return super.create(newEntity, context);
+    return super.create(newEntity, ctx);
   }
 
-  override async unsecure_fastCreate(newEntity: CrudUser): Promise<any> {
+  override async unsecure_fastCreate(newEntity: CrudUser, ctx: CrudContext): Promise<any> {
     await this.checkPassword(newEntity);
-    return super.unsecure_fastCreate(newEntity);
+    return super.unsecure_fastCreate(newEntity, ctx);
   }
 
 
-  override async patch(entity: CrudUser, newEntity: CrudUser, context: CrudContext) {
+  override async patch(entity: CrudUser, newEntity: CrudUser, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
     return super.patch(entity, newEntity, context);
   }
 
-  override async patchOne(id: string, newEntity: CrudUser, context: CrudContext) {
+  override async patchOne(id: string, newEntity: CrudUser, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
-    return super.patchOne(id, newEntity, context);
+    return super.patchOne(id, newEntity, ctx);
   }
 
-  override async unsecure_fastPatch(query: CrudUser, newEntity: CrudUser) {
+  override async unsecure_fastPatch(query: CrudUser, newEntity: CrudUser, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
-    return super.unsecure_fastPatch(query, newEntity);
+    return super.unsecure_fastPatch(query, newEntity, ctx);
   }
 
-  override async unsecure_fastPatchOne(id: string, newEntity: CrudUser) {
+  override async unsecure_fastPatchOne(id: string, newEntity: CrudUser, ctx: CrudContext) {
       await this.checkPassword(newEntity);
       this.checkFieldsThatResetRevokedCount(newEntity);
       return super.unsecure_fastPatchOne(id, newEntity);
   }
 
-  override async putOne(newEntity: CrudUser, context: CrudContext) {
+  override async putOne(newEntity: CrudUser, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
-    return super.putOne(newEntity, context);
+    return super.putOne(newEntity, ctx);
   }
 
-  override async unsecure_fastPutOne(newEntity: CrudUser) {
+  override async unsecure_fastPutOne(newEntity: CrudUser, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
-    return super.unsecure_fastPutOne(newEntity);
+    return super.unsecure_fastPutOne(newEntity, ctx);
   }
 
   async checkPassword(newEntity: CrudUser) {
