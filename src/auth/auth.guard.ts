@@ -10,7 +10,7 @@ import { Request } from 'express';
 import { AuthUtils } from './auth.utils';
 import { CrudService } from '../crud/crud.service';
 import { CrudDto, CrudEntity } from '../crud/model/crudEntity';
-import { CrudContext } from './context.decorator';
+import { CrudContext } from './model/CrudContext';
 import { CrudSecurity } from './model/CrudSecurity';
 
 
@@ -23,6 +23,7 @@ export class AuthGuard implements CanActivate {
     protected JWT_SECRET: string,
     protected securityMap: Record<string, CrudSecurity> = {},
     protected GUEST_ROLE: string = 'guest',
+    protected servicePositionInUri = 2,
     ) {}
 
 
@@ -72,6 +73,6 @@ export class AuthGuard implements CanActivate {
 
   private parseServiceName(path: string) {
     const pathParts = path.split('/');
-    return pathParts[pathParts.length - 1];
+    return pathParts[this.servicePositionInUri];
   }
 }

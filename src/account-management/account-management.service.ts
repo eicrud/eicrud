@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import { CrudUserService } from '../user/crud-user.service';
 
 @Injectable()
 export class AccountManagementService {
 
-    constructor(private readonly usersService: UsersService){
+    constructor(private readonly usersService: CrudUserService){
         
     }
 

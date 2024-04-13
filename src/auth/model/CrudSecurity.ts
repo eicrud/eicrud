@@ -3,10 +3,9 @@ import { CrudContext } from "../auth.utils";
 
 export class CrudSecurity {
 
-    maxSize?: number = 10000;
+    maxSize?: number;
     maxItemsInDb?: number;
-    maxItemsPerUser?: number = 100;
-
+    maxItemsPerUser?: number;
     rolesRights: Record<string, CrudSecurityRights> = {};
 
 }
@@ -28,12 +27,6 @@ export const httpAliasResolver = createAliasResolver({
     ud: ['PUT', 'PATCH', 'DELETE'],
 });
 
-
-export interface CrudSecurityUser {
-    role: string;
-    _id: string;
-
-}
  
 
 export interface CrudSecurityRights {

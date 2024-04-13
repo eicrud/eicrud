@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import { CrudUserService } from '../user/crud-user.service';
 import { JwtService } from '@nestjs/jwt';
 import { CrudService } from '../crud/crud.service';
 import { _utils } from '../utils';
@@ -19,7 +19,7 @@ export class AuthService {
   rateLimitCount = 6;
 
   async updateUserLoginDetails(user){
-    await this.usersService.unsecure_fastUpdateOne({_id: user._id, failedLoginCount: user.failedLoginCount, lastLoginAttempt: user.lastLoginAttempt});
+    await this.usersService.unsecure_fastPatchOne(user._id, {failedLoginCount: user.failedLoginCount, lastLoginAttempt: user.lastLoginAttempt});
   }
 
   async signIn(email, pass) {
@@ -27,7 +27,7 @@ export class AuthService {
     entity[this.USERNAME_FIELD] = email;
     const user = await this.usersService.findOne(entity);
     if(!user){
-      throw new UnauthorizedException("Unknown user");
+      throw new UnauthorizedException("Unknown user.");
     }
 
     if(user.failedLoginCount >= this.rateLimitCount){

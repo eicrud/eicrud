@@ -8,7 +8,7 @@ import { CrudContext } from '../auth/auth.utils';
 @Injectable()
 export class CrudService<T extends CrudEntity> {
 
-    CACHE_TTL = 60 * 10; // 10 minutes
+    CACHE_TTL = 60 * 10 * 1000; // 10 minutes
 
     constructor(protected entityName: EntityName<any>, 
         protected entityManager: EntityManager,
@@ -16,10 +16,7 @@ export class CrudService<T extends CrudEntity> {
         protected id_field = '_id') {}
     
     async create(newEntity: T, context: CrudContext) {
-        const entitySize = JSON.stringify(newEntity).length;
-        if(entitySize > context?.security.maxSize || !entitySize) {
-            throw new BadRequestException('Entity size is too big.');
-        }
+        this.checkEntitySize(newEntity, context);
         const em = this.entityManager.fork();
         if(context?.security.maxItemsInDb) {
             const count = await em.count(this.entityName);
@@ -27,7 +24,7 @@ export class CrudService<T extends CrudEntity> {
                 throw new Error('Too many items in DB.');
             }
         }
-        const opts = newEntity._dto || {};
+        const opts = this.getReadOptions(newEntity);
         newEntity.createdAt = new Date();
         const entity = em.create(this.entityName, newEntity, opts as any);
         await em.persistAndFlush(entity);
@@ -36,7 +33,7 @@ export class CrudService<T extends CrudEntity> {
 
     async unsecure_fastCreate(newEntity: T) {
         const em = this.entityManager.fork();
-        const opts = newEntity._dto || {};
+        const opts = this.getReadOptions(newEntity);
         newEntity.createdAt = new Date();
         const entity = em.create(this.entityName, newEntity, opts as any);
         await em.persistAndFlush(entity);
@@ -72,72 +69,85 @@ export class CrudService<T extends CrudEntity> {
         if(cached) {
             return cached;
         }
-        const em = this.entityManager.fork();
-        const opts = this.getReadOptions(entity);
-        const result = await em.findOne(this.entityName, entity, opts as any);
+        const result = await this.findOne(entity);
         this.cacheManager.set(cacheKey, result, this.CACHE_TTL);
         return result; 
     }
     
-    async update(query: T, newEntity: T, context: CrudContext) {
+    async patch(query: T, newEntity: T, context: CrudContext, secure: boolean = true) {
         const em = this.entityManager.fork();
-        const opts = newEntity._dto || {};
-        const results = await em.find(this.entityName, query, opts as any);
-        for(let result of results) {
-            await this.safe_updateEntity(result, newEntity, context)
-        }
+        const results = await this.doQueryPatch(query, newEntity, context, em, secure);
         await em.flush();
         return results;
     }
 
-    async updateOne(id: string, newEntity: T, context: CrudContext) {
+    async unsecure_fastPatch(query: T, newEntity: T){
+        return await this.patch(query, newEntity, null, false);
+    }
+
+    async patchOne(id: string, newEntity: T, context: CrudContext, secure: boolean = true) {
         const em = this.entityManager.fork();
-        const opts = newEntity._dto || {};
-        const result = await em.findOne(this.entityName, id, opts as any);
-        await this.safe_updateEntity(result, newEntity, context);
+        const result = await this.doOnePatch(id, newEntity, context, em, secure);
         await em.flush();
         return result;
     }
 
-    
-    async unsecure_fastUpdate(query: T, newEntity: T) {
-        newEntity.updatedAt = new Date();
-        const em = this.entityManager.fork();
-        const opts = newEntity._dto || {};
+    async unsecure_fastPatchOne(id: string, newEntity: T){
+        return await this.patchOne(id, newEntity, null, false);
+    }
+
+    private async doQueryPatch(query: T, newEntity: T, ctx:CrudContext, em: EntityManager, secure: boolean){
+        const opts = this.getReadOptions(query);
         const results = await em.find(this.entityName, query, opts as any);
         for(let result of results) {
-            wrap(result).assign(newEntity, {mergeObjects: true, onlyProperties: true});
+            this.doUpdate(result, newEntity, ctx, secure);
         }
-        await em.flush();
         return results;
     }
 
-    // UNSECURE : no user imput
-    async unsecure_fastUpdateOne(id: string, newEntity: T) {
-        newEntity.updatedAt = new Date();
-        const em = this.entityManager.fork();
-        const ref = em.getReference(this.entityName, id);
-        wrap(ref).assign(newEntity, {mergeObjects: true, onlyProperties: true});
- 
-        await em.flush();
+    private async doOnePatch(id: string, newEntity: T, ctx:CrudContext, em: EntityManager, secure: boolean){
+        const opts = this.getReadOptions(newEntity);
+        const result = await em.findOne(this.entityName, id, opts as any);
+        this.doUpdate(result, newEntity, ctx, secure);
+        return result;
     }
-
-    async safe_updateEntity(entity: T, newEntity: T, context: CrudContext) {
+    
+    private doUpdate(entity: T, newEntity: T, ctx:CrudContext, secure: boolean) {
         newEntity.updatedAt = new Date();
         wrap(entity).assign(newEntity, {mergeObjects: true, onlyProperties: true});
+        if(secure){
+            this.checkEntitySize(entity, ctx);
+        }
+    }
+
+
+    async putOne(newEntity: T, context: CrudContext, secure: boolean = true) {
+        const em = this.entityManager.fork();
+        const ref = em.getReference(this.entityName, newEntity[this.id_field]);
+        const result = this.doUpdate(ref, newEntity, context, secure);
+        await em.flush();
+        return result;
+    }
+
+    async unsecure_fastPutOne(newEntity: T){
+        return await this.putOne(newEntity, null, false);
+    }
+
+    checkEntitySize(entity: T, context: CrudContext) {
         const entitySize = JSON.stringify(entity).length;
         if(entitySize > context?.security.maxSize || !entitySize) {
             throw new BadRequestException('Entity size is too big');
         }
     }
-    
+
+
     async remove(query: T) {
         const em = this.entityManager.fork();
-        const opts = query._dto || {};
+        const opts = this.getReadOptions(query);
         const results = await em.find(this.entityName, query, opts as any);
         const length = results.length;
         for(let result of results) {
-            em.remove(result);
+            this.doRemove(result, em);
         }
         await em.flush();
         return length;
@@ -146,7 +156,13 @@ export class CrudService<T extends CrudEntity> {
     async removeOne(id: string) {
         const em = this.entityManager.fork();
         const book1 = em.getReference(this.entityName, id);
-        await em.remove(book1).flush();
+        const result = this.doRemove(book1, em);
+        await em.flush();
+        return result;
+    }
+
+    doRemove(entity: T, em: EntityManager) {
+        em.remove(entity);
     }
 
 
