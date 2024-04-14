@@ -4,3 +4,4 @@
 - add before, after & error hooks
 - make sur to pass ctx for datadog trace tracking
 - check cannot default throw
+- batch wait for flush

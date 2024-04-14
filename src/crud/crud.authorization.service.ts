@@ -10,15 +10,22 @@ export class CrudAuthorization {
 
     constructor(
         protected roles: CrudRole[] = [], 
-        public securityMap: Record<string, CrudSecurity> = {}
     ) { }
 
+
+    authorizeBatch(ctx: CrudContext, batchSize: number) {
+
+        switch (ctx.method) {
+
+        }
+
+
+    }
 
     authorize(ctx: CrudContext) {
 
         const fields = AuthUtils.getObjectFields(ctx.data);
-        ctx.security = this.securityMap[ctx.serviceName];
-        
+
         if (ctx.security.maxItemsPerUser && ctx.method == 'POST') {
             const count = ctx.user?.crudMap?.[ctx.serviceName];
             if (count >= ctx.security.maxItemsPerUser) {
