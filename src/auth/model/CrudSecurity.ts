@@ -28,9 +28,17 @@ export const httpAliasResolver = createAliasResolver({
 });
 
  
+export interface BatchRights {
+    canBatch: boolean;
+    maxBatchSize: number;
+}
 
 export interface CrudSecurityRights {
 
+    createBatchRights?: BatchRights;
+    updateBatchRights?: BatchRights;
+    deleteBatchRights?: BatchRights;
+    
     fields: string[];
 
     defineCRUDAbility(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], context: CrudContext);

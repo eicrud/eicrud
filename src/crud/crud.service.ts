@@ -169,5 +169,17 @@ export class CrudService<T extends CrudEntity> {
         em.remove(entity);
     }
 
+    async errorHook(e: Error, context: CrudContext): Promise<any> {
+
+    }
+
+    async afterHook(context: CrudContext, res: any): Promise<any> {
+
+    }
+
+    async beforeHook(context: CrudContext): Promise<any> {
+
+    }
+
 
 }
