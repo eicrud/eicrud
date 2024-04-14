@@ -1,5 +1,5 @@
 import { AbilityBuilder, createAliasResolver } from "@casl/ability";
-import { CrudContext } from "./CrudContext";
+import { CrudContext } from "../../auth/model/CrudContext";
 
 export class CrudSecurity {
 
@@ -29,7 +29,6 @@ export const httpAliasResolver = createAliasResolver({
 
  
 export interface BatchRights {
-    canBatch: boolean;
     maxBatchSize: number;
 }
 

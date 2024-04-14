@@ -3,22 +3,61 @@ import { AuthUtils } from "../auth/auth.utils";
 import { CrudContext } from "../auth/model/CrudContext";
 import { CrudRole } from "../auth/model/CrudRole";
 import { defineAbility, subject } from "@casl/ability";
-import { CrudSecurity, httpAliasResolver } from "../auth/model/CrudSecurity";
+import { BatchRights, CrudSecurity, httpAliasResolver } from "./model/CrudSecurity";
 
 
 export class CrudAuthorization {
 
+    rolesMap: Record<string, CrudRole> = {};
     constructor(
         protected roles: CrudRole[] = [], 
-    ) { }
+    ) { 
+        this.rolesMap = roles.reduce((acc, role) => {
+            acc[role.name] = role;
+            return acc;
+        }, {});
+    }
 
-
-    authorizeBatch(ctx: CrudContext, batchSize: number) {
-
+    getMatchBatchSizeFromCrudRoleAndParents(ctx: CrudContext, userRole: CrudRole){
+        const roleRights = ctx.security.rolesRights[userRole.name];
+        let batchRights: BatchRights;
+        
         switch (ctx.method) {
-
+            case 'POST':
+                batchRights = roleRights.createBatchRights
+            break;
+            case 'PUT':
+            case 'PATCH':
+                batchRights = roleRights.updateBatchRights;
+            break;
+            case 'DELETE':
+                batchRights = roleRights.deleteBatchRights;
+            break;
         }
 
+        let maxBatchSize = batchRights?.maxBatchSize || 0;
+
+        if (userRole.inherits?.length) {
+            for (const parent of userRole.inherits) {
+                const parentRole = this.rolesMap[parent];
+                const parentMaxBatchSize = this.getMatchBatchSizeFromCrudRoleAndParents(ctx, parentRole);
+                if (parentMaxBatchSize > maxBatchSize) {
+                    maxBatchSize = parentMaxBatchSize;
+                }
+            }
+        }
+        return maxBatchSize;
+
+    }
+
+    authorizeBatch(ctx: CrudContext, batchSize: number) {
+        
+        const userRole: CrudRole = this.rolesMap[ctx.user?.role];
+        const maxBatchSize = this.getMatchBatchSizeFromCrudRoleAndParents(ctx, userRole);
+        
+        if (batchSize > maxBatchSize) {
+            throw new ForbiddenException(`Maxbatchsize (${maxBatchSize}) exceeded (${batchSize}).`);
+        }
 
     }
 
@@ -33,7 +72,7 @@ export class CrudAuthorization {
             }
         }
 
-        const crudRole: CrudRole = this.roles.find(role => role.name == ctx.user.role) || { name: 'guest' };
+        const crudRole: CrudRole = this.rolesMap[ctx.user?.role];
 
         const checkRes = this.recursCheckRolesAndParents(crudRole, ctx, fields);
 
@@ -60,7 +99,7 @@ export class CrudAuthorization {
         const roleRights = crudContext.security.rolesRights[role.name];
         const userAbilities = defineAbility((can, cannot) => {
             
-            if(crudContext.type == "crud"){
+            if(crudContext.origin == "crud"){
                 roleRights.defineCRUDAbility(can, cannot, crudContext);
             }else{
                 roleRights.defineCMDAbility(can, cannot, crudContext);
@@ -89,7 +128,7 @@ export class CrudAuthorization {
         }
         if (role.inherits?.length) {
             for (const parent of role.inherits) {
-                const parentRole = this.roles.find(role => role.name == parent);
+                const parentRole = this.rolesMap[parent];
                 const checkRes = this.recursCheckRolesAndParents(parentRole, crudContext, fields)
                 if (checkRes) {
                     return checkRes;

@@ -11,7 +11,7 @@ import { AuthUtils } from './auth.utils';
 import { CrudService } from '../crud/crud.service';
 import { CrudDto, CrudEntity } from '../crud/model/CrudEntity';
 import { CrudContext } from './model/CrudContext';
-import { CrudSecurity } from './model/CrudSecurity';
+import { CrudSecurity } from '../crud/model/CrudSecurity';
 
 
 @Injectable()

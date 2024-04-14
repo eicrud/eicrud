@@ -13,7 +13,6 @@ import { CrudConfig } from './model/CrudConfig';
 })
 export class CrudController<T extends CrudEntity> {
 
-
     crudMap: Record<string, CrudService<any>>;
 
     constructor(
@@ -28,8 +27,7 @@ export class CrudController<T extends CrudEntity> {
             }, {});
         }
 
-
-    assignContext(method: string, crudQuery: CrudQuery, query: any, data: any, ctx: CrudContext): CrudService<any>{
+    assignContext(method: string, crudQuery: CrudQuery, query: any, data: any, type, ctx: CrudContext): CrudService<any>{
         const currentService: CrudService<any> = this.crudMap[query.service];
         ctx.method = method
         ctx.serviceName = crudQuery.service
@@ -37,28 +35,27 @@ export class CrudController<T extends CrudEntity> {
         ctx.data = data;
         ctx.options = crudQuery.options;
         ctx.security = currentService.security;
+        ctx.origin = type;
 
         return currentService;
     }
 
-
     async beforeHooks(service: CrudService<any>, ctx: CrudContext){
-        await service.beforeHook(ctx);
+        await service.beforeControllerHook(ctx);
         await this.crudConfig.hooks.beforeAllHook?.(ctx);
     }
     async afterHooks(service: CrudService<any>, res, ctx: CrudContext){
-        await service.afterHook(res, ctx);
+        await service.afterControllerHook(res, ctx);
         await this.crudConfig.hooks.afterAllHook?.(ctx, res);
     }
     async errorHooks(service: CrudService<any>, e, ctx: CrudContext){
-        await service.errorHook(e, ctx);
+        await service.errorControllerHook(e, ctx);
         await this.crudConfig.hooks.errorAllHook?.(e, ctx);
         throw e;
     }
 
-
     async subCreate(query: CrudQuery, newEntity: any, ctx: CrudContext){
-        const service = this.assignContext('POST', query, newEntity, newEntity, ctx);
+        const service = this.assignContext('POST', query, newEntity, newEntity, 'crud', ctx);
         try{
             this.crudAuthorization.authorize(ctx);
 
@@ -87,12 +84,17 @@ export class CrudController<T extends CrudEntity> {
 
     @Post('batch')
     async _batchCreate(@Query() query: CrudQuery, @Body() newEntities: T[], @Context() ctx: CrudContext) {
-        const service: CrudService<any> = this.crudMap[query.service];
-        
-
+        this.assignContext('POST', query, newEntities[0], newEntities[0], 'crud', ctx);
+        await this.crudAuthorization.authorizeBatch(ctx, newEntities.length);
+        ctx.noFlush = true;
+        const results = [];
+        for(const entity of newEntities) {
+            results.push(await this.subCreate(query, entity, ctx));
+        }
+        ctx.noFlush = false;
+        await ctx.em.flush();
+        return results;
     }
-
-
 
     @Delete('one')
     async _delete(query: T, ctx?: CrudContext) {
@@ -109,7 +111,6 @@ export class CrudController<T extends CrudEntity> {
         }
         return res;
     }
-
 
     async _find(entity: T) {
         return this.crudService.find(entity);

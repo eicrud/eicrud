@@ -1,7 +1,7 @@
 import { EntityManager } from "@mikro-orm/core";
 import { CrudOptions } from "../../crud/model/CrudOptions";
 import { CrudUser } from "../../user/entity/CrudUser";
-import { CrudSecurity } from "./CrudSecurity";
+import { CrudSecurity } from "../../crud/model/CrudSecurity";
 
 export interface CrudContext {
     serviceName: string, 
@@ -10,9 +10,8 @@ export interface CrudContext {
     security: CrudSecurity,
     query: any, 
     data: any,
-    type: "crud" | "cmd",
+    origin: "crud" | "cmd" | "webhook" | string,
     options: CrudOptions,
-
     em: EntityManager;
     noFlush: boolean;
 

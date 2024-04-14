@@ -2,7 +2,7 @@
 import { SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { CrudSecurity } from './model/CrudSecurity';
+import { CrudSecurity } from '../crud/model/CrudSecurity';
 import { CrudContext } from './model/CrudContext';
 
 
