@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CrudService } from '../crud/crud.service';
-import { CrudSecurity } from '../auth/model/CrudSecurity';
+import { CrudSecurity } from '../crud/model/CrudSecurity';
 import { CrudContext } from '../auth/auth.utils';
 import { _utils } from '../utils';
 import { CrudUser } from './entity/CrudUser';

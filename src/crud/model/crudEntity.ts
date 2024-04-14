@@ -1,4 +1,4 @@
-import { CrudSecurity } from "../../auth/model/CrudSecurity";
+import { CrudSecurity } from "./CrudSecurity";
 
 
 
