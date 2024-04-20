@@ -9,5 +9,4 @@ export interface CrudGlobalHooks{
 
     errorAllHook(error: Error, ctx: CrudContext): Promise<any>,
 
-
 }

@@ -3,11 +3,15 @@ import { CrudService } from "../crud.service";
 import { CrudGlobalHooks } from "./CrudHooks";
 
 
-export interface CrudConfig{
+export class CrudConfig{
 
-    services: CrudService<any>[],
+    services: CrudService<any>[];
 
-    roles: CrudRole[],
+    id_field: string = '_id';
+
+    guest_role: string = "guest" 
+
+    roles: CrudRole[];
 
     hooks: CrudGlobalHooks;
     

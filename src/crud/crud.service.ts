@@ -4,6 +4,9 @@ import { EntityManager, EntityName, wrap } from '@mikro-orm/core';
 import { CrudSecurity } from './model/CrudSecurity';
 import { Cache } from 'cache-manager';
 import { CrudContext } from '../auth/model/CrudContext';
+import { CrudConfig } from './model/CrudConfig';
+import { CrudUser } from '../user/entity/CrudUser';
+import { CrudUserService } from '../user/crud-user.service';
 
 @Injectable()
 export class CrudService<T extends CrudEntity> {
@@ -17,7 +20,8 @@ export class CrudService<T extends CrudEntity> {
     constructor(protected entityName: EntityName<any>, 
         protected entityManager: EntityManager,
         protected cacheManager: Cache,
-        protected id_field = '_id') {}
+        protected userService: CrudUserService,
+        protected crudConfig: CrudConfig) {}
     
     async create(newEntity: T, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
         const em = context.em || this.entityManager.fork();
@@ -54,10 +58,10 @@ export class CrudService<T extends CrudEntity> {
     }
 
     getCacheKey(entity: T) {
-        return this.entityName + entity[this.id_field].toString();
+        return this.entityName + entity[this.crudConfig.id_field].toString();
     }
 
-    async findOne(entity: T, context: CrudContext, inheritance: any = {}) {
+    async findOne(entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
         const em = context.em || this.entityManager.fork();
         const opts = this.getReadOptions(context);
         const result = await em.findOne(this.entityName, entity, opts as any);
@@ -129,7 +133,7 @@ export class CrudService<T extends CrudEntity> {
 
     async putOne(newEntity: T, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
         const em = context.em || this.entityManager.fork();
-        const ref = em.getReference(this.entityName, newEntity[this.id_field]);
+        const ref = em.getReference(this.entityName, newEntity[this.crudConfig.id_field]);
         const result = await this.doUpdate(ref, newEntity, context, secure);
         if(!context.noFlush) {
             await em.flush();
@@ -142,9 +146,22 @@ export class CrudService<T extends CrudEntity> {
         return await this.putOne(newEntity, context, false, inheritance);
     }
 
+    notGuest(user: CrudUser) {
+        return user.role != this.crudConfig.guest_role;
+    }
+
     async checkEntitySize(entity: T, context: CrudContext) {
+        if(!context?.security.maxSize){
+            return;
+        }
         const entitySize = JSON.stringify(entity).length;
-        if(entitySize > context?.security.maxSize || !entitySize) {
+        let maxSize = context?.security.maxSize;
+        let add = context?.security.additionalMaxSizePerTrustPoints;
+        if(add){
+           add = add*(await this.userService.getOrComputeTrust(context.user, context));
+           maxSize+=Math.max(add,0);;
+        }
+        if((entitySize > maxSize) || !entitySize) {
             throw new BadRequestException('Entity size is too big');
         }
     }

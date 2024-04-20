@@ -6,6 +6,10 @@ export class CrudSecurity {
     maxSize?: number;
     maxItemsInDb?: number;
     maxItemsPerUser?: number;
+
+    additionalItemsInDbPerTrustPoints?: number;
+    additionalMaxSizePerTrustPoints?: number;
+
     rolesRights: Record<string, CrudSecurityRights> = {};
 
 }
