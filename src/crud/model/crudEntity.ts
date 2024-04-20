@@ -1,8 +1,10 @@
+import { BaseEntity, Entity, EntityClass } from "@mikro-orm/core";
 import { CrudSecurity } from "./CrudSecurity";
 
 
 
-export interface CrudEntity {
+
+export interface CrudEntity extends EntityClass<any> {
     createdAt: Date;
     updatedAt: Date;
 }

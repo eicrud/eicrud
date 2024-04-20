@@ -1,35 +1,33 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CrudUserService } from '../user/crud-user.service';
 import { JwtService } from '@nestjs/jwt';
-import { CrudService } from '../crud/crud.service';
 import { _utils } from '../utils';
 
 import * as bcrypt from 'bcrypt';
-import { CrudConfig } from '../crud/model/CrudConfig';
 import { t } from '@mikro-orm/core';
+import { CrudConfigService } from '../crud/crud.config.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    protected usersService: CrudUserService,
     protected jwtService: JwtService,
     protected JWT_SECRET: string,
     protected FIELDS_IN_PAYLOAD: string[] = ['_id', 'revokedCount'],
     protected USERNAME_FIELD = 'email',
-    protected crudConfig: CrudConfig,
+    protected crudConfig: CrudConfigService,
 
   ) {}
 
   rateLimitCount = 6;
 
   async updateUserLoginDetails(user){
-    await this.usersService.unsecure_fastPatchOne(user[this.crudConfig.id_field], {failedLoginCount: user.failedLoginCount, lastLoginAttempt: user.lastLoginAttempt}, null);
+    await this.crudConfig.userService.unsecure_fastPatchOne(user[this.crudConfig.id_field], {failedLoginCount: user.failedLoginCount, lastLoginAttempt: user.lastLoginAttempt}, null);
   }
 
   async signIn(email, pass) {
     const entity = {};
     entity[this.USERNAME_FIELD] = email;
-    const user = await this.usersService.findOne(entity, null);
+    const user = await this.crudConfig.userService.findOne(entity, null);
     if(!user){
       throw new UnauthorizedException("Unknown user.");
     }

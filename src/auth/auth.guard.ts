@@ -13,7 +13,7 @@ import { CrudDto, CrudEntity } from '../crud/model/CrudEntity';
 import { CrudContext } from './model/CrudContext';
 import { CrudSecurity } from '../crud/model/CrudSecurity';
 import { CrudUser } from '../user/entity/CrudUser';
-import { CrudConfig } from '../crud/model/CrudConfig';
+import { CrudConfigService } from '../crud/model/CrudConfigService';
 
 
 @Injectable()
@@ -24,7 +24,7 @@ export class AuthGuard implements CanActivate {
     protected usersService: CrudService<CrudUser>,
     protected JWT_SECRET: string,
     protected servicePositionInUri = 2,
-    protected crudConfig: CrudConfig
+    protected crudConfig: CrudConfigService
     ) {
       
     }
