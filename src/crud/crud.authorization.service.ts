@@ -5,18 +5,16 @@ import { CrudRole } from "../auth/model/CrudRole";
 import { defineAbility, subject } from "@casl/ability";
 import { BatchRights, CrudSecurity, httpAliasResolver } from "./model/CrudSecurity";
 import { CrudUserService } from "../user/crud-user.service";
-import { CrudConfig } from "./model/CrudConfig";
+import { CrudConfigService } from "./crud.config.service";
 
 
-export class CrudAuthorization {
+export class CrudAuthorizationService {
 
     rolesMap: Record<string, CrudRole> = {};
     constructor(
-        protected roles: CrudRole[] = [], 
-        protected userService: CrudUserService,
-        protected crudConfig: CrudConfig
+        protected crudConfig: CrudConfigService
     ) { 
-        this.rolesMap = roles.reduce((acc, role) => {
+        this.rolesMap = crudConfig.roles.reduce((acc, role) => {
             acc[role.name] = role;
             return acc;
         }, {});
@@ -70,13 +68,13 @@ export class CrudAuthorization {
         const fields = AuthUtils.getObjectFields(ctx.data);
 
         if (ctx.security.maxItemsPerUser && 
-            this.userService.notGuest(ctx.user) &&
+            this.crudConfig.userService.notGuest(ctx.user) &&
             ctx.method == 'POST') {
 
             let max = ctx.security.maxItemsPerUser;
             let add = ctx?.security.additionalItemsInDbPerTrustPoints;
             if(add){
-               add = add*(await this.userService.getOrComputeTrust(ctx.user, ctx));
+               add = add*(await this.crudConfig.userService.getOrComputeTrust(ctx.user, ctx));
                max+=Math.max(add,0);
             }
             const count = ctx.user?.crudMap?.[ctx.serviceName];

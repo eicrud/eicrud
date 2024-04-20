@@ -1,13 +1,14 @@
-import { Body, Controller, Delete, ForbiddenException, Post, Query, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Inject, Post, Query, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
 import { CrudContext } from '../auth/model/CrudContext';
 import { Context } from '../auth/auth.utils';
 import { CrudQuery } from './model/CrudQuery';
-import { CrudAuthorization } from './crud.authorization.service';
-import { CrudConfig } from './model/CrudConfig';
+import { CrudAuthorizationService } from './crud.authorization.service';
+
 import { CrudUser } from '../user/entity/CrudUser';
 import { CrudUserService } from '../user/crud-user.service';
+import { CrudConfigService } from './crud.config.service';
 
 @Controller({
     path: "crud",
@@ -18,9 +19,9 @@ export class CrudController<T extends CrudEntity> {
     crudMap: Record<string, CrudService<any>>;
 
     constructor(
-        protected userService: CrudUserService,
-        protected crudAuthorization: CrudAuthorization,
-        protected crudConfig: CrudConfig,
+        public crudAuthorization: CrudAuthorizationService,
+        @Inject(forwardRef(() => CrudConfigService))
+        protected crudConfig: CrudConfigService,
 
         ) {
             this.crudMap = crudConfig.services.reduce((acc, service) => {
@@ -53,10 +54,10 @@ export class CrudController<T extends CrudEntity> {
     async errorHooks(service: CrudService<any>, e: Error, ctx: CrudContext){
         await service.errorControllerHook(e, ctx);
         await this.crudConfig.hooks.errorAllHook?.(e, ctx);
-        if(e instanceof ForbiddenException && this.userService.notGuest(ctx?.user)){
-            this.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { incidentCount: ctx.user.incidentCount + 1 } , ctx);
+        if(e instanceof ForbiddenException && this.crudConfig.userService.notGuest(ctx?.user)){
+            this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { incidentCount: ctx.user.incidentCount + 1 } , ctx);
         }else{
-            this.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { errorCount: ctx.user.errorCount + 1 } , ctx);
+            this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { errorCount: ctx.user.errorCount + 1 } , ctx);
         }
         throw e;
     }
@@ -75,7 +76,7 @@ export class CrudController<T extends CrudEntity> {
             if(ctx?.user && ctx?.serviceName) {
                 const count = ctx?.user.crudMap[ctx.serviceName] || 0;
                 ctx.user.crudMap[ctx.serviceName] = count + 1;
-                this.userService.unsecure_fastPatchOne(ctx?.user[this.id_field], {crudMap: ctx.user.crudMap}, ctx);
+                this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.id_field], {crudMap: ctx.user.crudMap}, ctx);
             }
 
             return res;
@@ -114,7 +115,7 @@ export class CrudController<T extends CrudEntity> {
         if(ctx?.user && ctx?.serviceName) {
             const count = ctx?.user.crudMap[ctx.serviceName] || 0;
             ctx.user.crudMap[ctx.serviceName] = count - (res || 1);
-            this.userService.unsecure_fastPatchOne(ctx?.user[this.id_field], {crudMap: ctx.user.crudMap}, ctx);
+            this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.id_field], {crudMap: ctx.user.crudMap}, ctx);
         }
         return res;
     }
