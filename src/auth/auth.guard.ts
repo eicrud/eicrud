@@ -12,6 +12,8 @@ import { CrudService } from '../crud/crud.service';
 import { CrudDto, CrudEntity } from '../crud/model/CrudEntity';
 import { CrudContext } from './model/CrudContext';
 import { CrudSecurity } from '../crud/model/CrudSecurity';
+import { CrudUser } from '../user/entity/CrudUser';
+import { CrudConfig } from '../crud/model/CrudConfig';
 
 
 @Injectable()
@@ -19,20 +21,20 @@ export class AuthGuard implements CanActivate {
   
   
   constructor(protected jwtService: JwtService, protected reflector: Reflector,
-    protected usersService: CrudService<any>,
+    protected usersService: CrudService<CrudUser>,
     protected JWT_SECRET: string,
-    protected securityMap: Record<string, CrudSecurity> = {},
-    protected GUEST_ROLE: string = 'guest',
     protected servicePositionInUri = 2,
-    ) {}
+    protected crudConfig: CrudConfig
+    ) {
+      
+    }
 
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const isPublic = AuthUtils.isPublicKey(context, this.reflector)
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
-    let user: any = { role: this.GUEST_ROLE }
-    if (token && !isPublic) {
+    let user: CrudUser = { role: this.crudConfig.guest_role } as any;
+    if (token) {
       try {
         const payload = await this.jwtService.verifyAsync(
           token,
@@ -56,12 +58,9 @@ export class AuthGuard implements CanActivate {
         throw new UnauthorizedException(e);
       }
     }
-    const serviceName = this.parseServiceName(request.path);
-    const method = request.method;
-    const query: CrudEntity = request.query?.query || request.body?.query || request.body?.data;
-    const data = request.body?.data;
-    const security: CrudSecurity = this.securityMap[serviceName];
-    const crudContext: CrudContext = { serviceName, user, security, method, query, data };
+
+    user.crudMap = user.crudMap || {};
+    const crudContext: CrudContext = { user };
     request['crudContext'] = crudContext
     return true;
   }
@@ -71,8 +70,4 @@ export class AuthGuard implements CanActivate {
     return type === 'Bearer' ? token : undefined;
   }
 
-  private parseServiceName(path: string) {
-    const pathParts = path.split('/');
-    return pathParts[this.servicePositionInUri];
-  }
 }

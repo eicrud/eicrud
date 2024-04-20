@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Post, Query, UnauthorizedException } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
 import { CrudContext } from '../auth/model/CrudContext';
@@ -6,6 +6,8 @@ import { Context } from '../auth/auth.utils';
 import { CrudQuery } from './model/CrudQuery';
 import { CrudAuthorization } from './crud.authorization.service';
 import { CrudConfig } from './model/CrudConfig';
+import { CrudUser } from '../user/entity/CrudUser';
+import { CrudUserService } from '../user/crud-user.service';
 
 @Controller({
     path: "crud",
@@ -16,10 +18,10 @@ export class CrudController<T extends CrudEntity> {
     crudMap: Record<string, CrudService<any>>;
 
     constructor(
-        protected userService: CrudService<any>,
-        protected id_field = '_id',
+        protected userService: CrudUserService,
         protected crudAuthorization: CrudAuthorization,
-        protected crudConfig: CrudConfig
+        protected crudConfig: CrudConfig,
+
         ) {
             this.crudMap = crudConfig.services.reduce((acc, service) => {
                 acc[service.name] = service;
@@ -48,16 +50,21 @@ export class CrudController<T extends CrudEntity> {
         await service.afterControllerHook(res, ctx);
         await this.crudConfig.hooks.afterAllHook?.(ctx, res);
     }
-    async errorHooks(service: CrudService<any>, e, ctx: CrudContext){
+    async errorHooks(service: CrudService<any>, e: Error, ctx: CrudContext){
         await service.errorControllerHook(e, ctx);
         await this.crudConfig.hooks.errorAllHook?.(e, ctx);
+        if(e instanceof ForbiddenException && this.userService.notGuest(ctx?.user)){
+            this.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { incidentCount: ctx.user.incidentCount + 1 } , ctx);
+        }else{
+            this.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { errorCount: ctx.user.errorCount + 1 } , ctx);
+        }
         throw e;
     }
 
     async subCreate(query: CrudQuery, newEntity: any, ctx: CrudContext){
         const service = this.assignContext('POST', query, newEntity, newEntity, 'crud', ctx);
         try{
-            this.crudAuthorization.authorize(ctx);
+            await this.crudAuthorization.authorize(ctx);
 
             await this.beforeHooks(service, ctx);
 

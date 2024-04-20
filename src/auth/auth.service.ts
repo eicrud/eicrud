@@ -5,23 +5,25 @@ import { CrudService } from '../crud/crud.service';
 import { _utils } from '../utils';
 
 import * as bcrypt from 'bcrypt';
+import { CrudConfig } from '../crud/model/CrudConfig';
+import { t } from '@mikro-orm/core';
 
 @Injectable()
 export class AuthService {
   constructor(
-    protected usersService: CrudService<any>,
+    protected usersService: CrudUserService,
     protected jwtService: JwtService,
     protected JWT_SECRET: string,
     protected FIELDS_IN_PAYLOAD: string[] = ['_id', 'revokedCount'],
     protected USERNAME_FIELD = 'email',
-    protected id_field = '_id',
+    protected crudConfig: CrudConfig,
 
   ) {}
 
   rateLimitCount = 6;
 
   async updateUserLoginDetails(user){
-    await this.usersService.unsecure_fastPatchOne(user[this.id_field], {failedLoginCount: user.failedLoginCount, lastLoginAttempt: user.lastLoginAttempt}, null);
+    await this.usersService.unsecure_fastPatchOne(user[this.crudConfig.id_field], {failedLoginCount: user.failedLoginCount, lastLoginAttempt: user.lastLoginAttempt}, null);
   }
 
   async signIn(email, pass) {
@@ -32,8 +34,12 @@ export class AuthService {
       throw new UnauthorizedException("Unknown user.");
     }
 
+    if(user.timeout > new Date()){
+        throw new UnauthorizedException("Account locked. Please wait until " + user.timeout.toISOString());
+    }
+
     if(user.failedLoginCount >= this.rateLimitCount){
-      const timeoutMS = user.failedLoginCount*user.failedLoginCount*1000;
+      const timeoutMS = Math.min(user.failedLoginCount*user.failedLoginCount*1000, 60000 * 5);
       const diffMs = _utils.diffBetweenDatesMs(user.lastLoginAttempt, new Date());
       if(diffMs < timeoutMS){
         throw new UnauthorizedException("Too many login attempts. Please wait " + Math.round((timeoutMS-diffMs)/1000) + " seconds");
