@@ -7,7 +7,9 @@ export interface CrudQuery {
 
     options: CrudOptions,
 
-    query: any
+    query: any,
+
+    cmd: string,
 
 
 }

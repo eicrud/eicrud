@@ -25,7 +25,7 @@ export class CrudController<T extends CrudEntity> {
 
         ) {
             this.crudMap = crudConfig.services.reduce((acc, service) => {
-                acc[service.name] = service;
+                acc[service.entity.toString()] = service;
                 return acc;
             }, {});
         }
@@ -44,20 +44,25 @@ export class CrudController<T extends CrudEntity> {
     }
 
     async beforeHooks(service: CrudService<any>, ctx: CrudContext){
+        
         await service.beforeControllerHook(ctx);
-        await this.crudConfig.hooks.beforeAllHook?.(ctx);
+        await this.crudConfig.beforeAllHook?.(ctx);
+
     }
     async afterHooks(service: CrudService<any>, res, ctx: CrudContext){
         await service.afterControllerHook(res, ctx);
-        await this.crudConfig.hooks.afterAllHook?.(ctx, res);
+        await this.crudConfig.afterAllHook?.(ctx, res);
     }
     async errorHooks(service: CrudService<any>, e: Error, ctx: CrudContext){
         await service.errorControllerHook(e, ctx);
-        await this.crudConfig.hooks.errorAllHook?.(e, ctx);
-        if(e instanceof ForbiddenException && this.crudConfig.userService.notGuest(ctx?.user)){
-            this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { incidentCount: ctx.user.incidentCount + 1 } , ctx);
-        }else{
-            this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { errorCount: ctx.user.errorCount + 1 } , ctx);
+        await this.crudConfig.errorAllHook?.(e, ctx);
+        const notGuest = this.crudConfig.userService.notGuest(ctx?.user);
+        if(notGuest){
+            if(e instanceof ForbiddenException){
+                this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { incidentCount: ctx.user.incidentCount + 1 } , ctx);
+            }else{
+                this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { errorCount: ctx.user.errorCount + 1 } , ctx);
+            }
         }
         throw e;
     }
@@ -94,6 +99,20 @@ export class CrudController<T extends CrudEntity> {
     async _batchCreate(@Query() query: CrudQuery, @Body() newEntities: T[], @Context() ctx: CrudContext) {
         this.assignContext('POST', query, newEntities[0], newEntities[0], 'crud', ctx);
         await this.crudAuthorization.authorizeBatch(ctx, newEntities.length);
+        ctx.noFlush = true;
+        const results = [];
+        for(const entity of newEntities) {
+            results.push(await this.subCreate(query, entity, ctx));
+        }
+        ctx.noFlush = false;
+        await ctx.em.flush();
+        return results;
+    }
+
+    @Post('cmd')
+    async _secureCMD(@Query() query: CrudQuery, @Body() newEntities: T[], @Context() ctx: CrudContext) {
+        this.assignContext('POST', query, newEntities[0], newEntities[0], 'cmd', ctx);
+        await this.crudAuthorization.authorize(ctx, newEntities.length);
         ctx.noFlush = true;
         const results = [];
         for(const entity of newEntities) {

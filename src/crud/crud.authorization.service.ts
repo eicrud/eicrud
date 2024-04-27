@@ -81,24 +81,26 @@ export class CrudAuthorizationService {
 
         const fields = AuthUtils.getObjectFields(ctx.data);
 
-        if (ctx.security.maxItemsPerUser && 
+        if (ctx.origin == 'crud' && ctx.security.maxItemsPerUser && 
             this.crudConfig.userService.notGuest(ctx.user) &&
             ctx.method == 'POST') {
-
+            const count = ctx.user?.crudUserDataMap?.[ctx.serviceName]?.itemsCreated;
             let max = ctx.security.maxItemsPerUser;
             let add = ctx?.security.additionalItemsInDbPerTrustPoints;
             if(add){
                add = add*(await this.crudConfig.userService.getOrComputeTrust(ctx.user, ctx));
                max+=Math.max(add,0);
             }
-            const count = ctx.user?.crudUserDataMap?.[ctx.serviceName]?.itemsCreated;
             if (count >= max) {
                 throw new ForbiddenException(`You have reached the maximum number of items for this resource (${ctx.security.maxItemsPerUser})`);
             }
-        }
-        if (ctx.method == 'CMD'){
+        }else if (ctx.origin == 'cmd'){
             const cmdSec = ctx.security.cmdSecurityMap?.[ctx.cmdName];
             if(cmdSec?.maxUsesPerUser && this.crudConfig.userService.notGuest(ctx.user)) {
+                if(ctx.method != 'POST'){
+                    // in that case user is cached and we can't check the cmd count properly
+                    throw new ForbiddenException(`Command must be used in secure mode (POST)`);
+                }
                 let max = cmdSec.maxUsesPerUser;
                 let add = cmdSec.additionalUsesPerTrustPoint;
                 if(add){
@@ -147,10 +149,11 @@ export class CrudAuthorizationService {
             }
             
             if (roleRights.fields && crudContext.method == 'GET') {
-                crudContext.options.fields = roleRights.fields;
+                crudContext.options.fields = roleRights.fields as any;
             }
         }, { resolveAction: httpAliasResolver });
-        let allGood = this.loopFieldAndCheckCannot(true, crudContext.method, crudContext.query, fields, userAbilities, crudContext);
+        const methodToCheck = crudContext.origin == "crud" ? crudContext.method : crudContext.cmdName;
+        let allGood = this.loopFieldAndCheckCannot(true, methodToCheck, crudContext.query, fields, userAbilities, crudContext);
         
         if (allGood && crudContext.options) {
             const userOptionsAbilities = defineAbility((can, cannot) => {

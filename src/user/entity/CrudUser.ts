@@ -14,6 +14,8 @@ export interface CrudUser extends CrudEntity{
 
     lastLoginAttempt: Date;
     failedLoginCount: number;
+
+    lastResetEmailSent: Date;
     
     role: string;
   
@@ -24,9 +26,19 @@ export interface CrudUser extends CrudEntity{
 
     errorCount: number;
     incidentCount: number;
+    highTrafficCount: number;
 
     trust: number;
     lastComputedTrust: Date;
 
     timeout: Date;
+    timeoutCount: number;
+
+    didCaptcha: boolean;
+    captchaRequested: boolean;
+
+    twoFA: boolean;
+    lastTwoFACode: string;
+    lastTwoFACodeSent: Date;
+
   };
