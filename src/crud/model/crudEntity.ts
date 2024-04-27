@@ -4,7 +4,7 @@ import { CrudSecurity } from "./CrudSecurity";
 
 
 
-export interface CrudEntity extends EntityClass<any> {
+export interface CrudEntity extends Partial<BaseEntity>{
     createdAt: Date;
     updatedAt: Date;
 }

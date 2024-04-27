@@ -5,7 +5,8 @@ import { CrudSecurity } from "../../crud/model/CrudSecurity";
 
 export interface CrudContext {
     serviceName?: string, 
-    user?: CrudUser, 
+    user?: Partial<CrudUser>, 
+    userId?: string,
     method?: string, 
     security?: CrudSecurity,
     query?: any, 

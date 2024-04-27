@@ -14,9 +14,11 @@ export class CrudSecurity {
     additionalItemsInDbPerTrustPoints?: number;
     additionalMaxSizePerTrustPoints?: number;
 
-    cmdSecurityMap: Record<string, CmdSecurity> = {};
+    cmdSecurityMap?: Record<string, CmdSecurity> = {};
 
-    rolesRights: Record<string, CrudSecurityRights> = {};
+    rolesRights?: Record<string, CrudSecurityRights> = {};
+
+
 
 }
 
@@ -48,13 +50,13 @@ export interface CrudSecurityRights {
     updateBatchRights?: BatchRights;
     deleteBatchRights?: BatchRights;
     
-    fields: string[];
+    fields?: string[];
 
-    defineCRUDAbility(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], context: CrudContext);
+    defineCRUDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], context: CrudContext);
     
-    defineCMDAbility(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], context: CrudContext);
+    defineCMDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], context: CrudContext);
 
-    defineOPTAbility(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], context: CrudContext);
+    defineOPTAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], context: CrudContext);
     
 }
 

@@ -1,21 +1,26 @@
 import { CrudEntity } from "../../crud/model/CrudEntity";
 
 export enum LogType {
+    DEBUG = "DEBUG",
     INFO = "INFO",
     WARNING = "WARNING",
     ERROR = "ERROR",
-    DEBUG = "DEBUG",
+    SECURITY = "SECURITY",
+    CRITICAL = "CRITICAL",
 }
 
-export class Log extends CrudEntity {
+export class Log implements CrudEntity {
 
-    level: number = 1;
     type: LogType = LogType.INFO;
     message: string;
     data: string;
+    query: string;
     serviceName: string;
+    cmdName?: string;
     userId: string;
-    userEmail: string;
     failNotif = false;
+
+    createdAt: Date;
+    updatedAt: Date;
 
 }

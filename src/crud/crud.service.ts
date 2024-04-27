@@ -9,19 +9,24 @@ import { CrudUser } from '../user/entity/CrudUser';
 import { CrudUserService } from '../user/crud-user.service';
 import { CrudConfigService } from './crud.config.service';
 
-@Injectable()
+
+
+
 export class CrudService<T extends CrudEntity> {
 
     CACHE_TTL = 60 * 10 * 1000; // 10 minutes
+
+   ;
     
-    constructor(@Inject(forwardRef(() => CrudConfigService))
+    constructor(
         protected crudConfig: CrudConfigService,
-        public name: string,
-        public entity: CrudEntity,
+        public entity: EntityName<Partial<T>>,
         public security: CrudSecurity,
-        ) {}
+    ) {
+
+    }
     
-    async create(newEntity: T, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
+    async create(newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
         const em = context.em || this.crudConfig.entityManager.fork();
         if(secure){
             await this.checkEntitySize(newEntity, context);
@@ -39,12 +44,12 @@ export class CrudService<T extends CrudEntity> {
         return entity;
     }
 
-    async unsecure_fastCreate(newEntity: T, context: CrudContext, inheritance: any = {}) {
+    async unsecure_fastCreate(newEntity: Partial<T>, context: CrudContext, inheritance: any = {}) {
         return await this.create(newEntity, context, false, inheritance);
     }
     
-    async find(entity: T, context: CrudContext, inheritance: any = {}) {
-        const em = context.em || this.entityManager.fork();
+    async find(entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
+        const em = context.em || this.crudConfig.entityManager.fork();
         const opts = this.getReadOptions(context);
         const result = await em.find(this.entity, entity, opts as any);
         return result;
@@ -55,29 +60,35 @@ export class CrudService<T extends CrudEntity> {
         return opts as any;
     }
 
-    getCacheKey(entity: T) {
-        return this.entity + entity[this.crudConfig.id_field].toString();
+    getCacheKey(entity: Partial<T>) {
+        return this.entity?.toString() + entity[this.crudConfig.id_field].toString();
     }
 
     async findOne(entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
-        const em = context.em || this.entityManager.fork();
+        const em = context.em || this.crudConfig.entityManager.fork();
         const opts = this.getReadOptions(context);
         const result = await em.findOne(this.entity, entity, opts as any);
         return result;    
     }
 
-    async findOneCached(entity: T, context: CrudContext, inheritance: any = {}) {
+    async findOneCached(entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
         let cacheKey = this.getCacheKey(entity);
-        const cached = await this.cacheManager.get(cacheKey);
+        const cached = await this.crudConfig.cacheManager.get(cacheKey);
         if(cached) {
             return cached;
         }
         const result = await this.findOne(entity, context, inheritance);
-        this.cacheManager.set(cacheKey, result, this.CACHE_TTL);
+        this.crudConfig.cacheManager.set(cacheKey, result, this.CACHE_TTL);
         return result; 
     }
+
+    async setCached(entity: Partial<T>, context?: CrudContext, inheritance: any = {}) {
+        let cacheKey = this.getCacheKey(entity);
+        this.crudConfig.cacheManager.set(cacheKey, entity, this.CACHE_TTL);
+        return entity;
+    }
     
-    async patch(query: T, newEntity: T, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
+    async patch(query: Partial<T>, newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
         const em = context.em || this.crudConfig.entityManager.fork();
         const results = await this.doQueryPatch(query, newEntity, context, em, secure);
         if(!context.noFlush) {
@@ -87,11 +98,11 @@ export class CrudService<T extends CrudEntity> {
         return results;
     }
 
-    async unsecure_fastPatch(query: T, newEntity: T, context: CrudContext, inheritance: any = {}){
+    async unsecure_fastPatch(query: Partial<T>, newEntity: Partial<T>, context: CrudContext, inheritance: any = {}){
         return await this.patch(query, newEntity, context, false, inheritance);
     }
 
-    async patchOne(id: string, newEntity: T, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
+    async patchOne(id: string, newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
         const em = context.em || this.crudConfig.entityManager.fork();
         const result = await this.doOnePatch(id, newEntity, context, em, secure, context);
         if(!context.noFlush) {
@@ -101,26 +112,26 @@ export class CrudService<T extends CrudEntity> {
         return result;
     }
 
-    async unsecure_fastPatchOne(id: string, newEntity: T, context: CrudContext, inheritance: any = {}){
+    async unsecure_fastPatchOne(id: string, newEntity: Partial<T>, context: CrudContext, inheritance: any = {}){
         return await this.patchOne(id, newEntity, context, false, inheritance);
     }
 
-    private async doQueryPatch(query: T, newEntity: T, ctx:CrudContext, em: EntityManager, secure: boolean){
+    private async doQueryPatch(query: Partial<T>, newEntity: Partial<T>, ctx:CrudContext, em: EntityManager, secure: boolean){
         const opts = this.getReadOptions(ctx);
         let results;
-        const tempEm = em.fork();
         if(secure){
+            const tempEm = em.fork();
             results = await tempEm.find(this.entity, query, opts as any);
+            for(let result of results) {
+                wrap(result).assign(newEntity, {mergeObjects: true, onlyProperties: true});
+                await this.checkEntitySize(result, ctx);
+            }
         }
-        for(let result of results) {
-            wrap(result).assign(newEntity, {mergeObjects: true, onlyProperties: true});
-            await this.checkEntitySize(result, ctx);
-        }
-        em.nativeUpdate(this.entity, query, newEntity);
+        em.nativeUpdate(this.entity, query, newEntity, opts);
         return results;
     }
 
-    private async doOnePatch(id: string, newEntity: T, ctx:CrudContext, em: EntityManager, secure: boolean, context: CrudContext){
+    private async doOnePatch(id: string, newEntity: Partial<T>, ctx:CrudContext, em: EntityManager, secure: boolean, context: CrudContext){
         const opts = this.getReadOptions(context);
         if(secure){
             const tempEm = em.fork();
@@ -133,18 +144,18 @@ export class CrudService<T extends CrudEntity> {
         return res;
     }
     
-    private async doUpdate(entity: T, newEntity: T, ctx:CrudContext, secure: boolean) {
+    private async doPut(entity: Partial<T>, newEntity: Partial<T>, ctx:CrudContext, secure: boolean) {
         newEntity.updatedAt = new Date();
-        wrap(entity).assign(newEntity, {mergeObjects: true, onlyProperties: true});
+        wrap(entity).assign(newEntity, {merge: false, mergeObjects:false, onlyProperties: true});
         if(secure){
             await this.checkEntitySize(entity, ctx);
         }
     }
 
-    async putOne(newEntity: T, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
+    async putOne(newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
         const em = context.em || this.crudConfig.entityManager.fork();
         const ref = em.getReference(this.entity, newEntity[this.crudConfig.id_field]);
-        const result = await this.doUpdate(ref, newEntity, context, secure);
+        const result = await this.doPut(ref, newEntity, context, secure);
         if(!context.noFlush) {
             await em.flush();
         }
@@ -152,7 +163,7 @@ export class CrudService<T extends CrudEntity> {
         return result;
     }
 
-    async unsecure_fastPutOne(newEntity: T, context: CrudContext, inheritance: any = {}){
+    async unsecure_fastPutOne(newEntity: Partial<T>, context: CrudContext, inheritance: any = {}){
         return await this.putOne(newEntity, context, false, inheritance);
     }
 
@@ -160,7 +171,7 @@ export class CrudService<T extends CrudEntity> {
         return user.role != this.crudConfig.guest_role;
     }
 
-    async checkEntitySize(entity: T, context: CrudContext) {
+    async checkEntitySize(entity: Partial<T>, context: CrudContext) {
         if(!context?.security.maxSize){
             return;
         }
@@ -168,7 +179,7 @@ export class CrudService<T extends CrudEntity> {
         let maxSize = context?.security.maxSize;
         let add = context?.security.additionalMaxSizePerTrustPoints;
         if(add){
-           add = add*(await this.userService.getOrComputeTrust(context.user, context));
+           add = add*(await this.crudConfig.userService.getOrComputeTrust(context.user, context));
            maxSize+=Math.max(add,0);;
         }
         if((entitySize > maxSize) || !entitySize) {
@@ -180,20 +191,16 @@ export class CrudService<T extends CrudEntity> {
         if(context?.security.maxItemsInDb) {
             const count = await em.count(this.entity);
             if(count > context?.security.maxItemsInDb) {
-                throw new Error('Too many items in DB.');
+                throw new Error('Partial<T>oo many items in DB.');
             }
         }
     }
 
 
-    async remove(query: T, context:CrudContext, inheritance: any = {}) {
-        const em = context.em || this.entityManager.fork();
+    async remove(query: Partial<T>, context:CrudContext, inheritance: any = {}) {
+        const em = context.em || this.crudConfig.entityManager.fork();
         const opts = this.getReadOptions(context);
-        const results = await em.find(this.entity, query, opts as any);
-        const length = results.length;
-        for(let result of results) {
-            this.doRemove(result, em);
-        }
+        const length = em.nativeDelete(this.entity, query, opts);
         if(!context.noFlush) {
             await em.flush();
         }
@@ -202,9 +209,9 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async removeOne(id: string, context:CrudContext, inheritance: any = {}) {
-        const em = context.em || this.entityManager.fork();
-        const book1 = em.getReference(this.entity, id);
-        const result = this.doRemove(book1, em);
+        const em = context.em || this.crudConfig.entityManager.fork();
+        const entity = em.getReference(this.entity, id);
+        const result = em.remove(entity)
         if(!context.noFlush) {
             await em.flush();
         }
@@ -212,8 +219,8 @@ export class CrudService<T extends CrudEntity> {
         return result;
     }
 
-    doRemove(entity: T, em: EntityManager) {
-        em.remove(entity);
+    doRemove(entity: Partial<T>, em: EntityManager) {
+        ;
     }
 
     async beforeControllerHook(context: CrudContext): Promise<any> {

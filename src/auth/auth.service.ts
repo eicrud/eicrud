@@ -6,6 +6,7 @@ import { _utils } from '../utils';
 import * as bcrypt from 'bcrypt';
 import { t } from '@mikro-orm/core';
 import { CrudConfigService } from '../crud/crud.config.service';
+import { CrudErrors } from '../crud/model/CrudErrors';
 
 @Injectable()
 export class AuthService {
@@ -29,25 +30,25 @@ export class AuthService {
     entity[this.USERNAME_FIELD] = email;
     const user = await this.crudConfig.userService.findOne(entity, null);
     if(!user){
-      throw new UnauthorizedException("Unknown user.");
+      throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }
 
-    if(user.timeout > new Date()){
-        throw new UnauthorizedException("Account locked. Please wait until " + user.timeout.toISOString());
+    if(user?.timeout && user.timeout > new Date()){
+      throw new UnauthorizedException(CrudErrors.TIMED_OUT.str(user.timeout.toISOString()));
     }
 
     if(user.failedLoginCount >= this.rateLimitCount){
       const timeoutMS = Math.min(user.failedLoginCount*user.failedLoginCount*1000, 60000 * 5);
       const diffMs = _utils.diffBetweenDatesMs(user.lastLoginAttempt, new Date());
-      if(diffMs < timeoutMS){
-        throw new UnauthorizedException("Too many login attempts. Please wait " + Math.round((timeoutMS-diffMs)/1000) + " seconds");
+      if(diffMs < timeoutMS){ 
+        throw new UnauthorizedException(CrudErrors.TOO_MANY_LOGIN_ATTEMPTS.str(Math.round((timeoutMS-diffMs)/1000) + " seconds"));
       }
     }
     user.lastLoginAttempt = new Date();
     if (await bcrypt.compare(pass, user?.password)) {
       user.failedLoginCount++;
       await this.updateUserLoginDetails(user)
-      throw new UnauthorizedException("Invalid credentials");
+      throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }
 
     user.failedLoginCount = 0;

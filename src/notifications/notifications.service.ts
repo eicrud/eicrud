@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { Log, LogType } from '../log/entities/log';
-import { CrudContext } from '../auth/auth.utils';
 
 
 //Min level for the log to be sent as a notification
@@ -9,6 +8,8 @@ export const LogNotificationMap = {
     [LogType.WARNING]: 2,
     [LogType.ERROR]: 2,
     [LogType.DEBUG]: 99,
+    [LogType.SECURITY]: 2,
+    [LogType.CRITICAL]: 1,
 }
 
 

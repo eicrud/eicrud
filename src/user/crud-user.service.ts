@@ -102,6 +102,20 @@ export class CrudUserService extends CrudService<CrudUser> {
     return trust;
   }
 
+  async timeoutUser(user: Partial<CrudUser>, TIMEOUT_DURATION_MIN: number){
+    this.addTimeoutToUser(user, TIMEOUT_DURATION_MIN);
+    const patch = {timeout: user.timeout, timeoutCount: user.timeoutCount};
+    this.unsecure_fastPatchOne(user[this.crudConfig.id_field] ,patch, null);
+  }
+
+
+  addTimeoutToUser(user: Partial<CrudUser>, TIMEOUT_DURATION_MIN: number){
+    const duration = TIMEOUT_DURATION_MIN * 60 * 1000 * user.timeoutCount;
+    user.timeout = new Date(Date.now() + duration);
+    user.timeoutCount = user.timeoutCount || 0;
+    user.timeoutCount++;
+  }
+
   async getOrComputeTrust(user: CrudUser, ctx: CrudContext){
     const TRUST_COMPUTE_INTERVAL = 1000 * 60 * 60 * 24;
     if(user.lastComputedTrust && (user.lastComputedTrust.getTime() + TRUST_COMPUTE_INTERVAL) > Date.now()){
@@ -131,6 +145,13 @@ export class CrudUserService extends CrudService<CrudUser> {
         }
     }
 
+    const highTraficThresholds = [1, 10, 100, 1000];
+    for (let threshold of highTraficThresholds) {
+        if (user.highTrafficCount >= threshold) {
+            trust -= 2;
+        }
+    }
+
     const errorThresholds = [1, 100, 1000];
     for (let threshold of errorThresholds) {
         if (user.errorCount >= threshold) {
@@ -138,11 +159,16 @@ export class CrudUserService extends CrudService<CrudUser> {
         }
     }
 
+    if(user.didCaptcha){
+      trust += 2;
+    }
+
     trust = await this.addToComputedTrust(user, trust, ctx);
     const patch = {trust, lastComputedTrust: new Date()};
     this.unsecure_fastPatchOne(user[this.crudConfig.id_field] ,patch, ctx);
     user.trust = trust;
     user.lastComputedTrust = patch.lastComputedTrust;
+    this.setCached(user, ctx);
     
     return trust;
   }
