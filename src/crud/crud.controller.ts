@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Inject, Post, Query, UnauthorizedException, forwardRef } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Inject, Post, Query, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
 import { CrudContext } from '../auth/model/CrudContext';
@@ -74,9 +74,9 @@ export class CrudController<T extends CrudEntity> {
             await this.afterHooks(service, res, ctx);
 
             if(ctx?.user && ctx?.serviceName) {
-                const count = ctx?.user.crudMap[ctx.serviceName] || 0;
-                ctx.user.crudMap[ctx.serviceName] = count + 1;
-                this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.id_field], {crudMap: ctx.user.crudMap}, ctx);
+                const count = ctx?.user.crudUserDataMap[ctx.serviceName].itemsCreated || 0;
+                ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated = count + 1;
+                this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], {crudUserDataMap: ctx.user.crudUserDataMap}, ctx);
             }
 
             return res;
@@ -104,23 +104,27 @@ export class CrudController<T extends CrudEntity> {
         return results;
     }
 
-    @Delete('one')
-    async _delete(query: T, ctx?: CrudContext) {
-        let res;
-        if(query[this.id_field]) {
-            res = await this.crudService.removeOne(query[this.id_field]);
-        } else {
-            res = await this.crudService.remove(query);
+    @Get('many')
+    async _find(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+        const isAdmin = this.crudAuthorization.getCtxUserRole(ctx)?.isAdminRole;
+        const MAX_LIMIT_FIND = isAdmin ? 400 : 40;
+        if(!query.options?.limit || query.options?.limit > MAX_LIMIT_FIND) {
+            query.options = query.options || {};
+            query.options.limit = MAX_LIMIT_FIND;
         }
-        if(ctx?.user && ctx?.serviceName) {
-            const count = ctx?.user.crudMap[ctx.serviceName] || 0;
-            ctx.user.crudMap[ctx.serviceName] = count - (res || 1);
-            this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.id_field], {crudMap: ctx.user.crudMap}, ctx);
-        }
-        return res;
+        return this.crudService.find(entity);
     }
 
-    async _find(entity: T) {
+    @Get('ids')
+    async _findIds(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+        query.options = query.options || {};
+        query.options.fields = [this.crudConfig.id_field];
+        const isAdmin = this.crudAuthorization.getCtxUserRole(ctx)?.isAdminRole;
+        const MAX_LIMIT_FIND_IDS = isAdmin ? 8000 : 4000;
+        if(!query.options?.limit || query.options?.limit > MAX_LIMIT_FIND_IDS) {
+            query.options.limit = MAX_LIMIT_FIND_IDS;
+        }
+
         return this.crudService.find(entity);
     }
 
@@ -128,8 +132,24 @@ export class CrudController<T extends CrudEntity> {
         return this.crudService.findOne(entity);
     }
 
+    @Delete('one')
+    async _delete(query: T, ctx?: CrudContext) {
+        let res;
+        if(query[this.crudConfig.id_field]) {
+            res = await this.crudService.removeOne(query[this.crudConfig.id_field]);
+        } else {
+            res = await this.crudService.remove(query);
+        }
+        if(ctx?.user && ctx?.serviceName) {
+            const count = ctx?.user.crudUserDataMap[ctx.serviceName].itemsCreated || 0;
+            ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated = count - (res || 1);
+            this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], {crudUserDataMap: ctx.user.crudUserDataMap}, ctx);
+        }
+        return res;
+    }
+
     async _patchOne(query: T, newEntity: T, ctx: CrudContext) {
-        return this.crudService.patchOne(query[this.id_field], newEntity, ctx);
+        return this.crudService.patchOne(query[this.crudConfig.id_field], newEntity, ctx);
     }
 
     async _patch(query: T, newEntity: T, ctx: CrudContext) {

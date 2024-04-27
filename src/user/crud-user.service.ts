@@ -1,13 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { CrudService } from '../crud/crud.service';
 import { CrudSecurity } from '../crud/model/CrudSecurity';
 import { _utils } from '../utils';
 import { CrudUser } from './entity/CrudUser';
 import { CrudContext } from '../auth/model/CrudContext';
+import { CrudConfigService } from '../crud/crud.config.service';
+import { CrudAuthorizationService } from '../crud/crud.authorization.service';
 
 
 @Injectable()
 export class CrudUserService extends CrudService<CrudUser> {
+
+
+  constructor(@Inject(forwardRef(() => CrudConfigService))
+  protected crudConfig: CrudConfigService,
+  protected authorizationService: CrudAuthorizationService,
+  ) {
+    super(crudConfig);
+  }
+
   private readonly users = [
     {
       userId: "1",
@@ -22,6 +33,7 @@ export class CrudUserService extends CrudService<CrudUser> {
   ];
 
   override async create(newEntity: CrudUser, ctx: CrudContext): Promise<any> {
+    
     await this.checkPassword(newEntity);
     return super.create(newEntity, ctx);
   }
@@ -105,6 +117,11 @@ export class CrudUserService extends CrudService<CrudUser> {
         if (getUserAgeInWeeks >= threshold) {
             trust += 1;
         }
+    }
+
+    const userRole = this.authorizationService.getUserRole(user);
+    if(userRole.isAdminRole){
+      trust += 4;
     }
 
     const incidentThresholds = [1, 100, 1000];

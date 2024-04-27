@@ -16,9 +16,9 @@ export class CrudService<T extends CrudEntity> {
     
     constructor(@Inject(forwardRef(() => CrudConfigService))
         protected crudConfig: CrudConfigService,
-        protected name: string,
-        protected entity: CrudEntity,
-        protected security: CrudSecurity,
+        public name: string,
+        public entity: CrudEntity,
+        public security: CrudSecurity,
         ) {}
     
     async create(newEntity: T, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
@@ -78,7 +78,7 @@ export class CrudService<T extends CrudEntity> {
     }
     
     async patch(query: T, newEntity: T, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
-        const em = context.em || this.entityManager.fork();
+        const em = context.em || this.crudConfig.entityManager.fork();
         const results = await this.doQueryPatch(query, newEntity, context, em, secure);
         if(!context.noFlush) {
             await em.flush();
@@ -92,7 +92,7 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async patchOne(id: string, newEntity: T, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
-        const em = context.em || this.entityManager.fork();
+        const em = context.em || this.crudConfig.entityManager.fork();
         const result = await this.doOnePatch(id, newEntity, context, em, secure, context);
         if(!context.noFlush) {
             await em.flush();
@@ -107,18 +107,30 @@ export class CrudService<T extends CrudEntity> {
 
     private async doQueryPatch(query: T, newEntity: T, ctx:CrudContext, em: EntityManager, secure: boolean){
         const opts = this.getReadOptions(ctx);
-        const results = await em.find(this.entity, query, opts as any);
-        for(let result of results) {
-            await this.doUpdate(result, newEntity, ctx, secure);
+        let results;
+        const tempEm = em.fork();
+        if(secure){
+            results = await tempEm.find(this.entity, query, opts as any);
         }
+        for(let result of results) {
+            wrap(result).assign(newEntity, {mergeObjects: true, onlyProperties: true});
+            await this.checkEntitySize(result, ctx);
+        }
+        em.nativeUpdate(this.entity, query, newEntity);
         return results;
     }
 
     private async doOnePatch(id: string, newEntity: T, ctx:CrudContext, em: EntityManager, secure: boolean, context: CrudContext){
         const opts = this.getReadOptions(context);
-        const result = await em.findOne(this.entity, id, opts as any);
-        await this.doUpdate(result, newEntity, ctx, secure);
-        return result;
+        if(secure){
+            const tempEm = em.fork();
+            let result = await tempEm.findOne(this.entity, id, opts as any);
+            wrap(result).assign(newEntity, {mergeObjects: true, onlyProperties: true});
+            await this.checkEntitySize(result, ctx);
+        }
+        let res = em.getReference(this.entity, id);
+        wrap(res).assign(newEntity, {mergeObjects: true, onlyProperties: true});
+        return res;
     }
     
     private async doUpdate(entity: T, newEntity: T, ctx:CrudContext, secure: boolean) {
@@ -130,7 +142,7 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async putOne(newEntity: T, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
-        const em = context.em || this.entityManager.fork();
+        const em = context.em || this.crudConfig.entityManager.fork();
         const ref = em.getReference(this.entity, newEntity[this.crudConfig.id_field]);
         const result = await this.doUpdate(ref, newEntity, context, secure);
         if(!context.noFlush) {
