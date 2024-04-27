@@ -6,6 +6,7 @@ import { defineAbility, subject } from "@casl/ability";
 import { BatchRights, CrudSecurity, httpAliasResolver } from "./model/CrudSecurity";
 import { CrudUserService } from "../user/crud-user.service";
 import { CrudConfigService } from "./crud.config.service";
+import { CrudUser } from "../user/entity/CrudUser";
 
 
 export class CrudAuthorizationService {
@@ -18,6 +19,17 @@ export class CrudAuthorizationService {
             acc[role.name] = role;
             return acc;
         }, {});
+    }
+
+    getCtxUserRole(ctx: CrudContext): CrudRole {
+        const role = ctx.user?.role || this.crudConfig.guest_role;
+        return this.rolesMap[role];
+    }
+
+    
+    getUserRole(user: CrudUser): CrudRole {
+        const role = user?.role || this.crudConfig.guest_role;
+        return this.rolesMap[role];
     }
 
     getMatchBatchSizeFromCrudRoleAndParents(ctx: CrudContext, userRole: CrudRole){
@@ -54,8 +66,10 @@ export class CrudAuthorizationService {
 
     authorizeBatch(ctx: CrudContext, batchSize: number) {
         
-        const userRole: CrudRole = this.rolesMap[ctx.user?.role];
-        const maxBatchSize = this.getMatchBatchSizeFromCrudRoleAndParents(ctx, userRole);
+        const userRole: CrudRole = this.getCtxUserRole(ctx);
+        const adminBatch = this.getCtxUserRole(ctx).isAdminRole ? 100 : 0;
+
+        const maxBatchSize = Math.max(adminBatch, this.getMatchBatchSizeFromCrudRoleAndParents(ctx, userRole));
         
         if (batchSize > maxBatchSize) {
             throw new ForbiddenException(`Maxbatchsize (${maxBatchSize}) exceeded (${batchSize}).`);
@@ -77,18 +91,34 @@ export class CrudAuthorizationService {
                add = add*(await this.crudConfig.userService.getOrComputeTrust(ctx.user, ctx));
                max+=Math.max(add,0);
             }
-            const count = ctx.user?.crudMap?.[ctx.serviceName];
+            const count = ctx.user?.crudUserDataMap?.[ctx.serviceName]?.itemsCreated;
             if (count >= max) {
                 throw new ForbiddenException(`You have reached the maximum number of items for this resource (${ctx.security.maxItemsPerUser})`);
             }
         }
+        if (ctx.method == 'CMD'){
+            const cmdSec = ctx.security.cmdSecurityMap?.[ctx.cmdName];
+            if(cmdSec?.maxUsesPerUser && this.crudConfig.userService.notGuest(ctx.user)) {
+                let max = cmdSec.maxUsesPerUser;
+                let add = cmdSec.additionalUsesPerTrustPoint;
+                if(add){
+                   add = add*(await this.crudConfig.userService.getOrComputeTrust(ctx.user, ctx));
+                   max+=Math.max(add,0);
+                }
+                const count = ctx.user?.crudUserDataMap?.[ctx.serviceName]?.cmdMap?.[ctx.cmdName];
+                if (count >= max) {
+                    throw new ForbiddenException(`You have reached the maximum uses for this command (${ctx.security.maxItemsPerUser})`);
+                }
+            }
+        }
+  
 
-        const crudRole: CrudRole = this.rolesMap[ctx.user?.role];
+        const crudRole: CrudRole = this.getCtxUserRole(ctx);
 
         const checkRes = this.recursCheckRolesAndParents(crudRole, ctx, fields);
 
         if (!checkRes) {
-            let msg = `Role ${ctx.user.role} is not allowed to ${ctx.method} ${ctx.serviceName} `;
+            let msg = `Role ${ctx.user.role} is not allowed to ${ctx.method} ${ctx.serviceName} ${ctx.cmdName}`;
             throw new ForbiddenException(msg);
         }
 

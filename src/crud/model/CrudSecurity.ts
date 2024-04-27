@@ -1,6 +1,10 @@
 import { AbilityBuilder, createAliasResolver } from "@casl/ability";
 import { CrudContext } from "../../auth/model/CrudContext";
 
+export interface CmdSecurity {
+    maxUsesPerUser: number;
+    additionalUsesPerTrustPoint: number;
+}
 export class CrudSecurity {
 
     maxSize?: number;
@@ -9,6 +13,8 @@ export class CrudSecurity {
 
     additionalItemsInDbPerTrustPoints?: number;
     additionalMaxSizePerTrustPoints?: number;
+
+    cmdSecurityMap: Record<string, CmdSecurity> = {};
 
     rolesRights: Record<string, CrudSecurityRights> = {};
 

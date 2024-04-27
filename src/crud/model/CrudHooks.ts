@@ -6,7 +6,6 @@ export interface CrudGlobalHooks{
 
     afterAllHook(res: any, ctx: CrudContext): Promise<any>,
 
-
     errorAllHook(error: Error, ctx: CrudContext): Promise<any>,
 
 }

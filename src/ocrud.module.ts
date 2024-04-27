@@ -7,11 +7,11 @@ import { AuthService } from './auth/auth.service';
 
 @Module({})
 export class OcrudModule {
-  static register(configService: Type<CrudConfigService>): DynamicModule {
+  static register(ConfigService: Type<CrudConfigService>): DynamicModule {
 
     return {
       module: OcrudModule,
-      providers: [CrudAuthorizationService, AuthService, configService],
+      providers: [CrudAuthorizationService, AuthService, ConfigService],
       controllers: [CrudController],
       exports: [],
     };

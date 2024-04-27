@@ -59,7 +59,8 @@ export class AuthGuard implements CanActivate {
       }
     }
 
-    user.crudMap = user.crudMap || {};
+    user.crudUserDataMap = user.crudUserDataMap || {};
+    user.cmdMap = user.cmdMap || {};
     const crudContext: CrudContext = { user };
     request['crudContext'] = crudContext
     return true;

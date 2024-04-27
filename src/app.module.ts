@@ -14,6 +14,8 @@ import { NotificationsService } from './notifications/notifications.service';
 import { APP_FILTER } from '@nestjs/core';
 import { AllExceptionsFilter } from './errors/AllExceptionsFilter';
 import { CrudUser } from './user/entity/CrudUser';
+import { OcrudModule } from './ocrud.module';
+import { CrudConfigService } from './crud/crud.config.service';
 @Module({
   imports: [
     CacheModule.register({
@@ -27,6 +29,7 @@ import { CrudUser } from './user/entity/CrudUser';
       type: 'mongo',
       baseDir: __dirname,
     }),
+    OcrudModule.register(CrudConfigService),
 ],
   controllers: [AppController],
   providers: [

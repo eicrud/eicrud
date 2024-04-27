@@ -14,6 +14,7 @@ export interface CrudContext {
     options?: CrudOptions,
     em?: EntityManager;
     noFlush?: boolean;
+    cmdName?: string;
 
 
 }
