@@ -2,8 +2,10 @@ import { AbilityBuilder, createAliasResolver } from "@casl/ability";
 import { CrudContext } from "./CrudContext";
 
 export interface CmdSecurity {
-    maxUsesPerUser: number;
-    additionalUsesPerTrustPoint: number;
+    maxUsesPerUser?: number;
+    additionalUsesPerTrustPoint?: number;
+    secureOnly?: boolean;
+    dto?: { new(): any };
 }
 export class CrudSecurity {
 

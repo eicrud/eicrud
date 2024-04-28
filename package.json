@@ -32,6 +32,8 @@
     "@nestjs/schedule": "^4.0.1",
     "bcrypt": "^5.1.1",
     "cache-manager": "^5.4.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
     "mnemonist": "^0.39.8",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1"

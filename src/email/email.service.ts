@@ -7,4 +7,6 @@ export interface EmailService {
 
     sendTwoFactorEmail(to: string, code: string): Promise<any>;
 
+    sendPasswordResetEmail(to: string, token: string): Promise<any>;
+
 }
