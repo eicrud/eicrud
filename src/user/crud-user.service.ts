@@ -8,99 +8,112 @@ import { CrudConfigService } from '../crud/crud.config.service';
 import { CrudAuthorizationService } from '../crud/crud.authorization.service';
 import { Loaded, Type } from '@mikro-orm/core';
 import { CrudErrors } from '../crud/model/CrudErrors';
+import { CrudAuthService } from '../authentification/auth.service';
+import { IsString } from 'class-validator';
 
 
+export class CreateAccountDto {
+  @IsString()
+  email: string;
+  @IsString()
+  password: string;
+}
 @Injectable()
-export class CrudUserService extends CrudService<CrudUser> {
+export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
   baseCmds = {
-    sendVerificationEmail: 'sendVerificationEmail',
-    verifyEmail: 'verifyEmail',
-    sendPasswordResetEmail: 'sendPasswordResetEmail',
-    resetPassword: 'resetPassword',
+    sendVerificationEmail: {
+      name: 'sendVerificationEmail'
+    },
+    verifyEmail: {
+      name: 'verifyEmail'
+    },
+    sendPasswordResetEmail: {
+      name: 'sendPasswordResetEmail'
+    },
+    resetPassword: {
+      name: 'resetPassword'
+    },
+    createAccount: {
+      name: 'createAccount',
+      dto: CreateAccountDto
+    }
+
   }
 
   constructor(@Inject(forwardRef(() => CrudConfigService))
   protected crudConfig: CrudConfigService,
   protected authorizationService: CrudAuthorizationService,
-  public security: CrudSecurity
+  @Inject(forwardRef(() => CrudAuthService))
+  protected authService: CrudAuthService,
+  public security: CrudSecurity,
+  private userEntityClass: new () => T
   ) {
     security = security || new CrudSecurity();
     super(crudConfig, Type<CrudUser>, security);
     for(const cmd in this.baseCmds){
       security.cmdSecurityMap[cmd] = security.cmdSecurityMap[cmd] || {};
       security.cmdSecurityMap[cmd].secureOnly = true;
+      if(!security.cmdSecurityMap[cmd].dto){
+        security.cmdSecurityMap[cmd].dto = this.baseCmds[cmd].dto;
+      }
     }
   }
 
-  private readonly users = [
-    {
-      userId: "1",
-      email: 'john',
-      password: 'changeme',
-    },
-    {
-      userId: "2",
-      email: 'maria',
-      password: 'guess',
-    },
-  ];
-
-  override async create(newEntity: CrudUser, ctx: CrudContext): Promise<any> {
-    
+  override async create(newEntity: T, ctx: CrudContext): Promise<any> {
     await this.checkPassword(newEntity);
     return super.create(newEntity, ctx);
   }
 
-  override async unsecure_fastCreate(newEntity: CrudUser, ctx: CrudContext): Promise<any> {
+  override async unsecure_fastCreate(newEntity: T, ctx: CrudContext): Promise<any> {
     await this.checkPassword(newEntity);
     return super.unsecure_fastCreate(newEntity, ctx);
   }
 
 
-  override async patch(entity: CrudUser, newEntity: CrudUser, ctx: CrudContext) {
+  override async patch(entity: T, newEntity: T, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
     return super.patch(entity, newEntity, ctx);
   }
 
-  override async patchOne(id: string, newEntity: CrudUser, ctx: CrudContext) {
+  override async patchOne(id: string, newEntity: T, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
     return super.patchOne(id, newEntity, ctx);
   }
 
-  override async unsecure_fastPatch(query: CrudUser, newEntity: CrudUser, ctx: CrudContext) {
+  override async unsecure_fastPatch(query: T, newEntity: T, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
     return super.unsecure_fastPatch(query, newEntity, ctx);
   }
 
-  override async unsecure_fastPatchOne(id: string, newEntity: CrudUser, ctx: CrudContext) {
+  override async unsecure_fastPatchOne(id: string, newEntity: T, ctx: CrudContext) {
       await this.checkPassword(newEntity);
       this.checkFieldsThatIncrementRevokedCount(newEntity);
       return super.unsecure_fastPatchOne(id, newEntity, ctx);
   }
 
-  override async putOne(newEntity: CrudUser, ctx: CrudContext) {
+  override async putOne(newEntity: T, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
     return super.putOne(newEntity, ctx);
   }
 
-  override async unsecure_fastPutOne(newEntity: CrudUser, ctx: CrudContext) {
+  override async unsecure_fastPutOne(newEntity: T, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
     return super.unsecure_fastPutOne(newEntity, ctx);
   }
 
-  async checkPassword(newEntity: CrudUser) {
+  async checkPassword(newEntity: T) {
     if(newEntity.password){
       newEntity.password = await _utils.hashPassword(newEntity.password);
     }
   }
 
-  async checkUserBeforePatch(newEntity: CrudUser){
+  async checkUserBeforePatch(newEntity: T){
     await this.checkPassword(newEntity);
     this.checkFieldsThatIncrementRevokedCount(newEntity);
   }
 
-  checkFieldsThatIncrementRevokedCount(newEntity: CrudUser){
+  checkFieldsThatIncrementRevokedCount(newEntity: T){
     const fieldsThatResetRevokedCount = ['email', 'password'];
     if(fieldsThatResetRevokedCount.some(field => newEntity[field])){
       newEntity.revokedCount = newEntity.revokedCount + 1;
@@ -185,21 +198,17 @@ export class CrudUserService extends CrudService<CrudUser> {
     this.unsecure_fastPatchOne(user[this.crudConfig.id_field] ,patch, ctx);
     user.trust = trust;
     user.lastComputedTrust = patch.lastComputedTrust;
-    this.setCached(user, ctx);
+    this.setCached(user as any, ctx);
     
     return trust;
   }
-
-  VERIFICATION_EMAIL_TIMEOUT_HOURS = 6;
-  TWOFA_EMAIL_TIMEOUT_MIN = 15;
-  PASSWORD_RESET_EMAIL_TIMEOUT_HOURS = 6;
 
   verifyTwoFA(user: Loaded<Partial<CrudUser>, never, "*", never>, twoFA_code: any) {
     
     if(user.lastTwoFACode !== twoFA_code){
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }
-    if(user.lastTwoFACodeSent.getTime() + (this.TWOFA_EMAIL_TIMEOUT_MIN * 60 * 1000) < Date.now()){
+    if(user.lastTwoFACodeSent.getTime() + (this.crudConfig.authenticationOptions.TWOFA_EMAIL_TIMEOUT_MIN * 60 * 1000) < Date.now()){
       throw new UnauthorizedException(CrudErrors.TOKEN_EXPIRED.str());
     }
 
@@ -207,13 +216,13 @@ export class CrudUserService extends CrudService<CrudUser> {
 
   getVerificationEmailTimeoutHours(user: CrudUser){
     const emailCount = (user.verifiedEmailAttempCount || 0);
-    const timeout = emailCount * this.VERIFICATION_EMAIL_TIMEOUT_HOURS * 60 * 60 * 1000;
+    const timeout = emailCount * this.crudConfig.authenticationOptions.VERIFICATION_EMAIL_TIMEOUT_HOURS * 60 * 60 * 1000;
     return { emailCount, timeout};
   }
 
   getPasswordResetEmailTimeoutHours(user: CrudUser){
     const emailCount = (user.passwordResetAttempCount || 0);
-    const timeout = emailCount * this.PASSWORD_RESET_EMAIL_TIMEOUT_HOURS * 60 * 60 * 1000;
+    const timeout = emailCount * this.crudConfig.authenticationOptions.PASSWORD_RESET_EMAIL_TIMEOUT_HOURS * 60 * 60 * 1000;
     return { emailCount, timeout};
   }
 
@@ -269,7 +278,7 @@ export class CrudUserService extends CrudService<CrudUser> {
     //Doing this for type checking
     const user: Partial<CrudUser> = { lastEmailVerificationSent: null, emailVerificationToken: null} 
     const keys = Object.keys(user); 
-    return await this.useToken(ctx, 
+    const res = await this.useToken(ctx, 
       keys[0], 
       (user: CrudUser) => user?.verifiedEmail && !user.nextEmail, 
       keys[1], 
@@ -282,11 +291,12 @@ export class CrudUserService extends CrudService<CrudUser> {
         }
         return patch;
       });
+    return { res, accessToken: await this.authService.signTokenForUser(ctx.user)}
   }
 
   async sendTwoFACode(userId: string, user: CrudUser, ctx: CrudContext){
     const lastTwoFACodeSent = user.lastTwoFACodeSent;
-    if(lastTwoFACodeSent && (lastTwoFACodeSent.getTime() + (this.TWOFA_EMAIL_TIMEOUT_MIN * 60 * 1000)) > Date.now()){
+    if(lastTwoFACodeSent && (lastTwoFACodeSent.getTime() + (this.crudConfig.authenticationOptions.TWOFA_EMAIL_TIMEOUT_MIN * 60 * 1000)) > Date.now()){
       return new UnauthorizedException(CrudErrors.EMAIL_ALREADY_SENT.str());
     }
     const code = _utils.generateRandomString(6).toUpperCase();
@@ -313,7 +323,7 @@ export class CrudUserService extends CrudService<CrudUser> {
      //Doing this for type checking
     const user: Partial<CrudUser> = { lastPasswordResetSent: null, passwordResetToken: null} 
     const keys = Object.keys(user); 
-    return await this.useToken(ctx, 
+    const res = await this.useToken(ctx, 
       keys[0], 
       (user: CrudUser) => true, 
       keys[1], 
@@ -322,26 +332,45 @@ export class CrudUserService extends CrudService<CrudUser> {
         const patch: Partial<CrudUser> = {password: ctx.data.password, passwordResetAttempCount: 0};
         return patch;
       });
+    return { res, accessToken: await this.authService.signTokenForUser(ctx.user)}
+  }
+
+  async createAccount(email: string, password: string, ctx: CrudContext){
+      if(password?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH){
+        throw new BadRequestException(CrudErrors.PASSWORD_TOO_LONG.str());
+      }
+      const user = new this.userEntityClass();
+      user.email = email;
+      user.password = password;
+      user.role = this.crudConfig.guest_role;
+
+      const res = await this.create(user, ctx);
+
+      return { user: res, accessToken: await this.authService.signTokenForUser(user)}
   }
 
 
   override async cmdHandler(cmdName: string, ctx: CrudContext, inheritance?: any) {
 
     switch (cmdName) {
-      case this.cmds.sendVerificationEmail:
+      case this.baseCmds.sendVerificationEmail.name:
           return await this.sendVerificationEmail(ctx);
       break;
 
-      case this.cmds.verifyEmail:
+      case this.baseCmds.verifyEmail.name:
           return await this.verifyEmail(ctx);
       break;
 
-      case this.cmds.sendPasswordResetEmail:
+      case this.baseCmds.sendPasswordResetEmail.name:
           return await this.sendPasswordResetEmail(ctx);
           break;
 
-      case this.cmds.resetPassword:
+      case this.baseCmds.resetPassword.name:
           return await this.resetPassword(ctx);
+          break;
+
+      case this.baseCmds.createAccount.name:
+          return await this.createAccount(ctx.data.email, ctx.data.password, ctx);
           break;
 
       default:

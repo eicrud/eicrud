@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Patch, Post, Query } from '@nestjs/common';
-import { Context, CrudContext } from '../auth/auth.utils';
+import { Context, CrudContext } from '../authentification/auth.utils';
 import { CrudUser } from './model/CrudUser';
 import { CrudController } from '../crud/crud.controller';
 import { CrudUserService } from './crud-user.service';

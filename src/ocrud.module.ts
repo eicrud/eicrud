@@ -2,8 +2,8 @@ import { DynamicModule, Module, Type } from '@nestjs/common';
 import { CrudController } from './crud/crud.controller';
 import { CrudConfigService } from './crud/crud.config.service';
 import { CrudAuthorizationService } from './crud/crud.authorization.service';
-import { AuthService } from './auth/auth.service';
-import { AuthGuard } from './auth/auth.guard';
+import { CrudAuthService } from './authentification/auth.service';
+import { AuthGuard } from './authentification/auth.guard';
 import { NestApplication } from '@nestjs/core';
 import { APP_GUARD } from '@nestjs/core';
 
@@ -13,7 +13,7 @@ export class OCRUDModule {
     
     return {
       module: OCRUDModule,
-      providers: [CrudAuthorizationService, AuthService, ConfigService,
+      providers: [CrudAuthorizationService, CrudAuthService, ConfigService,
         {
           provide: APP_GUARD,
           useClass: AuthGuard,

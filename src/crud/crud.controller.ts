@@ -1,17 +1,18 @@
-import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Inject, Post, Query, UnauthorizedException, forwardRef } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Inject, Post, Query, UnauthorizedException, ValidationPipe, forwardRef } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
 import { CrudContext } from './model/CrudContext';
-import { Context } from '../auth/auth.utils';
+import { Context } from '../authentification/auth.utils';
 import { CrudQuery } from './model/CrudQuery';
 import { CrudAuthorizationService } from './crud.authorization.service';
 import { TransformationType, plainToInstance as dontuseme } from 'class-transformer';
 import { TransformOperationExecutor } from 'class-transformer/cjs/TransformOperationExecutor';
 import { defaultOptions } from 'class-transformer/cjs/constants/default-options.constant';
-import { validateOrReject } from 'class-validator';
+import { IsEmail, IsOptional, IsString, MaxLength, validateOrReject } from 'class-validator';
 import { CrudConfigService } from './crud.config.service';
 import { CmdSecurity } from './model/CrudSecurity';
 import { CrudErrors } from './model/CrudErrors';
+import { CrudAuthService } from '../authentification/auth.service';
 
 @Controller({
     path: "crud",
@@ -22,6 +23,8 @@ export class CrudController<T extends CrudEntity> {
     crudMap: Record<string, CrudService<any>>;
 
     constructor(
+        @Inject(forwardRef(() => CrudAuthService))
+        private crudAuthService: CrudAuthService,
         public crudAuthorization: CrudAuthorizationService,
         @Inject(forwardRef(() => CrudConfigService))
         protected crudConfig: CrudConfigService,
@@ -130,23 +133,22 @@ export class CrudController<T extends CrudEntity> {
         }
         if(queryClass){
             const obj = this.plainToInstanceNoDefaultValues(ctx.query, queryClass);
-            try {
-                await validateOrReject(obj, {skipMissingProperties: true});
-            }catch(errors){
-                const msg = 'Query: '+ errors.toString();
-                throw new BadRequestException(CrudErrors.VALIDATION_ERROR.str(msg));
-            }
+            await this.validateOrReject(obj, true, 'Query:');
         }
         if(dataClass){
             ctx.data = dataDefaultValues ? this.plainToInstanceWithDefaultValues(ctx.data, dataClass) : this.plainToInstanceNoDefaultValues(ctx.data, dataClass);
-            try {
-                await validateOrReject(ctx.data, {skipMissingProperties: !dataDefaultValues});
-            }catch(errors){
-                const msg = 'Data: '+ errors.toString();
-                throw new BadRequestException(CrudErrors.VALIDATION_ERROR.str(msg));
-            }
+            await this.validateOrReject(ctx.data, !dataDefaultValues, 'Data:');
         }
 
+    }
+
+    async validateOrReject(obj, skipMissingProperties, label){
+        try {
+            await validateOrReject(obj, {skipMissingProperties: skipMissingProperties});
+        }catch(errors){
+            const msg = label + ' ' + errors.toString();
+            throw new BadRequestException(CrudErrors.VALIDATION_ERROR.str(msg));
+        }
     }
 
     @Post('batch')
@@ -248,5 +250,33 @@ export class CrudController<T extends CrudEntity> {
         return dontuseme(cls, plain, { exposeDefaultValues: true});
     }
 
+    @Get('auth')
+    async getConnectedUser(@Context() ctx: CrudContext) {
+        return ctx.user;
+    }
 
+    @Post('auth')
+    async login(@Query() query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+        data = this.plainToInstanceNoDefaultValues(data, LoginDto);
+        await this.validateOrReject(data, false, 'Data:');
+
+        if(data.password?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH){
+            throw new UnauthorizedException(CrudErrors.PASSWORD_TOO_LONG.str());
+        }
+
+        return this.crudAuthService.signIn(data.email, data.password, data.twoFA_code);
+    }
+
+}
+
+export class LoginDto {
+    @IsString()
+    email: string;
+
+    @IsString()
+    password: string;
+
+    @IsOptional()
+    @IsString()
+    twoFA_code: string;
 }

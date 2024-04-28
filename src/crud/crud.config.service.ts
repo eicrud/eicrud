@@ -6,9 +6,10 @@ import { LogService } from "../log/log.service";
 import { EntityManager } from "@mikro-orm/core";
 import { CrudContext } from "./model/CrudContext";
 import { CrudAuthorizationService } from "./crud.authorization.service";
-import { TrafficWatchOptions } from "../auth/auth.guard";
+import { TrafficWatchOptions } from "../authentification/auth.guard";
 import { CrudUser } from "../user/model/CrudUser";
 import { EmailService } from "../email/email.service";
+import { AuthenticationOptions } from "../authentification/auth.service";
 
 
 export interface SecurityCacheManager {
@@ -16,15 +17,21 @@ export interface SecurityCacheManager {
     set: (key: string, value: any, ttl: number) => Promise<any>;
 }
 
-
 export class CrudConfigService {
 
-    watchTrafficOptions: TrafficWatchOptions = 
-    {
-        MAX_USERS: 10000, REQUEST_THRESHOLD: 350,
+    watchTrafficOptions: TrafficWatchOptions = {
+        MAX_USERS: 10000, 
+        REQUEST_THRESHOLD: 350,
         TIMEOUT_THRESHOLD_TOTAL: 10,
         TIMEOUT_DURATION_MIN: 15
     };
+
+    authenticationOptions: AuthenticationOptions = {
+        VERIFICATION_EMAIL_TIMEOUT_HOURS: 6,
+        TWOFA_EMAIL_TIMEOUT_MIN: 15,
+        PASSWORD_RESET_EMAIL_TIMEOUT_HOURS: 6,
+        PASSWORD_MAX_LENGTH: 64,
+    }
 
     CACHE_TTL: number = 60 * 12 * 1000; // 12 minutes
 
@@ -37,17 +44,18 @@ export class CrudConfigService {
 
     cacheManager: SecurityCacheManager;
 
-    public userService: CrudUserService;
+    public userService: CrudUserService<any>;
     public logService: LogService;
     public entityManager: EntityManager;
     public captchaService: any;
     public emailService: EmailService;
 
-    constructor(config: {userService: CrudUserService, 
+    constructor(config: {userService: CrudUserService<any>, 
         logService?: LogService,
         entityManager: EntityManager,
         captchaService?: any,
-        emailService: EmailService,}
+        emailService: EmailService,
+    }
         ) {
             this.userService = config.userService;
             this.logService = config.logService;
