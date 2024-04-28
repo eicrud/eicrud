@@ -23,6 +23,8 @@ export class CrudErrors {
     static readonly EMAIL_ALREADY_SENT = new CrudError("Email already sent, check your spam folder or try again later", 6);
     static readonly TOKEN_EXPIRED = new CrudError("Token expired", 7);
     static readonly TWOFA_REQUIRED = new CrudError("2FA required", 8);
+    static readonly USER_NOT_FOUND = new CrudError("User not found", 9);
+    static readonly VALIDATION_ERROR = new CrudError("Validation error", 10);
 
     parseErrorCode(str: string): number {
         return parseInt(str.split("[crd_")[1]);

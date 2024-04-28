@@ -15,14 +15,14 @@ import { CrudConfigService } from './crud.config.service';
 export class CrudService<T extends CrudEntity> {
 
     CACHE_TTL = 60 * 10 * 1000; // 10 minutes
-
-   ;
     
     constructor(
         protected crudConfig: CrudConfigService,
         public entity: EntityName<Partial<T>>,
         public security: CrudSecurity,
     ) {
+
+        this.CACHE_TTL = this.crudConfig.CACHE_TTL;
 
     }
     

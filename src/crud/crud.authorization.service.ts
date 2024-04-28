@@ -96,11 +96,14 @@ export class CrudAuthorizationService {
             }
         }else if (ctx.origin == 'cmd'){
             const cmdSec = ctx.security.cmdSecurityMap?.[ctx.cmdName];
-            if(cmdSec?.maxUsesPerUser && this.crudConfig.userService.notGuest(ctx.user)) {
-                if(ctx.method != 'POST'){
-                    // in that case user is cached and we can't check the cmd count properly
-                    throw new ForbiddenException(`Command must be used in secure mode (POST)`);
-                }
+            const hasMaxUses =cmdSec?.maxUsesPerUser && this.crudConfig.userService.notGuest(ctx.user)
+            const isSecureOnly = cmdSec?.secureOnly;
+            if(ctx.method != 'POST' && (hasMaxUses || isSecureOnly)){
+                // in that case user is cached and we can't check the cmd count properly
+                throw new ForbiddenException(`Command must be used in secure mode (POST)`);
+            }
+            if(hasMaxUses) {
+            
                 let max = cmdSec.maxUsesPerUser;
                 let add = cmdSec.additionalUsesPerTrustPoint;
                 if(add){

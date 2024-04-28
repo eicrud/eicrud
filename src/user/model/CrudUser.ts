@@ -22,9 +22,13 @@ export interface CrudUser extends CrudEntity{
 
     nextEmail: string;
     verifiedEmail: boolean;
-    lastVerificationToken: string;
-    lastVerificationSent: Date;
-    verifiedEmailCount: number;
+    emailVerificationToken: string;
+    lastEmailVerificationSent: Date;
+    verifiedEmailAttempCount: number;
+
+    lastPasswordResetSent: Date;
+    passwordResetToken: string;
+    passwordResetAttempCount: number;
 
     crudUserDataMap: Record<string, CrudData>
 
@@ -44,5 +48,6 @@ export interface CrudUser extends CrudEntity{
     twoFA: boolean;
     lastTwoFACode: string;
     lastTwoFACodeSent: Date;
+    twoFACodeCount: number;
 
   };

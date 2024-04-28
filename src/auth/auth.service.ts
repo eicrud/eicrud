@@ -7,6 +7,7 @@ import * as bcrypt from 'bcrypt';
 import { t } from '@mikro-orm/core';
 import { CrudConfigService } from '../crud/crud.config.service';
 import { CrudErrors } from '../crud/model/CrudErrors';
+import { CrudUser } from '../user/model/CrudUser';
 
 @Injectable()
 export class AuthService {
@@ -22,10 +23,11 @@ export class AuthService {
   rateLimitCount = 6;
 
   async updateUserLoginDetails(user){
-    await this.crudConfig.userService.unsecure_fastPatchOne(user[this.crudConfig.id_field], {failedLoginCount: user.failedLoginCount, lastLoginAttempt: user.lastLoginAttempt}, null);
+    const patch: Partial<CrudUser> = {failedLoginCount: user.failedLoginCount, lastLoginAttempt: user.lastLoginAttempt};
+    await this.crudConfig.userService.unsecure_fastPatchOne(user[this.crudConfig.id_field], patch as any, null);
   }
 
-  async signIn(email, pass) {
+  async signIn(email, pass, twoFA_code?) {
     const entity = {};
     entity[this.USERNAME_FIELD] = email;
     const user = await this.crudConfig.userService.findOne(entity, null);
@@ -44,6 +46,15 @@ export class AuthService {
         throw new UnauthorizedException(CrudErrors.TOO_MANY_LOGIN_ATTEMPTS.str(Math.round((timeoutMS-diffMs)/1000) + " seconds"));
       }
     }
+
+    if(user.twoFA && this.crudConfig.emailService){
+      if(!twoFA_code){
+        await this.crudConfig.userService.sendTwoFACode(user[this.crudConfig.id_field], user as CrudUser, null);
+        throw new UnauthorizedException(CrudErrors.TWOFA_REQUIRED.str());
+      }
+      await this.crudConfig.userService.verifyTwoFA(user, twoFA_code);
+    }
+
     user.lastLoginAttempt = new Date();
     if (await bcrypt.compare(pass, user?.password)) {
       user.failedLoginCount++;

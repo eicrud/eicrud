@@ -17,6 +17,8 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { CrudConfigService } from '../crud/crud.config.service';
 import { LogType } from '../log/entities/log';
 import { CrudErrors } from '../crud/model/CrudErrors';
+import { CrudOptions } from '../crud/model/CrudOptions';
+import { CrudRole } from '../crud/model/CrudRole';
 
 
 export interface TrafficWatchOptions{
@@ -66,7 +68,7 @@ export class AuthGuard implements CanActivate {
         user.highTrafficCount = user.highTrafficCount || 0;
         user.highTrafficCount += Math.round(traffic * this.reciprocalRequestThreshold);
         if(user.highTrafficCount > this.crudConfig.watchTrafficOptions.TIMEOUT_THRESHOLD_TOTAL){
-          this.crudConfig.userService.addTimeoutToUser(user, this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN)
+          this.crudConfig.userService.addTimeoutToUser(user as CrudUser, this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN)
         }
         user.captchaRequested = true;
         this.usersService.unsecure_fastPatchOne(userId, { highTrafficCount: user.highTrafficCount }, null);
@@ -84,8 +86,9 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
-    let user: CrudUser = { role: this.crudConfig.guest_role };
+    let user: Partial<CrudUser> = { role: this.crudConfig.guest_role };
     let userId;
+    const options: CrudOptions = request.query?.query?.options || {};
     if (token) {
       try {
         const payload = await this.jwtService.verifyAsync(
@@ -101,6 +104,12 @@ export class AuthGuard implements CanActivate {
           user = await this.usersService.findOneCached(payload, null);
         }
 
+        if(!user){
+          throw new UnauthorizedException(CrudErrors.USER_NOT_FOUND.str());
+        }
+
+        const role: CrudRole = this.crudConfig?.rolesMap[user?.role];
+
         if(user?.revokedCount != payload.revokedCount){
           throw new UnauthorizedException(CrudErrors.TOKEN_MISMATCH.str());
         }
@@ -110,9 +119,18 @@ export class AuthGuard implements CanActivate {
           && this.crudConfig.captchaService
           ){
           throw new UnauthorizedException(CrudErrors.CAPTCHA_REQUIRED.str());
-        }
+        }  
 
         userId = user?.[this.crudConfig.id_field];
+
+        if(options.mockRole && typeof options.mockRole == 'string' && role){
+          const parents = this.crudConfig.getParentRolesRecurs(role).map(role => role.name);
+          parents.push(role.name);
+          if(!parents.includes(options.mockRole)){
+            throw new UnauthorizedException(`Role ${role.name} is not allowed to mock as ${options.mockRole}`);
+          }
+          user.role = options.mockRole;
+        }
 
         await this.addTrafficToUserTrafficMap(userId, user);
 
@@ -122,7 +140,7 @@ export class AuthGuard implements CanActivate {
     }
 
     user.crudUserDataMap = user.crudUserDataMap || {};
-    const crudContext: CrudContext = { user, userId };
+    const crudContext: CrudContext = { user: user as any, userId };
     request['crudContext'] = crudContext
     return true;
   }

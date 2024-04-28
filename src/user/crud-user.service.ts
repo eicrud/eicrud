@@ -1,24 +1,36 @@
-import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { CrudService } from '../crud/crud.service';
-import { CrudSecurity } from '../crud/model/CrudSecurity';
+import { CmdSecurity, CrudSecurity } from '../crud/model/CrudSecurity';
 import { _utils } from '../utils';
 import { CrudUser } from './model/CrudUser';
 import { CrudContext } from '../crud/model/CrudContext';
 import { CrudConfigService } from '../crud/crud.config.service';
 import { CrudAuthorizationService } from '../crud/crud.authorization.service';
-import { Type } from '@mikro-orm/core';
+import { Loaded, Type } from '@mikro-orm/core';
 import { CrudErrors } from '../crud/model/CrudErrors';
 
 
 @Injectable()
 export class CrudUserService extends CrudService<CrudUser> {
 
+  baseCmds = {
+    sendVerificationEmail: 'sendVerificationEmail',
+    verifyEmail: 'verifyEmail',
+    sendPasswordResetEmail: 'sendPasswordResetEmail',
+    resetPassword: 'resetPassword',
+  }
 
   constructor(@Inject(forwardRef(() => CrudConfigService))
   protected crudConfig: CrudConfigService,
   protected authorizationService: CrudAuthorizationService,
+  public security: CrudSecurity
   ) {
-    super(crudConfig, Type<CrudUser>, new CrudSecurity());
+    security = security || new CrudSecurity();
+    super(crudConfig, Type<CrudUser>, security);
+    for(const cmd in this.baseCmds){
+      security.cmdSecurityMap[cmd] = security.cmdSecurityMap[cmd] || {};
+      security.cmdSecurityMap[cmd].secureOnly = true;
+    }
   }
 
   private readonly users = [
@@ -179,64 +191,157 @@ export class CrudUserService extends CrudService<CrudUser> {
   }
 
   VERIFICATION_EMAIL_TIMEOUT_HOURS = 6;
+  TWOFA_EMAIL_TIMEOUT_MIN = 15;
+  PASSWORD_RESET_EMAIL_TIMEOUT_HOURS = 6;
+
+  verifyTwoFA(user: Loaded<Partial<CrudUser>, never, "*", never>, twoFA_code: any) {
+    
+    if(user.lastTwoFACode !== twoFA_code){
+      throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
+    }
+    if(user.lastTwoFACodeSent.getTime() + (this.TWOFA_EMAIL_TIMEOUT_MIN * 60 * 1000) < Date.now()){
+      throw new UnauthorizedException(CrudErrors.TOKEN_EXPIRED.str());
+    }
+
+  }
 
   getVerificationEmailTimeoutHours(user: CrudUser){
-    const emailCount = user.verifiedEmailCount;
+    const emailCount = (user.verifiedEmailAttempCount || 0);
     const timeout = emailCount * this.VERIFICATION_EMAIL_TIMEOUT_HOURS * 60 * 60 * 1000;
     return { emailCount, timeout};
   }
 
+  getPasswordResetEmailTimeoutHours(user: CrudUser){
+    const emailCount = (user.passwordResetAttempCount || 0);
+    const timeout = emailCount * this.PASSWORD_RESET_EMAIL_TIMEOUT_HOURS * 60 * 60 * 1000;
+    return { emailCount, timeout};
+  }
+
+  async sendTokenEmail(ctx: CrudContext, lastEmailSentKey, { emailCount, timeout }, tokenKey,  sendEmailFunc, attempCountKey){
+    const lastEmailSent = ctx.user[lastEmailSentKey];
+
+    if(emailCount < 2 
+      || !lastEmailSent 
+      || (lastEmailSent.getTime() + timeout ) >= Date.now()
+      ){
+      const token = _utils.generateRandomString(16);
+      const patch: Partial<CrudUser> = {[tokenKey]: token, [lastEmailSentKey]: new Date(), [attempCountKey]: emailCount+1};
+      await this.unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], patch as any, ctx);
+      await sendEmailFunc(ctx.data.email, token);
+      return true;
+    }
+
+    return new BadRequestException(CrudErrors.EMAIL_ALREADY_SENT.str());
+  }
+
+  async useToken(ctx: CrudContext, lastEmailVerificationSentKey, userConditionFunc, tokenKey, userGetTimeoutFunc, callBackFunc ){
+    const userId = ctx.data.userId;
+    const lastEmailSent = ctx.user[lastEmailVerificationSentKey];
+    const user: CrudUser = await this.findOne(userId, ctx) as any;
+    if(userConditionFunc(user)){
+      return true;
+    }
+    if(user && user[tokenKey] === ctx.data.token){
+      //check if expired
+      const { emailCount, timeout } = userGetTimeoutFunc(user);
+      if((lastEmailSent && lastEmailSent.getTime() + timeout ) < Date.now()){
+          const patch = callBackFunc(user)
+          await this.unsecure_fastPatchOne(userId, patch as any, ctx);
+          return true;
+      }
+    }
+    return new BadRequestException(CrudErrors.TOKEN_EXPIRED.str());
+  }
+
+  async sendVerificationEmail(ctx: CrudContext){
+    //Doing this for type checking
+    const user: Partial<CrudUser> = { lastEmailVerificationSent: null, emailVerificationToken: null, verifiedEmailAttempCount: 0} 
+    const keys = Object.keys(user); 
+    return await this.sendTokenEmail(ctx, 
+      keys[0], 
+      this.getVerificationEmailTimeoutHours(ctx.user), 
+      keys[1], 
+      this.crudConfig.emailService.sendVerificationEmail, 
+      keys[2]);
+  }
+
+  async verifyEmail(ctx: CrudContext){
+    //Doing this for type checking
+    const user: Partial<CrudUser> = { lastEmailVerificationSent: null, emailVerificationToken: null} 
+    const keys = Object.keys(user); 
+    return await this.useToken(ctx, 
+      keys[0], 
+      (user: CrudUser) => user?.verifiedEmail && !user.nextEmail, 
+      keys[1], 
+      this.getVerificationEmailTimeoutHours,
+       (user: CrudUser) => {
+        const patch: Partial<CrudUser> = {verifiedEmail: true, verifiedEmailAttempCount: 0};
+        if(user.nextEmail){
+          patch.email = user.nextEmail;
+          patch.nextEmail = null;
+        }
+        return patch;
+      });
+  }
+
+  async sendTwoFACode(userId: string, user: CrudUser, ctx: CrudContext){
+    const lastTwoFACodeSent = user.lastTwoFACodeSent;
+    if(lastTwoFACodeSent && (lastTwoFACodeSent.getTime() + (this.TWOFA_EMAIL_TIMEOUT_MIN * 60 * 1000)) > Date.now()){
+      return new UnauthorizedException(CrudErrors.EMAIL_ALREADY_SENT.str());
+    }
+    const code = _utils.generateRandomString(6).toUpperCase();
+    const twoFACodeCount = user.twoFACodeCount || 0;
+    const patch: Partial<CrudUser> = {lastTwoFACode: code, lastTwoFACodeSent: new Date(), twoFACodeCount: twoFACodeCount+1};
+    await this.crudConfig.emailService.sendTwoFactorEmail(user.email, code);
+    await this.unsecure_fastPatchOne(userId, patch as any, ctx);
+    return true;
+  }
+
+  async sendPasswordResetEmail(ctx: CrudContext){
+        //Doing this for type checking
+        const user: Partial<CrudUser> = { lastPasswordResetSent: null, passwordResetToken: null, passwordResetAttempCount: 0} 
+        const keys = Object.keys(user); 
+        return await this.sendTokenEmail(ctx, 
+          keys[0], 
+          this.getPasswordResetEmailTimeoutHours(ctx.user), 
+          keys[1], 
+          this.crudConfig.emailService.sendPasswordResetEmail, 
+          keys[2]);
+  }
+
+  async resetPassword(ctx: CrudContext) {
+     //Doing this for type checking
+    const user: Partial<CrudUser> = { lastPasswordResetSent: null, passwordResetToken: null} 
+    const keys = Object.keys(user); 
+    return await this.useToken(ctx, 
+      keys[0], 
+      (user: CrudUser) => true, 
+      keys[1], 
+      this.getPasswordResetEmailTimeoutHours,
+       (user: CrudUser) => {
+        const patch: Partial<CrudUser> = {password: ctx.data.password, passwordResetAttempCount: 0};
+        return patch;
+      });
+  }
+
 
   override async cmdHandler(cmdName: string, ctx: CrudContext, inheritance?: any) {
+
     switch (cmdName) {
-      case 'sendVerificationEmail':
-          const lastEmailSent = ctx.user.lastVerificationSent;
-          const { emailCount, timeout } = this.getVerificationEmailTimeoutHours(ctx.user);
-
-          if(emailCount < 2 
-            || !lastEmailSent 
-            || (lastEmailSent.getTime() + timeout ) >= Date.now()
-            ){
-            const token = _utils.generateRandomString(16);
-            const patch: any = {lastVerificationToken: token, lastVerificationSent: new Date(), verifiedEmailCount: emailCount+1};
-            await this.unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], patch, ctx);
-            await this.crudConfig.emailService.sendVerificationEmail(ctx.data.email, token);
-            return true;
-          }
-
-          return new BadRequestException(CrudErrors.EMAIL_ALREADY_SENT.str());
+      case this.cmds.sendVerificationEmail:
+          return await this.sendVerificationEmail(ctx);
       break;
 
-      case 'verifyEmail':
-          const userId = ctx.data.userId;
-          const user: CrudUser = await this.findOne(userId, ctx) as any;
-          if(user?.verifiedEmail && !user?.nextEmail){
-            return true;
-          }
-          if(user && user.lastVerificationToken === ctx.data.token){
-            //check if expired
-            const { emailCount, timeout } = this.getVerificationEmailTimeoutHours(user);
-            if((lastEmailSent && lastEmailSent.getTime() + timeout ) < Date.now()){
-                const patch: any = {verifiedEmail: true, verifiedEmailCount: 0};
-                if(user.nextEmail){
-                  patch.email = user.nextEmail;
-                  patch.nextEmail = null;
-                }
-                await this.unsecure_fastPatchOne(userId, patch, ctx);
-                return true;
-            }
-          }
-          return new BadRequestException(CrudErrors.TOKEN_EXPIRED.str());
+      case this.cmds.verifyEmail:
+          return await this.verifyEmail(ctx);
       break;
 
-
-      case 'sendTwoFACode':
+      case this.cmds.sendPasswordResetEmail:
+          return await this.sendPasswordResetEmail(ctx);
           break;
 
-      case 'sendPasswordResetEmail':
-          break;
-
-      case 'resetPassword':
+      case this.cmds.resetPassword:
+          return await this.resetPassword(ctx);
           break;
 
       default:
@@ -245,7 +350,6 @@ export class CrudUserService extends CrudService<CrudUser> {
   }
     
   }
-  
 
 
 }

@@ -26,10 +26,13 @@ export class CrudConfigService {
         TIMEOUT_DURATION_MIN: 15
     };
 
+    CACHE_TTL: number = 60 * 12 * 1000; // 12 minutes
+
     services: CrudService<any>[] = [];
     id_field: string = '_id';
     guest_role: string = "guest" 
     roles: CrudRole[] = [];
+    public rolesMap: Record<string, CrudRole> = {};
 
 
     cacheManager: SecurityCacheManager;
@@ -60,6 +63,11 @@ export class CrudConfigService {
             //unique services 
             this.services = this.services.filter((v, i, a) => a.indexOf(v) === i);
 
+            this.rolesMap = this.roles.reduce((acc, role) => {
+                acc[role.name] = role;
+                return acc;
+            }, {} as Record<string, CrudRole>)
+
     }
 
 
@@ -79,6 +87,17 @@ export class CrudConfigService {
         return Promise.resolve();
     }
 
+    getParentRolesRecurs(role: CrudRole): CrudRole[] {
+        const parentRoles: CrudRole[] = [];
+        if (role.inherits?.length) {
+            for (const parent of role.inherits) {
+                const parentRole = this.rolesMap[parent];
+                parentRoles.push(parentRole);
+                parentRoles.push(...this.getParentRolesRecurs(parentRole));
+            }
+        }
+        return parentRoles;
+    }
 
 
 

@@ -1,14 +1,17 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Inject, Post, Query, UnauthorizedException, forwardRef } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Inject, Post, Query, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
 import { CrudContext } from './model/CrudContext';
 import { Context } from '../auth/auth.utils';
 import { CrudQuery } from './model/CrudQuery';
 import { CrudAuthorizationService } from './crud.authorization.service';
-
-import { CrudUser } from '../user/model/CrudUser';
-import { CrudUserService } from '../user/crud-user.service';
+import { TransformationType, plainToInstance as dontuseme } from 'class-transformer';
+import { TransformOperationExecutor } from 'class-transformer/cjs/TransformOperationExecutor';
+import { defaultOptions } from 'class-transformer/cjs/constants/default-options.constant';
+import { validateOrReject } from 'class-validator';
 import { CrudConfigService } from './crud.config.service';
+import { CmdSecurity } from './model/CrudSecurity';
+import { CrudErrors } from './model/CrudErrors';
 
 @Controller({
     path: "crud",
@@ -30,7 +33,7 @@ export class CrudController<T extends CrudEntity> {
             }, {});
         }
 
-    assignContext(method: string, crudQuery: CrudQuery, query: any, data: any, type, ctx: CrudContext): CrudService<any>{
+    async assignContextAndValidate(method: string, crudQuery: CrudQuery, query: any, data: any, type, ctx: CrudContext): CrudService<any>{
         const currentService: CrudService<any> = this.crudMap[query.service];
         ctx.method = method
         ctx.serviceName = crudQuery.service
@@ -39,6 +42,11 @@ export class CrudController<T extends CrudEntity> {
         ctx.options = crudQuery.options;
         ctx.security = currentService.security;
         ctx.origin = type;
+        if(ctx.origin == 'cmd'){
+            ctx.cmdName = crudQuery.cmd;
+        }
+
+        await this.validate(ctx, currentService);
 
         return currentService;
     }
@@ -68,7 +76,7 @@ export class CrudController<T extends CrudEntity> {
     }
 
     async subCreate(query: CrudQuery, newEntity: any, ctx: CrudContext){
-        const service = this.assignContext('POST', query, newEntity, newEntity, 'crud', ctx);
+        const service = await this.assignContextAndValidate('POST', query, newEntity, newEntity, 'crud', ctx);
         try{
             await this.crudAuthorization.authorize(ctx);
 
@@ -95,9 +103,55 @@ export class CrudController<T extends CrudEntity> {
         return await this.subCreate(query, newEntity, ctx);
     }
 
+    async validate(ctx: CrudContext, currentService: CrudService<any>){
+        let queryClass = null;
+        let dataClass = null;
+        let dataDefaultValues = false;
+        if(ctx.origin == 'crud'){
+            if(ctx.method == 'POST'){
+                dataClass = currentService.entity;
+                dataDefaultValues = true;
+            }else if(ctx.method == 'PUT'){
+                dataClass = currentService.entity;
+                queryClass = currentService.entity;
+                dataDefaultValues = true;
+            }else if (ctx.method == 'PATCH'){
+                dataClass = currentService.entity;
+                queryClass = currentService.entity;
+            }else if(ctx.method == 'GET' || ctx.method == 'DELETE'){
+                queryClass = currentService.entity;
+            }
+        }else if(ctx.origin == 'cmd'){
+            const cmdSecurity: CmdSecurity  = ctx.security?.cmdSecurityMap?.[ctx.cmdName];
+            queryClass = null;
+            if(cmdSecurity?.dto){
+                dataClass = cmdSecurity.dto;
+            }
+        }
+        if(queryClass){
+            const obj = this.plainToInstanceNoDefaultValues(ctx.query, queryClass);
+            try {
+                await validateOrReject(obj, {skipMissingProperties: true});
+            }catch(errors){
+                const msg = 'Query: '+ errors.toString();
+                throw new BadRequestException(CrudErrors.VALIDATION_ERROR.str(msg));
+            }
+        }
+        if(dataClass){
+            ctx.data = dataDefaultValues ? this.plainToInstanceWithDefaultValues(ctx.data, dataClass) : this.plainToInstanceNoDefaultValues(ctx.data, dataClass);
+            try {
+                await validateOrReject(ctx.data, {skipMissingProperties: !dataDefaultValues});
+            }catch(errors){
+                const msg = 'Data: '+ errors.toString();
+                throw new BadRequestException(CrudErrors.VALIDATION_ERROR.str(msg));
+            }
+        }
+
+    }
+
     @Post('batch')
     async _batchCreate(@Query() query: CrudQuery, @Body() newEntities: T[], @Context() ctx: CrudContext) {
-        this.assignContext('POST', query, newEntities[0], newEntities[0], 'crud', ctx);
+        await this.assignContextAndValidate('POST', query, newEntities[0], newEntities[0], 'crud', ctx);
         await this.crudAuthorization.authorizeBatch(ctx, newEntities.length);
         ctx.noFlush = true;
         const results = [];
@@ -111,7 +165,7 @@ export class CrudController<T extends CrudEntity> {
 
     @Post('cmd')
     async _secureCMD(@Query() query: CrudQuery, @Body() newEntities: T[], @Context() ctx: CrudContext) {
-        this.assignContext('POST', query, newEntities[0], newEntities[0], 'cmd', ctx);
+        await this.assignContextAndValidate('POST', query, newEntities[0], newEntities[0], 'cmd', ctx);
         await this.crudAuthorization.authorize(ctx, newEntities.length);
         ctx.noFlush = true;
         const results = [];
@@ -177,6 +231,21 @@ export class CrudController<T extends CrudEntity> {
 
     async _putOne(newEntity: T, ctx: CrudContext) {
         return this.crudService.putOne(newEntity, ctx);
+    }
+
+    plainToInstanceNoDefaultValues(plain: any, cls)
+    {
+        //https://github.com/typestack/class-transformer/issues/1429
+        const executor = new TransformOperationExecutor(TransformationType.PLAIN_TO_CLASS, {
+            ...defaultOptions,
+            ... { exposeDefaultValues: false},
+          });
+          return executor.transform({}, plain, cls, undefined, undefined, undefined);
+    }
+
+    plainToInstanceWithDefaultValues(plain: any, cls)
+    {
+        return dontuseme(cls, plain, { exposeDefaultValues: true});
     }
 
 
