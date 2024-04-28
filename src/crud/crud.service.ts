@@ -3,9 +3,9 @@ import { CrudEntity } from './model/CrudEntity';
 import { EntityManager, EntityName, wrap } from '@mikro-orm/core';
 import { CrudSecurity } from './model/CrudSecurity';
 import { Cache } from 'cache-manager';
-import { CrudContext } from '../auth/model/CrudContext';
+import { CrudContext } from './model/CrudContext';
 
-import { CrudUser } from '../user/entity/CrudUser';
+import { CrudUser } from '../user/model/CrudUser';
 import { CrudUserService } from '../user/crud-user.service';
 import { CrudConfigService } from './crud.config.service';
 
@@ -123,7 +123,7 @@ export class CrudService<T extends CrudEntity> {
             const tempEm = em.fork();
             results = await tempEm.find(this.entity, query, opts as any);
             for(let result of results) {
-                wrap(result).assign(newEntity, {mergeObjects: true, onlyProperties: true});
+                wrap(result).assign(newEntity as any, {mergeObjectProperties: true, onlyProperties: true});
                 await this.checkEntitySize(result, ctx);
             }
         }
@@ -135,18 +135,18 @@ export class CrudService<T extends CrudEntity> {
         const opts = this.getReadOptions(context);
         if(secure){
             const tempEm = em.fork();
-            let result = await tempEm.findOne(this.entity, id, opts as any);
-            wrap(result).assign(newEntity, {mergeObjects: true, onlyProperties: true});
+            let result = await tempEm.findOne(this.entity, id as any, opts as any);
+            wrap(result).assign(newEntity as any, {mergeObjectProperties: true, onlyProperties: true});
             await this.checkEntitySize(result, ctx);
         }
-        let res = em.getReference(this.entity, id);
-        wrap(res).assign(newEntity, {mergeObjects: true, onlyProperties: true});
+        let res = em.getReference(this.entity, id as any);
+        wrap(res).assign(newEntity as any, {mergeObjectProperties: true, onlyProperties: true});
         return res;
     }
     
     private async doPut(entity: Partial<T>, newEntity: Partial<T>, ctx:CrudContext, secure: boolean) {
         newEntity.updatedAt = new Date();
-        wrap(entity).assign(newEntity, {merge: false, mergeObjects:false, onlyProperties: true});
+        wrap(entity).assign(newEntity as any, {merge: false, mergeObjectProperties:false, onlyProperties: true});
         if(secure){
             await this.checkEntitySize(entity, ctx);
         }
@@ -210,7 +210,7 @@ export class CrudService<T extends CrudEntity> {
 
     async removeOne(id: string, context:CrudContext, inheritance: any = {}) {
         const em = context.em || this.crudConfig.entityManager.fork();
-        const entity = em.getReference(this.entity, id);
+        const entity = em.getReference(this.entity, id as any);
         const result = em.remove(entity)
         if(!context.noFlush) {
             await em.flush();
@@ -219,8 +219,8 @@ export class CrudService<T extends CrudEntity> {
         return result;
     }
 
-    doRemove(entity: Partial<T>, em: EntityManager) {
-        ;
+    async cmdHandler(cmdName: string, context: CrudContext, inheritance: any = {}): Promise<any> {
+        throw new BadRequestException('Command not found');
     }
 
     async beforeControllerHook(context: CrudContext): Promise<any> {

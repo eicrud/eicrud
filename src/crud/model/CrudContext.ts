@@ -1,11 +1,11 @@
 import { EntityManager } from "@mikro-orm/core";
-import { CrudOptions } from "../../crud/model/CrudOptions";
-import { CrudUser } from "../../user/entity/CrudUser";
-import { CrudSecurity } from "../../crud/model/CrudSecurity";
+import { CrudOptions } from "./CrudOptions";
+import { CrudUser } from "../../user/model/CrudUser";
+import { CrudSecurity } from "./CrudSecurity";
 
 export interface CrudContext {
     serviceName?: string, 
-    user?: Partial<CrudUser>, 
+    user?: CrudUser, 
     userId?: string,
     method?: string, 
     security?: CrudSecurity,

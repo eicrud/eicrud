@@ -3,7 +3,7 @@ import { SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { CrudSecurity } from '../crud/model/CrudSecurity';
-import { CrudContext } from './model/CrudContext';
+import { CrudContext } from '../crud/model/CrudContext';
 
 
 export const IS_PUBLIC_KEY = 'isPublic';

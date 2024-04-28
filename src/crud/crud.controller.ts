@@ -1,12 +1,12 @@
 import { Body, Controller, Delete, ForbiddenException, Get, Inject, Post, Query, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
-import { CrudContext } from '../auth/model/CrudContext';
+import { CrudContext } from './model/CrudContext';
 import { Context } from '../auth/auth.utils';
 import { CrudQuery } from './model/CrudQuery';
 import { CrudAuthorizationService } from './crud.authorization.service';
 
-import { CrudUser } from '../user/entity/CrudUser';
+import { CrudUser } from '../user/model/CrudUser';
 import { CrudUserService } from '../user/crud-user.service';
 import { CrudConfigService } from './crud.config.service';
 

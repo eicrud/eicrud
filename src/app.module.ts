@@ -13,7 +13,7 @@ import { LogService } from './log/log.service';
 import { NotificationsService } from './notifications/notifications.service';
 import { APP_FILTER } from '@nestjs/core';
 import { AllExceptionsFilter } from './errors/AllExceptionsFilter';
-import { CrudUser } from './user/entity/CrudUser';
+import { CrudUser } from './user/model/CrudUser';
 import { OcrudModule } from './ocrud.module';
 import { CrudConfigService } from './crud/crud.config.service';
 @Module({

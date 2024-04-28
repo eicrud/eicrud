@@ -1,13 +1,14 @@
 import { Injectable } from "@nestjs/common";
-import { CrudRole } from "../auth/model/CrudRole";
+import { CrudRole } from "./model/CrudRole";
 import { CrudService } from "./crud.service";
 import { CrudUserService } from "../user/crud-user.service";
 import { LogService } from "../log/log.service";
 import { EntityManager } from "@mikro-orm/core";
-import { CrudContext } from "../auth/model/CrudContext";
+import { CrudContext } from "./model/CrudContext";
 import { CrudAuthorizationService } from "./crud.authorization.service";
 import { TrafficWatchOptions } from "../auth/auth.guard";
-import { CrudUser } from "../user/entity/CrudUser";
+import { CrudUser } from "../user/model/CrudUser";
+import { EmailService } from "../email/email.service";
 
 
 export interface SecurityCacheManager {
@@ -37,16 +38,19 @@ export class CrudConfigService {
     public logService: LogService;
     public entityManager: EntityManager;
     public captchaService: any;
+    public emailService: EmailService;
 
     constructor(config: {userService: CrudUserService, 
         logService?: LogService,
         entityManager: EntityManager,
-        captchaService?: any }
+        captchaService?: any,
+        emailService: EmailService,}
         ) {
             this.userService = config.userService;
             this.logService = config.logService;
             this.entityManager = config.entityManager;
             this.captchaService = config.captchaService;
+            this.emailService = config.emailService;
 
             this.services.push(...[
                 this.userService,

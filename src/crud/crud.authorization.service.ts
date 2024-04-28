@@ -1,12 +1,12 @@
 import { ForbiddenException } from "@nestjs/common";
 import { AuthUtils } from "../auth/auth.utils";
-import { CrudContext } from "../auth/model/CrudContext";
-import { CrudRole } from "../auth/model/CrudRole";
+import { CrudContext } from "./model/CrudContext";
+import { CrudRole } from "./model/CrudRole";
 import { defineAbility, subject } from "@casl/ability";
 import { BatchRights, CrudSecurity, httpAliasResolver } from "./model/CrudSecurity";
 import { CrudUserService } from "../user/crud-user.service";
 import { CrudConfigService } from "./crud.config.service";
-import { CrudUser } from "../user/entity/CrudUser";
+import { CrudUser } from "../user/model/CrudUser";
 
 
 export class CrudAuthorizationService {

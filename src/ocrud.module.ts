@@ -1,19 +1,27 @@
 import { DynamicModule, Module, Type } from '@nestjs/common';
-import { CrudService } from './crud/crud.service';
 import { CrudController } from './crud/crud.controller';
 import { CrudConfigService } from './crud/crud.config.service';
 import { CrudAuthorizationService } from './crud/crud.authorization.service';
 import { AuthService } from './auth/auth.service';
+import { AuthGuard } from './auth/auth.guard';
+import { NestApplication } from '@nestjs/core';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({})
-export class OcrudModule {
-  static register(ConfigService: Type<CrudConfigService>): DynamicModule {
-
+export class OCRUDModule {
+  static register(ConfigService: Type<CrudConfigService>,app: NestApplication): DynamicModule {
+    
     return {
-      module: OcrudModule,
-      providers: [CrudAuthorizationService, AuthService, ConfigService],
+      module: OCRUDModule,
+      providers: [CrudAuthorizationService, AuthService, ConfigService,
+        {
+          provide: APP_GUARD,
+          useClass: AuthGuard,
+        },
+      ],
       controllers: [CrudController],
       exports: [],
+      
     };
   }
 }
