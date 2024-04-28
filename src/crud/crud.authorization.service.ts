@@ -1,5 +1,5 @@
 import { ForbiddenException } from "@nestjs/common";
-import { AuthUtils } from "../auth/auth.utils";
+import { AuthUtils } from "../authentification/auth.utils";
 import { CrudContext } from "./model/CrudContext";
 import { CrudRole } from "./model/CrudRole";
 import { defineAbility, subject } from "@casl/ability";

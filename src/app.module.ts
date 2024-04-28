@@ -6,7 +6,7 @@ import { AppService } from './app.service';
 import { CrudService } from './crud/crud.service';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { CrudController } from './crud/crud.controller';
-import { AuthService } from './auth/auth.service';
+import { CrudAuthService } from './authentification/auth.service';
 import { CrudUserService } from './user/crud-user.service';
 import { AccountManagementService } from './account-management/account-management.service';
 import { LogService } from './log/log.service';
@@ -35,7 +35,7 @@ import { CrudConfigService } from './crud/crud.config.service';
   providers: [
     AppService, 
     CrudService, 
-    AuthService, 
+    CrudAuthService, 
     CrudUserService, 
     AccountManagementService, 
     LogService, 

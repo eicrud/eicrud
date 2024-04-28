@@ -19,6 +19,7 @@ import { LogType } from '../log/entities/log';
 import { CrudErrors } from '../crud/model/CrudErrors';
 import { CrudOptions } from '../crud/model/CrudOptions';
 import { CrudRole } from '../crud/model/CrudRole';
+import { CrudAuthService } from './auth.service';
 
 
 export interface TrafficWatchOptions{
@@ -46,11 +47,9 @@ export class AuthGuard implements CanActivate {
 
   
   constructor(
-    protected jwtService: JwtService, 
     protected usersService: CrudService<CrudUser>,
-    protected JWT_SECRET: string,
-    protected servicePositionInUri = 2,
-    protected crudConfig: CrudConfigService
+    protected crudConfig: CrudConfigService,
+    protected authService: CrudAuthService
     ) {
       this.userTrafficMap = new LRUCache(crudConfig.watchTrafficOptions.MAX_USERS);
       this.reciprocalRequestThreshold = 1 / this.crudConfig.watchTrafficOptions.REQUEST_THRESHOLD;
@@ -91,12 +90,7 @@ export class AuthGuard implements CanActivate {
     const options: CrudOptions = request.query?.query?.options || {};
     if (token) {
       try {
-        const payload = await this.jwtService.verifyAsync(
-          token,
-          {
-            secret: this.JWT_SECRET,
-          }
-        );
+        const payload = await this.authService.getJwtPayload(token);
 
         if(request.method == 'POST' ){
           user = await this.usersService.findOne(payload, null);

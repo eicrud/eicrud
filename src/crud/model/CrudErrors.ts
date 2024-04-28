@@ -25,6 +25,7 @@ export class CrudErrors {
     static readonly TWOFA_REQUIRED = new CrudError("2FA required", 8);
     static readonly USER_NOT_FOUND = new CrudError("User not found", 9);
     static readonly VALIDATION_ERROR = new CrudError("Validation error", 10);
+    static readonly PASSWORD_TOO_LONG = new CrudError("Password too long", 11);
 
     parseErrorCode(str: string): number {
         return parseInt(str.split("[crd_")[1]);

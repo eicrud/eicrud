@@ -9,8 +9,16 @@ import { CrudConfigService } from '../crud/crud.config.service';
 import { CrudErrors } from '../crud/model/CrudErrors';
 import { CrudUser } from '../user/model/CrudUser';
 
+export interface AuthenticationOptions {
+  VERIFICATION_EMAIL_TIMEOUT_HOURS: number;
+  TWOFA_EMAIL_TIMEOUT_MIN: number;
+  PASSWORD_RESET_EMAIL_TIMEOUT_HOURS: number;
+  PASSWORD_MAX_LENGTH: number;
+}
+
 @Injectable()
-export class AuthService {
+export class CrudAuthService {
+
   constructor(
     protected jwtService: JwtService,
     protected JWT_SECRET: string,
@@ -69,10 +77,28 @@ export class AuthService {
         payload[field] = user[field];
     });
     return {
-      access_token: await this.jwtService.signAsync(payload,
+      access_token: await this.signTokenForUser(user)
+    }
+  }
+
+  signTokenForUser(user){
+    const payload = {};
+    this.FIELDS_IN_PAYLOAD.forEach(field => {
+        payload[field] = user[field];
+    });
+    return this.jwtService.sign(payload,
         {
         secret: this.JWT_SECRET,
-      }),
-    };
+      });
+  }
+
+
+  async getJwtPayload(token: string) {
+    return await this.jwtService.verifyAsync(
+      token,
+      {
+        secret: this.JWT_SECRET,
+      }
+    );
   }
 }
