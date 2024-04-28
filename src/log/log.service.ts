@@ -6,7 +6,7 @@ import { EntityManager, EntityName, wrap } from '@mikro-orm/core';
 import { caching } from 'cache-manager';
 import { CrudConfigService } from '../crud/crud.config.service';
 import { CrudSecurity } from '../crud/model/CrudSecurity';
-import { CrudContext } from '../auth/model/CrudContext';
+import { CrudContext } from '../crud/model/CrudContext';
 
 export const logSecurity: CrudSecurity = {
     maxItemsInDb: 50000,

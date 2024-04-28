@@ -1,11 +1,13 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { CrudService } from '../crud/crud.service';
 import { CrudSecurity } from '../crud/model/CrudSecurity';
 import { _utils } from '../utils';
-import { CrudUser } from './entity/CrudUser';
-import { CrudContext } from '../auth/model/CrudContext';
+import { CrudUser } from './model/CrudUser';
+import { CrudContext } from '../crud/model/CrudContext';
 import { CrudConfigService } from '../crud/crud.config.service';
 import { CrudAuthorizationService } from '../crud/crud.authorization.service';
+import { Type } from '@mikro-orm/core';
+import { CrudErrors } from '../crud/model/CrudErrors';
 
 
 @Injectable()
@@ -16,7 +18,7 @@ export class CrudUserService extends CrudService<CrudUser> {
   protected crudConfig: CrudConfigService,
   protected authorizationService: CrudAuthorizationService,
   ) {
-    super(crudConfig);
+    super(crudConfig, Type<CrudUser>, new CrudSecurity());
   }
 
   private readonly users = [
@@ -46,7 +48,7 @@ export class CrudUserService extends CrudService<CrudUser> {
 
   override async patch(entity: CrudUser, newEntity: CrudUser, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
-    return super.patch(entity, newEntity, context);
+    return super.patch(entity, newEntity, ctx);
   }
 
   override async patchOne(id: string, newEntity: CrudUser, ctx: CrudContext) {
@@ -59,10 +61,10 @@ export class CrudUserService extends CrudService<CrudUser> {
     return super.unsecure_fastPatch(query, newEntity, ctx);
   }
 
-  override async unsecure_fastPatchOne(id: string, newEntity: Partial<CrudUser>, ctx: CrudContext) {
+  override async unsecure_fastPatchOne(id: string, newEntity: CrudUser, ctx: CrudContext) {
       await this.checkPassword(newEntity);
-      this.checkFieldsThatResetRevokedCount(newEntity);
-      return super.unsecure_fastPatchOne(id, newEntity);
+      this.checkFieldsThatIncrementRevokedCount(newEntity);
+      return super.unsecure_fastPatchOne(id, newEntity, ctx);
   }
 
   override async putOne(newEntity: CrudUser, ctx: CrudContext) {
@@ -83,13 +85,13 @@ export class CrudUserService extends CrudService<CrudUser> {
 
   async checkUserBeforePatch(newEntity: CrudUser){
     await this.checkPassword(newEntity);
-    this.checkFieldsThatResetRevokedCount(newEntity);
+    this.checkFieldsThatIncrementRevokedCount(newEntity);
   }
 
-  checkFieldsThatResetRevokedCount(newEntity: CrudUser){
+  checkFieldsThatIncrementRevokedCount(newEntity: CrudUser){
     const fieldsThatResetRevokedCount = ['email', 'password'];
     if(fieldsThatResetRevokedCount.some(field => newEntity[field])){
-      newEntity.revokedCount = 0;
+      newEntity.revokedCount = newEntity.revokedCount + 1;
     }
   }
 
@@ -102,14 +104,13 @@ export class CrudUserService extends CrudService<CrudUser> {
     return trust;
   }
 
-  async timeoutUser(user: Partial<CrudUser>, TIMEOUT_DURATION_MIN: number){
+  async timeoutUser(user: CrudUser, TIMEOUT_DURATION_MIN: number){
     this.addTimeoutToUser(user, TIMEOUT_DURATION_MIN);
-    const patch = {timeout: user.timeout, timeoutCount: user.timeoutCount};
-    this.unsecure_fastPatchOne(user[this.crudConfig.id_field] ,patch, null);
+    const patch: any = {timeout: user.timeout, timeoutCount: user.timeoutCount};
+    this.unsecure_fastPatchOne(user[this.crudConfig.id_field] , patch, null);
   }
 
-
-  addTimeoutToUser(user: Partial<CrudUser>, TIMEOUT_DURATION_MIN: number){
+  addTimeoutToUser(user: CrudUser, TIMEOUT_DURATION_MIN: number){
     const duration = TIMEOUT_DURATION_MIN * 60 * 1000 * user.timeoutCount;
     user.timeout = new Date(Date.now() + duration);
     user.timeoutCount = user.timeoutCount || 0;
@@ -163,8 +164,12 @@ export class CrudUserService extends CrudService<CrudUser> {
       trust += 2;
     }
 
+    if(trust <= 2){
+      user.captchaRequested = true;
+    }
+
     trust = await this.addToComputedTrust(user, trust, ctx);
-    const patch = {trust, lastComputedTrust: new Date()};
+    const patch: any = {trust, lastComputedTrust: new Date()};
     this.unsecure_fastPatchOne(user[this.crudConfig.id_field] ,patch, ctx);
     user.trust = trust;
     user.lastComputedTrust = patch.lastComputedTrust;
@@ -172,6 +177,75 @@ export class CrudUserService extends CrudService<CrudUser> {
     
     return trust;
   }
+
+  VERIFICATION_EMAIL_TIMEOUT_HOURS = 6;
+
+  getVerificationEmailTimeoutHours(user: CrudUser){
+    const emailCount = user.verifiedEmailCount;
+    const timeout = emailCount * this.VERIFICATION_EMAIL_TIMEOUT_HOURS * 60 * 60 * 1000;
+    return { emailCount, timeout};
+  }
+
+
+  override async cmdHandler(cmdName: string, ctx: CrudContext, inheritance?: any) {
+    switch (cmdName) {
+      case 'sendVerificationEmail':
+          const lastEmailSent = ctx.user.lastVerificationSent;
+          const { emailCount, timeout } = this.getVerificationEmailTimeoutHours(ctx.user);
+
+          if(emailCount < 2 
+            || !lastEmailSent 
+            || (lastEmailSent.getTime() + timeout ) >= Date.now()
+            ){
+            const token = _utils.generateRandomString(16);
+            const patch: any = {lastVerificationToken: token, lastVerificationSent: new Date(), verifiedEmailCount: emailCount+1};
+            await this.unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], patch, ctx);
+            await this.crudConfig.emailService.sendVerificationEmail(ctx.data.email, token);
+            return true;
+          }
+
+          return new BadRequestException(CrudErrors.EMAIL_ALREADY_SENT.str());
+      break;
+
+      case 'verifyEmail':
+          const userId = ctx.data.userId;
+          const user: CrudUser = await this.findOne(userId, ctx) as any;
+          if(user?.verifiedEmail && !user?.nextEmail){
+            return true;
+          }
+          if(user && user.lastVerificationToken === ctx.data.token){
+            //check if expired
+            const { emailCount, timeout } = this.getVerificationEmailTimeoutHours(user);
+            if((lastEmailSent && lastEmailSent.getTime() + timeout ) < Date.now()){
+                const patch: any = {verifiedEmail: true, verifiedEmailCount: 0};
+                if(user.nextEmail){
+                  patch.email = user.nextEmail;
+                  patch.nextEmail = null;
+                }
+                await this.unsecure_fastPatchOne(userId, patch, ctx);
+                return true;
+            }
+          }
+          return new BadRequestException(CrudErrors.TOKEN_EXPIRED.str());
+      break;
+
+
+      case 'sendTwoFACode':
+          break;
+
+      case 'sendPasswordResetEmail':
+          break;
+
+      case 'resetPassword':
+          break;
+
+      default:
+        return super.cmdHandler(cmdName, ctx, inheritance);
+
+  }
+    
+  }
+  
 
 
 }

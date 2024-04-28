@@ -1,5 +1,5 @@
 import { AbilityBuilder, createAliasResolver } from "@casl/ability";
-import { CrudContext } from "../../auth/model/CrudContext";
+import { CrudContext } from "./CrudContext";
 
 export interface CmdSecurity {
     maxUsesPerUser: number;

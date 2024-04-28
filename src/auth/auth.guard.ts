@@ -4,15 +4,14 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { AuthUtils } from './auth.utils';
 import { CrudService } from '../crud/crud.service';
 import { CrudDto, CrudEntity } from '../crud/model/CrudEntity';
-import { CrudContext } from './model/CrudContext';
+import { CrudContext } from '../crud/model/CrudContext';
 import { CrudSecurity } from '../crud/model/CrudSecurity';
-import { CrudUser } from '../user/entity/CrudUser';
+import { CrudUser } from '../user/model/CrudUser';
 import LRUCache from 'mnemonist/lru-cache';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CrudConfigService } from '../crud/crud.config.service';
@@ -44,7 +43,8 @@ export class AuthGuard implements CanActivate {
   }
 
   
-  constructor(protected jwtService: JwtService, protected reflector: Reflector,
+  constructor(
+    protected jwtService: JwtService, 
     protected usersService: CrudService<CrudUser>,
     protected JWT_SECRET: string,
     protected servicePositionInUri = 2,
@@ -84,7 +84,7 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
-    let user: Partial<CrudUser> = { role: this.crudConfig.guest_role };
+    let user: CrudUser = { role: this.crudConfig.guest_role };
     let userId;
     if (token) {
       try {

@@ -1,11 +1,11 @@
-- Use one controller for all crud services
-- Add cmd & batch methods
-- Add cmd rights
-- add before, after & error hooks
-- make sur to pass ctx for datadog trace tracking
-- check cannot default throw
-- batch wait for flush
-- add inheritance argument
-- VALIDATION
-- test that put does not merge
-- Check CMD method, get non cached user for cmd
+[x] Use one controller for all crud services
+[ ] Add cmd & batch methods 
+[ ] Add cmd rights
+[ ] add before, after & error hooks
+[x] make sur to pass ctx for datadog trace tracking 
+[ ] check cannot default throw
+[x] batch wait for flush 
+[x] add inheritance argument 
+[ ] VALIDATION
+[ ] test that put does not merge
+[ ] Check CMD method, get non cached user for cmd
