@@ -55,7 +55,7 @@ export class CrudService<T extends CrudEntity> {
         return result;
     }
 
-    async findIn(ids: string[], entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
+    async findInMongo(ids: string[], entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
         entity[this.crudConfig.id_field] = { $in: ids };
         const em = context.em || this.crudConfig.entityManager.fork();
         const opts = this.getReadOptions(context);
@@ -104,6 +104,11 @@ export class CrudService<T extends CrudEntity> {
         }
         context.em = em;
         return results;
+    }
+
+    async patchInMongo(ids: string[], query: Partial<T>, newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
+        query[this.crudConfig.id_field] = { $in: ids };
+        return await this.patch(query, newEntity, context, secure, inheritance);
     }
 
     async unsecure_fastPatch(query: Partial<T>, newEntity: Partial<T>, context: CrudContext, inheritance: any = {}){
