@@ -243,7 +243,10 @@ export class CrudService<T extends CrudEntity> {
 
     }
 
-  
+    
+  async addToComputedTrust(user: CrudUser, trust: number, ctx: CrudContext){
+    return trust;
+  }
 
 
 }

@@ -124,11 +124,6 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return (Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24 * 7);
   }
 
-  async addToComputedTrust(user: CrudUser, trust: number, ctx: CrudContext){
-
-    return trust;
-  }
-
   async timeoutUser(user: CrudUser, TIMEOUT_DURATION_MIN: number){
     this.addTimeoutToUser(user, TIMEOUT_DURATION_MIN);
     const patch: any = {timeout: user.timeout, timeoutCount: user.timeoutCount};
@@ -199,7 +194,6 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     user.trust = trust;
     user.lastComputedTrust = patch.lastComputedTrust;
     this.setCached(user as any, ctx);
-    
     return trust;
   }
 

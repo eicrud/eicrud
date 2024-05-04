@@ -1,13 +1,13 @@
 import { CrudOptions } from "./CrudOptions";
 
 
-export interface CrudQuery {
+export interface CrudQuery<T> {
 
     service?: string,
 
     options?: CrudOptions,
 
-    query?: any,
+    query?: T,
 
     cmd?: string,
 
