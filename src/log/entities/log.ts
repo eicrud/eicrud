@@ -22,5 +22,6 @@ export class Log implements CrudEntity {
 
     createdAt: Date;
     updatedAt: Date;
+    level: number;
 
 }

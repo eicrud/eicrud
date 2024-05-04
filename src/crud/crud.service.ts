@@ -55,6 +55,14 @@ export class CrudService<T extends CrudEntity> {
         return result;
     }
 
+    async findIn(ids: string[], entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
+        entity[this.crudConfig.id_field] = { $in: ids };
+        const em = context.em || this.crudConfig.entityManager.fork();
+        const opts = this.getReadOptions(context);
+        const result = await em.find(this.entity, entity, opts as any);
+        return result;
+    }
+
     getReadOptions(context: CrudContext) {
         const opts = context.options || {};
         return opts as any;
@@ -120,14 +128,14 @@ export class CrudService<T extends CrudEntity> {
         const opts = this.getReadOptions(ctx);
         let results;
         if(secure){
-            const tempEm = em.fork();
-            results = await tempEm.find(this.entity, query, opts as any);
+            results = await em.find(this.entity, query, opts as any);
             for(let result of results) {
                 wrap(result).assign(newEntity as any, {mergeObjectProperties: true, onlyProperties: true});
                 await this.checkEntitySize(result, ctx);
             }
+        }else{
+            em.nativeUpdate(this.entity, query, newEntity, opts);
         }
-        em.nativeUpdate(this.entity, query, newEntity, opts);
         return results;
     }
 

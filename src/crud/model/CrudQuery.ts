@@ -3,13 +3,14 @@ import { CrudOptions } from "./CrudOptions";
 
 export interface CrudQuery {
 
-    service: string,
+    service?: string,
 
-    options: CrudOptions,
+    options?: CrudOptions,
 
-    query: any,
+    query?: any,
 
-    cmd: string,
+    cmd?: string,
+
 
 
 }

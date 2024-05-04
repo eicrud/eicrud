@@ -23,13 +23,14 @@ export class LogService extends CrudService<Log> {
         super(crudConfig, Log, logSecurity);
     }
 
-    async log(type: LogType, message: string, ctx: CrudContext){
+    async log(type: LogType, message: string, ctx: CrudContext, level: number = 1){
         const log = new Log();
         log.type = type;
         log.message = message;
         log.serviceName = ctx.serviceName;
         log.userId = ctx.userId;
         log.cmdName = ctx.cmdName;
+        log.level = level;
         try {
             await this.notificationService?.checkNotification(log);
         } catch (error) {
