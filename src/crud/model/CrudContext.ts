@@ -4,6 +4,7 @@ import { CrudUser } from "../../user/model/CrudUser";
 import { CrudSecurity } from "./CrudSecurity";
 
 export interface CrudContext {
+    isBatch?: boolean;
     serviceName?: string, 
     user?: CrudUser, 
     userId?: string,

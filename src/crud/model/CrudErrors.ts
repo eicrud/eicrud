@@ -10,7 +10,12 @@ export class CrudError {
     }
 
     str(data?): string{
-        return this.message + " " + data?.toString() + " [crd_" + this.code + "]";
+        const obj = {
+            message: this.message,
+            code: this.code,
+            data: data
+        }
+        return JSON.stringify(obj);
     }
 }
 
@@ -26,9 +31,6 @@ export class CrudErrors {
     static readonly USER_NOT_FOUND = new CrudError("User not found", 9);
     static readonly VALIDATION_ERROR = new CrudError("Validation error", 10);
     static readonly PASSWORD_TOO_LONG = new CrudError("Password too long", 11);
-
-    parseErrorCode(str: string): number {
-        return parseInt(str.split("[crd_")[1]);
-    }
+    static readonly IN_REQUIRED_LENGTH = new CrudError("In query max id length", 12);
 
 }

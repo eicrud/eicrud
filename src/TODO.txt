@@ -9,4 +9,5 @@
 [ ] VALIDATION
 [ ] test that put does not merge
 [ ] Check CMD method, get non cached user for cmd
-[ ] crudQueryValidation
+[ ] crudQuery Validation
+[ ] test QueryPatch (or queryPut behavior)
