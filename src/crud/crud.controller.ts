@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Inject, Post, Query, UnauthorizedException, ValidationPipe, forwardRef } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Inject, Patch, Post, Query, UnauthorizedException, ValidationPipe, forwardRef } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
 import { CrudContext } from './model/CrudContext';
@@ -21,6 +21,13 @@ import { CrudAuthService } from '../authentification/auth.service';
 export class CrudController<T extends CrudEntity> {
 
     crudMap: Record<string, CrudService<any>>;
+    
+
+    NON_ADMIN_LIMIT_QUERY = 40;
+    ADMIN_LIMIT_QUERY = 400;
+
+    NON_ADMIN_LIMIT_QUERY_IDS = 4000;
+    ADMIN_LIMIT_QUERY_IDS = 8000;
 
     constructor(
         @Inject(forwardRef(() => CrudAuthService))
@@ -36,8 +43,11 @@ export class CrudController<T extends CrudEntity> {
             }, {});
         }
 
-    async assignContextAndValidate(method: string, crudQuery: CrudQuery, query: any, data: any, type, ctx: CrudContext): CrudService<any>{
-        const currentService: CrudService<any> = this.crudMap[query.service];
+    assignContext(method: string, crudQuery: CrudQuery, query: any, data: any, type, ctx: CrudContext): CrudService<any>{
+        const currentService: CrudService<any> = this.crudMap[crudQuery.service];
+        if(!currentService){
+            throw new BadRequestException("Service not found: " + crudQuery.service);
+        }
         ctx.method = method
         ctx.serviceName = crudQuery.service
         ctx.query = query;
@@ -48,7 +58,12 @@ export class CrudController<T extends CrudEntity> {
         if(ctx.origin == 'cmd'){
             ctx.cmdName = crudQuery.cmd;
         }
+        return currentService;
+    }
 
+    async assignContextAndValidate(method: string, crudQuery: CrudQuery, query: any, data: any, type, ctx: CrudContext): CrudService<any>{
+     
+        const currentService = this.assignContext(method, crudQuery, query, data, type, ctx);
         await this.validate(ctx, currentService);
 
         return currentService;
@@ -70,13 +85,16 @@ export class CrudController<T extends CrudEntity> {
         const notGuest = this.crudConfig.userService.notGuest(ctx?.user);
         if(notGuest){
             if(e instanceof ForbiddenException){
-                this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { incidentCount: ctx.user.incidentCount + 1 } , ctx);
+                this.crudConfig.userService.unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], { incidentCount: ctx.user.incidentCount + 1 } , ctx);
             }else{
-                this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { errorCount: ctx.user.errorCount + 1 } , ctx);
+                this.crudConfig.userService.unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], { errorCount: ctx.user.errorCount + 1 } , ctx);
             }
+            this.crudConfig.userService.setCached(ctx.user);
         }
         throw e;
     }
+
+
 
     async subCreate(query: CrudQuery, newEntity: any, ctx: CrudContext){
         const service = await this.assignContextAndValidate('POST', query, newEntity, newEntity, 'crud', ctx);
@@ -89,11 +107,7 @@ export class CrudController<T extends CrudEntity> {
 
             await this.afterHooks(service, res, ctx);
 
-            if(ctx?.user && ctx?.serviceName) {
-                const count = ctx?.user.crudUserDataMap[ctx.serviceName].itemsCreated || 0;
-                ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated = count + 1;
-                this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], {crudUserDataMap: ctx.user.crudUserDataMap}, ctx);
-            }
+            this.addCountToDataMap(ctx, 1);
 
             return res;
         }catch(e){
@@ -104,6 +118,130 @@ export class CrudController<T extends CrudEntity> {
     @Post('one')
     async _create(@Query() query: CrudQuery, @Body() newEntity: T, @Context() ctx: CrudContext) {
         return await this.subCreate(query, newEntity, ctx);
+    }
+
+    @Post('batch')
+    async _batchCreate(@Query() query: CrudQuery, @Body() newEntities: T[], @Context() ctx: CrudContext) {
+        await this.assignContext('POST', query, newEntities[0], newEntities[0], 'crud', ctx);
+        await this.crudAuthorization.authorizeBatch(ctx, newEntities.length);
+        ctx.noFlush = true;
+        const results = [];
+        for(const entity of newEntities) {
+            results.push(await this.subCreate(query, entity, ctx));
+        }
+        ctx.noFlush = false;
+        await ctx.em.flush();
+        this.crudConfig.userService.setCached(ctx.user);
+        return results;
+    }
+
+    @Post('cmd')
+    async _secureCMD(@Query() query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+        const currentService = await this.assignContextAndValidate('POST', query, data, data, 'cmd', ctx);
+        await this.crudAuthorization.authorize(ctx);
+        return await currentService.cmdHandler(query.cmd, ctx);
+    }
+
+    @Patch('cmd')
+    async _unsecureCMD(@Query() query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+        const currentService = await this.assignContextAndValidate('PATCH', query, data, data, 'cmd', ctx);
+        await this.crudAuthorization.authorize(ctx);
+        return await currentService.cmdHandler(query.cmd, ctx);
+    }
+
+    @Get('many')
+    async _find(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+        return await this.subFind(query, ctx, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
+    }
+
+    @Get('ids')
+    async _findIds(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+        query.options = query.options || {};
+        query.options.fields = [this.crudConfig.id_field as any];
+        return await this.subFind(query, ctx, this.NON_ADMIN_LIMIT_QUERY_IDS, this.ADMIN_LIMIT_QUERY_IDS);
+    }
+
+    async subFind(query: CrudQuery, ctx: CrudContext, NON_ADMIN_LIMIT_QUERY, ADMIN_LIMIT_QUERY){
+        this.limitQuery(ctx, query, NON_ADMIN_LIMIT_QUERY, ADMIN_LIMIT_QUERY);
+        const currentService = await this.assignContextAndValidate('GET', query, query.query, null, 'crud', ctx);
+        await this.crudAuthorization.authorize(ctx);
+        return await currentService.find(ctx.query, ctx);
+    }
+
+
+
+    // MAX_GET_IN = 250; ???
+    // @Get('in')
+    // async _findIn(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+    //     this.limitQuery(ctx, query, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
+    //     const currentService = await this.assignContextAndValidate('GET', query, query.query, null, 'crud', ctx);
+    //     await this.crudAuthorization.authorize(ctx);
+    //     const ids = query.query?.[this.crudConfig.id_field];
+    //     if(!ids || !ids.length || ids.length > this.MAX_GET_IN){
+    //         throw new BadRequestException(`${this.crudConfig.id_field} must be an array with at least one element and at most ${this.MAX_GET_IN} elements.`);
+    //     }
+    //     delete query.query[this.crudConfig.id_field];
+    //     return await currentService.findIn(ids, ctx.query, ctx);
+    // }
+
+    @Get('one')
+    async _findOne(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+        const currentService = await this.assignContextAndValidate('GET', query, query.query, null, 'crud', ctx);
+        await this.crudAuthorization.authorize(ctx);
+        return await currentService.findOne(ctx.query, ctx);
+    }
+
+    @Delete('one')
+    async _delete(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+        const currentService = await this.assignContextAndValidate('DELETE', query, query.query, null, 'crud', ctx);
+        const res = await currentService.removeOne(ctx.query[this.crudConfig.id_field], ctx);
+        this.addCountToDataMap(ctx, -1);
+        return res;
+    }
+
+    @Delete('many')
+    async _deleteMany(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+        const currentService = await this.assignContextAndValidate('DELETE', query, query.query, null, 'crud', ctx);
+        await this.crudAuthorization.authorize(ctx);
+        const res = await currentService.remove(ctx.query, ctx);
+        this.addCountToDataMap(ctx, -res);
+        return res;
+    }
+
+    @Patch('one')
+    async _patchOne(@Query() query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+        const currentService = await this.assignContextAndValidate('PATCH', query, query.query, data, 'crud', ctx);
+        await this.crudAuthorization.authorize(ctx);
+        return await currentService.patchOne(ctx.query[this.crudConfig.id_field], ctx.data, ctx);
+    }
+
+    @Patch('many')
+    async _patch(@Query() query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+        this.limitQuery(ctx, query, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
+
+        return this.crudService.patch(query, newEntity, ctx);
+    }
+
+    async _putOne(newEntity: T, ctx: CrudContext) {
+        return this.crudService.putOne(newEntity, ctx);
+    }
+
+
+    @Get('auth')
+    async getConnectedUser(@Context() ctx: CrudContext) {
+        return ctx.user;
+    }
+
+    @Post('auth')
+    async login(@Query() query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+        data = this.plainToInstanceNoDefaultValues(data, LoginDto);
+        await this.validateOrReject(data, false, 'Data:');
+
+        if(data.password?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH){
+            throw new UnauthorizedException(CrudErrors.PASSWORD_TOO_LONG.str());
+        }
+
+        return this.crudAuthService.signIn(data.email, data.password, data.twoFA_code);
     }
 
     async validate(ctx: CrudContext, currentService: CrudService<any>){
@@ -151,88 +289,24 @@ export class CrudController<T extends CrudEntity> {
         }
     }
 
-    @Post('batch')
-    async _batchCreate(@Query() query: CrudQuery, @Body() newEntities: T[], @Context() ctx: CrudContext) {
-        await this.assignContextAndValidate('POST', query, newEntities[0], newEntities[0], 'crud', ctx);
-        await this.crudAuthorization.authorizeBatch(ctx, newEntities.length);
-        ctx.noFlush = true;
-        const results = [];
-        for(const entity of newEntities) {
-            results.push(await this.subCreate(query, entity, ctx));
+    addCountToDataMap(ctx: CrudContext, ct: number){
+        if(this.crudConfig.userService.notGuest(ctx?.user)) {
+            const count = ctx?.user.crudUserDataMap[ctx.serviceName].itemsCreated || 0;
+            ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated = count + ct;
+            this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], {crudUserDataMap: ctx.user.crudUserDataMap}, ctx);
+            if(!ctx.noFlush){
+                this.crudConfig.userService.setCached(ctx.user);
+            }
         }
-        ctx.noFlush = false;
-        await ctx.em.flush();
-        return results;
     }
 
-    @Post('cmd')
-    async _secureCMD(@Query() query: CrudQuery, @Body() newEntities: T[], @Context() ctx: CrudContext) {
-        await this.assignContextAndValidate('POST', query, newEntities[0], newEntities[0], 'cmd', ctx);
-        await this.crudAuthorization.authorize(ctx, newEntities.length);
-        ctx.noFlush = true;
-        const results = [];
-        for(const entity of newEntities) {
-            results.push(await this.subCreate(query, entity, ctx));
-        }
-        ctx.noFlush = false;
-        await ctx.em.flush();
-        return results;
-    }
-
-    @Get('many')
-    async _find(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+    limitQuery(ctx: CrudContext, query: CrudQuery, nonAdmin, admin){
         const isAdmin = this.crudAuthorization.getCtxUserRole(ctx)?.isAdminRole;
-        const MAX_LIMIT_FIND = isAdmin ? 400 : 40;
+        const MAX_LIMIT_FIND = isAdmin ? admin : nonAdmin;
         if(!query.options?.limit || query.options?.limit > MAX_LIMIT_FIND) {
             query.options = query.options || {};
             query.options.limit = MAX_LIMIT_FIND;
         }
-        return this.crudService.find(entity);
-    }
-
-    @Get('ids')
-    async _findIds(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
-        query.options = query.options || {};
-        query.options.fields = [this.crudConfig.id_field];
-        const isAdmin = this.crudAuthorization.getCtxUserRole(ctx)?.isAdminRole;
-        const MAX_LIMIT_FIND_IDS = isAdmin ? 8000 : 4000;
-        if(!query.options?.limit || query.options?.limit > MAX_LIMIT_FIND_IDS) {
-            query.options.limit = MAX_LIMIT_FIND_IDS;
-        }
-
-        return this.crudService.find(entity);
-    }
-
-    async _findOne(entity: T) {
-        return this.crudService.findOne(entity);
-    }
-
-    @Delete('one')
-    async _delete(query: T, ctx?: CrudContext) {
-        let res;
-        if(query[this.crudConfig.id_field]) {
-            res = await this.crudService.removeOne(query[this.crudConfig.id_field]);
-        } else {
-            res = await this.crudService.remove(query);
-        }
-        if(ctx?.user && ctx?.serviceName) {
-            const count = ctx?.user.crudUserDataMap[ctx.serviceName].itemsCreated || 0;
-            ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated = count - (res || 1);
-            this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], {crudUserDataMap: ctx.user.crudUserDataMap}, ctx);
-        }
-        return res;
-    }
-
-    async _patchOne(query: T, newEntity: T, ctx: CrudContext) {
-        return this.crudService.patchOne(query[this.crudConfig.id_field], newEntity, ctx);
-    }
-
-    async _patch(query: T, newEntity: T, ctx: CrudContext) {
-        return this.crudService.patch(query, newEntity, ctx);
-    }
-
-    async _putOne(newEntity: T, ctx: CrudContext) {
-        return this.crudService.putOne(newEntity, ctx);
     }
 
     plainToInstanceNoDefaultValues(plain: any, cls)
@@ -248,23 +322,6 @@ export class CrudController<T extends CrudEntity> {
     plainToInstanceWithDefaultValues(plain: any, cls)
     {
         return dontuseme(cls, plain, { exposeDefaultValues: true});
-    }
-
-    @Get('auth')
-    async getConnectedUser(@Context() ctx: CrudContext) {
-        return ctx.user;
-    }
-
-    @Post('auth')
-    async login(@Query() query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
-        data = this.plainToInstanceNoDefaultValues(data, LoginDto);
-        await this.validateOrReject(data, false, 'Data:');
-
-        if(data.password?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH){
-            throw new UnauthorizedException(CrudErrors.PASSWORD_TOO_LONG.str());
-        }
-
-        return this.crudAuthService.signIn(data.email, data.password, data.twoFA_code);
     }
 
 }
