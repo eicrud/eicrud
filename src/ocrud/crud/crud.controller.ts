@@ -21,7 +21,7 @@ import { CrudAuthService } from '../authentification/auth.service';
 export class CrudController<T extends CrudEntity> {
 
     crudMap: Record<string, CrudService<any>>;
-    
+
 
     NON_ADMIN_LIMIT_QUERY = 40;
     ADMIN_LIMIT_QUERY = 400;
@@ -29,7 +29,7 @@ export class CrudController<T extends CrudEntity> {
     NON_ADMIN_LIMIT_QUERY_IDS = 4000;
     ADMIN_LIMIT_QUERY_IDS = 8000;
 
-    MAX_GET_IN = 250; 
+    MAX_GET_IN = 250;
 
 
     constructor(
@@ -39,14 +39,14 @@ export class CrudController<T extends CrudEntity> {
         @Inject(forwardRef(() => CrudConfigService))
         protected crudConfig: CrudConfigService,
 
-        ) {
-            this.crudMap = crudConfig.services.reduce((acc, service) => {
-                acc[service.entity.toString()] = service;
-                return acc;
-            }, {});
-        }
+    ) {
+        this.crudMap = crudConfig.services.reduce((acc, service) => {
+            acc[service.entity.toString()] = service;
+            return acc;
+        }, {});
+    }
 
-    assignContext(method: string, crudQuery: CrudQuery<T>, query: any, data: any, type, ctx: CrudContext): CrudService<any>{
+    assignContext(method: string, crudQuery: CrudQuery<T>, query: any, data: any, type, ctx: CrudContext): CrudService<any> {
         const currentService: CrudService<any> = this.crudMap[crudQuery?.service];
         ctx.method = method
         ctx.serviceName = crudQuery.service
@@ -55,7 +55,7 @@ export class CrudController<T extends CrudEntity> {
         ctx.options = crudQuery.options;
         ctx.security = currentService?.security;
         ctx.origin = type;
-        if(ctx.origin == 'cmd'){
+        if (ctx.origin == 'cmd') {
             ctx.cmdName = crudQuery.cmd;
         }
         return currentService;
@@ -63,24 +63,24 @@ export class CrudController<T extends CrudEntity> {
 
 
 
-    async beforeHooks(service: CrudService<any>, ctx: CrudContext){
+    async beforeHooks(service: CrudService<any>, ctx: CrudContext) {
         await service.beforeControllerHook(ctx);
         await this.crudConfig.beforeAllHook(ctx);
     }
 
-    async afterHooks(service: CrudService<any>, res, ctx: CrudContext){
+    async afterHooks(service: CrudService<any>, res, ctx: CrudContext) {
         await service.afterControllerHook(res, ctx);
         await this.crudConfig.afterAllHook(ctx, res);
     }
-    async errorHooks(service: CrudService<any>, e: Error, ctx: CrudContext){
+    async errorHooks(service: CrudService<any>, e: Error, ctx: CrudContext) {
         await service.errorControllerHook(e, ctx);
         await this.crudConfig.errorAllHook(e, ctx);
         const notGuest = this.crudConfig.userService.notGuest(ctx?.user);
-        if(notGuest){
-            if(e instanceof ForbiddenException){
-                this.crudConfig.userService.unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], { incidentCount: ctx.user.incidentCount + 1 } , ctx);
-            }else{
-                this.crudConfig.userService.unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], { errorCount: ctx.user.errorCount + 1 } , ctx);
+        if (notGuest) {
+            if (e instanceof ForbiddenException) {
+                this.crudConfig.userService.unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], { incidentCount: ctx.user.incidentCount + 1 }, ctx);
+            } else {
+                this.crudConfig.userService.unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], { errorCount: ctx.user.errorCount + 1 }, ctx);
             }
             this.crudConfig.userService.setCached(ctx.user);
         }
@@ -89,27 +89,25 @@ export class CrudController<T extends CrudEntity> {
 
 
 
-    async subCreate(query: CrudQuery<T>, newEntity: any, ctx: CrudContext, currentService = undefined){
+    async subCreate(query: CrudQuery<T>, newEntity: any, ctx: CrudContext, currentService = undefined) {
         const service = currentService || await this.assignContext('POST', query, newEntity, newEntity, 'crud', ctx);
-  
-            await this.validate(ctx, service);
 
-            await this.crudAuthorization.authorize(ctx);
+        await this.validate(ctx, service);
+        await this.crudAuthorization.authorize(ctx);
+        await this.beforeHooks(service, ctx);
 
-            await this.beforeHooks(service, ctx);
+        const res = await service.create(newEntity, ctx);
 
-            const res = await service.create(newEntity, ctx);
+        await this.afterHooks(service, res, ctx);
 
-            await this.afterHooks(service, res, ctx);
+        this.addCountToDataMap(ctx, 1);
 
-            this.addCountToDataMap(ctx, 1);
+        return res;
 
-            return res;
-   
     }
 
-    checkServiceNotFound(currentService, crudQuery){
-        if(!currentService){
+    checkServiceNotFound(currentService, crudQuery) {
+        if (!currentService) {
             throw new BadRequestException("Service not found: " + crudQuery.service);
         }
     }
@@ -121,7 +119,7 @@ export class CrudController<T extends CrudEntity> {
             this.checkServiceNotFound(currentService, query);
             return await this.subCreate(query, newEntity, ctx, currentService);
 
-        }catch(e){
+        } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
     }
@@ -130,12 +128,12 @@ export class CrudController<T extends CrudEntity> {
     async _batchCreate(@Query() query: CrudQuery<T>, @Body() newEntities: T[], @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('POST', query, null, null, 'crud', ctx);
         ctx.isBatch = true;
-        try{
+        try {
             this.checkServiceNotFound(currentService, query);
             await this.crudAuthorization.authorizeBatch(ctx, newEntities.length);
             ctx.noFlush = true;
             const results = [];
-            for(const entity of newEntities) {
+            for (const entity of newEntities) {
                 results.push(await this.subCreate(query, entity, ctx));
             }
             ctx.noFlush = false;
@@ -143,7 +141,7 @@ export class CrudController<T extends CrudEntity> {
             this.crudConfig.userService.setCached(ctx.user);
             return results;
 
-        }catch(e){
+        } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
     }
@@ -152,13 +150,11 @@ export class CrudController<T extends CrudEntity> {
     async _secureCMD(@Query() query: CrudQuery<T>, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('POST', query, data, data, 'cmd', ctx);
         try {
-            await this.validate(ctx, currentService);
-            await this.crudAuthorization.authorize(ctx);
-            await this.beforeHooks(currentService, ctx);
+            await this.performValidationAuthorizationAndHooks(ctx, currentService);
             const res = await currentService.cmdHandler(query.cmd, ctx);
             await this.afterHooks(currentService, res, ctx);
             return res;
-        }catch(e){
+        } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
     }
@@ -167,23 +163,21 @@ export class CrudController<T extends CrudEntity> {
     async _unsecureCMD(@Query() query: CrudQuery<T>, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, data, data, 'cmd', ctx);
         try {
-            await this.validate(ctx, currentService);
-            await this.crudAuthorization.authorize(ctx);
-            await this.beforeHooks(currentService, ctx);
+            await this.performValidationAuthorizationAndHooks(ctx, currentService);
             const res = await currentService.cmdHandler(query.cmd, ctx);
             await this.afterHooks(currentService, res, ctx);
             return res;
-        }catch(e){
+        } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
     }
 
     @Get('many')
     async _find(@Query() query: CrudQuery<T>, @Context() ctx: CrudContext) {
-        const currentService =  await this.assignContext('GET', query, query.query, null, 'crud', ctx);
-        try{
+        const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
+        try {
             return await this.subFind(query, ctx, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY, currentService);
-        }catch(e){
+        } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
     }
@@ -193,48 +187,50 @@ export class CrudController<T extends CrudEntity> {
         query.options = query.options || {};
         query.options.fields = [this.crudConfig.id_field as any];
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
-        try{
+        try {
             return await this.subFind(query, ctx, this.NON_ADMIN_LIMIT_QUERY_IDS, this.ADMIN_LIMIT_QUERY_IDS);
-        }catch(e){
+        } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
     }
 
-    async subFind(query: CrudQuery<T>, ctx: CrudContext, NON_ADMIN_LIMIT_QUERY, ADMIN_LIMIT_QUERY, currentService = undefined){
+    async subFind(query: CrudQuery<T>, ctx: CrudContext, NON_ADMIN_LIMIT_QUERY, ADMIN_LIMIT_QUERY, currentService = undefined) {
         this.limitQuery(ctx, query, NON_ADMIN_LIMIT_QUERY, ADMIN_LIMIT_QUERY);
-        await this.validate(ctx, currentService);
-        await this.crudAuthorization.authorize(ctx);
-        await this.beforeHooks(currentService, ctx);
+        await this.performValidationAuthorizationAndHooks(ctx, currentService);
         const res = await currentService.find(ctx.query, ctx);
         await this.afterHooks(currentService, res, ctx);
+        return res;
     }
 
 
 
-    // MAX_GET_IN = 250; ???
-    // @Get('in')
-    // async _findIn(@Query() query: CrudQuery<T>, @Context() ctx: CrudContext) {
-    //     this.limitQuery(ctx, query, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
-    //     const currentService = await this.assignContextAndValidate('GET', query, query.query, null, 'crud', ctx);
-    //     await this.crudAuthorization.authorize(ctx);
-    //     const ids = query.query?.[this.crudConfig.id_field];
-    //     if(!ids || !ids.length || ids.length > this.MAX_GET_IN){
-    //         throw new BadRequestException(`${this.crudConfig.id_field} must be an array with at least one element and at most ${this.MAX_GET_IN} elements.`);
-    //     }
-    //     delete query.query[this.crudConfig.id_field];
-    //     return await currentService.findIn(ids, ctx.query, ctx);
-    // }
+    @Get('in')
+    async _findIn(@Query() query: CrudQuery<T>, @Context() ctx: CrudContext) {
+        const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
+        try{
+            this.limitQuery(ctx, query, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
+            const ids = query.query?.[this.crudConfig.id_field];
+            if(!ids || !ids.length || ids.length > this.MAX_GET_IN){
+                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.MAX_GET_IN));
+            }
+            delete query.query[this.crudConfig.id_field];
+            await this.performValidationAuthorizationAndHooks(ctx, currentService);
+            const res = await currentService.findInMongo(ids, ctx.query, ctx);
+            await this.afterHooks(currentService, res, ctx);
+        }catch(e){
+            await this.errorHooks(currentService, e, ctx);
+        }
+
+    }
 
     @Get('one')
     async _findOne(@Query() query: CrudQuery<T>, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
-        try{
-            await this.validate(ctx, currentService);
-            await this.crudAuthorization.authorize(ctx);
-            await this.beforeHooks(currentService, ctx);
+        try {
+            await this.performValidationAuthorizationAndHooks(ctx, currentService);
             const res = await currentService.findOne(ctx.query, ctx);
             await this.afterHooks(currentService, res, ctx);
-        }catch(e){
+        } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
     }
@@ -242,14 +238,13 @@ export class CrudController<T extends CrudEntity> {
     @Delete('one')
     async _delete(@Query() query: CrudQuery<T>, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
-        try{
-            await this.validate(ctx, currentService);
-            await this.beforeHooks(currentService, ctx);
+        try {
+            await this.performValidationAuthorizationAndHooks(ctx, currentService);
             const res = await currentService.removeOne(ctx.query[this.crudConfig.id_field], ctx);
             await this.afterHooks(currentService, res, ctx);
             this.addCountToDataMap(ctx, -1);
             return res;
-        }catch(e){
+        } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
     }
@@ -257,15 +252,13 @@ export class CrudController<T extends CrudEntity> {
     @Delete('many')
     async _deleteMany(@Query() query: CrudQuery<T>, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
-        try{
-            await this.validate(ctx, currentService);
-            await this.crudAuthorization.authorize(ctx);
-            await this.beforeHooks(currentService, ctx);
+        try {
+            await this.performValidationAuthorizationAndHooks(ctx, currentService);
             const res = await currentService.remove(ctx.query, ctx);
             await this.afterHooks(currentService, res, ctx);
             this.addCountToDataMap(ctx, -res);
             return res;
-        }catch(e){
+        } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
     }
@@ -273,39 +266,35 @@ export class CrudController<T extends CrudEntity> {
     @Patch('one')
     async _patchOne(@Query() query: CrudQuery<T>, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, query, data, 'crud', ctx);
-        try{
+        try {
             return await this.subPatchOne(query, query.query, data, ctx, currentService);
-        }catch(e){
+        } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
     }
 
-    async subPatchOne(crudQuery: CrudQuery<T>,  query: T, data: T, ctx: CrudContext, service = undefined){
-            const currentService = service || await this.assignContext('PATCH', crudQuery, query, data, 'crud', ctx);
-            await this.validate(ctx, currentService);
-            await this.crudAuthorization.authorize(ctx);
-            await this.beforeHooks(currentService, ctx);
-            const res = await currentService.patchOne(ctx.query[this.crudConfig.id_field], ctx.data, ctx);
-            await this.afterHooks(currentService, res, ctx);
-            return res;
+    async subPatchOne(crudQuery: CrudQuery<T>, query: T, data: T, ctx: CrudContext, service = undefined) {
+        const currentService = service || await this.assignContext('PATCH', crudQuery, query, data, 'crud', ctx);
+        await this.performValidationAuthorizationAndHooks(ctx, currentService);
+        const res = await currentService.patchOne(ctx.query[this.crudConfig.id_field], ctx.data, ctx);
+        await this.afterHooks(currentService, res, ctx);
+        return res;
     }
-
 
     @Patch('in')
     async _patchIn(@Query() query: CrudQuery<T>, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
-        try{
+        try {
             this.limitQuery(ctx, query, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
-            await this.validate(ctx, currentService);
-            await this.crudAuthorization.authorize(ctx);
             const ids = query.query?.[this.crudConfig.id_field];
-            if(!ids || !ids.length || ids.length > this.MAX_GET_IN){
+            if (!ids || !ids.length || ids.length > this.MAX_GET_IN) {
                 throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.MAX_GET_IN));
             }
-            await this.beforeHooks(currentService, ctx);
-            const res = await currentService.patch(ctx.query, ctx.data, ctx);
+            delete query.query[this.crudConfig.id_field];
+            await this.performValidationAuthorizationAndHooks(ctx, currentService);
+            const res = await currentService.patchInMongo(ids, ctx.query, ctx.data, ctx);
             await this.afterHooks(currentService, res, ctx);
-        }catch(e){
+        } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
     }
@@ -313,56 +302,55 @@ export class CrudController<T extends CrudEntity> {
     @Patch('batch')
     async _batchPatch(@Query() query: CrudQuery<T>, @Body() newEntities: T[], @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, null, null, 'crud', ctx);
-        try{
-            await this.crudAuthorization.authorizeBatch(ctx, newEntities.length);
+        ctx.isBatch = true;
+        try {
+            await this.crudAuthorization.authorizeBatch(ctx, query.query.length);
             ctx.noFlush = true;
             const results = [];
-            for(let i = 0; i < query.query.length; i++) {
+            for (let i = 0; i < query.query.length; i++) {
                 results.push(await this.subPatchOne(query, query.query[0], newEntities[0], ctx));
             }
             ctx.noFlush = false;
             await ctx.em.flush();
             return results;
-        }catch(e){
+        } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
-      
     }
 
 
     @Put('one')
     async _putOne(@Query() query: CrudQuery<T>, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PUT', query, query.query, data, 'crud', ctx);
-        try{
+        try {
             await this.subPutOne(query, query.query, data, ctx, currentService);
-        }catch(e){
+        } catch (e) {
             await this.errorHooks(currentService, e, ctx);
-        }       
+        }
     }
 
     @Put('batch')
-    async _putBatch(@Query() query: CrudQuery<T>, @Body() newEntities: T[], @Context() ctx: CrudContext) {
+    async _batchPut(@Query() query: CrudQuery<T>, @Body() newEntities: T[], @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PUT', query, null, null, 'crud', ctx);
-        try{
-            await this.crudAuthorization.authorizeBatch(ctx, newEntities.length);
+        ctx.isBatch = true;
+        try {
+            await this.crudAuthorization.authorizeBatch(ctx, query.query.length);
             ctx.noFlush = true;
             const results = [];
-            for(let i = 0; i < query.query.length; i++) {
+            for (let i = 0; i < query.query.length; i++) {
                 results.push(await this.subPutOne(query, query.query[0], newEntities[0], ctx));
             }
             ctx.noFlush = false;
             await ctx.em.flush();
             return results;
-        }catch(e){
+        } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
     }
 
-    async subPutOne(crudQuery: CrudQuery<T>,  query: T, data: T, ctx: CrudContext, service = undefined){
+    async subPutOne(crudQuery: CrudQuery<T>, query: T, data: T, ctx: CrudContext, service = undefined) {
         const currentService = service || await this.assignContext('PUT', crudQuery, query, data, 'crud', ctx);
-        await this.validate(ctx, currentService);
-        await this.crudAuthorization.authorize(ctx);
-        await this.beforeHooks(currentService, ctx);
+        await this.performValidationAuthorizationAndHooks(ctx, currentService);
         const res = await currentService.putOne(data, ctx);
         await this.afterHooks(currentService, res, ctx);
         return res;
@@ -378,91 +366,95 @@ export class CrudController<T extends CrudEntity> {
         data = this.plainToInstanceNoDefaultValues(data, LoginDto);
         await this.validateOrReject(data, false, 'Data:');
 
-        if(data.password?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH){
+        if (data.password?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH) {
             throw new UnauthorizedException(CrudErrors.PASSWORD_TOO_LONG.str());
         }
 
         return this.crudAuthService.signIn(data.email, data.password, data.twoFA_code);
     }
 
-    async validate(ctx: CrudContext, currentService: CrudService<any>){
+    async performValidationAuthorizationAndHooks(ctx: any, currentService: any) {
+        await this.validate(ctx, currentService);
+        await this.crudAuthorization.authorize(ctx);
+        await this.beforeHooks(currentService, ctx);
+    }
+
+    async validate(ctx: CrudContext, currentService: CrudService<any>) {
         let queryClass = null;
         let dataClass = null;
         let dataDefaultValues = false;
-        if(ctx.origin == 'crud'){
-            if(ctx.method == 'POST'){
+        if (ctx.origin == 'crud') {
+            if (ctx.method == 'POST') {
                 dataClass = currentService.entity;
                 dataDefaultValues = true;
-            }else if(ctx.method == 'PUT'){
+            } else if (ctx.method == 'PUT') {
                 dataClass = currentService.entity;
                 queryClass = currentService.entity;
                 dataDefaultValues = true;
-            }else if (ctx.method == 'PATCH'){
+            } else if (ctx.method == 'PATCH') {
                 dataClass = currentService.entity;
                 queryClass = currentService.entity;
-            }else if(ctx.method == 'GET' || ctx.method == 'DELETE'){
+            } else if (ctx.method == 'GET' || ctx.method == 'DELETE') {
                 queryClass = currentService.entity;
             }
-        }else if(ctx.origin == 'cmd'){
-            const cmdSecurity: CmdSecurity  = ctx.security?.cmdSecurityMap?.[ctx.cmdName];
+        } else if (ctx.origin == 'cmd') {
+            const cmdSecurity: CmdSecurity = ctx.security?.cmdSecurityMap?.[ctx.cmdName];
             queryClass = null;
-            if(cmdSecurity?.dto){
+            if (cmdSecurity?.dto) {
                 dataClass = cmdSecurity.dto;
             }
         }
-        if(queryClass){
+        if (queryClass) {
             const obj = this.plainToInstanceNoDefaultValues(ctx.query, queryClass);
             await this.validateOrReject(obj, true, 'Query:');
         }
-        if(dataClass){
+        if (dataClass) {
             ctx.data = dataDefaultValues ? this.plainToInstanceWithDefaultValues(ctx.data, dataClass) : this.plainToInstanceNoDefaultValues(ctx.data, dataClass);
             await this.validateOrReject(ctx.data, !dataDefaultValues, 'Data:');
         }
 
     }
 
-    async validateOrReject(obj, skipMissingProperties, label){
+    async validateOrReject(obj, skipMissingProperties, label) {
         try {
-            await validateOrReject(obj, {skipMissingProperties: skipMissingProperties});
-        }catch(errors){
+            await validateOrReject(obj, { skipMissingProperties: skipMissingProperties });
+        } catch (errors) {
             const msg = label + ' ' + errors.toString();
             throw new BadRequestException(CrudErrors.VALIDATION_ERROR.str(msg));
         }
     }
 
-    addCountToDataMap(ctx: CrudContext, ct: number){
-        if(this.crudConfig.userService.notGuest(ctx?.user)) {
+    addCountToDataMap(ctx: CrudContext, ct: number) {
+        if (this.crudConfig.userService.notGuest(ctx?.user)) {
             const count = ctx?.user.crudUserDataMap[ctx.serviceName].itemsCreated || 0;
             ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated = count + ct;
-            this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], {crudUserDataMap: ctx.user.crudUserDataMap}, ctx);
-            if(!ctx.noFlush){
+            this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { crudUserDataMap: ctx.user.crudUserDataMap }, ctx);
+            if (!ctx.noFlush) {
                 this.crudConfig.userService.setCached(ctx.user);
             }
         }
     }
 
-    limitQuery(ctx: CrudContext, query: CrudQuery<T>, nonAdmin, admin){
+    limitQuery(ctx: CrudContext, query: CrudQuery<T>, nonAdmin, admin) {
         const isAdmin = this.crudAuthorization.getCtxUserRole(ctx)?.isAdminRole;
         const MAX_LIMIT_FIND = isAdmin ? admin : nonAdmin;
-        if(!query.options?.limit || query.options?.limit > MAX_LIMIT_FIND) {
+        if (!query.options?.limit || query.options?.limit > MAX_LIMIT_FIND) {
             query.options = query.options || {};
             query.options.limit = MAX_LIMIT_FIND;
         }
     }
 
-    plainToInstanceNoDefaultValues(plain: any, cls)
-    {
+    plainToInstanceNoDefaultValues(plain: any, cls) {
         //https://github.com/typestack/class-transformer/issues/1429
         const executor = new TransformOperationExecutor(TransformationType.PLAIN_TO_CLASS, {
             ...defaultOptions,
-            ... { exposeDefaultValues: false},
-          });
-          return executor.transform({}, plain, cls, undefined, undefined, undefined);
+            ... { exposeDefaultValues: false },
+        });
+        return executor.transform({}, plain, cls, undefined, undefined, undefined);
     }
 
-    plainToInstanceWithDefaultValues(plain: any, cls)
-    {
-        return dontuseme(cls, plain, { exposeDefaultValues: true});
+    plainToInstanceWithDefaultValues(plain: any, cls) {
+        return dontuseme(cls, plain, { exposeDefaultValues: true });
     }
 
 }
