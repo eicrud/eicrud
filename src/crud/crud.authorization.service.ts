@@ -80,13 +80,23 @@ export class CrudAuthorizationService {
     async authorize(ctx: CrudContext) {
 
         const fields = AuthUtils.getObjectFields(ctx.data);
+        
+        if(ctx.options?.populate){
+            const popArray = ctx.options?.populate?.length ? ctx.options.populate : [ctx.options.populate];
+            const allowedPopulateFields = ctx.security?.rolesRights?.[this.getCtxUserRole(ctx).name]?.allowedPopulateFields || [];
+            for(const pop of popArray){
+                if(!allowedPopulateFields.includes(pop)){
+                    throw new ForbiddenException(`Populate field ${pop} is not allowed for role ${ctx.user.role}`);
+                }
+            }
+        }
 
         if (ctx.origin == 'crud' && ctx.security.maxItemsPerUser && 
             this.crudConfig.userService.notGuest(ctx.user) &&
             ctx.method == 'POST') {
             const count = ctx.user?.crudUserDataMap?.[ctx.serviceName]?.itemsCreated;
             let max = ctx.security.maxItemsPerUser;
-            let add = ctx?.security.additionalItemsInDbPerTrustPoints;
+            let add = ctx.security.additionalItemsInDbPerTrustPoints;
             if(add){
                add = add*(await this.crudConfig.userService.getOrComputeTrust(ctx.user, ctx));
                max+=Math.max(add,0);
@@ -94,6 +104,7 @@ export class CrudAuthorizationService {
             if (count >= max) {
                 throw new ForbiddenException(`You have reached the maximum number of items for this resource (${ctx.security.maxItemsPerUser})`);
             }
+
         }else if (ctx.origin == 'cmd'){
             const cmdSec = ctx.security.cmdSecurityMap?.[ctx.cmdName];
             const hasMaxUses =cmdSec?.maxUsesPerUser && this.crudConfig.userService.notGuest(ctx.user)

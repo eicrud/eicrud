@@ -20,8 +20,6 @@ export class CrudSecurity {
 
     rolesRights?: Record<string, CrudSecurityRights> = {};
 
-
-
 }
 
 export const httpAliasResolver = createAliasResolver({
@@ -47,6 +45,8 @@ export interface BatchRights {
 }
 
 export interface CrudSecurityRights {
+
+    allowedPopulateFields?: string[];
 
     createBatchRights?: BatchRights;
     updateBatchRights?: BatchRights;
