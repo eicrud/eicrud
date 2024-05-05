@@ -10,6 +10,7 @@ import { Loaded, Type } from '@mikro-orm/core';
 import { CrudErrors } from '../crud/model/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
 import { IsString } from 'class-validator';
+import { ModuleRef } from '@nestjs/core';
 
 
 export class CreateAccountDto {
@@ -40,17 +41,22 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     }
 
   }
-
-  constructor(@Inject(forwardRef(() => CrudConfigService))
-  protected crudConfig: CrudConfigService,
-  protected authorizationService: CrudAuthorizationService,
-  @Inject(forwardRef(() => CrudAuthService))
-  protected authService: CrudAuthService,
+  protected crudConfig: CrudConfigService;
+  protected authorizationService: CrudAuthorizationService;
+  protected authService: CrudAuthService;
+  
+  constructor(
+  protected moduleRef: ModuleRef,
   public security: CrudSecurity,
   private userEntityClass: new () => T
   ) {
+    
     security = security || new CrudSecurity();
-    super(crudConfig, Type<CrudUser>, security);
+    super(moduleRef.get('CRUD_CONFIG'), Type<CrudUser>, security);
+
+    this.authorizationService = moduleRef.get(CrudAuthorizationService);
+    this.authService = moduleRef.get(CrudAuthService);
+
     for(const cmd in this.baseCmds){
       security.cmdSecurityMap[cmd] = security.cmdSecurityMap[cmd] || {};
       security.cmdSecurityMap[cmd].secureOnly = true;

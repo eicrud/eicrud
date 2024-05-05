@@ -1,15 +1,24 @@
+import { IsOptional, IsString, ValidateNested } from "class-validator";
 import { CrudOptions } from "./CrudOptions";
+import { Type } from "class-transformer";
 
 
-export interface CrudQuery {
+export class CrudQuery {
 
-    service?: string,
+    @IsString()
+    service: string;
 
-    options?: CrudOptions,
+    @IsOptional()
+    @Type(() => CrudOptions)
+    @ValidateNested()
+    options?: CrudOptions;
+    
+    @IsOptional()
+    query?: any;
 
-    query?: any,
-
-    cmd?: string,
+    @IsOptional()
+    @IsString()
+    cmd?: string;
 
 
 

@@ -13,6 +13,8 @@ import { CrudConfigService } from './crud.config.service';
 import { CmdSecurity } from './model/CrudSecurity';
 import { CrudErrors } from './model/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
+import { CrudOptions } from './model/CrudOptions';
+import { ModuleRef } from '@nestjs/core';
 
 @Controller({
     path: "crud",
@@ -31,16 +33,14 @@ export class CrudController {
 
     MAX_GET_IN = 250;
 
-
+    protected crudConfig: CrudConfigService;
     constructor(
-        @Inject(forwardRef(() => CrudAuthService))
         private crudAuthService: CrudAuthService,
         public crudAuthorization: CrudAuthorizationService,
-        @Inject(forwardRef(() => CrudConfigService))
-        protected crudConfig: CrudConfigService,
-
+        protected moduleRef: ModuleRef,
     ) {
-        this.crudMap = crudConfig.services.reduce((acc, service) => {
+        this.crudConfig = this.moduleRef.get('CRUD_CONFIG')
+        this.crudMap = this.crudConfig.services.reduce((acc, service) => {
             acc[service.entity.toString()] = service;
             return acc;
         }, {});
@@ -113,7 +113,7 @@ export class CrudController {
     }
 
     @Post('one')
-    async _create(@Query() query: CrudQuery, @Body() newEntity: any, @Context() ctx: CrudContext) {
+    async _create(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() newEntity: any, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('POST', query, newEntity, newEntity, 'crud', ctx);
         try {
             this.checkServiceNotFound(currentService, query);
@@ -125,7 +125,7 @@ export class CrudController {
     }
 
     @Post('batch')
-    async _batchCreate(@Query() query: CrudQuery, @Body() newEntities: any[], @Context() ctx: CrudContext) {
+    async _batchCreate(@Query(new ValidationPipe({ transform: true, expectedType: CrudQuery})) query: CrudQuery, @Body() newEntities: any[], @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('POST', query, null, null, 'crud', ctx);
         ctx.isBatch = true;
         try {
@@ -147,7 +147,7 @@ export class CrudController {
     }
 
     @Post('cmd')
-    async _secureCMD(@Query() query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    async _secureCMD(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('POST', query, data, data, 'cmd', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -160,7 +160,7 @@ export class CrudController {
     }
 
     @Patch('cmd')
-    async _unsecureCMD(@Query() query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    async _unsecureCMD(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, data, data, 'cmd', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -173,7 +173,7 @@ export class CrudController {
     }
 
     @Get('many')
-    async _find(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+    async _find(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
             return await this.subFind(query, ctx, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY, currentService);
@@ -183,7 +183,7 @@ export class CrudController {
     }
 
     @Get('ids')
-    async _findIds(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+    async _findIds(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
         query.options = query.options || {};
         query.options.fields = [this.crudConfig.id_field as any];
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
@@ -205,7 +205,7 @@ export class CrudController {
 
 
     @Get('in')
-    async _findIn(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+    async _findIn(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try{
             this.limitQuery(ctx, query, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
@@ -224,7 +224,7 @@ export class CrudController {
     }
 
     @Get('one')
-    async _findOne(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+    async _findOne(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -236,7 +236,7 @@ export class CrudController {
     }
 
     @Delete('one')
-    async _delete(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+    async _delete(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -250,7 +250,7 @@ export class CrudController {
     }
 
     @Delete('many')
-    async _deleteMany(@Query() query: CrudQuery, @Context() ctx: CrudContext) {
+    async _deleteMany(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -264,7 +264,7 @@ export class CrudController {
     }
 
     @Patch('one')
-    async _patchOne(@Query() query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    async _patchOne(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, query, data, 'crud', ctx);
         try {
             return await this.subPatchOne(query, query.query, data, ctx, currentService);
@@ -282,7 +282,7 @@ export class CrudController {
     }
 
     @Patch('in')
-    async _patchIn(@Query() query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    async _patchIn(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
         try {
             this.limitQuery(ctx, query, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
@@ -300,7 +300,7 @@ export class CrudController {
     }
 
     @Patch('batch')
-    async _batchPatch(@Query() query: CrudQuery, @Body() newEntities: any[], @Context() ctx: CrudContext) {
+    async _batchPatch(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() newEntities: any[], @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, null, null, 'crud', ctx);
         ctx.isBatch = true;
         try {
@@ -320,7 +320,7 @@ export class CrudController {
 
 
     @Put('one')
-    async _putOne(@Query() query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    async _putOne(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PUT', query, query.query, data, 'crud', ctx);
         try {
             await this.subPutOne(query, query.query, data, ctx, currentService);
@@ -330,7 +330,7 @@ export class CrudController {
     }
 
     @Put('batch')
-    async _batchPut(@Query() query: CrudQuery, @Body() newEntities: any[], @Context() ctx: CrudContext) {
+    async _batchPut(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() newEntities: any[], @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PUT', query, null, null, 'crud', ctx);
         ctx.isBatch = true;
         try {
@@ -362,7 +362,7 @@ export class CrudController {
     }
 
     @Post('auth')
-    async login(@Query() query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    async login(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         data = this.plainToInstanceNoDefaultValues(data, LoginDto);
         await this.validateOrReject(data, false, 'Data:');
 

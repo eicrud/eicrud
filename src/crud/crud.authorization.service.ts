@@ -7,16 +7,18 @@ import { BatchRights, CrudSecurity, httpAliasResolver } from "./model/CrudSecuri
 import { CrudUserService } from "../user/crud-user.service";
 import { CrudConfigService } from "./crud.config.service";
 import { CrudUser } from "../user/model/CrudUser";
+import { ModuleRef } from "@nestjs/core";
 
 
 export class CrudAuthorizationService {
-
+    protected crudConfig: CrudConfigService;
     rolesMap: Record<string, CrudRole> = {};
     constructor(
-        @Inject(forwardRef(() => 'CRUD_CONFIG'))
-        protected crudConfig: CrudConfigService
+        
+        protected moduleRef: ModuleRef
     ) { 
-        this.rolesMap = crudConfig.roles.reduce((acc, role) => {
+        this.crudConfig = this.moduleRef.get('CRUD_CONFIG')
+        this.rolesMap = this.crudConfig.roles.reduce((acc, role) => {
             acc[role.name] = role;
             return acc;
         }, {});
@@ -81,7 +83,6 @@ export class CrudAuthorizationService {
     async authorize(ctx: CrudContext) {
 
         const fields = AuthUtils.getObjectFields(ctx.data);
-    
 
         if (ctx.origin == 'crud' && ctx.security.maxItemsPerUser && 
             this.crudConfig.userService.notGuest(ctx.user) &&

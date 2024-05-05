@@ -4,6 +4,7 @@ import { CrudSecurity } from "../crud/model/CrudSecurity";
 import { EmailService } from "../email/email.service";
 import { FakeEmail } from "./entities/FakeEmail";
 import { MyConfigService } from "./myconfig.service";
+import { ModuleRef } from "@nestjs/core";
 
 
 const emailSecurity: CrudSecurity = {
@@ -12,10 +13,9 @@ const emailSecurity: CrudSecurity = {
 
 export class MyEmailService extends CrudService<FakeEmail> implements EmailService {
     constructor(
-        @Inject(forwardRef(() => MyConfigService))
-        protected crudConfig: MyConfigService,
+        protected moduleRef: ModuleRef
     ) {
-        super(crudConfig, FakeEmail, emailSecurity);
+        super(moduleRef, FakeEmail, emailSecurity);
     }
     sendVerificationEmail(to: string, token: string): Promise<any> {
         throw new Error("Method not implemented.");

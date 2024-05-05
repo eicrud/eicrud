@@ -6,6 +6,7 @@ import { CrudSecurity } from "../crud/model/CrudSecurity";
 import { CrudUserService } from "../user/crud-user.service";
 import { MyUser } from "./entities/MyUser";
 import { MyConfigService } from "./myconfig.service";
+import { ModuleRef } from "@nestjs/core";
 
 
 
@@ -17,16 +18,9 @@ const myUserSecurity: CrudSecurity = {
 export class MyUserService extends CrudUserService<MyUser> {
 
     constructor(
-        @Inject(forwardRef(() => MyConfigService))
-        protected crudConfig: MyConfigService,
-
-        @Inject(forwardRef(() => CrudAuthorizationService))
-        protected authorizationService: CrudAuthorizationService,
-        
-        @Inject(forwardRef(() => CrudAuthService))
-        protected authService: CrudAuthService,
+        protected moduleRef: ModuleRef,
     ) {
-        super(crudConfig, authorizationService, authService, myUserSecurity, MyUser);
+        super(moduleRef, myUserSecurity, MyUser);
     }
 
     

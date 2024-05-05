@@ -8,8 +8,12 @@ import { t } from '@mikro-orm/core';
 import { CrudConfigService } from '../crud/crud.config.service';
 import { CrudErrors } from '../crud/model/CrudErrors';
 import { CrudUser } from '../user/model/CrudUser';
+import { ModuleRef } from '@nestjs/core';
 
 export interface AuthenticationOptions {
+  USERNAME_FIELD: string;
+  JWT_FIELD_IN_PAYLOAD: string[];
+  JWT_SECRET: string;
   VERIFICATION_EMAIL_TIMEOUT_HOURS: number;
   TWOFA_EMAIL_TIMEOUT_MIN: number;
   PASSWORD_RESET_EMAIL_TIMEOUT_HOURS: number;
@@ -19,15 +23,22 @@ export interface AuthenticationOptions {
 @Injectable()
 export class CrudAuthService {
 
+  protected JWT_SECRET: string;
+  protected FIELDS_IN_PAYLOAD: string[] = ['_id', 'revokedCount'];
+  protected USERNAME_FIELD = 'email';
+  protected crudConfig: CrudConfigService;
+
   constructor(
     protected jwtService: JwtService,
-    protected JWT_SECRET: string,
-    protected FIELDS_IN_PAYLOAD: string[] = ['_id', 'revokedCount'],
-    protected USERNAME_FIELD = 'email',
-    @Inject(forwardRef(() => 'CRUD_CONFIG'))
-    protected crudConfig: CrudConfigService,
+    
+    protected moduleRef: ModuleRef,
 
-  ) {}
+  ) {
+    this.crudConfig = this.moduleRef.get('CRUD_CONFIG')
+    this.JWT_SECRET = this.crudConfig.authenticationOptions.JWT_SECRET;
+    this.FIELDS_IN_PAYLOAD = this.crudConfig.authenticationOptions.JWT_FIELD_IN_PAYLOAD;
+    this.USERNAME_FIELD = this.crudConfig.authenticationOptions.USERNAME_FIELD;
+  }
 
   rateLimitCount = 6;
 
