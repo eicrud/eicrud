@@ -9,7 +9,7 @@ import { APP_GUARD } from '@nestjs/core';
 
 @Module({})
 export class OCRUDModule {
-  static register(ConfigService: Type<CrudConfigService>,app: NestApplication): DynamicModule {
+  static forRoot(ConfigService: Type<CrudConfigService>): DynamicModule {
     
     return {
       module: OCRUDModule,
