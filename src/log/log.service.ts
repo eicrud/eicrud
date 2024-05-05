@@ -7,6 +7,7 @@ import { caching } from 'cache-manager';
 import { CrudConfigService } from '../crud/crud.config.service';
 import { CrudSecurity } from '../crud/model/CrudSecurity';
 import { CrudContext } from '../crud/model/CrudContext';
+import { ModuleRef } from '@nestjs/core';
 
 export const logSecurity: CrudSecurity = {
     maxItemsInDb: 50000,
@@ -14,13 +15,13 @@ export const logSecurity: CrudSecurity = {
 @Injectable()
 export class LogService extends CrudService<Log> {
 
-
+    protected crudConfig: CrudConfigService;
     
-    constructor(@Inject(forwardRef(() => CrudConfigService))
-        public crudConfig: CrudConfigService,
+    constructor(
+        protected moduleRef: ModuleRef,
         private readonly notificationService: NotificationsService,
         ){
-        super(crudConfig, Log, logSecurity);
+        super(moduleRef.get('CRUD_CONFIG'), Log, logSecurity);
     }
 
     async log(type: LogType, message: string, ctx: CrudContext, level: number = 1){

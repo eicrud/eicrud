@@ -6,13 +6,10 @@ import {
   UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { AuthUtils } from './auth.utils';
-import { CrudService } from '../crud/crud.service';
-import { CrudDto, CrudEntity } from '../crud/model/CrudEntity';
+
 import { CrudContext } from '../crud/model/CrudContext';
-import { CrudSecurity } from '../crud/model/CrudSecurity';
+
 import { CrudUser } from '../user/model/CrudUser';
 import LRUCache from 'mnemonist/lru-cache';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -22,6 +19,7 @@ import { CrudErrors } from '../crud/model/CrudErrors';
 import { CrudOptions } from '../crud/model/CrudOptions';
 import { CrudRole } from '../crud/model/CrudRole';
 import { CrudAuthService } from './auth.service';
+import { ModuleRef } from '@nestjs/core';
 
 
 export interface TrafficWatchOptions{
@@ -40,6 +38,8 @@ export class AuthGuard implements CanActivate {
   
   userTrafficMap: LRUCache<string, number>;
   reciprocalRequestThreshold: number;
+  
+  protected crudConfig: CrudConfigService;
 
   
   @Cron(CronExpression.EVERY_5_MINUTES)
@@ -49,11 +49,11 @@ export class AuthGuard implements CanActivate {
 
   
   constructor(
-    @Inject(forwardRef(() => 'CRUD_CONFIG'))
-    protected crudConfig: CrudConfigService,
+    protected moduleRef: ModuleRef,
     protected authService: CrudAuthService
     ) {
-      this.userTrafficMap = new LRUCache(crudConfig.watchTrafficOptions.MAX_USERS);
+      this.crudConfig = this.moduleRef.get('CRUD_CONFIG')
+      this.userTrafficMap = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_USERS);
       this.reciprocalRequestThreshold = 1 / this.crudConfig.watchTrafficOptions.REQUEST_THRESHOLD;
 
     }

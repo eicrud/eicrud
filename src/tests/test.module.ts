@@ -18,9 +18,14 @@ export const getModule = (dbName) => {
                 driver: MongoDriver,
                 dbName,
             }),
-            OCRUDModule.forRoot(MyConfigService),
+            OCRUDModule.forRoot(),
         ],
         controllers: [],
-        providers: [MyEmailService, MyUserService],
+        providers: [MyEmailService, MyUserService,
+            {
+                provide: 'CRUD_CONFIG',
+                useClass: MyConfigService,
+              }
+        ],
     }
 }

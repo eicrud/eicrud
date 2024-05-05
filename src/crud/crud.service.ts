@@ -8,6 +8,7 @@ import { CrudContext } from './model/CrudContext';
 import { CrudUser } from '../user/model/CrudUser';
 import { CrudUserService } from '../user/crud-user.service';
 import { CrudConfigService } from './crud.config.service';
+import { ModuleRef } from '@nestjs/core';
 
 
 
@@ -15,12 +16,14 @@ import { CrudConfigService } from './crud.config.service';
 export class CrudService<T extends CrudEntity> {
 
     CACHE_TTL = 60 * 10 * 1000; // 10 minutes
-    
+    protected crudConfig: CrudConfigService;
     constructor(
-        protected crudConfig: CrudConfigService,
+        protected moduleRef: ModuleRef,
         public entity: EntityName<Partial<T>>,
         public security: CrudSecurity,
     ) {
+
+        this.crudConfig = this.moduleRef.get('CRUD_CONFIG');
 
         this.CACHE_TTL = this.crudConfig.CACHE_TTL;
 

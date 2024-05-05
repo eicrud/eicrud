@@ -31,6 +31,9 @@ export class CrudConfigService {
         TWOFA_EMAIL_TIMEOUT_MIN: 15,
         PASSWORD_RESET_EMAIL_TIMEOUT_HOURS: 6,
         PASSWORD_MAX_LENGTH: 64,
+        JWT_SECRET: 'aeFzLsZAKL4153s9zsq2samXnv',
+        JWT_FIELD_IN_PAYLOAD: ['_id', 'revokedCount'],
+        USERNAME_FIELD:  'email',
     }
 
     CACHE_TTL: number = 60 * 12 * 1000; // 12 minutes
@@ -50,13 +53,18 @@ export class CrudConfigService {
     public captchaService: any;
     public emailService: EmailService;
 
+
     constructor(config: {userService: CrudUserService<any>, 
         logService?: LogService,
         entityManager: EntityManager,
         captchaService?: any,
         emailService: EmailService,
+        jwtSecret: string,
     }
         ) {
+
+            this.authenticationOptions.JWT_SECRET = config.jwtSecret;
+
             this.userService = config.userService;
             this.logService = config.logService;
             this.entityManager = config.entityManager;
