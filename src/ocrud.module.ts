@@ -13,7 +13,11 @@ export class OCRUDModule {
     
     return {
       module: OCRUDModule,
-      providers: [CrudAuthorizationService, CrudAuthService, ConfigService,
+      providers: [CrudAuthorizationService, CrudAuthService, 
+        {
+          provide: 'CRUD_CONFIG',
+          useClass: ConfigService,
+        },
         {
           provide: APP_GUARD,
           useClass: AuthGuard,

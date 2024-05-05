@@ -46,8 +46,6 @@ export interface BatchRights {
 
 export interface CrudSecurityRights {
 
-    allowedPopulateFields?: string[];
-
     createBatchRights?: BatchRights;
     updateBatchRights?: BatchRights;
     deleteBatchRights?: BatchRights;

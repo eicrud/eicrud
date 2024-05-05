@@ -3,7 +3,7 @@ import { CrudConfigService } from "../crud/crud.config.service";
 import { MyUserService } from "./myUser.service";
 import { EntityManager } from "@mikro-orm/mongodb";
 import { MyEmailService } from "./myemail.service";
-import { MelonService } from "./melon.service";}
+import { MelonService } from "./melon.service";
 
 @Injectable()
 export class MyConfigService extends CrudConfigService  {
