@@ -113,7 +113,7 @@ export class CrudController {
     }
 
     @Post('one')
-    async _create(@Query() query: CrudQuery, @Body() newEntity: T, @Context() ctx: CrudContext) {
+    async _create(@Query() query: CrudQuery, @Body() newEntity: any, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('POST', query, newEntity, newEntity, 'crud', ctx);
         try {
             this.checkServiceNotFound(currentService, query);
@@ -125,7 +125,7 @@ export class CrudController {
     }
 
     @Post('batch')
-    async _batchCreate(@Query() query: CrudQuery, @Body() newEntities: T[], @Context() ctx: CrudContext) {
+    async _batchCreate(@Query() query: CrudQuery, @Body() newEntities: any[], @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('POST', query, null, null, 'crud', ctx);
         ctx.isBatch = true;
         try {
@@ -273,7 +273,7 @@ export class CrudController {
         }
     }
 
-    async subPatchOne(crudQuery: CrudQuery, query: T, data: T, ctx: CrudContext, service = undefined) {
+    async subPatchOne(crudQuery: CrudQuery, query: any, data: any, ctx: CrudContext, service = undefined) {
         const currentService = service || await this.assignContext('PATCH', crudQuery, query, data, 'crud', ctx);
         await this.performValidationAuthorizationAndHooks(ctx, currentService);
         const res = await currentService.patchOne(ctx.query[this.crudConfig.id_field], ctx.data, ctx);
@@ -300,7 +300,7 @@ export class CrudController {
     }
 
     @Patch('batch')
-    async _batchPatch(@Query() query: CrudQuery, @Body() newEntities: T[], @Context() ctx: CrudContext) {
+    async _batchPatch(@Query() query: CrudQuery, @Body() newEntities: any[], @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, null, null, 'crud', ctx);
         ctx.isBatch = true;
         try {
@@ -330,7 +330,7 @@ export class CrudController {
     }
 
     @Put('batch')
-    async _batchPut(@Query() query: CrudQuery, @Body() newEntities: T[], @Context() ctx: CrudContext) {
+    async _batchPut(@Query() query: CrudQuery, @Body() newEntities: any[], @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PUT', query, null, null, 'crud', ctx);
         ctx.isBatch = true;
         try {
@@ -348,7 +348,7 @@ export class CrudController {
         }
     }
 
-    async subPutOne(crudQuery: CrudQuery, query: T, data: T, ctx: CrudContext, service = undefined) {
+    async subPutOne(crudQuery: CrudQuery, query: any, data: any, ctx: CrudContext, service = undefined) {
         const currentService = service || await this.assignContext('PUT', crudQuery, query, data, 'crud', ctx);
         await this.performValidationAuthorizationAndHooks(ctx, currentService);
         const res = await currentService.putOne(data, ctx);

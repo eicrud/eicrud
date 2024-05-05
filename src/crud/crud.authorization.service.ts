@@ -1,4 +1,4 @@
-import { ForbiddenException } from "@nestjs/common";
+import { ForbiddenException, Inject, forwardRef } from "@nestjs/common";
 import { AuthUtils } from "../authentification/auth.utils";
 import { CrudContext } from "./model/CrudContext";
 import { CrudRole } from "./model/CrudRole";
@@ -13,6 +13,7 @@ export class CrudAuthorizationService {
 
     rolesMap: Record<string, CrudRole> = {};
     constructor(
+        @Inject(forwardRef(() => 'CRUD_CONFIG'))
         protected crudConfig: CrudConfigService
     ) { 
         this.rolesMap = crudConfig.roles.reduce((acc, role) => {
@@ -80,16 +81,7 @@ export class CrudAuthorizationService {
     async authorize(ctx: CrudContext) {
 
         const fields = AuthUtils.getObjectFields(ctx.data);
-        
-        if(ctx.options?.populate){
-            const popArray = ctx.options?.populate?.length ? ctx.options.populate : [ctx.options.populate];
-            const allowedPopulateFields = ctx.security?.rolesRights?.[this.getCtxUserRole(ctx).name]?.allowedPopulateFields || [];
-            for(const pop of popArray){
-                if(!allowedPopulateFields.includes(pop)){
-                    throw new ForbiddenException(`Populate field ${pop} is not allowed for role ${ctx.user.role}`);
-                }
-            }
-        }
+    
 
         if (ctx.origin == 'crud' && ctx.security.maxItemsPerUser && 
             this.crudConfig.userService.notGuest(ctx.user) &&

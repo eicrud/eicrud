@@ -1,8 +1,10 @@
 import {
   CanActivate,
   ExecutionContext,
+  Inject,
   Injectable,
   UnauthorizedException,
+  forwardRef,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
@@ -47,7 +49,7 @@ export class AuthGuard implements CanActivate {
 
   
   constructor(
-    protected usersService: CrudService<CrudUser>,
+    @Inject(forwardRef(() => 'CRUD_CONFIG'))
     protected crudConfig: CrudConfigService,
     protected authService: CrudAuthService
     ) {
@@ -70,8 +72,8 @@ export class AuthGuard implements CanActivate {
           this.crudConfig.userService.addTimeoutToUser(user as CrudUser, this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN)
         }
         user.captchaRequested = true;
-        this.usersService.unsecure_fastPatchOne(userId, { highTrafficCount: user.highTrafficCount }, null);
-        this.usersService.setCached(user, null);
+        this.crudConfig.userService.unsecure_fastPatchOne(userId, { highTrafficCount: user.highTrafficCount }, null);
+        this.crudConfig.userService.setCached(user, null);
         this.crudConfig.logService?.log(LogType.SECURITY, 
           `High traffic event for user ${userId} with ${traffic} requests.`, 
           { userId, user } as CrudContext
@@ -93,9 +95,9 @@ export class AuthGuard implements CanActivate {
         const payload = await this.authService.getJwtPayload(token);
 
         if(request.method == 'POST' ){
-          user = await this.usersService.findOne(payload, null);
+          user = await this.crudConfig.userService.findOne(payload, null) as any;
         }else{
-          user = await this.usersService.findOneCached(payload, null);
+          user = await this.crudConfig.userService.findOneCached(payload, null);
         }
 
         if(!user){

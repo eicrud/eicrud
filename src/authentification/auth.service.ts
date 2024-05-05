@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { CrudUserService } from '../user/crud-user.service';
 import { JwtService } from '@nestjs/jwt';
 import { _utils } from '../utils';
@@ -24,6 +24,7 @@ export class CrudAuthService {
     protected JWT_SECRET: string,
     protected FIELDS_IN_PAYLOAD: string[] = ['_id', 'revokedCount'],
     protected USERNAME_FIELD = 'email',
+    @Inject(forwardRef(() => 'CRUD_CONFIG'))
     protected crudConfig: CrudConfigService,
 
   ) {}
