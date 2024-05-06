@@ -339,14 +339,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return { res, accessToken: await this.authService.signTokenForUser(ctx.user)}
   }
 
-  async createAccount(email: string, password: string, ctx: CrudContext){
+  async createAccount(email: string, password: string, ctx: CrudContext, role?: string){
       if(password?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH){
         throw new BadRequestException(CrudErrors.PASSWORD_TOO_LONG.str());
       }
       const user = new this.userEntityClass();
       user.email = email;
       user.password = password;
-      user.role = this.crudConfig.guest_role;
+      user.role = role || this.crudConfig.guest_role;
 
       const res = await this.create(user, ctx);
 

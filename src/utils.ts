@@ -20,7 +20,7 @@ export class _utils {
     static async hashPassword(password) {
         const salt = await bcrypt.genSalt();
         return await bcrypt.hash(password, salt);
-      }
+    }
 
     
 }

@@ -19,12 +19,27 @@ export class MyEmailService extends CrudService<FakeEmail> implements EmailServi
         super(moduleRef, FakeEmail, emailSecurity);
     }
     sendVerificationEmail(to: string, token: string): Promise<any> {
-        throw new Error("Method not implemented.");
+        const email: Partial<FakeEmail> = {
+            to,
+            message: token,
+            type: 'verification',
+        }
+        return this.create(email, null);
     }
     sendTwoFactorEmail(to: string, code: string): Promise<any> {
-        throw new Error("Method not implemented.");
+        const email: Partial<FakeEmail> = {
+            to,
+            message: code,
+            type: 'twoFactor',
+        }
+        return this.create(email, null);
     }
     sendPasswordResetEmail(to: string, token: string): Promise<any> {
-        throw new Error("Method not implemented.");
+        const email: Partial<FakeEmail> = {
+            to,
+            message: token,
+            type: 'passwordReset',
+        }
+        return this.create(email, null);
     }
 }

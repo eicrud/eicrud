@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { MyConfigService } from "./myconfig.service";
 import { MyEmailService } from "./myemail.service";
-import { MyUserService } from "./myUser.service";
+import { MyUserService } from "./myuser.service";
 import { MikroOrmModule } from "@mikro-orm/nestjs";
 import { MongoDriver } from "@mikro-orm/mongodb";
 import { MyUser } from "./entities/MyUser";
