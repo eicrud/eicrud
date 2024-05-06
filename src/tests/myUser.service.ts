@@ -1,4 +1,4 @@
-import { Inject, forwardRef } from "@nestjs/common";
+import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { CrudAuthService } from "../authentification/auth.service";
 import { CrudAuthorizationService } from "../crud/crud.authorization.service";
 import { CrudService } from "../crud/crud.service";
@@ -14,7 +14,7 @@ const myUserSecurity: CrudSecurity = {
 
 }
 
-
+@Injectable()
 export class MyUserService extends CrudUserService<MyUser> {
 
     constructor(
@@ -22,6 +22,5 @@ export class MyUserService extends CrudUserService<MyUser> {
     ) {
         super(moduleRef, myUserSecurity, MyUser);
     }
-
     
 }

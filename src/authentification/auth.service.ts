@@ -34,7 +34,7 @@ export class CrudAuthService {
     protected moduleRef: ModuleRef,
 
   ) {
-    this.crudConfig = this.moduleRef.get('CRUD_CONFIG')
+    this.crudConfig = this.moduleRef.get('CRUD_CONFIG',{ strict: false })
     this.JWT_SECRET = this.crudConfig.authenticationOptions.JWT_SECRET;
     this.FIELDS_IN_PAYLOAD = this.crudConfig.authenticationOptions.JWT_FIELD_IN_PAYLOAD;
     this.USERNAME_FIELD = this.crudConfig.authenticationOptions.USERNAME_FIELD;

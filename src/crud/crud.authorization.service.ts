@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, forwardRef } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { AuthUtils } from "../authentification/auth.utils";
 import { CrudContext } from "./model/CrudContext";
 import { CrudRole } from "./model/CrudRole";
@@ -9,19 +9,15 @@ import { CrudConfigService } from "./crud.config.service";
 import { CrudUser } from "../user/model/CrudUser";
 import { ModuleRef } from "@nestjs/core";
 
-
+@Injectable()
 export class CrudAuthorizationService {
     protected crudConfig: CrudConfigService;
     rolesMap: Record<string, CrudRole> = {};
     constructor(
-        
         protected moduleRef: ModuleRef
     ) { 
-        this.crudConfig = this.moduleRef.get('CRUD_CONFIG')
-        this.rolesMap = this.crudConfig.roles.reduce((acc, role) => {
-            acc[role.name] = role;
-            return acc;
-        }, {});
+        this.crudConfig = this.moduleRef.get('CRUD_CONFIG',{ strict: false })
+        this.rolesMap = this.crudConfig.rolesMap;
     }
 
     getCtxUserRole(ctx: CrudContext): CrudRole {

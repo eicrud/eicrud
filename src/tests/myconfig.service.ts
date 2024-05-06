@@ -9,7 +9,6 @@ import { MelonService } from "./melon.service";
 export class MyConfigService extends CrudConfigService  {
 
     constructor(
-        @Inject(forwardRef(() => MyUserService))
         public userService: MyUserService,
         public entityManager: EntityManager,
         public emailService: MyEmailService,
@@ -19,7 +18,8 @@ export class MyConfigService extends CrudConfigService  {
             userService,
             entityManager,
             emailService,
-            jwtSecret: 'myTestSecret'
+            jwtSecret: 'myTestSecret',
+            roles: [],
         });
 
         this.services.push(...[emailService, melonService]);

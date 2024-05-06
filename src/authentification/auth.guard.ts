@@ -52,7 +52,7 @@ export class AuthGuard implements CanActivate {
     protected moduleRef: ModuleRef,
     protected authService: CrudAuthService
     ) {
-      this.crudConfig = this.moduleRef.get('CRUD_CONFIG')
+      this.crudConfig = this.moduleRef.get('CRUD_CONFIG',{ strict: false })
       this.userTrafficMap = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_USERS);
       this.reciprocalRequestThreshold = 1 / this.crudConfig.watchTrafficOptions.REQUEST_THRESHOLD;
 

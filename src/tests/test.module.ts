@@ -9,6 +9,7 @@ import { UserProfile } from "./entities/UserProfile";
 import { FakeEmail } from "./entities/FakeEmail";
 import { Melon } from "./entities/Melon";
 import { OCRUDModule } from "../ocrud.module";
+import { MelonService } from "./melon.service";
 
 export const getModule = (dbName) => { 
     return {
@@ -21,7 +22,7 @@ export const getModule = (dbName) => {
             OCRUDModule.forRoot(),
         ],
         controllers: [],
-        providers: [MyEmailService, MyUserService,
+        providers: [MyEmailService, MyUserService, MelonService ,
             {
                 provide: 'CRUD_CONFIG',
                 useClass: MyConfigService,
