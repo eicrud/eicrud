@@ -22,6 +22,8 @@ export interface CacheOptions {
 
 }
 
+export const CRUD_CONFIG_KEY = 'CRUD_CONFIG_U4u7YojMIZ';
+
 export class CrudConfigService {
 
     watchTrafficOptions: TrafficWatchOptions = {

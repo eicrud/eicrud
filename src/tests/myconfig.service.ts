@@ -20,6 +20,7 @@ export class MyConfigService extends CrudConfigService  {
             emailService,
             jwtSecret: 'myTestSecret',
             roles: [],
+            cacheManager: null,
         });
 
         this.services.push(...[emailService, melonService]);

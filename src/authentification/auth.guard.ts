@@ -13,7 +13,7 @@ import { CrudContext } from '../crud/model/CrudContext';
 import { CrudUser } from '../user/model/CrudUser';
 import LRUCache from 'mnemonist/lru-cache';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { CrudConfigService } from '../crud/crud.config.service';
+import { CRUD_CONFIG_KEY, CrudConfigService } from '../crud/crud.config.service';
 import { LogType } from '../log/entities/log';
 import { CrudErrors } from '../crud/model/CrudErrors';
 import { CrudOptions } from '../crud/model/CrudOptions';
@@ -52,11 +52,14 @@ export class AuthGuard implements CanActivate {
     protected moduleRef: ModuleRef,
     protected authService: CrudAuthService
     ) {
-      this.crudConfig = this.moduleRef.get('CRUD_CONFIG',{ strict: false })
+    }
+
+    onModuleInit() {
+      this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY,{ strict: false })
       this.userTrafficMap = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_USERS);
       this.reciprocalRequestThreshold = 1 / this.crudConfig.watchTrafficOptions.REQUEST_THRESHOLD;
-
     }
+
 
 
 

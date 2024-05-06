@@ -5,7 +5,7 @@ import { CrudRole } from "./model/CrudRole";
 import { defineAbility, subject } from "@casl/ability";
 import { BatchRights, CrudSecurity, httpAliasResolver } from "./model/CrudSecurity";
 import { CrudUserService } from "../user/crud-user.service";
-import { CrudConfigService } from "./crud.config.service";
+import { CRUD_CONFIG_KEY, CrudConfigService } from "./crud.config.service";
 import { CrudUser } from "../user/model/CrudUser";
 import { ModuleRef } from "@nestjs/core";
 
@@ -16,9 +16,13 @@ export class CrudAuthorizationService {
     constructor(
         protected moduleRef: ModuleRef
     ) { 
-        this.crudConfig = this.moduleRef.get('CRUD_CONFIG',{ strict: false })
-        this.rolesMap = this.crudConfig.rolesMap;
+
     }
+
+    onModuleInit() {
+        this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY,{ strict: false })
+        this.rolesMap = this.crudConfig.rolesMap;
+      }
 
     getCtxUserRole(ctx: CrudContext): CrudRole {
         const role = ctx.user?.role || this.crudConfig.guest_role;

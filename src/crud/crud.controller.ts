@@ -9,7 +9,7 @@ import { TransformationType, plainToInstance as dontuseme } from 'class-transfor
 import { TransformOperationExecutor } from 'class-transformer/cjs/TransformOperationExecutor';
 import { defaultOptions } from 'class-transformer/cjs/constants/default-options.constant';
 import { IsEmail, IsOptional, IsString, MaxLength, validateOrReject } from 'class-validator';
-import { CrudConfigService } from './crud.config.service';
+import { CRUD_CONFIG_KEY, CrudConfigService } from './crud.config.service';
 import { CmdSecurity } from './model/CrudSecurity';
 import { CrudErrors } from './model/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
@@ -39,12 +39,16 @@ export class CrudController {
         public crudAuthorization: CrudAuthorizationService,
         protected moduleRef: ModuleRef,
     ) {
-        this.crudConfig = this.moduleRef.get('CRUD_CONFIG',{ strict: false })
+
+    }
+
+    onModuleInit() {
+        this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY,{ strict: false })
         this.crudMap = this.crudConfig.services.reduce((acc, service) => {
             acc[service.entity.toString()] = service;
             return acc;
         }, {});
-    }
+      }
 
     assignContext(method: string, crudQuery: CrudQuery, query: any, data: any, type, ctx: CrudContext): CrudService<any> {
         const currentService: CrudService<any> = this.crudMap[crudQuery?.service];
