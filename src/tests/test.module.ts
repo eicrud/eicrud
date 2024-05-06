@@ -10,6 +10,7 @@ import { FakeEmail } from "./entities/FakeEmail";
 import { Melon } from "./entities/Melon";
 import { OCRUDModule } from "../ocrud.module";
 import { MelonService } from "./melon.service";
+import { CRUD_CONFIG_KEY } from "../crud/crud.config.service";
 
 export const getModule = (dbName) => { 
     return {
@@ -24,7 +25,7 @@ export const getModule = (dbName) => {
         controllers: [],
         providers: [MyEmailService, MyUserService, MelonService ,
             {
-                provide: 'CRUD_CONFIG',
+                provide: CRUD_CONFIG_KEY,
                 useClass: MyConfigService,
               }
         ],

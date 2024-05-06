@@ -1,8 +1,9 @@
-import { PrimaryKey, OneToOne, Property, ManyToOne } from "@mikro-orm/core";
+import { PrimaryKey, OneToOne, Property, ManyToOne, Entity } from "@mikro-orm/core";
 import { IsDate, IsInt, IsMongoId, IsOptional } from "class-validator";
 import { CrudEntity } from "../../crud/model/CrudEntity";
 import { MyUser } from "./MyUser";
 
+@Entity()
 export class Melon implements CrudEntity {
 
     @PrimaryKey()

@@ -7,7 +7,7 @@ import { CrudContext } from './model/CrudContext';
 
 import { CrudUser } from '../user/model/CrudUser';
 import { CrudUserService } from '../user/crud-user.service';
-import { CacheOptions, CrudConfigService } from './crud.config.service';
+import { CRUD_CONFIG_KEY, CacheOptions, CrudConfigService } from './crud.config.service';
 import { ModuleRef } from '@nestjs/core';
 
 
@@ -21,13 +21,17 @@ export class CrudService<T extends CrudEntity> {
         protected moduleRef: ModuleRef,
         public entity: EntityName<Partial<T>>,
         public security: CrudSecurity,
-        config?: {
+        private config?: {
             cacheOptions?: CacheOptions
         }
     ) {
-        this.crudConfig = this.moduleRef.get('CRUD_CONFIG',{ strict: false });
-        this.CACHE_TTL = config?.cacheOptions?.TTL || this.crudConfig.defaultCacheOptions.TTL;
     }
+
+    onModuleInit() {
+        this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY,{ strict: false });
+        this.CACHE_TTL = this.config?.cacheOptions?.TTL || this.crudConfig.defaultCacheOptions.TTL;
+    }
+    
     
     async create(newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
         const em = context.em || this.crudConfig.entityManager.fork();

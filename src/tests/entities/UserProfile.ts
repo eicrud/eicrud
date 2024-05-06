@@ -1,11 +1,11 @@
-import { BaseEntity, AutoPath, EntityLoaderOptions, Loaded, Reference, LoadedReference, EntityDTO, EntityKey, SerializeOptions, FromEntityType, EntityData, IsSubset, AssignOptions, MergeSelected, FindOneOptions, Property, PrimaryKey, OneToOne } from "@mikro-orm/core";
+import { BaseEntity, AutoPath, EntityLoaderOptions, Loaded, Reference, LoadedReference, EntityDTO, EntityKey, SerializeOptions, FromEntityType, EntityData, IsSubset, AssignOptions, MergeSelected, FindOneOptions, Property, PrimaryKey, OneToOne, Entity } from "@mikro-orm/core";
 import { AddEager } from "@mikro-orm/core/typings";
 import { CrudEntity } from "../../crud/model/CrudEntity";
 import { IsDate, IsMongoId, IsOptional, IsString, Max, MaxLength } from "class-validator";
 import { MyUser } from "./MyUser";
 
 
-
+@Entity()
 export class UserProfile implements CrudEntity {
 
     @PrimaryKey()

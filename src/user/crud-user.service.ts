@@ -55,9 +55,6 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     security = security || new CrudSecurity();
     super(moduleRef, Type<CrudUser>, security);
 
-    this.authorizationService = moduleRef.get(CrudAuthorizationService,{ strict: false });
-    this.authService = moduleRef.get(CrudAuthService,{ strict: false });
-
     for(const cmd in this.baseCmds){
       security.cmdSecurityMap = security.cmdSecurityMap || {};
       security.cmdSecurityMap[cmd] = security.cmdSecurityMap?.[cmd] || {};
@@ -66,6 +63,11 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         security.cmdSecurityMap[cmd].dto = this.baseCmds[cmd].dto;
       }
     }
+  }
+
+  onModuleInit() {
+    this.authorizationService = this.moduleRef.get(CrudAuthorizationService);
+    this.authService = this.moduleRef.get(CrudAuthService);  
   }
 
   override async create(newEntity: T, ctx: CrudContext): Promise<any> {
