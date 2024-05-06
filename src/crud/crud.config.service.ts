@@ -17,6 +17,11 @@ export interface SecurityCacheManager {
     set: (key: string, value: any, ttl: number) => Promise<any>;
 }
 
+export interface CacheOptions {
+    TTL: number;
+
+}
+
 export class CrudConfigService {
 
     watchTrafficOptions: TrafficWatchOptions = {
@@ -36,14 +41,15 @@ export class CrudConfigService {
         USERNAME_FIELD:  'email',
     }
 
-    CACHE_TTL: number = 60 * 12 * 1000; // 12 minutes
+    defaultCacheOptions: CacheOptions = {
+        TTL: 60 * 12 * 1000, // 12 minutes
+    }
+
 
     services: CrudService<any>[] = [];
     id_field: string = '_id';
     guest_role: string = "guest" 
-    roles: CrudRole[] = [];
     public rolesMap: Record<string, CrudRole> = {};
-
 
     cacheManager: SecurityCacheManager;
 
@@ -60,9 +66,17 @@ export class CrudConfigService {
         captchaService?: any,
         emailService: EmailService,
         jwtSecret: string,
+        cacheManager: SecurityCacheManager,
+        roles?: CrudRole[],
+        authenticationOptions?: AuthenticationOptions,
+        watchTrafficOptions?: TrafficWatchOptions,
+        defaultCacheOptions?: CacheOptions
     }
         ) {
-
+            this.watchTrafficOptions = config.watchTrafficOptions || this.watchTrafficOptions;
+            this.authenticationOptions = config.authenticationOptions || this.authenticationOptions;
+            this.defaultCacheOptions = config.defaultCacheOptions || this.defaultCacheOptions;
+            this.cacheManager = config.cacheManager;
             this.authenticationOptions.JWT_SECRET = config.jwtSecret;
 
             this.userService = config.userService;
@@ -79,10 +93,10 @@ export class CrudConfigService {
             //unique services 
             this.services = this.services.filter((v, i, a) => a.indexOf(v) === i);
 
-            this.rolesMap = this.roles.reduce((acc, role) => {
+            this.rolesMap = config.roles?.reduce((acc, role) => {
                 acc[role.name] = role;
                 return acc;
-            }, {} as Record<string, CrudRole>)
+            }, {} as Record<string, CrudRole>) || {};
 
     }
 

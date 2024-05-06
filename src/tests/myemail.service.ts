@@ -1,4 +1,4 @@
-import { Inject, forwardRef } from "@nestjs/common";
+import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { CrudService } from "../crud/crud.service";
 import { CrudSecurity } from "../crud/model/CrudSecurity";
 import { EmailService } from "../email/email.service";
@@ -11,6 +11,7 @@ const emailSecurity: CrudSecurity = {
 
 }
 
+@Injectable()
 export class MyEmailService extends CrudService<FakeEmail> implements EmailService {
     constructor(
         protected moduleRef: ModuleRef

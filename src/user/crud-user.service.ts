@@ -41,6 +41,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     }
 
   }
+
   protected crudConfig: CrudConfigService;
   protected authorizationService: CrudAuthorizationService;
   protected authService: CrudAuthService;
@@ -52,13 +53,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   ) {
     
     security = security || new CrudSecurity();
-    super(moduleRef.get('CRUD_CONFIG'), Type<CrudUser>, security);
+    super(moduleRef, Type<CrudUser>, security);
 
-    this.authorizationService = moduleRef.get(CrudAuthorizationService);
-    this.authService = moduleRef.get(CrudAuthService);
+    this.authorizationService = moduleRef.get(CrudAuthorizationService,{ strict: false });
+    this.authService = moduleRef.get(CrudAuthService,{ strict: false });
 
     for(const cmd in this.baseCmds){
-      security.cmdSecurityMap[cmd] = security.cmdSecurityMap[cmd] || {};
+      security.cmdSecurityMap = security.cmdSecurityMap || {};
+      security.cmdSecurityMap[cmd] = security.cmdSecurityMap?.[cmd] || {};
       security.cmdSecurityMap[cmd].secureOnly = true;
       if(!security.cmdSecurityMap[cmd].dto){
         security.cmdSecurityMap[cmd].dto = this.baseCmds[cmd].dto;

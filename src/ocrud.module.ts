@@ -18,7 +18,6 @@ export class OCRUDModule {
       providers: [
         JwtService,
         CrudAuthorizationService, CrudAuthService, 
-
         {
           provide: APP_GUARD,
           useClass: AuthGuard,

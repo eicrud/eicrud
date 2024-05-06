@@ -39,7 +39,7 @@ export class CrudController {
         public crudAuthorization: CrudAuthorizationService,
         protected moduleRef: ModuleRef,
     ) {
-        this.crudConfig = this.moduleRef.get('CRUD_CONFIG')
+        this.crudConfig = this.moduleRef.get('CRUD_CONFIG',{ strict: false })
         this.crudMap = this.crudConfig.services.reduce((acc, service) => {
             acc[service.entity.toString()] = service;
             return acc;

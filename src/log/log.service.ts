@@ -21,7 +21,7 @@ export class LogService extends CrudService<Log> {
         protected moduleRef: ModuleRef,
         private readonly notificationService: NotificationsService,
         ){
-        super(moduleRef.get('CRUD_CONFIG'), Log, logSecurity);
+        super(moduleRef, Log, logSecurity);
     }
 
     async log(type: LogType, message: string, ctx: CrudContext, level: number = 1){
