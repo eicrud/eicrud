@@ -1,9 +1,21 @@
 import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { CrudConfigService } from "../crud/crud.config.service";
-import { MyUserService } from "./myUser.service";
+import { MyUserService } from "./myuser.service";
 import { EntityManager } from "@mikro-orm/mongodb";
 import { MyEmailService } from "./myemail.service";
 import { MelonService } from "./melon.service";
+import { CrudRole } from "../crud/model/CrudRole";
+
+
+const roles: CrudRole[] = [
+    {
+        name: 'super_admin',
+        isAdminRole: true,
+        canMock: true,
+        inherits: [],
+    },
+]
+
 
 @Injectable()
 export class MyConfigService extends CrudConfigService  {
@@ -19,7 +31,7 @@ export class MyConfigService extends CrudConfigService  {
             entityManager,
             emailService,
             jwtSecret: 'myTestSecret',
-            roles: [],
+            roles: roles,
             cacheManager: null,
         });
 

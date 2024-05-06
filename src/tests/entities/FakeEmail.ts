@@ -1,9 +1,11 @@
-import { BaseEntity, AutoPath, EntityLoaderOptions, Loaded, Reference, LoadedReference, EntityDTO, EntityKey, SerializeOptions, FromEntityType, EntityData, IsSubset, AssignOptions, MergeSelected, FindOneOptions, Property, Entity } from "@mikro-orm/core";
-import { AddEager } from "@mikro-orm/core/typings";
+import { Property, Entity, PrimaryKey } from "@mikro-orm/core";
 import { CrudEntity } from "../../crud/model/CrudEntity";
 
 @Entity()
 export class FakeEmail implements CrudEntity {
+
+    @PrimaryKey()
+    _id: string;
 
     @Property()
     to: string;
