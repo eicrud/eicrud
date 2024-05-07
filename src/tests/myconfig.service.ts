@@ -5,6 +5,7 @@ import { EntityManager } from "@mikro-orm/mongodb";
 import { MyEmailService } from "./myemail.service";
 import { MelonService } from "./melon.service";
 import { CrudRole } from "../crud/model/CrudRole";
+import { BasicMemoryCache } from "../authentification/auth.utils";
 
 
 const roles: CrudRole[] = [
@@ -32,7 +33,7 @@ export class MyConfigService extends CrudConfigService  {
             emailService,
             jwtSecret: 'myTestSecret',
             roles: roles,
-            cacheManager: null,
+            cacheManager: new BasicMemoryCache(),
         });
 
         this.services.push(...[emailService, melonService]);

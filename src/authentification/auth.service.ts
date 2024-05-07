@@ -51,7 +51,7 @@ export class CrudAuthService {
     await this.crudConfig.userService.unsecure_fastPatchOne(user[this.crudConfig.id_field], patch as any, null);
   }
 
-  async signIn(email, pass, twoFA_code?) {
+  async signIn(email, pass, expiresIn = '30m', twoFA_code?) {
     const entity = {};
     entity[this.USERNAME_FIELD] = email;
     const user = await this.crudConfig.userService.findOne(entity, null);
@@ -93,11 +93,11 @@ export class CrudAuthService {
         payload[field] = user[field];
     });
     return {
-      access_token: await this.signTokenForUser(user)
+      accessToken: await this.signTokenForUser(user, expiresIn),
     }
   }
 
-  signTokenForUser(user){
+  signTokenForUser(user,  expiresIn = '30m'){
     const payload = {};
     this.FIELDS_IN_PAYLOAD.forEach(field => {
         payload[field] = user[field];
@@ -105,7 +105,8 @@ export class CrudAuthService {
     return this.jwtService.sign(payload,
         {
         secret: this.JWT_SECRET,
-      });
+        expiresIn
+        });
   }
 
 

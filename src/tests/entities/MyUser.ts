@@ -14,7 +14,7 @@ export class MyUser implements CrudUser {
     @Exclude({ toPlainOnly: true })
     melons = new Collection<Melon>(this);
 
-    @OneToOne({ entity: () => UserProfile })
+    @OneToOne(() => UserProfile, profile => profile.user, { owner: true, nullable: true })
     @Equals(undefined)
     @Exclude({ toPlainOnly: true })
     profile: UserProfile;
@@ -32,90 +32,91 @@ export class MyUser implements CrudUser {
     password: string;
 
     @Property()
-    lastLoginAttempt: Date;
-
-    @Property()
-    failedLoginCount: number;
-
-    @Property()
-    lastResetEmailSent: Date;
-
-    @Property()
     role: string;
 
-    @Property()
+    @Property({ nullable: true })
+    lastLoginAttempt: Date;
+
+    @Property({ nullable: true })
+    failedLoginCount: number;
+
+    @Property({ nullable: true })
+    lastResetEmailSent: Date;
+
+
+    @Property({ nullable: true })
     revokedCount: number;
 
-    @Property()
+    @Property({ nullable: true })
     nextEmail: string;
 
-    @Property()
+    @Property({ nullable: true })
     verifiedEmail: boolean;
 
-    @Property()
+    @Property({ nullable: true })
     emailVerificationToken: string;
 
-    @Property()
+    @Property({ nullable: true })
     lastEmailVerificationSent: Date;
 
-    @Property()
+    @Property({ nullable: true })
     verifiedEmailAttempCount: number;
 
-    @Property()
+    @Property({ nullable: true })
     lastPasswordResetSent: Date;
 
-    @Property()
+    @Property({ nullable: true })
     passwordResetToken: string;
 
-    @Property()
+    @Property({ nullable: true })
     passwordResetAttempCount: number;
 
-    @Property()
+    @Property({ nullable: true })
     crudUserDataMap: Record<string, CrudData>;
 
-    @Property()
+    @Property({ nullable: true })
     errorCount: number;
 
-    @Property()
+    @Property({ nullable: true })
     incidentCount: number;
 
-    @Property()
+    @Property({ nullable: true })
     highTrafficCount: number;
 
-    @Property()
+    @Property({ nullable: true })
     trust: number;
 
-    @Property()
+    @Property({ nullable: true })
     lastComputedTrust: Date;
 
-    @Property()
+    @Property({ nullable: true })
     timeout: Date;
 
-    @Property()
+    @Property({ nullable: true })
     timeoutCount: number;
 
-    @Property()
+    @Property({ nullable: true })
     didCaptcha: boolean;
     
-    @Property()
+    @Property({ nullable: true })
     captchaRequested: boolean;
    
-    @Property()
+    @Property({ nullable: true })
     twoFA: boolean;
 
-    @Property()
+    @Property({ nullable: true })
     lastTwoFACode: string;
 
-    @Property()
+    @Property({ nullable: true })
     lastTwoFACodeSent: Date;
 
-    @Property()
+    @Property({ nullable: true })
     twoFACodeCount: number;
 
-    @Property()
+    @Property({ nullable: true })
     createdAt: Date;
 
-    @Property()
+    @Property({ nullable: true })
     updatedAt: Date;
 
 }
