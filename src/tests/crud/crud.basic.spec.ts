@@ -8,6 +8,7 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../crud/model/CrudQuery';
+import { testMethod } from '../test.utils';
 
 const testAdminCreds = {
   email: "admin@testmail.com",
@@ -30,14 +31,7 @@ describe('AppController', () => {
     const moduleRef: TestingModule = await Test.createTestingModule(
       getModule('basic-test-db')
     ).compile();
-    moduleRef.get<EntityManager>(EntityManager).getConnection().getDb().dropDatabase();
-    
-  });
-
-  beforeEach(async () => {
-    const moduleRef: TestingModule = await Test.createTestingModule(
-      getModule('basic-test-db')
-    ).compile();
+    await moduleRef.get<EntityManager>(EntityManager).getConnection().getDb().dropDatabase();
 
     app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
 
@@ -67,6 +61,11 @@ describe('AppController', () => {
     const accRes = await userService.createAccount(testAdminCreds.email,testAdminCreds.password, null, "super_admin" );
     jwt = accRes.accessToken;
     userId = accRes.userId?.toString();
+    
+  });
+
+  beforeEach(async () => {
+
 
   });
 
@@ -98,81 +97,46 @@ describe('AppController', () => {
   //   const query: CrudQuery = {
   //     service: 'user-profile'
   //   }
-  //   return app
-  //     .inject({
-  //       method: 'POST',
-  //       url: '/crud/one',
-  //       headers: {
-  //         Authorization: `Bearer ${jwt}`
-  //       },
-  //       payload,
-  //       query: query as any
-  //     })
-  //     .then((result) => {
-  //       expect(result.statusCode).toEqual(201);
-  //     });
+
+  //   return testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload, query});
 
   // });  
-  
-  // it('should patch a new profile', () => {
+
+
+
+  // it('should patch a profile', () => {
   //   const payload: Partial<UserProfile> = {
-  //     bio: 'I am a cool gal.',
-  //     address: {
-  //       street: '1234 Elm St.',
-  //       city: 'Springfield'
-  //     }
+  //     _id: sarahDoeProfile._id,
+  //     userName: 'Sarah Jane',
+  //     user: (sarahDoeProfile.user as any)._id?.toString(),
   //   } as any;
   //   const query: CrudQuery = {
   //     service: 'user-profile',
-  //     query: JSON.stringify({ _id: sarahDoeProfile._id })
-
   //   }
-  //   return app
-  //     .inject({
-  //       method: 'PATCH',
-  //       url: '/crud/one',
-  //       headers: {
-  //         Authorization: `Bearer ${jwt}`
-  //       },
-  //       payload,
-  //       query: new URLSearchParams(query as any).toString()
-  //     })
-  //     .then((result) => {
-  //       expect(result.statusCode).toEqual(200);
-  //     });
+
+  //   const expectedObject = { 
+  //     ...payload,
+  //     bio: sarahDoeProfile.bio,
+  //    }
+  //    delete expectedObject._id;
+
+  //   return testMethod({ url: '/crud/one', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity: { entity: UserProfile, id: sarahDoeProfile._id }, expectedObject });
 
   // });
 
-
-  it('should put a new profile', () => {
+  it('should find profile by user',async ()  => {
     const payload: Partial<UserProfile> = {
-      _id: sarahDoeProfile._id,
-      userName: 'Sarah Jane',
-      user: (sarahDoeProfile.user as any)._id?.toString(),
-      address: {
-        street: '1234 Elm St.',
-        city: 'Springfield'
-      }
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
+      query: JSON.stringify({ user: (sarahDoeProfile.user as any)._id?.toString() })
     }
-    return app
-      .inject({
-        method: 'PUT',
-        url: '/crud/one',
-        headers: {
-          Authorization: `Bearer ${jwt}`
-        },
-        payload,
-        query: new URLSearchParams(query as any).toString()
-      })
-      .then(async (result) => {
-        expect(result.statusCode).toEqual(200);
-        const res = await entityManager.fork().findOne(UserProfile, { _id: sarahDoeProfile._id }, { populate: ['user'] });
-        expect(res?.userName).toEqual('Sarah Jane');
-        expect(res?.bio).toEqual('Sarah Jane');
-      });
+
+    const expectedObject = { 
+      bio: sarahDoeProfile.bio,
+     }
+
+    return testMethod({ url: '/crud/one', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
 
   });
 });

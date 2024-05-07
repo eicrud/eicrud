@@ -6,7 +6,7 @@ import { MyUser } from "./MyUser";
 @Entity()
 export class Melon implements CrudEntity {
 
-    @PrimaryKey()
+    @PrimaryKey({serializedName: '_id'})
     @IsString()
     @IsOptional()
     _id: string;
