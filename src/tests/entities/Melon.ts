@@ -1,5 +1,5 @@
 import { PrimaryKey, OneToOne, Property, ManyToOne, Entity } from "@mikro-orm/core";
-import { IsDate, IsInt, IsMongoId, IsOptional } from "class-validator";
+import { IsDate, IsInt, IsMongoId, IsOptional, IsString } from "class-validator";
 import { CrudEntity } from "../../crud/model/CrudEntity";
 import { MyUser } from "./MyUser";
 
@@ -7,12 +7,12 @@ import { MyUser } from "./MyUser";
 export class Melon implements CrudEntity {
 
     @PrimaryKey()
-    @IsMongoId()
+    @IsString()
     @IsOptional()
     _id: string;
 
     @ManyToOne(() => MyUser)
-    @IsMongoId()
+    @IsString()
     owner: MyUser;
 
     @Property()

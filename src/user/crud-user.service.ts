@@ -48,8 +48,8 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   
   constructor(
   protected moduleRef: ModuleRef,
+  private userEntityClass: new () => T,
   public security: CrudSecurity,
-  private userEntityClass: new () => T
   ) {
     
     security = security || new CrudSecurity();
@@ -345,7 +345,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         throw new BadRequestException(CrudErrors.PASSWORD_TOO_LONG.str());
       }
       const user = new this.userEntityClass();
-      user.email = email;
+      user.email = email.toLowerCase().trim();
       user.password = password;
       user.role = role || this.crudConfig.guest_role;
 

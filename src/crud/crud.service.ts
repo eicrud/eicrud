@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
-import { EntityManager, EntityName, wrap } from '@mikro-orm/core';
+import { BaseEntity, EntityClass, EntityManager, EntityName, wrap } from '@mikro-orm/core';
 import { CrudSecurity } from './model/CrudSecurity';
 import { Cache } from 'cache-manager';
 import { CrudContext } from './model/CrudContext';
@@ -16,14 +16,17 @@ import { ObjectId } from '@mikro-orm/mongodb';
 
 export class CrudService<T extends CrudEntity> {
 
+
     CACHE_TTL = 60 * 10 * 1000; // 10 minutes
+    public serviceName: string;
     protected crudConfig: CrudConfigService;
     constructor(
         protected moduleRef: ModuleRef,
-        public entity: EntityName<Partial<T>>,
+        public entity: EntityClass<T>,
         public security: CrudSecurity,
         private config?: {
-            cacheOptions?: CacheOptions
+            cacheOptions?: CacheOptions,
+            serviceName?: string,
         }
     ) {
     }
@@ -36,6 +39,14 @@ export class CrudService<T extends CrudEntity> {
 
     createId() {
         return new ObjectId();
+    }
+
+    getName() {
+        return CrudService.getName(this.entity);
+    }
+
+    static getName(entity) {
+        return entity.name.replace(/[A-Z]+(?![a-z])|[A-Z]/g, (match, p1) => (p1 ? "-" : "") + match.toLowerCase());
     }
 
     async create(newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
@@ -218,7 +229,9 @@ export class CrudService<T extends CrudEntity> {
 
     async putOne(newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
         const em = context?.em || this.crudConfig.entityManager.fork();
-        const ref = em.getReference(this.entity, newEntity[this.crudConfig.id_field]);
+        const id = this.convertPrimaryKey(newEntity[this.crudConfig.id_field]);
+        delete newEntity[this.crudConfig.id_field];
+        const ref = em.getReference(this.entity, id as any);
         const result = await this.doPut(ref, newEntity, context, secure);
         if (!context?.noFlush) {
             await em.flush();

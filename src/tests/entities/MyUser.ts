@@ -1,4 +1,4 @@
-import {  Collection, Entity, Index, OneToMany, OneToOne, PrimaryKey, Property } from "@mikro-orm/core";
+import {  Collection, Entity, Index, OneToMany, OneToOne, PrimaryKey, Property, Unique } from "@mikro-orm/core";
 import { CrudData, CrudUser } from "../../user/model/CrudUser";
 import { Equals, IsBoolean, IsDate, IsEmail, IsInt, IsMongoId, IsOptional, IsString } from "class-validator";
 import { UserProfile } from "./UserProfile";
@@ -14,7 +14,7 @@ export class MyUser implements CrudUser {
     @Exclude({ toPlainOnly: true })
     melons = new Collection<Melon>(this);
 
-    @OneToOne(() => UserProfile, profile => profile.user, { owner: true, nullable: true })
+    @OneToOne(() => UserProfile, profile => profile.user, {nullable: true })
     @Equals(undefined)
     @Exclude({ toPlainOnly: true })
     profile: UserProfile;
@@ -22,9 +22,9 @@ export class MyUser implements CrudUser {
     /////////////
 
     @PrimaryKey()
-    @IsMongoId()
     _id: string;
 
+    @Unique()
     @Property()
     email: string;
 

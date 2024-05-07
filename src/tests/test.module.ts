@@ -11,6 +11,7 @@ import { Melon } from "./entities/Melon";
 import { OCRUDModule } from "../ocrud.module";
 import { MelonService } from "./melon.service";
 import { CRUD_CONFIG_KEY } from "../crud/crud.config.service";
+import { MyProfileService } from "./profile.service";
 
 export const getModule = (dbName) => { 
     return {
@@ -23,7 +24,7 @@ export const getModule = (dbName) => {
             OCRUDModule.forRoot(),
         ],
         controllers: [],
-        providers: [MyEmailService, MyUserService, MelonService ,
+        providers: [MyEmailService, MyUserService, MelonService, MyProfileService,
             {
                 provide: CRUD_CONFIG_KEY,
                 useClass: MyConfigService,
