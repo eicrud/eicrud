@@ -15,6 +15,7 @@ import { CrudErrors } from './model/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
 import { CrudOptions } from './model/CrudOptions';
 import { ModuleRef } from '@nestjs/core';
+import { LoginDto } from './model/dtos';
 
 @Controller({
     path: "crud",
@@ -296,7 +297,7 @@ export class CrudController {
             }
             delete query.query[this.crudConfig.id_field];
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.patchInMongo(ids, ctx.query, ctx.data, ctx);
+            const res = await currentService.patchIn(ids, ctx.query, ctx.data, ctx);
             await this.afterHooks(currentService, res, ctx);
         } catch (e) {
             await this.errorHooks(currentService, e, ctx);
@@ -362,19 +363,24 @@ export class CrudController {
 
     @Get('auth')
     async getConnectedUser(@Context() ctx: CrudContext) {
-        return ctx.user;
+        return { userId: ctx.user[this.crudConfig.id_field] };
     }
 
+    ALLOWED_EXPIRES_IN = ['15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '4d', '5d', '6d', '7d', '14d', '30d'];
+
     @Post('auth')
-    async login(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    async login(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data: LoginDto, @Context() ctx: CrudContext) {
         data = this.plainToInstanceNoDefaultValues(data, LoginDto);
         await this.validateOrReject(data, false, 'Data:');
+        if(data.expiresIn && !this.ALLOWED_EXPIRES_IN.includes(data.expiresIn)){
+            throw new BadRequestException("Invalid expiresIn: " + data.expiresIn + " allowed: " + this.ALLOWED_EXPIRES_IN.join(', '));
+        }
 
         if (data.password?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH) {
             throw new UnauthorizedException(CrudErrors.PASSWORD_TOO_LONG.str());
         }
 
-        return this.crudAuthService.signIn(data.email, data.password, data.twoFA_code);
+        return this.crudAuthService.signIn(data.email, data.password, data.expiresIn, data.twoFA_code);
     }
 
     async performValidationAuthorizationAndHooks(ctx: any, currentService: any) {
@@ -461,16 +467,4 @@ export class CrudController {
         return dontuseme(cls, plain, { exposeDefaultValues: true });
     }
 
-}
-
-export class LoginDto {
-    @IsString()
-    email: string;
-
-    @IsString()
-    password: string;
-
-    @IsOptional()
-    @IsString()
-    twoFA_code: string;
 }

@@ -92,8 +92,8 @@ export class CrudConfigService {
                 this.logService
             ])
 
-            //unique services 
-            this.services = this.services.filter((v, i, a) => a.indexOf(v) === i);
+            //unique defined services 
+            this.services = this.services.filter((v, i, a) => (v && a.indexOf(v) === i));
 
             this.rolesMap = config.roles?.reduce((acc, role) => {
                 acc[role.name] = role;

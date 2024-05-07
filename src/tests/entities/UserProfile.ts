@@ -13,7 +13,7 @@ export class UserProfile implements CrudEntity {
     @IsOptional()
     _id: string;
 
-    @OneToOne({ entity: () => MyUser })
+    @OneToOne(() => MyUser, user => user.profile)
     @IsMongoId()
     @IsOptional()
     user: MyUser;

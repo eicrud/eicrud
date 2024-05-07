@@ -11,7 +11,7 @@ import { Request } from 'express';
 import { CrudContext } from '../crud/model/CrudContext';
 
 import { CrudUser } from '../user/model/CrudUser';
-import LRUCache from 'mnemonist/lru-cache';
+
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../crud/crud.config.service';
 import { LogType } from '../log/entities/log';
@@ -20,6 +20,7 @@ import { CrudOptions } from '../crud/model/CrudOptions';
 import { CrudRole } from '../crud/model/CrudRole';
 import { CrudAuthService } from './auth.service';
 import { ModuleRef } from '@nestjs/core';
+import { LRUCache } from 'mnemonist';
 
 
 export interface TrafficWatchOptions{
@@ -96,11 +97,13 @@ export class AuthGuard implements CanActivate {
     if (token) {
       try {
         const payload = await this.authService.getJwtPayload(token);
-
+        const query = {
+          [this.crudConfig.id_field] : payload[this.crudConfig.id_field]
+        }
         if(request.method == 'POST' ){
-          user = await this.crudConfig.userService.findOne(payload, null) as any;
+          user = await this.crudConfig.userService.findOne(query, null) as any;
         }else{
-          user = await this.crudConfig.userService.findOneCached(payload, null);
+          user = await this.crudConfig.userService.findOneCached(query, null);
         }
 
         if(!user){
