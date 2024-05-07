@@ -14,14 +14,13 @@ export class MyUser implements CrudUser {
     @Exclude({ toPlainOnly: true })
     melons = new Collection<Melon>(this);
 
-    @OneToOne(() => UserProfile, profile => profile.user, {nullable: true })
+    @OneToOne(() => UserProfile, profile => profile.user)
     @Equals(undefined)
-    @Exclude({ toPlainOnly: true })
     profile: UserProfile;
 
     /////////////
 
-    @PrimaryKey()
+    @PrimaryKey({serializedName: '_id'})
     _id: string;
 
     @Unique()

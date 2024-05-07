@@ -11,7 +11,7 @@ import { ObjectId } from "@mikro-orm/mongodb";
 @Entity()
 export class UserProfile implements CrudEntity {
 
-    @PrimaryKey()
+    @PrimaryKey({serializedName: '_id'})
     @IsString()
     @IsOptional()
     _id: string;

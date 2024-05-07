@@ -50,6 +50,8 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async create(newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
+        this.checkObjectForIds(newEntity);
+
         const em = context?.em || this.crudConfig.entityManager.fork();
         if (secure) {
             await this.checkEntitySize(newEntity, context);
@@ -75,15 +77,16 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async find(entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
+        this.checkObjectForIds(entity);
+
         const em = context?.em || this.crudConfig.entityManager.fork();
         const opts = this.getReadOptions(context);
-        this.convertEntityPrimaryKey(entity);
+        //this.convertEntityPrimaryKey(entity);
         const result = await em.find(this.entity, entity, opts as any);
         return result;
     }
 
     async findInMongo(ids: string[], entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
-        ids = ids.map(id => this.convertPrimaryKey(id));
         this.makeInQuery(ids, entity);
         const em = context?.em || this.crudConfig.entityManager.fork();
         const opts = this.getReadOptions(context);
@@ -101,7 +104,9 @@ export class CrudService<T extends CrudEntity> {
     }
 
     convertEntityPrimaryKey(entity) {
-        entity[this.crudConfig.id_field] = this.convertPrimaryKey(entity[this.crudConfig.id_field]);
+        if(entity[this.crudConfig.id_field]){
+            entity[this.crudConfig.id_field] = this.convertPrimaryKey(entity[this.crudConfig.id_field]);
+        }
     }
 
     convertPrimaryKey(key) {
@@ -116,13 +121,12 @@ export class CrudService<T extends CrudEntity> {
     }
 
 
-
-
     async findOne(entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
+        this.checkObjectForIds(entity);
         const em = context?.em || this.crudConfig.entityManager.fork();
         const opts = this.getReadOptions(context);
-        this.convertEntityPrimaryKey(entity);
-        const result = await em.findOne(this.entity, entity, opts as any);
+        //this.convertEntityPrimaryKey(entity);
+        const result = await em.findOne(this.entity, entity);
         return result;
     }
 
@@ -130,6 +134,8 @@ export class CrudService<T extends CrudEntity> {
         if (!entity[this.crudConfig.id_field]) {
             throw new BadRequestException('No id field found in entity');
         }
+        this.checkObjectForIds(entity);
+
         let cacheKey = this.getCacheKey(entity);
         const cached = await this.crudConfig.cacheManager.get(cacheKey);
         if (cached) {
@@ -147,6 +153,9 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async patch(query: Partial<T>, newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
+        this.checkObjectForIds(query);
+        this.checkObjectForIds(newEntity);
+
         const em = context?.em || this.crudConfig.entityManager.fork();
         const results = await this.doQueryPatch(query, newEntity, context, em, secure);
         if (!context?.noFlush) {
@@ -157,16 +166,9 @@ export class CrudService<T extends CrudEntity> {
         return results;
     }
 
-    makeInMongoQuery(ids, query: any) {
-        query[this.crudConfig.id_field] = { $in: ids };
-    }
-
-    makeInQuery(ids, query: any) {
-        return this.makeInMongoQuery(ids, query);
-    }
-
     async patchIn(ids: string[], query: Partial<T>, newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
         this.makeInQuery(ids, query);
+        this.checkObjectForIds(query);
         return await this.patch(query, newEntity, context, secure, inheritance);
     }
 
@@ -175,6 +177,8 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async patchOne(id: string, newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
+        id = this.checkId(id);
+        this.checkObjectForIds(newEntity);
         const em = context?.em || this.crudConfig.entityManager.fork();
         const result = await this.doOnePatch(id, newEntity, context, em, secure, context);
         if (!context?.noFlush) {
@@ -193,23 +197,26 @@ export class CrudService<T extends CrudEntity> {
         const opts = this.getReadOptions(ctx);
         let results;
         if (secure) {
-            this.convertEntityPrimaryKey(query);
-            results = await em.find(this.entity, query, opts as any);
+            //this.convertEntityPrimaryKey(query);
+            const em0 = em.fork();
+            results = await em0.find(this.entity, query, opts as any);
             for (let result of results) {
                 wrap(result).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true });
                 await this.checkEntitySize(result, ctx);
             }
-        } else {
-            em.nativeUpdate(this.entity, query, newEntity, opts);
         }
+        em.nativeUpdate(this.entity, query, newEntity, opts);
         return results;
     }
 
     private async doOnePatch(id: string, newEntity: Partial<T>, ctx: CrudContext, em: EntityManager, secure: boolean, context: CrudContext) {
+        id = this.checkId(id);
+        this.checkObjectForIds(newEntity);
+
         const opts = this.getReadOptions(context);
         if (secure) {
             const tempEm = em.fork();
-            id = this.convertPrimaryKey(id);
+            //id = this.convertPrimaryKey(id);
             let result = await tempEm.findOne(this.entity, id as any, opts as any);
             wrap(result).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true });
             await this.checkEntitySize(result, ctx);
@@ -217,32 +224,6 @@ export class CrudService<T extends CrudEntity> {
         let res = em.getReference(this.entity, id as any);
         wrap(res).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true });
         return res;
-    }
-
-    private async doPut(entity: Partial<T>, newEntity: Partial<T>, ctx: CrudContext, secure: boolean) {
-        newEntity.updatedAt = new Date();
-        wrap(entity).assign(newEntity as any, { merge: false, mergeObjectProperties: false, onlyProperties: true });
-        if (secure) {
-            await this.checkEntitySize(entity, ctx);
-        }
-    }
-
-    async putOne(newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
-        const em = context?.em || this.crudConfig.entityManager.fork();
-        const id = this.convertPrimaryKey(newEntity[this.crudConfig.id_field]);
-        delete newEntity[this.crudConfig.id_field];
-        const ref = em.getReference(this.entity, id as any);
-        const result = await this.doPut(ref, newEntity, context, secure);
-        if (!context?.noFlush) {
-            await em.flush();
-        }
-        context = context || {};
-        context.em = em;
-        return result;
-    }
-
-    async unsecure_fastPutOne(newEntity: Partial<T>, context: CrudContext, inheritance: any = {}) {
-        return await this.putOne(newEntity, context, false, inheritance);
     }
 
     notGuest(user: CrudUser) {
@@ -276,6 +257,7 @@ export class CrudService<T extends CrudEntity> {
 
 
     async remove(query: Partial<T>, context: CrudContext, inheritance: any = {}) {
+        this.checkObjectForIds(query);
         const em = context?.em || this.crudConfig.entityManager.fork();
         const opts = this.getReadOptions(context);
         const length = em.nativeDelete(this.entity, query, opts);
@@ -288,6 +270,7 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async removeOne(id: string, context: CrudContext, inheritance: any = {}) {
+        id = this.checkId(id);
         const em = context?.em || this.crudConfig.entityManager.fork();
         const entity = em.getReference(this.entity, id as any);
         const result = em.remove(entity)
@@ -319,6 +302,67 @@ export class CrudService<T extends CrudEntity> {
     async addToComputedTrust(user: CrudUser, trust: number, ctx: CrudContext) {
         return trust;
     }
+
+    
+    makeInMongoQuery(ids, query: any) {
+        ids = ids.map(id => this.convertMongoPrimaryKey(id));
+        query[this.crudConfig.id_field] = { $in: ids };
+    }
+
+    makeInQuery(ids, query: any) {
+        return this.makeInMongoQuery(ids, query);
+    }
+
+    
+    checkId(id: any) {
+        return this.checkMongoId(id);
+    }
+
+    checkObjectForIds(obj: any) {
+        for (let key in obj || {}) {
+            obj[key] = this.checkId(obj[key]);
+        }
+    }
+    
+    checkMongoId(id: any) {
+        if(typeof id == 'string' && id.match(/^[0-9a-fA-F]{24}$/)){
+            let oldValue = id;
+            const newValue = new ObjectId(id as string);
+            if(newValue.toString() === oldValue){
+                return newValue;
+            }
+        };
+        return id;
+    }
+
+
+
+    
+    // private async doPut(entity: Partial<T>, newEntity: Partial<T>, ctx: CrudContext, secure: boolean) {
+    //     newEntity.updatedAt = new Date();
+    //     wrap(entity).assign(newEntity as any, { merge: false, mergeObjectProperties: false, onlyProperties: true });
+    //     if (secure) {
+    //         await this.checkEntitySize(entity, ctx);
+    //     }
+    // }
+
+    // async putOne(newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
+    //     const em = context?.em || this.crudConfig.entityManager.fork();
+    //     const id = this.convertPrimaryKey(newEntity[this.crudConfig.id_field]);
+    //     delete newEntity[this.crudConfig.id_field];
+    //     const ref = em.getReference(this.entity, id as any);
+    //     const result = await this.doPut(ref, newEntity, context, secure);
+    //     if (!context?.noFlush) {
+    //         await em.flush();
+    //     }
+    //     context = context || {};
+    //     context.em = em;
+    //     return result;
+    // }
+
+    // async unsecure_fastPutOne(newEntity: Partial<T>, context: CrudContext, inheritance: any = {}) {
+    //     return await this.putOne(newEntity, context, false, inheritance);
+    // }
 
 
 }

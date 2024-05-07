@@ -103,16 +103,6 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       return super.unsecure_fastPatchOne(id, newEntity, ctx);
   }
 
-  override async putOne(newEntity: T, ctx: CrudContext) {
-    await this.checkUserBeforePatch(newEntity)
-    return super.putOne(newEntity, ctx);
-  }
-
-  override async unsecure_fastPutOne(newEntity: T, ctx: CrudContext) {
-    await this.checkUserBeforePatch(newEntity)
-    return super.unsecure_fastPutOne(newEntity, ctx);
-  }
-
   async checkPassword(newEntity: T) {
     if(newEntity.password){
       newEntity.password = await _utils.hashPassword(newEntity.password);
@@ -385,5 +375,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     
   }
 
+  // override async putOne(newEntity: T, ctx: CrudContext) {
+  //   await this.checkUserBeforePatch(newEntity)
+  //   return super.putOne(newEntity, ctx);
+  // }
+
+  // override async unsecure_fastPutOne(newEntity: T, ctx: CrudContext) {
+  //   await this.checkUserBeforePatch(newEntity)
+  //   return super.unsecure_fastPutOne(newEntity, ctx);
+  // }
 
 }

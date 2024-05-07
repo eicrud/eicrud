@@ -4,7 +4,7 @@ import { CrudEntity } from "../../crud/model/CrudEntity";
 @Entity()
 export class FakeEmail implements CrudEntity {
 
-    @PrimaryKey()
+    @PrimaryKey({serializedName: '_id'})
     _id: string;
 
     @Property()
