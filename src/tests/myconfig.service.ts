@@ -6,6 +6,7 @@ import { MyEmailService } from "./myemail.service";
 import { MelonService } from "./melon.service";
 import { CrudRole } from "../crud/model/CrudRole";
 import { BasicMemoryCache } from "../authentification/auth.utils";
+import { MyProfileService } from "./profile.service";
 
 
 const roles: CrudRole[] = [
@@ -13,19 +14,32 @@ const roles: CrudRole[] = [
         name: 'super_admin',
         isAdminRole: true,
         canMock: true,
-        inherits: [],
+        inherits: ['admin'],
     },
+    {
+        name: 'admin',
+        isAdminRole: true,
+        canMock: true,
+        inherits: ['user'],
+    },
+    {
+        name: 'user',
+        inherits: ['guest'],
+    },
+    { name: 'guest' },
+
 ]
 
 
 @Injectable()
-export class MyConfigService extends CrudConfigService  {
+export class MyConfigService extends CrudConfigService {
 
     constructor(
         public userService: MyUserService,
         public entityManager: EntityManager,
         public emailService: MyEmailService,
         public melonService: MelonService,
+        public myProfileService: MyProfileService,
     ) {
         super({
             userService,
@@ -36,7 +50,7 @@ export class MyConfigService extends CrudConfigService  {
             cacheManager: new BasicMemoryCache(),
         });
 
-        this.services.push(...[emailService, melonService]);
+        this.services.push(...[emailService, melonService, myProfileService]);
     }
 
 

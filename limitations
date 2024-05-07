@@ -1,0 +1,3 @@
+- can't use class transformer on entities  & cmdDtos
+- can't use class validator validateNested on entities & cmdDtos
+- mongodb only

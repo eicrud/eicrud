@@ -17,6 +17,8 @@ import { CrudOptions } from './model/CrudOptions';
 import { ModuleRef } from '@nestjs/core';
 import { LoginDto } from './model/dtos';
 
+
+
 @Controller({
     path: "crud",
     version: "1"
@@ -46,13 +48,18 @@ export class CrudController {
     onModuleInit() {
         this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY,{ strict: false })
         this.crudMap = this.crudConfig.services.reduce((acc, service) => {
-            acc[service.entity.toString()] = service;
+            const key = service.getName();
+            if(acc[key]){
+                throw new Error("Duplicate service name: " + service.entity.name + ' > ' + key);
+            }
+            acc[key] = service;
             return acc;
         }, {});
       }
 
     assignContext(method: string, crudQuery: CrudQuery, query: any, data: any, type, ctx: CrudContext): CrudService<any> {
         const currentService: CrudService<any> = this.crudMap[crudQuery?.service];
+        this.checkServiceNotFound(currentService, query);
         ctx.method = method
         ctx.serviceName = crudQuery.service
         ctx.query = query;
@@ -97,9 +104,7 @@ export class CrudController {
     async subCreate(query: CrudQuery, newEntity: any, ctx: CrudContext, currentService = undefined) {
         const service = currentService || await this.assignContext('POST', query, newEntity, newEntity, 'crud', ctx);
 
-        await this.validate(ctx, service);
-        await this.crudAuthorization.authorize(ctx);
-        await this.beforeHooks(service, ctx);
+        await this.performValidationAuthorizationAndHooks(ctx, service);
 
         const res = await service.create(newEntity, ctx);
 
@@ -121,7 +126,6 @@ export class CrudController {
     async _create(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() newEntity: any, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('POST', query, newEntity, newEntity, 'crud', ctx);
         try {
-            this.checkServiceNotFound(currentService, query);
             return await this.subCreate(query, newEntity, ctx, currentService);
 
         } catch (e) {
@@ -134,7 +138,6 @@ export class CrudController {
         const currentService = await this.assignContext('POST', query, null, null, 'crud', ctx);
         ctx.isBatch = true;
         try {
-            this.checkServiceNotFound(currentService, query);
             await this.crudAuthorization.authorizeBatch(ctx, newEntities.length);
             ctx.noFlush = true;
             const results = [];
@@ -212,7 +215,7 @@ export class CrudController {
     @Get('in')
     async _findIn(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
-        try{
+        try {
             this.limitQuery(ctx, query, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
             const ids = query.query?.[this.crudConfig.id_field];
             if(!ids || !ids.length || ids.length > this.MAX_GET_IN){
@@ -270,7 +273,7 @@ export class CrudController {
 
     @Patch('one')
     async _patchOne(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
-        const currentService = await this.assignContext('PATCH', query, query, data, 'crud', ctx);
+        const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
         try {
             return await this.subPatchOne(query, query.query, data, ctx, currentService);
         } catch (e) {
@@ -326,7 +329,7 @@ export class CrudController {
 
     @Put('one')
     async _putOne(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
-        const currentService = await this.assignContext('PUT', query, query.query, data, 'crud', ctx);
+        const currentService = await this.assignContext('PUT', query, data, data, 'crud', ctx);
         try {
             await this.subPutOne(query, query.query, data, ctx, currentService);
         } catch (e) {
@@ -353,8 +356,8 @@ export class CrudController {
         }
     }
 
-    async subPutOne(crudQuery: CrudQuery, query: any, data: any, ctx: CrudContext, service = undefined) {
-        const currentService = service || await this.assignContext('PUT', crudQuery, query, data, 'crud', ctx);
+    async subPutOne(crudQuery: CrudQuery, query: any, data: any, ctx: CrudContext, service: CrudService<any> = undefined) {
+        const currentService = service || await this.assignContext('PUT', crudQuery, data, data, 'crud', ctx);
         await this.performValidationAuthorizationAndHooks(ctx, currentService);
         const res = await currentService.putOne(data, ctx);
         await this.afterHooks(currentService, res, ctx);
@@ -415,28 +418,38 @@ export class CrudController {
             }
         }
         if (queryClass) {
-            const obj = this.plainToInstanceNoDefaultValues(ctx.query, queryClass);
-            await this.validateOrReject(obj, true, 'Query:');
+            //const obj = this.plainToInstanceNoDefaultValues(ctx.query, queryClass);
+            // const oldProto = Object.getPrototypeOf(ctx.data);
+            // Object.setPrototypeOf(ctx.query, dataClass.prototype);
+            const newObj = { ...ctx.query};
+            Object.setPrototypeOf(newObj, queryClass.prototype);
+            await this.validateOrReject(newObj, true, 'Query:');
         }
         if (dataClass) {
-            ctx.data = dataDefaultValues ? this.plainToInstanceWithDefaultValues(ctx.data, dataClass) : this.plainToInstanceNoDefaultValues(ctx.data, dataClass);
-            await this.validateOrReject(ctx.data, !dataDefaultValues, 'Data:');
+            //ctx.data = dataDefaultValues ? this.plainToInstanceWithDefaultValues(ctx.data, dataClass) : this.plainToInstanceNoDefaultValues(ctx.data, dataClass);
+            const newObj = { ...ctx.data};
+            Object.setPrototypeOf(newObj, dataClass.prototype);
+            await this.validateOrReject(newObj, !dataDefaultValues, 'Data:');
+  
         }
 
     }
 
     async validateOrReject(obj, skipMissingProperties, label) {
         try {
-            await validateOrReject(obj, { skipMissingProperties: skipMissingProperties });
+            await validateOrReject(obj, {
+                 stopAtFirstError: true,
+                 skipMissingProperties,});
         } catch (errors) {
             const msg = label + ' ' + errors.toString();
-            throw new BadRequestException(CrudErrors.VALIDATION_ERROR.str(msg));
+            throw new BadRequestException("Validation error " + msg);
         }
     }
 
     addCountToDataMap(ctx: CrudContext, ct: number) {
         if (this.crudConfig.userService.notGuest(ctx?.user)) {
-            const count = ctx?.user.crudUserDataMap[ctx.serviceName].itemsCreated || 0;
+            ctx.user.crudUserDataMap[ctx.serviceName] = ctx?.user.crudUserDataMap[ctx.serviceName] || {} as any;
+            const count = ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated || 0;
             ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated = count + ct;
             this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { crudUserDataMap: ctx.user.crudUserDataMap }, ctx);
             if (!ctx.noFlush) {
@@ -456,7 +469,7 @@ export class CrudController {
 
     plainToInstanceNoDefaultValues(plain: any, cls) {
         //https://github.com/typestack/class-transformer/issues/1429
-        const executor = new TransformOperationExecutor(TransformationType.PLAIN_TO_CLASS, {
+        const executor = new TransformOperationExecutor(TransformationType.CLASS_TO_CLASS, {
             ...defaultOptions,
             ... { exposeDefaultValues: false },
         });

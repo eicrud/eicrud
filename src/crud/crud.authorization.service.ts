@@ -127,7 +127,7 @@ export class CrudAuthorizationService {
         const checkRes = this.recursCheckRolesAndParents(crudRole, ctx, fields);
 
         if (!checkRes) {
-            let msg = `Role ${ctx.user.role} is not allowed to ${ctx.method} ${ctx.serviceName} ${ctx.cmdName}`;
+            let msg = `Role ${ctx.user.role} is not allowed to ${ctx.method} ${ctx.serviceName} ${ctx.cmdName || ''}`;
             throw new ForbiddenException(msg);
         }
 
@@ -147,12 +147,15 @@ export class CrudAuthorizationService {
 
     recursCheckRolesAndParents(role: CrudRole, crudContext: CrudContext, fields: string[]): CrudRole | null {
         const roleRights = crudContext.security.rolesRights[role.name];
+        if(!roleRights){
+            return null;
+        }
         const userAbilities = defineAbility((can, cannot) => {
             
             if(crudContext.origin == "crud"){
-                roleRights.defineCRUDAbility(can, cannot, crudContext);
+                roleRights.defineCRUDAbility?.(can, cannot, crudContext);
             }else{
-                roleRights.defineCMDAbility(can, cannot, crudContext);
+                roleRights.defineCMDAbility?.(can, cannot, crudContext);
             }
             
             if (roleRights.fields && crudContext.method == 'GET') {
@@ -164,7 +167,7 @@ export class CrudAuthorizationService {
         
         if (allGood && crudContext.options) {
             const userOptionsAbilities = defineAbility((can, cannot) => {
-                roleRights.defineOPTAbility(can, cannot, crudContext);
+                roleRights.defineOPTAbility?.(can, cannot, crudContext);
             }, {});
             for(const key of Object.keys(crudContext.options)){
                 allGood = this.loopFieldAndCheckCannot(true, key, crudContext.options, fields, userOptionsAbilities, crudContext);

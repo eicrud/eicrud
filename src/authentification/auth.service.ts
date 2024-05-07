@@ -52,6 +52,7 @@ export class CrudAuthService {
   }
 
   async signIn(email, pass, expiresIn = '30m', twoFA_code?) {
+    email = email.toLowerCase().trim();
     const entity = {};
     entity[this.USERNAME_FIELD] = email;
     const user = await this.crudConfig.userService.findOne(entity, null);

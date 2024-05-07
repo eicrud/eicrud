@@ -20,7 +20,7 @@ export class MyUserService extends CrudUserService<MyUser> {
     constructor(
         protected moduleRef: ModuleRef,
     ) {
-        super(moduleRef, myUserSecurity, MyUser);
+        super(moduleRef, MyUser, myUserSecurity);
     }
     
 }

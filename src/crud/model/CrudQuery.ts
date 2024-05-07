@@ -1,6 +1,6 @@
 import { IsOptional, IsString, ValidateNested } from "class-validator";
 import { CrudOptions } from "./CrudOptions";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 
 
 export class CrudQuery {
@@ -14,6 +14,7 @@ export class CrudQuery {
     options?: CrudOptions;
     
     @IsOptional()
+    @Transform(({value}) => JSON.parse(value))
     query?: any;
 
     @IsOptional()
