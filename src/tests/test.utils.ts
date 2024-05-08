@@ -1,5 +1,7 @@
 import { EntityManager } from "@mikro-orm/mongodb";
 import { NestFastifyApplication } from "@nestjs/platform-fastify";
+import { UserProfile } from "./entities/UserProfile";
+import { Melon } from "./entities/Melon";
 
 
 
@@ -48,4 +50,28 @@ export function testMethod(arg: { app: NestFastifyApplication,
         }
         return res;
       });
+}
+
+
+export async function createNewProfileTest(app, jwt, entityManager, payload, query){ 
+  const res = await  testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: jwt, entityManager, payload, query});
+  let resDb = await entityManager.fork().findOne(UserProfile, { id: res.id }) as UserProfile;
+  resDb = JSON.parse(JSON.stringify(res));
+  expect(res.address).toBeUndefined();
+  expect((resDb as any).address).toBeUndefined();
+  expect(res.userName).toEqual(payload.userName);
+  expect(resDb.userName).toEqual(payload.userName);
+}
+
+export function createMelons(NB_MELONS, owner){
+  const payloadArray = [];
+  for(let i = 0; i < NB_MELONS; i++){
+    i++;
+    const newMelon: Partial<Melon> = {
+      name: `Melon ${i}`,
+      owner: owner.id,
+      price: i,
+    }
+    payloadArray.push(newMelon);
+  }
 }

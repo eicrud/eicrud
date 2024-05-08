@@ -87,9 +87,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return super.patch(entity, newEntity, ctx);
   }
 
-  override async patchOne(id: string, newEntity: T, ctx: CrudContext) {
+  override async patchOne(query: T, newEntity: T, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
-    return super.patchOne(id, newEntity, ctx);
+    return super.patchOne(query, newEntity, ctx);
   }
 
   override async unsecure_fastPatch(query: T, newEntity: T, ctx: CrudContext) {

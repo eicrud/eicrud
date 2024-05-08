@@ -3,7 +3,7 @@ import { AuthUtils } from "../authentification/auth.utils";
 import { CrudContext } from "./model/CrudContext";
 import { CrudRole } from "./model/CrudRole";
 import { defineAbility, subject } from "@casl/ability";
-import { BatchRights, CrudSecurity, httpAliasResolver } from "./model/CrudSecurity";
+import { BatchRights, CrudSecurity, CrudSecurityRights, httpAliasResolver } from "./model/CrudSecurity";
 import { CrudUserService } from "../user/crud-user.service";
 import { CRUD_CONFIG_KEY, CrudConfigService } from "./crud.config.service";
 import { CrudUser } from "../user/model/CrudUser";
@@ -36,23 +36,9 @@ export class CrudAuthorizationService {
     }
 
     getMatchBatchSizeFromCrudRoleAndParents(ctx: CrudContext, userRole: CrudRole){
-        const roleRights = ctx.security.rolesRights?.[userRole.name] || {};
-        let batchRights: BatchRights;
-        
-        switch (ctx.method) {
-            case 'POST':
-                batchRights = roleRights.createBatchRights
-            break;
-            case 'PUT':
-            case 'PATCH':
-                batchRights = roleRights.updateBatchRights;
-            break;
-            case 'DELETE':
-                batchRights = roleRights.deleteBatchRights;
-            break;
-        }
-
-        let maxBatchSize = batchRights?.maxBatchSize || 0;
+        const roleRights: CrudSecurityRights = ctx.security.rolesRights?.[userRole.name] || {} as any;
+      
+        let maxBatchSize = roleRights?.maxBatchSize || 0;
 
         if (userRole.inherits?.length) {
             for (const parent of userRole.inherits) {
@@ -78,16 +64,16 @@ export class CrudAuthorizationService {
             throw new ForbiddenException(`Maxbatchsize (${maxBatchSize}) exceeded (${batchSize}).`);
         }
 
+        this.checkmaxItemsPerUser(ctx, batchSize);        
+
     }
 
-    async authorize(ctx: CrudContext) {
-
-        const fields = AuthUtils.getObjectFields(ctx.data);
-
+    async checkmaxItemsPerUser(ctx: CrudContext, addCount: number = 0) {
         if (ctx.origin == 'crud' && ctx.security.maxItemsPerUser && 
             this.crudConfig.userService.notGuest(ctx.user) &&
             ctx.method == 'POST') {
-            const count = ctx.user?.crudUserDataMap?.[ctx.serviceName]?.itemsCreated;
+
+            const count = ctx.user?.crudUserDataMap?.[ctx.serviceName]?.itemsCreated + addCount;
             let max = ctx.security.maxItemsPerUser;
             let add = ctx.security.additionalItemsInDbPerTrustPoints;
             if(add){
@@ -97,7 +83,15 @@ export class CrudAuthorizationService {
             if (count >= max) {
                 throw new ForbiddenException(`You have reached the maximum number of items for this resource (${ctx.security.maxItemsPerUser})`);
             }
+        }
+    }
 
+    async authorize(ctx: CrudContext) {
+
+        const fields = AuthUtils.getObjectFields(ctx.data);
+
+        if (ctx.origin == 'crud'){
+            await this.checkmaxItemsPerUser(ctx);
         }else if (ctx.origin == 'cmd'){
             const cmdSec = ctx.security.cmdSecurityMap?.[ctx.cmdName];
             const hasMaxUses =cmdSec?.maxUsesPerUser && this.crudConfig.userService.notGuest(ctx.user)

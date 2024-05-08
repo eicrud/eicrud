@@ -8,7 +8,7 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../crud/model/CrudQuery';
-import { testMethod } from '../test.utils';
+import { createNewProfileTest, testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
 
 const testAdminCreds = {
@@ -77,9 +77,9 @@ describe('AppController', () => {
     const em = entityManager.fork();
 
     const profilesToCreate = [];
-    profilesToCreate.push({ store: profiles,  userName: "Michael Doe", user: michaelDoe.userId, bio: 'I am a cool M.'})
-    profilesToCreate.push({ store: profiles, userName: "Jordan Doe", user: jordanDoe.userId, bio: 'I am a cool J.'})
-    profilesToCreate.push({ store: profiles, userName: "Sarah Doe", user: sarahDoe.userId, bio: 'I am a cool girl.'})
+    profilesToCreate.push({ store: profiles,  userName: "Michael Doe", user: michaelDoe.userId, bio: 'BIO_FIND_KEY'})
+    profilesToCreate.push({ store: profiles, userName: "Jordan Doe", user: jordanDoe.userId, bio: 'BIO_FIND_KEY'})
+    profilesToCreate.push({ store: profiles, userName: "Sarah Doe", user: sarahDoe.userId, bio: 'BIO_FIND_KEY'})
     
     profilesToCreate.push({ store: profilesToRemoveIn, userName: "DelmeIn1 Doe", user: delmeIn1Doe.userId, bio: 'I am about to be deleted in 1.'})
     profilesToCreate.push({ store: profilesToRemoveIn, userName: "DelmeIn2 Doe", user: delmeIn2Doe.userId, bio: 'I am about to be deleted in 2.'})
@@ -121,32 +121,13 @@ describe('AppController', () => {
     
   });
 
-  beforeEach(async () => {
-
-
-  });
-
-  it('should get auth', () => {
-    return app
-    .inject({
-      method: 'GET',
-      url: '/crud/auth',
-      headers: {
-        Authorization: `Bearer ${jwt}`
-      }
-    })
-    .then((result) => {
-      expect(result.statusCode).toEqual(200);
-      expect(result.json().userId).toEqual(userId);
-    });
-  });
-
+  //@Post('/crud/one')
   it('should create a new profile', async () => {
     const payload: Partial<UserProfile> = {
       userName: "John Doe",
       user: userId,
       bio: 'I am a cool guy.',
-      address: {
+      address: { // This should be removed
         street: '1234 Elm St.',
         city: 'Springfield'
       }
@@ -154,19 +135,111 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile'
     }
-    
 
-    const res = await  testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload, query});
-    let resDb = await entityManager.fork().findOne(UserProfile, { id: res.id }) as UserProfile;
-    resDb = JSON.parse(JSON.stringify(res));
-    expect(res.address).toBeUndefined();
-    expect((resDb as any).address).toBeUndefined();
-    expect(res.userName).toEqual(payload.userName);
-    expect(resDb.userName).toEqual(payload.userName);
+    await createNewProfileTest(app, jwt, entityManager, payload, query);
+
   });  
 
+  //@Post('/crud/batch')
+  it('should create batch new profiles',async ()  => {
+      
+    const query: CrudQuery = {
+      service: 'user-profile',
+    }
 
+    const payloadArray = [];
 
+    let i = 0;
+    for(let id of usersWithoutProfiles){
+      i++;
+      payloadArray.push({
+        userName: `Batch Doe ${i}`,
+        user: id,
+        bio: `I am a batch created ${i}.`
+      });
+    }
+
+    const payload: any = payloadArray;
+
+    const expectedObject =null;
+
+    const res = await testMethod({ url: '/crud/batch', method: 'POST', app, jwt, entityManager, payload, query, expectedCode: 201, expectedObject });
+
+    expect(res?.length).toEqual(usersWithoutProfiles?.length);
+    i = 0;
+    for(const profile in res){
+      i++;
+      const res2 = await profileService.findOne( { id: res[profile].id }, null);
+      expect(res2.userName).toEqual(`Batch Doe ${i}`);
+
+      const query = { id: new ObjectId(res[profile].id as string) }; //Weird that I need to convert to objectId here
+      const resDB = await entityManager.fork().findOne(UserProfile, query as any);
+      expect(resDB.userName).toEqual(`Batch Doe ${i}`);
+    }
+
+  });
+
+  //@Get('/crud/one')
+  it('should find one profile by user',async ()  => {
+    const payload: Partial<UserProfile> = {
+    } as any;
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ user: (sarahDoeProfile.user as any).id?.toString() })
+    }
+
+    const expectedObject = { 
+      bio: sarahDoeProfile.bio,
+     }
+
+    return testMethod({ url: '/crud/one', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+
+  });
+
+  //Get('/crud/many')
+  it('should find many profiles by bio',async ()  => {
+    const payload: Partial<UserProfile> = {
+    } as any;
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ bio: 'BIO_FIND_KEY' })
+    }
+
+    const expectedObject =null;
+
+    const res = await testMethod({ url: '/crud/many', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+
+    expect(res.length).toEqual(3);
+    for(const profile in res){
+      expect(res[profile].bio).toEqual('BIO_FIND_KEY');
+    }
+
+  });
+  
+  //@Get('/crud/in')
+  it('should find in profiles',async ()  => {
+    const payload: Partial<UserProfile> = {
+    } as any;
+    const ids = [];
+    for(const key in profiles){
+      ids.push((profiles[key].id as any).toString());
+    }
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ id: ids })
+    }
+
+    const expectedObject =null;
+
+    const res = await testMethod({ url: '/crud/in', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+
+    expect(res.length).toEqual(ids.length);
+    expect(res[0].userName).toBeDefined();
+    expect(res[0].id).toBeDefined();
+
+  });
+  
+  //@Patch('/crud/one')
   it('should patch a profile', async  () => {
     const sarahDoeProfile = profiles["Sarah Doe"];
     const payload: Partial<UserProfile> = {
@@ -192,45 +265,8 @@ describe('AppController', () => {
     expect(res.fakeField).toBeUndefined();
   });
 
-  it('should find profile by user',async ()  => {
-    const payload: Partial<UserProfile> = {
-    } as any;
-    const query: CrudQuery = {
-      service: 'user-profile',
-      query: JSON.stringify({ user: (sarahDoeProfile.user as any).id?.toString() })
-    }
-
-    const expectedObject = { 
-      bio: sarahDoeProfile.bio,
-     }
-
-    return testMethod({ url: '/crud/one', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
-
-  });
-
-  it('should find in profilesId',async ()  => {
-    const payload: Partial<UserProfile> = {
-    } as any;
-    const ids = [];
-    for(const key in profiles){
-      ids.push((profiles[key].id as any).toString());
-    }
-    const query: CrudQuery = {
-      service: 'user-profile',
-      query: JSON.stringify({ id: ids })
-    }
-
-    const expectedObject =null;
-
-    const res = await testMethod({ url: '/crud/in', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
-
-    expect(res.length).toEqual(ids.length);
-    expect(res[0].userName).toBeDefined();
-    expect(res[0].id).toBeDefined();
-
-  });
-
-  it('should patch in profilesId',async ()  => {
+  //@Patch('/crud/in')
+  it('should patch in profiles',async ()  => {
     const payload: Partial<UserProfile> = {
       astroSign: 'Aries',
     };
@@ -255,6 +291,7 @@ describe('AppController', () => {
 
   });
 
+  //@Patch('/crud/batch')
   it('should patch batch profiles',async ()  => {
 
     const query: CrudQuery = {
@@ -284,103 +321,68 @@ describe('AppController', () => {
 
   });
 
-  it('should create batch profiles',async ()  => {
-      
-      const query: CrudQuery = {
-        service: 'user-profile',
-      }
-  
-      const payloadArray = [];
+  //@Delete('/crud/one')
+  it('should delete profile',async ()  => {
+    const payload: Partial<UserProfile> = {
+    } as any;
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ id: (delmeProfile.id as any).toString() })
+    }
 
-      let i = 0;
-      for(let id of usersWithoutProfiles){
-        i++;
-        payloadArray.push({
-          userName: `Batch Doe ${i}`,
-          user: id,
-          bio: `I am a batch created ${i}.`
-        });
-      }
-  
-      const payload: any = payloadArray;
-  
-      const expectedObject =null;
-  
-      const res = await testMethod({ url: '/crud/batch', method: 'POST', app, jwt, entityManager, payload, query, expectedCode: 201, expectedObject });
-  
-      expect(res?.length).toEqual(usersWithoutProfiles?.length);
-      i = 0;
-      for(const profile in res){
-        i++;
-        const res2 = await profileService.findOne( { id: res[profile].id }, null);
-        expect(res2.userName).toEqual(`Batch Doe ${i}`);
+    const expectedObject = null;
 
-        const query = { id: new ObjectId(res[profile].id as string) }; //Weird that I need to convert to objectId here
-        const resDB = await entityManager.fork().findOne(UserProfile, query as any);
-        expect(resDB.userName).toEqual(`Batch Doe ${i}`);
-      }
-  
-    });
+    const res = await testMethod({ url: '/crud/one', method: 'DELETE', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+    expect(res).toEqual(1);
 
-  // it('should delete profile',async ()  => {
-  //   const payload: Partial<UserProfile> = {
-  //   } as any;
-  //   const query: CrudQuery = {
-  //     service: 'user-profile',
-  //     query: JSON.stringify({ id: (delmeProfile.id as any).toString() })
-  //   }
+    const resDb = await entityManager.fork().findOne(UserProfile, { id: delmeProfile.id });
+    expect(resDb).toBeNull();
 
-  //   const expectedObject = null;
+  });
 
-  //   const res = await testMethod({ url: '/crud/one', method: 'DELETE', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
-  //   expect(res).toEqual(1);
+  //@Delete('/crud/in')
+  it('should delete in profiles',async ()  => {
+    const payload: Partial<UserProfile> = {
+    } as any;
+    const ids = [];
+    for(const key in profilesToRemoveIn){
+      ids.push((profilesToRemoveIn[key].id as any).toString());
+    }
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ id: ids })
+    }
 
-  //   const resDb = await entityManager.fork().findOne(UserProfile, { id: delmeProfile.id });
-  //   expect(resDb).toBeNull();
+    const expectedObject = null;
 
-  // });
-
-  // it('should delete in profilesId',async ()  => {
-  //   const payload: Partial<UserProfile> = {
-  //   } as any;
-  //   const ids = [];
-  //   for(const key in profilesToRemoveIn){
-  //     ids.push((profilesToRemoveIn[key].id as any).toString());
-  //   }
-  //   const query: CrudQuery = {
-  //     service: 'user-profile',
-  //     query: JSON.stringify({ id: ids })
-  //   }
-
-  //   const expectedObject = null;
-
-  //   const res = await testMethod({ url: '/crud/in', method: 'DELETE', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
-  //   expect(res).toEqual(ids.length);
+    const res = await testMethod({ url: '/crud/in', method: 'DELETE', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+    expect(res).toEqual(ids.length);
     
-  //   for(const profile in profilesToRemoveIn) {
-  //     const resDb = await entityManager.fork().findOne(UserProfile, { id: profilesToRemoveIn[profile].id });
-  //     expect(resDb).toBeNull();
-  //   }
+    for(const profile in profilesToRemoveIn) {
+      const resDb = await entityManager.fork().findOne(UserProfile, { id: profilesToRemoveIn[profile].id });
+      expect(resDb).toBeNull();
+    }
 
-  // });
+  });
 
-  // it('should delete many profiles',async ()  => {
-  //   const payload: Partial<UserProfile> = {
-  //   } as any;
-  //   const query: CrudQuery = {
-  //     service: 'user-profile',
-  //     query: JSON.stringify({ bio: 'BIO_DELETE_KEY' })
-  //   }
+  //@Delete('/crud/many')
+  it('should delete many profiles',async ()  => {
+    const payload: Partial<UserProfile> = {
+    } as any;
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ bio: 'BIO_DELETE_KEY' })
+    }
 
-  //   const expectedObject = null;
+    const expectedObject = null;
 
-  //   const res = await testMethod({ url: '/crud/many', method: 'DELETE', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
-  //   expect(res).toEqual(2);
+    const res = await testMethod({ url: '/crud/many', method: 'DELETE', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+    expect(res).toEqual(2);
     
-  //   for(const profile in profilesToRemoveMany) {
-  //     const resDb = await entityManager.fork().findOne(UserProfile, { id: profilesToRemoveMany[profile].id });
-  //     expect(resDb).toBeNull();
-  //   }
+    for(const profile in profilesToRemoveMany) {
+      const resDb = await entityManager.fork().findOne(UserProfile, { id: profilesToRemoveMany[profile].id });
+      expect(resDb).toBeNull();
+    }
 
-  // });
+  });
 });

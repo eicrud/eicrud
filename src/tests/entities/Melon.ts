@@ -13,11 +13,16 @@ export class Melon implements CrudEntity {
 
     @ManyToOne(() => MyUser)
     @IsString()
-    owner: MyUser;
+    owner: MyUser | string;
 
     @Property()
     @IsInt()
-    size: number;
+    @IsOptional()
+    size: number = 1;
+
+    @Property()
+    @IsString()
+    name: string;
 
     @Property()
     @IsInt()
