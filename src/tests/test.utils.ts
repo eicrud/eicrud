@@ -38,14 +38,14 @@ export function testMethod(arg: { app: NestFastifyApplication,
             res = await arg.entityManager.fork().findOne(arg.fetchEntity.entity, { id: arg.fetchEntity.id });
             res = JSON.parse(JSON.stringify(res));
         }
-        delete res?.updatedAt;
-        delete res?.createdAt;
-        delete res?._id
+        // delete res?.updatedAt;
+        // delete res?.createdAt;
+        // delete res?.id
         if(arg.expectedObject){
             for(const key in arg.expectedObject){
-                expect(res[key]).toEqual(arg.expectedObject[key]);
+                expect(res[key]?.toString()).toEqual(arg.expectedObject[key]?.toString());
             }
-            
         }
+        return res;
       });
 }

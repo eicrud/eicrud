@@ -11,10 +11,10 @@ import { ObjectId } from "@mikro-orm/mongodb";
 @Entity()
 export class UserProfile implements CrudEntity {
 
-    @PrimaryKey({serializedName: '_id'})
+    @PrimaryKey({ name: '_id'})
     @IsString()
     @IsOptional()
-    _id: string;
+    id: string;
 
     @OneToOne(() => MyUser, user => user.profile, { owner: true })
     @IsString()
@@ -31,6 +31,12 @@ export class UserProfile implements CrudEntity {
     @IsOptional()
     @MaxLength(300)
     bio: string;
+
+    @Property({ nullable: true})
+    @IsString()
+    @IsOptional()
+    @MaxLength(15)
+    astroSign: string;
 
     @Property()
     createdAt: Date;

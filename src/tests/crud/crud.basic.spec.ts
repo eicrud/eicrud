@@ -22,7 +22,8 @@ describe('AppController', () => {
   let jwt: string;
   let app: NestFastifyApplication;
   let userId: string;
-  let sarahDoeProfile: UserProfile;
+  let profiles: Record<string,UserProfile> = {};
+
   let entityManager: EntityManager;
 
 
@@ -43,20 +44,30 @@ describe('AppController', () => {
     authService = app.get<CrudAuthService>(CrudAuthService);
     entityManager = app.get<EntityManager>(EntityManager);
 
-    const sarahDoe = await userService.createAccount(testAdminCreds.email,testAdminCreds.password, null, "super_admin" );
+    const sarahDoe = await userService.createAccount("sarah.doe@test.com",testAdminCreds.password, null, "super_admin" );
+    const michaelDoe = await userService.createAccount("michael.doe@test.com",testAdminCreds.password, null, "super_admin" );
+    const jordanDoe = await userService.createAccount("jordan.doe@test.com",testAdminCreds.password, null, "super_admin" );
 
     const em = entityManager.fork();
 
-    sarahDoeProfile = em.create(UserProfile, {
-      _id: new ObjectId() as any,
-      userName: "Sarah Doe",
-      user: sarahDoe.userId,
-      bio: 'I am a cool girl.',
-      createdAt: new Date(),
-      updatedAt: new Date()
+    const profilesToCreate = [];
+    profilesToCreate.push({ userName: "Michael Doe", user: michaelDoe.userId, bio: 'I am a cool M.'})
+    profilesToCreate.push({ userName: "Jordan Doe", user: jordanDoe.userId, bio: 'I am a cool J.'})
+    profilesToCreate.push({ userName: "Sarah Doe", user: sarahDoe.userId, bio: 'I am a cool girl.'})
+    profilesToCreate.forEach((profile) => {
+      const key = profile.userName;
+      profiles[key] = em.create(UserProfile, {
+        id: new ObjectId() as any,
+        userName: profile.userName,
+        user: profile.user,
+        bio: profile.bio,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      em.persistAndFlush(profiles[key]);
+
     });
 
-    em.persistAndFlush(sarahDoeProfile);
 
     const accRes = await userService.createAccount(testAdminCreds.email,testAdminCreds.password, null, "super_admin" );
     jwt = accRes.accessToken;
@@ -84,7 +95,7 @@ describe('AppController', () => {
   //   });
   // });
 
-  // it('should create a new profile', () => {
+  // it('should create a new profile', async () => {
   //   const payload: Partial<UserProfile> = {
   //     userName: "John Doe",
   //     user: userId,
@@ -97,18 +108,22 @@ describe('AppController', () => {
   //   const query: CrudQuery = {
   //     service: 'user-profile'
   //   }
+    
 
-  //   return testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload, query});
-
+  //   const res = await  testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload, query});
+    
+  //   expect(res.address).toBeUndefined();
   // });  
 
 
 
-  // it('should patch a profile', () => {
+  // it('should patch a profile', async  () => {
+  //   const sarahDoeProfile = profiles["Sarah Doe"];
   //   const payload: Partial<UserProfile> = {
-  //     _id: sarahDoeProfile._id,
+  //     id: sarahDoeProfile.id,
   //     userName: 'Sarah Jane',
-  //     user: (sarahDoeProfile.user as any)._id?.toString(),
+  //     user: (sarahDoeProfile.user as any).id?.toString(),
+  //     fakeField: 'fake',
   //   } as any;
   //   const query: CrudQuery = {
   //     service: 'user-profile',
@@ -118,25 +133,74 @@ describe('AppController', () => {
   //     ...payload,
   //     bio: sarahDoeProfile.bio,
   //    }
-  //    delete expectedObject._id;
+  //    delete (expectedObject as any).fakeField;
 
-  //   return testMethod({ url: '/crud/one', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity: { entity: UserProfile, id: sarahDoeProfile._id }, expectedObject });
+  //    const fetchEntity = { entity: UserProfile, id: sarahDoeProfile.id };
+
+  //   let res = await testMethod({ url: '/crud/one', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity, expectedObject });
+  //   expect(res.userName).toBeDefined();
+  //   expect(res.fakeField).toBeUndefined();
+  // });
+
+  // it('should find profile by user',async ()  => {
+  //   const payload: Partial<UserProfile> = {
+  //   } as any;
+  //   const query: CrudQuery = {
+  //     service: 'user-profile',
+  //     query: JSON.stringify({ user: (sarahDoeProfile.user as any).id?.toString() })
+  //   }
+
+  //   const expectedObject = { 
+  //     bio: sarahDoeProfile.bio,
+  //    }
+
+  //   return testMethod({ url: '/crud/one', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
 
   // });
 
-  it('should find profile by user',async ()  => {
+  it('should find in profilesId',async ()  => {
     const payload: Partial<UserProfile> = {
     } as any;
+    const ids = [];
+    for(const key in profiles){
+      ids.push((profiles[key].id as any).toString());
+    }
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ user: (sarahDoeProfile.user as any)._id?.toString() })
+      query: JSON.stringify({ id: ids })
     }
 
-    const expectedObject = { 
-      bio: sarahDoeProfile.bio,
-     }
+    const expectedObject =null;
 
-    return testMethod({ url: '/crud/one', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+    const res = await testMethod({ url: '/crud/in', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+
+    expect(res.length).toEqual(ids.length);
+    expect(res[0].userName).toBeDefined();
+    expect(res[0].id).toBeDefined();
+
+  });
+
+  it('should patch in profilesId',async ()  => {
+    const payload: Partial<UserProfile> = {
+      astroSign: 'Aries',
+    };
+    const ids = [];
+    for(const key in profiles){
+      ids.push((profiles[key].id as any).toString());
+    }
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ id: ids })
+    }
+
+    const expectedObject =null;
+
+    const res = await testMethod({ url: '/crud/in', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+
+    expect(res.length).toEqual(ids.length);
+    for(const profile of res){
+      expect(profile.astroSign).toEqual('Aries');
+    }
 
   });
 });

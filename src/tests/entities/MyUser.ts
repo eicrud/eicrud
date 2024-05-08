@@ -5,7 +5,6 @@ import { UserProfile } from "./UserProfile";
 import { Melon } from "./Melon";
 import { Exclude } from "class-transformer";
 
-
 @Entity()
 export class MyUser implements CrudUser {
 
@@ -20,8 +19,8 @@ export class MyUser implements CrudUser {
 
     /////////////
 
-    @PrimaryKey({serializedName: '_id'})
-    _id: string;
+    @PrimaryKey({ name: '_id'})
+    id: string;
 
     @Unique()
     @Property()
