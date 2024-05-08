@@ -60,12 +60,12 @@ export class CrudController {
 
     assignContext(method: string, crudQuery: CrudQuery, query: any, data: any, type, ctx: CrudContext): CrudService<any> {
         
-        if(method === 'PATCH' && type === 'crud'){
-            if(!query && data?.[this.crudConfig.id_field]){
-                query = { [this.crudConfig.id_field]: data[this.crudConfig.id_field] };
-            }
-            delete data?.[this.crudConfig.id_field];
-        }
+        // if(method === 'PATCH' && type === 'crud'){
+        //     if(!query && data?.[this.crudConfig.id_field]){
+        //         query = { [this.crudConfig.id_field]: data[this.crudConfig.id_field] };
+        //     }
+        //     delete data?.[this.crudConfig.id_field];
+        // }
         
         const currentService: CrudService<any> = this.crudMap[crudQuery?.service];
         this.checkServiceNotFound(currentService, query);
@@ -226,13 +226,14 @@ export class CrudController {
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
             this.limitQuery(ctx, query, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
-            const ids = query.query?.[this.crudConfig.id_field];
+            const ids = ctx.query?.[this.crudConfig.id_field];
             if(!ids || !ids.length || ids.length > this.MAX_GET_IN){
                 throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.MAX_GET_IN));
             }
-            delete query.query[this.crudConfig.id_field];
+            ctx.ids = ids;
+            delete ctx.query[this.crudConfig.id_field];
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.findInMongo(ids, ctx.query, ctx);
+            const res = await currentService.findIn(ids, ctx.query, ctx);
             await this.afterHooks(currentService, res, ctx);
             return res;
         }catch(e){
@@ -259,10 +260,10 @@ export class CrudController {
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.removeOne(ctx.query[this.crudConfig.id_field], ctx);
-            await this.afterHooks(currentService, res, ctx);
+            await currentService.removeOne(ctx.query[this.crudConfig.id_field], ctx);
+            await this.afterHooks(currentService, 1, ctx);
             this.addCountToDataMap(ctx, -1);
-            return res;
+            return 1;
         } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
@@ -274,6 +275,27 @@ export class CrudController {
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
             const res = await currentService.remove(ctx.query, ctx);
+            await this.afterHooks(currentService, res, ctx);
+            this.addCountToDataMap(ctx, -res);
+            return res;
+        } catch (e) {
+            await this.errorHooks(currentService, e, ctx);
+        }
+    }
+
+    @Delete('in')
+    async _deleteIn(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
+        const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
+        try {
+            this.limitQuery(ctx, query, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
+            const ids = ctx.query?.[this.crudConfig.id_field];
+            if (!ids || !ids.length || ids.length > this.MAX_GET_IN) {
+                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.MAX_GET_IN));
+            }
+            ctx.ids = ids;
+            delete ctx.query[this.crudConfig.id_field];
+            await this.performValidationAuthorizationAndHooks(ctx, currentService);
+            const res = await currentService.removeIn(ids, ctx.query, ctx);
             await this.afterHooks(currentService, res, ctx);
             this.addCountToDataMap(ctx, -res);
             return res;
@@ -302,22 +324,19 @@ export class CrudController {
 
     @Patch('in')
     async _patchIn(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
-        if(!query.query){
-            query.query = { [this.crudConfig.id_field]: data[this.crudConfig.id_field] };
-        }
-        delete data?.[this.crudConfig.id_field];
-
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
         try {
             this.limitQuery(ctx, query, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
-            const ids = query.query?.[this.crudConfig.id_field];
+            const ids = ctx.query?.[this.crudConfig.id_field];
             if (!ids || !ids.length || ids.length > this.MAX_GET_IN) {
                 throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.MAX_GET_IN));
             }
-            delete query.query[this.crudConfig.id_field];
+            ctx.ids = ids;
+            delete ctx.query[this.crudConfig.id_field];
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
             const res = await currentService.patchIn(ids, ctx.query, ctx.data, ctx);
             await this.afterHooks(currentService, res, ctx);
+            return res;
         } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
@@ -331,8 +350,8 @@ export class CrudController {
             await this.crudAuthorization.authorizeBatch(ctx, data.length);
             ctx.noFlush = true;
             const results = [];
-            for (let i = 0; i < query.query.length; i++) {
-                results.push(await this.subPatchOne(query, null, data[i], ctx));
+            for (let i = 0; i < data.length; i++) {
+                results.push(await this.subPatchOne(query, data[i].query, data[i].data, ctx));
             }
             ctx.noFlush = false;
             await ctx.em.flush();
