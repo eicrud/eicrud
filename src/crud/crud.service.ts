@@ -17,6 +17,7 @@ import { ObjectId } from '@mikro-orm/mongodb';
 export class CrudService<T extends CrudEntity> {
 
 
+
     CACHE_TTL = 60 * 10 * 1000; // 10 minutes
     public serviceName: string;
     protected crudConfig: CrudConfigService;
@@ -86,12 +87,9 @@ export class CrudService<T extends CrudEntity> {
         return result;
     }
 
-    async findInMongo(ids: string[], entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
+    async findIn(ids: string[], entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
         this.makeInQuery(ids, entity);
-        const em = context?.em || this.crudConfig.entityManager.fork();
-        const opts = this.getReadOptions(context);
-        const result = await em.find(this.entity, entity, opts as any);
-        return result;
+        return this.find(entity, context, inheritance);
     }
 
     getReadOptions(context: CrudContext) {
@@ -168,8 +166,12 @@ export class CrudService<T extends CrudEntity> {
 
     async patchIn(ids: string[], query: Partial<T>, newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
         this.makeInQuery(ids, query);
-        this.checkObjectForIds(query);
         return await this.patch(query, newEntity, context, secure, inheritance);
+    }
+
+    async removeIn(ids: any, query: any, ctx: CrudContext) {
+        this.makeInQuery(ids, query);
+        return await this.remove(query, ctx);
     }
 
     async unsecure_fastPatch(query: Partial<T>, newEntity: Partial<T>, context: CrudContext, inheritance: any = {}) {
@@ -250,7 +252,7 @@ export class CrudService<T extends CrudEntity> {
         if (context?.security.maxItemsInDb) {
             const count = await em.count(this.entity);
             if (count > context?.security.maxItemsInDb) {
-                throw new Error('Partial<T>oo many items in DB.');
+                throw new Error('Too many items in DB.');
             }
         }
     }
@@ -273,7 +275,7 @@ export class CrudService<T extends CrudEntity> {
         id = this.checkId(id);
         const em = context?.em || this.crudConfig.entityManager.fork();
         const entity = em.getReference(this.entity, id as any);
-        const result = em.remove(entity)
+        let result = em.remove(entity)
         if (!context?.noFlush) {
             await em.flush();
         }

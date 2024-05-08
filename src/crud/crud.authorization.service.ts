@@ -36,7 +36,7 @@ export class CrudAuthorizationService {
     }
 
     getMatchBatchSizeFromCrudRoleAndParents(ctx: CrudContext, userRole: CrudRole){
-        const roleRights = ctx.security.rolesRights[userRole.name];
+        const roleRights = ctx.security.rolesRights?.[userRole.name] || {};
         let batchRights: BatchRights;
         
         switch (ctx.method) {
