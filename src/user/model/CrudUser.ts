@@ -8,6 +8,7 @@ export interface CrudData {
 }
 
 export interface CrudUser extends CrudEntity{
+  
     email: string;
     password: string;
 

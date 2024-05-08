@@ -40,15 +40,9 @@ export const httpAliasResolver = createAliasResolver({
 });
 
  
-export interface BatchRights {
-    maxBatchSize: number;
-}
-
 export interface CrudSecurityRights {
 
-    createBatchRights?: BatchRights;
-    updateBatchRights?: BatchRights;
-    deleteBatchRights?: BatchRights;
+    maxBatchSize?: number;
     
     fields?: string[];
 

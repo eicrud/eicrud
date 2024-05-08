@@ -1,3 +1,5 @@
 - can't use class transformer on entities  & cmdDtos
 - can't use class validator validateNested on entities & cmdDtos
+- tested with flat entities only
 - mongodb only
+- @PrimaryKey(name: '_id') id;

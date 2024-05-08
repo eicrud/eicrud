@@ -260,7 +260,7 @@ export class CrudController {
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            await currentService.removeOne(ctx.query[this.crudConfig.id_field], ctx);
+            await currentService.removeOne(ctx.query, ctx);
             await this.afterHooks(currentService, 1, ctx);
             this.addCountToDataMap(ctx, -1);
             return 1;
@@ -315,9 +315,9 @@ export class CrudController {
     }
 
     async subPatchOne(crudQuery: CrudQuery, query: any, data: any, ctx: CrudContext, service = undefined) {
-        const currentService = service || await this.assignContext('PATCH', crudQuery, query, data, 'crud', ctx);
+        const currentService: CrudService<any> = service || await this.assignContext('PATCH', crudQuery, query, data, 'crud', ctx);
         await this.performValidationAuthorizationAndHooks(ctx, currentService);
-        const res = await currentService.patchOne(ctx.query[this.crudConfig.id_field], ctx.data, ctx);
+        const res = await currentService.patchOne(ctx.query, ctx.data, ctx);
         await this.afterHooks(currentService, res, ctx);
         return res;
     }

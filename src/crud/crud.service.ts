@@ -124,7 +124,7 @@ export class CrudService<T extends CrudEntity> {
         const em = context?.em || this.crudConfig.entityManager.fork();
         const opts = this.getReadOptions(context);
         //this.convertEntityPrimaryKey(entity);
-        const result = await em.findOne(this.entity, entity);
+        const result = await em.findOne(this.entity, entity, opts as any);
         return result;
     }
 
@@ -178,11 +178,9 @@ export class CrudService<T extends CrudEntity> {
         return await this.patch(query, newEntity, context, false, inheritance);
     }
 
-    async patchOne(id: string, newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
-        id = this.checkId(id);
-        this.checkObjectForIds(newEntity);
+    async patchOne(query: Partial<T>, newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
         const em = context?.em || this.crudConfig.entityManager.fork();
-        const result = await this.doOnePatch(id, newEntity, context, em, secure, context);
+        const result = await this.doOnePatch(query, newEntity, context, em, secure, context);
         if (!context?.noFlush) {
             await em.flush();
         }
@@ -192,7 +190,7 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async unsecure_fastPatchOne(id: string, newEntity: Partial<T>, context: CrudContext, inheritance: any = {}) {
-        return await this.patchOne(id, newEntity, context, false, inheritance);
+        return await this.patch({ [this.crudConfig.id_field]: id} as any, newEntity, context, false, inheritance);
     }
 
     private async doQueryPatch(query: Partial<T>, newEntity: Partial<T>, ctx: CrudContext, em: EntityManager, secure: boolean) {
@@ -211,19 +209,26 @@ export class CrudService<T extends CrudEntity> {
         return results;
     }
 
-    private async doOnePatch(id: string, newEntity: Partial<T>, ctx: CrudContext, em: EntityManager, secure: boolean, context: CrudContext) {
-        id = this.checkId(id);
+    private async doOnePatch(query: Partial<T>, newEntity: Partial<T>, ctx: CrudContext, em: EntityManager, secure: boolean, context: CrudContext) {
+        this.checkObjectForIds(query);
         this.checkObjectForIds(newEntity);
 
         const opts = this.getReadOptions(context);
-        if (secure) {
-            const tempEm = em.fork();
+   
+        const tempEm = em.fork();
             //id = this.convertPrimaryKey(id);
-            let result = await tempEm.findOne(this.entity, id as any, opts as any);
+        let result = await tempEm.findOne(this.entity, query, opts as any);
+        if (!result) {
+            throw new BadRequestException('Entity not found (patch)');
+        }
+        const id = this.checkId(result[this.crudConfig.id_field]);
+        
+        if(secure){
             wrap(result).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true });
             await this.checkEntitySize(result, ctx);
         }
-        let res = em.getReference(this.entity, id as any);
+        
+        let res = em.getReference(this.entity, id);
         wrap(res).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true });
         return res;
     }
@@ -257,7 +262,6 @@ export class CrudService<T extends CrudEntity> {
         }
     }
 
-
     async remove(query: Partial<T>, context: CrudContext, inheritance: any = {}) {
         this.checkObjectForIds(query);
         const em = context?.em || this.crudConfig.entityManager.fork();
@@ -271,10 +275,13 @@ export class CrudService<T extends CrudEntity> {
         return length;
     }
 
-    async removeOne(id: string, context: CrudContext, inheritance: any = {}) {
-        id = this.checkId(id);
+    async removeOne(query: Partial<T>, context: CrudContext, inheritance: any = {}) {
+        this.checkObjectForIds(query);
         const em = context?.em || this.crudConfig.entityManager.fork();
-        const entity = em.getReference(this.entity, id as any);
+        let entity = await em.findOne(this.entity, query);
+        if (!entity) {
+            throw new BadRequestException('Entity not found (removeOne)');
+        }
         let result = em.remove(entity)
         if (!context?.noFlush) {
             await em.flush();

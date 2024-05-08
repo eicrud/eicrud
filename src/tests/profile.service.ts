@@ -7,6 +7,7 @@ import { MyConfigService } from "./myconfig.service";
 import { ModuleRef } from "@nestjs/core";
 import { UserProfile } from "./entities/UserProfile";
 import { IsString, MaxLength } from "class-validator";
+import { CrudUser } from "../user/model/CrudUser";
 
 
 class TestCmdDto {
@@ -38,6 +39,13 @@ const myProfileSecurity = (USER_PROFILE) => { return {
         },
         user: {
   
+            defineCRUDAbility(can, cannot, context) {
+                const user: CrudUser = context.user;
+                const userId = context.userId;
+                can('cud', USER_PROFILE, { user: userId });
+                can('read', USER_PROFILE);
+            },
+
             defineCMDAbility(can, cannot, context) {
                 can('testCmd', USER_PROFILE);
             },
