@@ -105,7 +105,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
   async checkPassword(newEntity: T) {
     if(newEntity.password){
-      newEntity.password = await _utils.hashPassword(newEntity.password);
+      const rounds = this.crudConfig.getSaltRounds(newEntity);
+      newEntity.saltRounds = rounds;
+      newEntity.password = await _utils.hashPassword(newEntity.password, rounds);
     }
   }
 
