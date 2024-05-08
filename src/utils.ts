@@ -17,8 +17,8 @@ export class _utils {
         return date1.getTime() - date2.getTime();
     }
 
-    static async hashPassword(password) {
-        const salt = await bcrypt.genSalt();
+    static async hashPassword(password, saltRounds: number) {
+        const salt = await bcrypt.genSalt(saltRounds || 10);
         return await bcrypt.hash(password, salt);
     }
 

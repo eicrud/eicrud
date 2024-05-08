@@ -11,6 +11,8 @@ import { CrudUser } from '../user/model/CrudUser';
 import { ModuleRef } from '@nestjs/core';
 
 export interface AuthenticationOptions {
+  SALT_ROUNDS;
+  SALT_ROUNDS_ADMIN;
   USERNAME_FIELD: string;
   JWT_FIELD_IN_PAYLOAD: string[];
   JWT_SECRET: string;

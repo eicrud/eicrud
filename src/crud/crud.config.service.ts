@@ -26,6 +26,8 @@ export interface CacheOptions {
 export const CRUD_CONFIG_KEY = 'CRUD_CONFIG_U4u7YojMIZ';
 
 export class CrudConfigService {
+    
+
 
     watchTrafficOptions: TrafficWatchOptions = {
         MAX_USERS: 10000, 
@@ -35,13 +37,15 @@ export class CrudConfigService {
     };
 
     authenticationOptions: AuthenticationOptions = {
+        SALT_ROUNDS: 11,
+        SALT_ROUNDS_ADMIN: 14,
         VERIFICATION_EMAIL_TIMEOUT_HOURS: 6,
         TWOFA_EMAIL_TIMEOUT_MIN: 15,
         PASSWORD_RESET_EMAIL_TIMEOUT_HOURS: 6,
         PASSWORD_MAX_LENGTH: 64,
         JWT_SECRET: 'aeFzLsZAKL4153s9zsq2samXnv',
-        JWT_FIELD_IN_PAYLOAD: ['_id', 'revokedCount'],
-        USERNAME_FIELD:  'email',
+        JWT_FIELD_IN_PAYLOAD: ['revokedCount'],
+        USERNAME_FIELD: 'email',
     }
 
     defaultCacheOptions: CacheOptions = {
@@ -63,6 +67,8 @@ export class CrudConfigService {
     public emailService: EmailService;
     protected orm: MikroORM;
 
+    public dbType: 'mongo' | 'other' = 'mongo';
+
     constructor(config: {userService: CrudUserService<any>, 
         logService?: LogService,
         entityManager: EntityManager,
@@ -77,14 +83,15 @@ export class CrudConfigService {
         orm: MikroORM,
         id_field?: string,
         guest_role?: string,
+        dbType?: string,
     }
         ) {
             this.id_field = config.id_field || this.id_field;
             this.guest_role = config.guest_role || this.guest_role;
             this.orm = config.orm;
-            this.watchTrafficOptions = config.watchTrafficOptions || this.watchTrafficOptions;
-            this.authenticationOptions = config.authenticationOptions || this.authenticationOptions;
-            this.defaultCacheOptions = config.defaultCacheOptions || this.defaultCacheOptions;
+            this.authenticationOptions = { ...this.authenticationOptions, ...(config.authenticationOptions||{})};
+            this.watchTrafficOptions = { ...this.watchTrafficOptions, ...(config.watchTrafficOptions||{})};
+            this.defaultCacheOptions = { ...this.defaultCacheOptions, ...(config.defaultCacheOptions||{})};
             this.cacheManager = config.cacheManager;
             this.authenticationOptions.JWT_SECRET = config.jwtSecret;
 
@@ -112,7 +119,6 @@ export class CrudConfigService {
     async onModuleInit() {
         await this.orm.schema.ensureIndexes();
     }
-
 
     async afterAllHook(res: any, ctx: CrudContext) {
         return Promise.resolve();
@@ -142,7 +148,13 @@ export class CrudConfigService {
         return parentRoles;
     }
 
-
+    getSaltRounds(newEntity: CrudUser): number {
+        const role = this.rolesMap[newEntity.role];
+        if(role.isAdminRole){
+          return this.authenticationOptions.SALT_ROUNDS_ADMIN;
+        }
+          return this.authenticationOptions.SALT_ROUNDS;
+      }
 
 
 

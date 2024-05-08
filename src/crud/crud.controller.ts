@@ -111,7 +111,7 @@ export class CrudController {
 
 
     async subCreate(query: CrudQuery, newEntity: any, ctx: CrudContext, currentService = undefined) {
-        const service = currentService || await this.assignContext('POST', query, newEntity, newEntity, 'crud', ctx);
+        const service: CrudService<any> = currentService || await this.assignContext('POST', query, newEntity, newEntity, 'crud', ctx);
 
         await this.performValidationAuthorizationAndHooks(ctx, service);
 
@@ -381,18 +381,6 @@ export class CrudController {
         }
 
         return this.crudAuthService.signIn(data.email, data.password, data.expiresIn, data.twoFA_code);
-    }
-
-
-    autoConvertObjectIds(ctx: CrudContext){
-
-        for(const key in ctx.query || []){
-            ctx.query[key] = this.checkMongoId(ctx.query[key]);
-        }
-
-        for(const key in ctx.data || []){
-            ctx.data[key] = this.checkMongoId(ctx.data[key]);
-        }
     }
 
     checkMongoId(id: any) {

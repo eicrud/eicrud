@@ -38,8 +38,12 @@ export class CrudService<T extends CrudEntity> {
     }
 
 
-    createId() {
-        return new ObjectId();
+    createNewId(str?: string) {
+        switch (this.crudConfig.dbType) {
+            case 'mongo':
+            default: 
+                return str ? new ObjectId(str) : new ObjectId();
+        }
     }
 
     getName() {
@@ -62,7 +66,7 @@ export class CrudService<T extends CrudEntity> {
         const opts = this.getReadOptions(context);
         newEntity.createdAt = new Date();
         newEntity.updatedAt = newEntity.createdAt;
-        newEntity[this.crudConfig.id_field] = this.createId();
+        newEntity[this.crudConfig.id_field] = this.createNewId();
         const entity = em.create(this.entity, newEntity, opts as any);
         await em.persist(entity);
         if (!context?.noFlush) {
@@ -82,7 +86,6 @@ export class CrudService<T extends CrudEntity> {
 
         const em = context?.em || this.crudConfig.entityManager.fork();
         const opts = this.getReadOptions(context);
-        //this.convertEntityPrimaryKey(entity);
         const result = await em.find(this.entity, entity, opts as any);
         return result;
     }
@@ -101,29 +104,12 @@ export class CrudService<T extends CrudEntity> {
         return this.entity?.toString() + entity[this.crudConfig.id_field].toString();
     }
 
-    convertEntityPrimaryKey(entity) {
-        if(entity[this.crudConfig.id_field]){
-            entity[this.crudConfig.id_field] = this.convertPrimaryKey(entity[this.crudConfig.id_field]);
-        }
-    }
-
-    convertPrimaryKey(key) {
-        return this.convertMongoPrimaryKey(key);
-    }
-
-    convertMongoPrimaryKey(key) {
-        if (key && typeof key == 'string') {
-            return new ObjectId(key as string);
-        }
-        return key;
-    }
 
 
     async findOne(entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
         this.checkObjectForIds(entity);
         const em = context?.em || this.crudConfig.entityManager.fork();
         const opts = this.getReadOptions(context);
-        //this.convertEntityPrimaryKey(entity);
         const result = await em.findOne(this.entity, entity, opts as any);
         return result;
     }
@@ -197,7 +183,6 @@ export class CrudService<T extends CrudEntity> {
         const opts = this.getReadOptions(ctx);
         let results;
         if (secure) {
-            //this.convertEntityPrimaryKey(query);
             const em0 = em.fork();
             results = await em0.find(this.entity, query, opts as any);
             for (let result of results) {
@@ -216,7 +201,6 @@ export class CrudService<T extends CrudEntity> {
         const opts = this.getReadOptions(context);
    
         const tempEm = em.fork();
-            //id = this.convertPrimaryKey(id);
         let result = await tempEm.findOne(this.entity, query, opts as any);
         if (!result) {
             throw new BadRequestException('Entity not found (patch)');
@@ -312,25 +296,31 @@ export class CrudService<T extends CrudEntity> {
         return trust;
     }
 
-    
-    makeInMongoQuery(ids, query: any) {
-        ids = ids.map(id => this.convertMongoPrimaryKey(id));
+    makeInQuery(ids, query: any) {
+        if(this.crudConfig.dbType === 'mongo'){
+            ids = ids.map(id => this.convertMongoPrimaryKey(id));
+        }
         query[this.crudConfig.id_field] = { $in: ids };
     }
-
-    makeInQuery(ids, query: any) {
-        return this.makeInMongoQuery(ids, query);
-    }
-
     
     checkId(id: any) {
-        return this.checkMongoId(id);
+        if(this.crudConfig.dbType === 'mongo'){
+            return this.checkMongoId(id);
+        }
+        return id;
     }
 
     checkObjectForIds(obj: any) {
         for (let key in obj || {}) {
             obj[key] = this.checkId(obj[key]);
         }
+    }
+
+    convertMongoPrimaryKey(key) {
+        if (key && typeof key == 'string') {
+            return new ObjectId(key as string);
+        }
+        return key;
     }
     
     checkMongoId(id: any) {
@@ -357,7 +347,6 @@ export class CrudService<T extends CrudEntity> {
 
     // async putOne(newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
     //     const em = context?.em || this.crudConfig.entityManager.fork();
-    //     const id = this.convertPrimaryKey(newEntity[this.crudConfig.id_field]);
     //     delete newEntity[this.crudConfig.id_field];
     //     const ref = em.getReference(this.entity, id as any);
     //     const result = await this.doPut(ref, newEntity, context, secure);

@@ -4,8 +4,16 @@ import { UserProfile } from "./entities/UserProfile";
 import { Melon } from "./entities/Melon";
 
 
-
-
+export interface TestUser{
+  email: string,
+  role: string,
+  bio: string,
+  id?: string,
+  profileId?: string,
+  jwt?: string,
+  skipProfile?:boolean
+  store?: any
+}
 
 
 export function testMethod(arg: { app: NestFastifyApplication, 
@@ -74,4 +82,35 @@ export function createMelons(NB_MELONS, owner){
     }
     payloadArray.push(newMelon);
   }
+}
+
+
+export async function createAccountsAndProfiles(users: Record<string, TestUser>, em: EntityManager, userService, config : { usersWithoutProfiles?: string[], testAdminCreds: { email: string, password: string } }){
+  const promises = [];
+  for(const key in users){
+    const user = users[key];
+    const prom = userService.createAccount(user.email, config.testAdminCreds.password, null, user.role ).then(
+      (accRes) => {
+        users[key].id = accRes.userId;
+        users[key].jwt = accRes.accessToken;
+        if(!user.skipProfile){
+          const newProfile = em.create(UserProfile, {
+                id: userService.createNewId() as any,
+                userName: key,
+                user: users[key].id,
+                bio: user.bio,
+                createdAt: new Date(),
+                updatedAt: new Date()
+              });
+          if(user.store) { user.store[key] = newProfile; }
+          em.persistAndFlush(newProfile);
+          users[key].profileId = newProfile.id;
+        }else{
+          config.usersWithoutProfiles?.push(users[key].id);
+        }
+      }
+    );
+    promises.push(prom);
+  }
+  await Promise.all(promises);
 }

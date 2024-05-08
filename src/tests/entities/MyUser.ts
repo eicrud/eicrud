@@ -109,7 +109,10 @@ export class MyUser implements CrudUser {
     lastTwoFACodeSent: Date;
 
     @Property({ nullable: true })
-    twoFACodeCount: number;
+    twoFACodeCount: number;    
+    
+    @Property({ nullable: true })
+    saltRounds: number;
 
     @Property({ nullable: true })
     createdAt: Date;

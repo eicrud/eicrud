@@ -5,11 +5,13 @@ import { CrudController } from '../../crud/crud.controller';
 import { MyUserService } from '../myuser.service';
 import { CrudAuthService } from '../../authentification/auth.service';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
+import { EntityManager } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../crud/model/CrudQuery';
-import { createNewProfileTest, testMethod } from '../test.utils';
+import { createAccountsAndProfiles, createNewProfileTest, testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
+import { CRUD_CONFIG_KEY, CrudConfigService } from '../../crud/crud.config.service';
+import { TestUser } from '../test.utils';
 
 const testAdminCreds = {
   email: "admin@testmail.com",
@@ -31,10 +33,83 @@ describe('AppController', () => {
 
   let usersWithoutProfiles: string[] = [];
 
-  let sarahDoeProfile: UserProfile;
-
   let entityManager: EntityManager;
-  let delmeProfile: UserProfile;
+
+  let crudConfig: CrudConfigService;
+
+  const users: Record<string, TestUser> = {
+    "Michael Doe" : {
+        email: "michael.doe@test.com",
+        role: "super_admin",
+        bio: 'BIO_FIND_KEY',
+        store: profiles,
+    },
+    "Sarah Doe" :{
+        email: "sarah.doe@test.com",
+        role: "super_admin",
+        bio: 'BIO_FIND_KEY',
+        store: profiles,
+    },
+    "Jordan Doe" :{
+        email: "jordan.doe@test.com",
+        role: "super_admin",
+        bio: 'BIO_FIND_KEY',
+        store: profiles,
+    },
+    "DelmeIn1 Doe" :{
+      email: "delme.doe@test.com",
+      role: "super_admin",
+      bio: 'I am about to be deleted in 1.',
+      store: profilesToRemoveIn,
+    },
+    "DelmeIn2 Doe" :{
+      email: "delme2.doe@test.com",
+      role: "super_admin",
+      bio: 'I am about to be deleted in 2.',
+      store: profilesToRemoveIn,
+    },
+    "DelmeMany1 Doe" : {
+      email: "delmemany.doe@test.com",
+      role: "super_admin",
+      bio: 'BIO_DELETE_KEY',
+      store: profilesToRemoveMany,
+    },
+    "DelmeMany2 Doe" : {
+      email: "delmemany2.doe@test.com",
+      role: "super_admin",
+      bio: 'BIO_DELETE_KEY',
+      store: profilesToRemoveMany,
+    },
+    "PatchmeBatch1 Doe" : {
+      email: "patchmebatch@mail.com",
+      role: "super_admin",
+      bio: 'Patch me please.',
+      store: profilesToPatchBatch,
+    },
+    "PatchmeBatch2 Doe" : {
+      email: "patchmebatch2@mail.com",
+      role: "super_admin",
+      bio: 'Patch me please 2.',
+      store: profilesToPatchBatch,
+    },
+    "NoProfile1 Doe" : {
+      email: "noProfileDude1Doe@test.com",
+      role: "super_admin",
+      bio: 'I have no profile.',
+      skipProfile: true,
+    },    
+    "NoProfile2 Doe" : {
+      email: "noProfileDude2Doe@test.com",
+      role: "super_admin",
+      bio: 'I have no profile. 2',
+      skipProfile: true,
+    },
+    "Delme Dude" : {
+      email: "delmedude@mail.com",
+      role: "super_admin",
+      bio: 'Delete me please.',
+    }
+}
 
 
   beforeAll(async () => {
@@ -49,77 +124,22 @@ describe('AppController', () => {
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
+    crudConfig = moduleRef.get<CrudConfigService>(CRUD_CONFIG_KEY,{ strict: false });
     appController = app.get<CrudController>(CrudController);
     userService = app.get<MyUserService>(MyUserService);
     authService = app.get<CrudAuthService>(CrudAuthService);
     profileService = app.get<MyProfileService>(MyProfileService);
     entityManager = app.get<EntityManager>(EntityManager);
 
-    const sarahDoe = await userService.createAccount("sarah.doe@test.com",testAdminCreds.password, null, "super_admin" );
-    const michaelDoe = await userService.createAccount("michael.doe@test.com",testAdminCreds.password, null, "super_admin" );
-    const jordanDoe = await userService.createAccount("jordan.doe@test.com",testAdminCreds.password, null, "super_admin" );
-    const delmeDoe = await userService.createAccount("delme.doe@test.com",testAdminCreds.password, null, "super_admin" );
-    
-    const delmeIn1Doe = await userService.createAccount("delmeIn1Doe.doe@test.com",testAdminCreds.password, null, "super_admin" );
-    const delmeIn2Doe = await userService.createAccount("delmeIn2Doe.doe@test.com",testAdminCreds.password, null, "super_admin" );
-    const delmeBatch1Doe = await userService.createAccount("delmeBatch1Doe.doe@test.com",testAdminCreds.password, null, "super_admin" );
-    const delmeBatch2Doe = await userService.createAccount("delmeBatch2Doe.doe@test.com",testAdminCreds.password, null, "super_admin" );
-    
-    const patchmeBatch1Doe = await userService.createAccount("patchmeBatch1Doe.doe@test.com",testAdminCreds.password, null, "super_admin" );
-    const patchmeBatch2Doe = await userService.createAccount("patchmeBatch2Doe.doe@test.com",testAdminCreds.password, null, "super_admin" );
-
-    const noProfileDude1Doe = await userService.createAccount("noProfileDude1Doe@test.com",testAdminCreds.password, null, "super_admin" );
-    const noProfileDude2Doe = await userService.createAccount("noProfileDude2Doe@test.com",testAdminCreds.password, null, "super_admin" );
-
-    usersWithoutProfiles.push(noProfileDude1Doe.userId);
-    usersWithoutProfiles.push(noProfileDude2Doe.userId);
-
     const em = entityManager.fork();
-
-    const profilesToCreate = [];
-    profilesToCreate.push({ store: profiles,  userName: "Michael Doe", user: michaelDoe.userId, bio: 'BIO_FIND_KEY'})
-    profilesToCreate.push({ store: profiles, userName: "Jordan Doe", user: jordanDoe.userId, bio: 'BIO_FIND_KEY'})
-    profilesToCreate.push({ store: profiles, userName: "Sarah Doe", user: sarahDoe.userId, bio: 'BIO_FIND_KEY'})
-    
-    profilesToCreate.push({ store: profilesToRemoveIn, userName: "DelmeIn1 Doe", user: delmeIn1Doe.userId, bio: 'I am about to be deleted in 1.'})
-    profilesToCreate.push({ store: profilesToRemoveIn, userName: "DelmeIn2 Doe", user: delmeIn2Doe.userId, bio: 'I am about to be deleted in 2.'})
-
-    profilesToCreate.push({ store: profilesToRemoveMany, userName: "DelmeBatch1 Doe", user: delmeBatch1Doe.userId, bio: 'BIO_DELETE_KEY'})
-    profilesToCreate.push({ store: profilesToRemoveMany, userName: "DelmeBatch2 Doe", user: delmeBatch2Doe.userId, bio: 'BIO_DELETE_KEY'})
-    
-    profilesToCreate.push({ store: profilesToPatchBatch, userName: "PatchmeBatch1 Doe", user: patchmeBatch1Doe.userId, bio: 'Patch me please.'})
-    profilesToCreate.push({ store: profilesToPatchBatch, userName: "PatchmeBatch2 Doe", user: patchmeBatch2Doe.userId, bio: 'Patch me pretty please.'})
-
-    profilesToCreate.forEach((profile) => {
-      const key = profile.userName;
-      profile.store[key] = em.create(UserProfile, {
-        id: new ObjectId() as any,
-        userName: profile.userName,
-        user: profile.user,
-        bio: profile.bio,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-      em.persistAndFlush(profile.store[key]);
-    });
-
-    sarahDoeProfile = profiles["Sarah Doe"];
-
-    delmeProfile = em.create(UserProfile, {
-      id: new ObjectId() as any,
-      userName: "Delme Doe",
-      user: delmeDoe.userId,
-      bio: "I'm about to be deleted.",
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-    em.persistAndFlush(delmeProfile);
+  
+    await createAccountsAndProfiles(users, em, userService, { usersWithoutProfiles, testAdminCreds });
 
     const accRes = await userService.createAccount(testAdminCreds.email,testAdminCreds.password, null, "super_admin" );
     jwt = accRes.accessToken;
     userId = accRes.userId?.toString();
     
-  });
+  }, 10000);
 
   //@Post('/crud/one')
   it('should create a new profile', async () => {
@@ -171,8 +191,7 @@ describe('AppController', () => {
       i++;
       const res2 = await profileService.findOne( { id: res[profile].id }, null);
       expect(res2.userName).toEqual(`Batch Doe ${i}`);
-
-      const query = { id: new ObjectId(res[profile].id as string) }; //Weird that I need to convert to objectId here
+      const query = { id: userService.createNewId(res[profile].id) }; //Weird that I need to convert to objectId here
       const resDB = await entityManager.fork().findOne(UserProfile, query as any);
       expect(resDB.userName).toEqual(`Batch Doe ${i}`);
     }
@@ -181,6 +200,7 @@ describe('AppController', () => {
 
   //@Get('/crud/one')
   it('should find one profile by user',async ()  => {
+    const sarahDoeProfile = profiles["Sarah Doe"];
     const payload: Partial<UserProfile> = {
     } as any;
     const query: CrudQuery = {
@@ -327,7 +347,7 @@ describe('AppController', () => {
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ id: (delmeProfile.id as any).toString() })
+      query: JSON.stringify({ id: (users['Delme Dude'].profileId as any).toString() })
     }
 
     const expectedObject = null;
@@ -335,7 +355,7 @@ describe('AppController', () => {
     const res = await testMethod({ url: '/crud/one', method: 'DELETE', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
     expect(res).toEqual(1);
 
-    const resDb = await entityManager.fork().findOne(UserProfile, { id: delmeProfile.id });
+    const resDb = await entityManager.fork().findOne(UserProfile, { id: users['Delme Dude'].id });
     expect(resDb).toBeNull();
 
   });

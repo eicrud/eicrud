@@ -3,7 +3,7 @@ import { AuthUtils } from "../authentification/auth.utils";
 import { CrudContext } from "./model/CrudContext";
 import { CrudRole } from "./model/CrudRole";
 import { defineAbility, subject } from "@casl/ability";
-import { BatchRights, CrudSecurity, CrudSecurityRights, httpAliasResolver } from "./model/CrudSecurity";
+import { CrudSecurity, CrudSecurityRights, httpAliasResolver } from "./model/CrudSecurity";
 import { CrudUserService } from "../user/crud-user.service";
 import { CRUD_CONFIG_KEY, CrudConfigService } from "./crud.config.service";
 import { CrudUser } from "../user/model/CrudUser";
@@ -54,6 +54,10 @@ export class CrudAuthorizationService {
     }
 
     authorizeBatch(ctx: CrudContext, batchSize: number) {
+
+        if(batchSize < 1){
+            throw new ForbiddenException(`Batchsize must be at least 1`);
+        }
         
         const userRole: CrudRole = this.getCtxUserRole(ctx);
         const adminBatch = this.getCtxUserRole(ctx).isAdminRole ? 100 : 0;
