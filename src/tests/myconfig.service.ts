@@ -2,6 +2,8 @@ import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { CrudConfigService } from "../crud/crud.config.service";
 import { MyUserService } from "./myuser.service";
 import { EntityManager } from "@mikro-orm/mongodb";
+import { MikroORM } from '@mikro-orm/core';
+
 import { MyEmailService } from "./myemail.service";
 import { MelonService } from "./melon.service";
 import { CrudRole } from "../crud/model/CrudRole";
@@ -40,6 +42,7 @@ export class MyConfigService extends CrudConfigService {
         public emailService: MyEmailService,
         public melonService: MelonService,
         public myProfileService: MyProfileService,
+        protected orm: MikroORM
     ) {
         super({
             userService,
@@ -48,8 +51,9 @@ export class MyConfigService extends CrudConfigService {
             jwtSecret: 'myTestSecret',
             roles: roles,
             cacheManager: new BasicMemoryCache(),
+            orm,
+            id_field: 'id',
         });
-
         this.services.push(...[emailService, melonService, myProfileService]);
     }
 

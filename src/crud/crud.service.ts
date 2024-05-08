@@ -325,7 +325,7 @@ export class CrudService<T extends CrudEntity> {
     }
     
     checkMongoId(id: any) {
-        if(typeof id == 'string' && id.match(/^[0-9a-fA-F]{24}$/)){
+        if(typeof id == 'string' && id.length === 24 && id.match(/^[0-9a-fA-F]{24}$/)){
             let oldValue = id;
             const newValue = new ObjectId(id as string);
             if(newValue.toString() === oldValue){

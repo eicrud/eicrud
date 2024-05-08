@@ -24,7 +24,7 @@ export interface AuthenticationOptions {
 export class CrudAuthService {
 
   protected JWT_SECRET: string;
-  protected FIELDS_IN_PAYLOAD: string[] = ['_id', 'revokedCount'];
+  protected FIELDS_IN_PAYLOAD: string[] = ['revokedCount'];
   protected USERNAME_FIELD = 'email';
   protected crudConfig: CrudConfigService;
 
@@ -41,6 +41,7 @@ export class CrudAuthService {
     this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY,{ strict: false })
     this.JWT_SECRET = this.crudConfig.authenticationOptions.JWT_SECRET;
     this.FIELDS_IN_PAYLOAD = this.crudConfig.authenticationOptions.JWT_FIELD_IN_PAYLOAD;
+    this.FIELDS_IN_PAYLOAD.push(this.crudConfig.id_field);
     this.USERNAME_FIELD = this.crudConfig.authenticationOptions.USERNAME_FIELD;
   }
 

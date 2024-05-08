@@ -234,6 +234,7 @@ export class CrudController {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
             const res = await currentService.findInMongo(ids, ctx.query, ctx);
             await this.afterHooks(currentService, res, ctx);
+            return res;
         }catch(e){
             await this.errorHooks(currentService, e, ctx);
         }

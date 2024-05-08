@@ -10,6 +10,7 @@ import { TrafficWatchOptions } from "../authentification/auth.guard";
 import { CrudUser } from "../user/model/CrudUser";
 import { EmailService } from "../email/email.service";
 import { AuthenticationOptions } from "../authentification/auth.service";
+import { MikroORM } from "@mikro-orm/core";
 
 
 export interface SecurityCacheManager {
@@ -49,7 +50,7 @@ export class CrudConfigService {
 
 
     services: CrudService<any>[] = [];
-    id_field: string = '_id';
+    id_field: string = 'id';
     guest_role: string = "guest" 
     public rolesMap: Record<string, CrudRole> = {};
 
@@ -60,7 +61,7 @@ export class CrudConfigService {
     public entityManager: EntityManager;
     public captchaService: any;
     public emailService: EmailService;
-
+    protected orm: MikroORM;
 
     constructor(config: {userService: CrudUserService<any>, 
         logService?: LogService,
@@ -72,9 +73,15 @@ export class CrudConfigService {
         roles?: CrudRole[],
         authenticationOptions?: AuthenticationOptions,
         watchTrafficOptions?: TrafficWatchOptions,
-        defaultCacheOptions?: CacheOptions
+        defaultCacheOptions?: CacheOptions,
+        orm: MikroORM,
+        id_field?: string,
+        guest_role?: string,
     }
         ) {
+            this.id_field = config.id_field || this.id_field;
+            this.guest_role = config.guest_role || this.guest_role;
+            this.orm = config.orm;
             this.watchTrafficOptions = config.watchTrafficOptions || this.watchTrafficOptions;
             this.authenticationOptions = config.authenticationOptions || this.authenticationOptions;
             this.defaultCacheOptions = config.defaultCacheOptions || this.defaultCacheOptions;
@@ -100,6 +107,10 @@ export class CrudConfigService {
                 return acc;
             }, {} as Record<string, CrudRole>) || {};
 
+    }
+
+    async onModuleInit() {
+        await this.orm.schema.ensureIndexes();
     }
 
 
