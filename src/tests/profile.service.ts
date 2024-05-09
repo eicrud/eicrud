@@ -42,8 +42,7 @@ const myProfileSecurity = (USER_PROFILE) => { return {
             defineCRUDAbility(can, cannot, context) {
                 const user: CrudUser = context.user;
                 const userId = context.userId;
-                can('cud', USER_PROFILE, { user: userId });
-                can('read', USER_PROFILE);
+                can('crud', USER_PROFILE, { user: userId });
             },
 
             defineCMDAbility(can, cannot, context) {

@@ -13,7 +13,8 @@ export interface TestUser{
   profileId?: string,
   jwt?: string,
   skipProfile?:boolean
-  store?: any
+  store?: any,
+  melons?: number
 }
 
 export function formatId(id: any, crudConfig: CrudConfigService){
@@ -80,13 +81,14 @@ export async function createNewProfileTest(app, jwt, entityManager, payload, que
   expect(resDb.userName).toEqual(payload.userName);
 }
 
-export function createMelons(NB_MELONS, owner, crudConfig: CrudConfigService){
+export function createMelons(NB_MELONS, owner: TestUser, crudConfig: CrudConfigService){
   const payloadArray = [];
   for(let i = 0; i < NB_MELONS; i++){
     const newMelon: Partial<Melon> = {
       name: `Melon ${i}`,
       owner: owner[crudConfig.id_field],
       price: i,
+      ownerEmail: owner.email,
     }
     payloadArray.push(newMelon);
   }
@@ -99,7 +101,7 @@ export async function createAccountsAndProfiles(users: Record<string, TestUser>,
   for(const key in users){
     const user = users[key];
     const prom = userService.createAccount(user.email, config.testAdminCreds.password, null, user.role ).then(
-      (accRes) => {
+      async (accRes) => {
         users[key][crudConfig.id_field] = accRes.userId;
         users[key].jwt = accRes.accessToken;
         if(!user.skipProfile){
@@ -112,11 +114,22 @@ export async function createAccountsAndProfiles(users: Record<string, TestUser>,
                 updatedAt: new Date()
               });
           if(user.store) { user.store[key] = newProfile; }
-          em.persistAndFlush(newProfile);
+          em.persist(newProfile);
           users[key].profileId = newProfile[crudConfig.id_field];
         }else{
           config.usersWithoutProfiles?.push(users[key][crudConfig.id_field]);
         }
+        if(user.melons){
+          const melons = createMelons(user.melons, user, crudConfig);
+          for(const melon of melons){
+            melon.id = userService.createNewId() as any;
+            melon.createdAt = new Date();
+            melon.updatedAt = new Date();
+            const newMelon = em.create(Melon, melon)
+            em.persist(newMelon);
+          }
+        }
+        await em.flush();
       }
     );
     promises.push(prom);
