@@ -12,7 +12,6 @@ export const LogNotificationMap = {
     [LogType.CRITICAL]: 1,
 }
 
-
 @Injectable()
 export class NotificationsService {
     checkNotification(newEntity: Log) {

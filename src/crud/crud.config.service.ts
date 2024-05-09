@@ -20,15 +20,12 @@ export interface SecurityCacheManager {
 
 export interface CacheOptions {
     TTL: number;
-
 }
 
 export const CRUD_CONFIG_KEY = 'CRUD_CONFIG_U4u7YojMIZ';
 
 export class CrudConfigService {
     
-
-
     watchTrafficOptions: TrafficWatchOptions = {
         MAX_USERS: 10000, 
         REQUEST_THRESHOLD: 350,
@@ -155,8 +152,5 @@ export class CrudConfigService {
         }
           return this.authenticationOptions.SALT_ROUNDS;
       }
-
-
-
 
 }

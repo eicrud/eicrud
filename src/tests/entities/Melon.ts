@@ -12,7 +12,7 @@ export class Melon implements CrudEntity {
     id: string;
 
     @ManyToOne(() => MyUser)
-    @IsString()
+    @IsMongoId()
     owner: MyUser | string;
 
     @Property()

@@ -32,5 +32,4 @@ export class CrudErrors {
     static readonly VALIDATION_ERROR = new CrudError("Validation error", 10);
     static readonly PASSWORD_TOO_LONG = new CrudError("Password too long", 11);
     static readonly IN_REQUIRED_LENGTH = new CrudError("In query max id length", 12);
-
 }

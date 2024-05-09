@@ -38,7 +38,6 @@ export const httpAliasResolver = createAliasResolver({
     rd: ['GET', 'DELETE'],
     ud: ['PUT', 'PATCH', 'DELETE'],
 });
-
  
 export interface CrudSecurityRights {
 

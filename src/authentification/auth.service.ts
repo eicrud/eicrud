@@ -32,9 +32,7 @@ export class CrudAuthService {
 
   constructor(
     protected jwtService: JwtService,
-    
     protected moduleRef: ModuleRef,
-
   ) {
 
   }
@@ -49,8 +47,11 @@ export class CrudAuthService {
 
   rateLimitCount = 6;
 
-  async updateUserLoginDetails(user){
+  async updateUserLoginDetails(user, updatePass = null){
     const patch: Partial<CrudUser> = {failedLoginCount: user.failedLoginCount, lastLoginAttempt: user.lastLoginAttempt};
+    if(updatePass){
+      patch.password = updatePass;
+    }
     await this.crudConfig.userService.unsecure_fastPatchOne(user[this.crudConfig.id_field], patch as any, null);
   }
 
@@ -58,7 +59,7 @@ export class CrudAuthService {
     email = email.toLowerCase().trim();
     const entity = {};
     entity[this.USERNAME_FIELD] = email;
-    const user = await this.crudConfig.userService.findOne(entity, null);
+    const user: CrudUser = await this.crudConfig.userService.findOne(entity, null);
     if(!user){
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }
@@ -82,16 +83,24 @@ export class CrudAuthService {
       }
       await this.crudConfig.userService.verifyTwoFA(user, twoFA_code);
     }
-
+    
     user.lastLoginAttempt = new Date();
-    if (await bcrypt.compare(pass, user?.password)) {
+
+    const match = await bcrypt.compare(pass, user?.password);
+    if (!match) {
       user.failedLoginCount++;
       await this.updateUserLoginDetails(user)
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }
 
+    let updatePass = null;
+    if(user.saltRounds != this.crudConfig.getSaltRounds(user)){
+      console.log("Updating password hash for user: ", user[this.crudConfig.id_field]);
+      updatePass = pass;
+    }
+
     user.failedLoginCount = 0;
-    await this.updateUserLoginDetails(user)
+    await this.updateUserLoginDetails(user, updatePass)
     const payload = {};
     this.FIELDS_IN_PAYLOAD.forEach(field => {
         payload[field] = user[field];

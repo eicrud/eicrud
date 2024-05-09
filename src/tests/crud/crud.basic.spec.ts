@@ -8,7 +8,7 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { EntityManager } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../crud/model/CrudQuery';
-import { createAccountsAndProfiles, createNewProfileTest, testMethod } from '../test.utils';
+import { createAccountsAndProfiles, createNewProfileTest, formatId, testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../crud/crud.config.service';
 import { TestUser } from '../test.utils';
@@ -27,7 +27,7 @@ describe('AppController', () => {
   let app: NestFastifyApplication;
   let userId: string;
   let profiles: Record<string,UserProfile> = {};
-  let profilesToRemoveIn: Record<string,UserProfile> = {};
+  let profilesToRemoveIn: Record<string, UserProfile> = {};
   let profilesToRemoveMany: Record<string,UserProfile> = {};
   let profilesToPatchBatch: Record<string,UserProfile> = {};
 
@@ -133,11 +133,11 @@ describe('AppController', () => {
 
     const em = entityManager.fork();
   
-    await createAccountsAndProfiles(users, em, userService, { usersWithoutProfiles, testAdminCreds });
+    await createAccountsAndProfiles(users, em, userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
 
     const accRes = await userService.createAccount(testAdminCreds.email,testAdminCreds.password, null, "super_admin" );
     jwt = accRes.accessToken;
-    userId = accRes.userId?.toString();
+    userId = formatId(accRes.userId, crudConfig);
     
   }, 10000);
 
@@ -156,7 +156,7 @@ describe('AppController', () => {
       service: 'user-profile'
     }
 
-    await createNewProfileTest(app, jwt, entityManager, payload, query);
+    await createNewProfileTest(app, jwt, entityManager, payload, query, crudConfig);
 
   });  
 
@@ -183,7 +183,7 @@ describe('AppController', () => {
 
     const expectedObject =null;
 
-    const res = await testMethod({ url: '/crud/batch', method: 'POST', app, jwt, entityManager, payload, query, expectedCode: 201, expectedObject });
+    const res = await testMethod({ url: '/crud/batch', method: 'POST', app, jwt, entityManager, payload, query, expectedCode: 201, expectedObject, crudConfig });
 
     expect(res?.length).toEqual(usersWithoutProfiles?.length);
     i = 0;
@@ -202,17 +202,17 @@ describe('AppController', () => {
   it('should find one profile by user',async ()  => {
     const sarahDoeProfile = profiles["Sarah Doe"];
     const payload: Partial<UserProfile> = {
-    } as any;
+    } as any; 
     const query: CrudQuery = {
-      service: 'user-profile',
-      query: JSON.stringify({ user: (sarahDoeProfile.user as any).id?.toString() })
+      service: 'user-profile', 
+      query: JSON.stringify({ user: formatId((sarahDoeProfile.user as any).id, crudConfig) })
     }
 
     const expectedObject = { 
       bio: sarahDoeProfile.bio,
      }
 
-    return testMethod({ url: '/crud/one', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+    return testMethod({ url: '/crud/one', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
 
   });
 
@@ -227,7 +227,7 @@ describe('AppController', () => {
 
     const expectedObject =null;
 
-    const res = await testMethod({ url: '/crud/many', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+    const res = await testMethod({ url: '/crud/many', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
 
     expect(res.length).toEqual(3);
     for(const profile in res){
@@ -242,7 +242,8 @@ describe('AppController', () => {
     } as any;
     const ids = [];
     for(const key in profiles){
-      ids.push((profiles[key].id as any).toString());
+      const formatedId = formatId(profiles[key].id, crudConfig);
+      ids.push(formatedId);
     }
     const query: CrudQuery = {
       service: 'user-profile',
@@ -251,7 +252,7 @@ describe('AppController', () => {
 
     const expectedObject =null;
 
-    const res = await testMethod({ url: '/crud/in', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+    const res = await testMethod({ url: '/crud/in', method: 'GET', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
 
     expect(res.length).toEqual(ids.length);
     expect(res[0].userName).toBeDefined();
@@ -264,12 +265,13 @@ describe('AppController', () => {
     const sarahDoeProfile = profiles["Sarah Doe"];
     const payload: Partial<UserProfile> = {
       userName: 'Sarah Jane',
-      user: (sarahDoeProfile.user as any).id?.toString(),
+      user: formatId((sarahDoeProfile.user as any).id, crudConfig),
       fakeField: 'fake',
     } as any;
+    const formatedId = formatId(sarahDoeProfile.id, crudConfig);
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ id: (sarahDoeProfile.id as any).toString() })
+      query: JSON.stringify({ id: formatedId })
     }
 
     const expectedObject = { 
@@ -280,7 +282,7 @@ describe('AppController', () => {
 
      const fetchEntity = { entity: UserProfile, id: sarahDoeProfile.id };
 
-    let res = await testMethod({ url: '/crud/one', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity, expectedObject });
+    let res = await testMethod({ url: '/crud/one', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity, expectedObject, crudConfig });
     expect(res.userName).toBeDefined();
     expect(res.fakeField).toBeUndefined();
   });
@@ -292,7 +294,8 @@ describe('AppController', () => {
     };
     const ids = [];
     for(const key in profiles){
-      ids.push((profiles[key].id as any).toString());
+      const formatedId = formatId(profiles[key].id, crudConfig);
+      ids.push(formatedId);
     }
     const query: CrudQuery = {
       service: 'user-profile',
@@ -301,7 +304,7 @@ describe('AppController', () => {
 
     const expectedObject =null;
 
-    const res = await testMethod({ url: '/crud/in', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+    const res = await testMethod({ url: '/crud/in', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
 
     expect(res.length).toEqual(ids.length);
     for(const profile in profiles){
@@ -331,7 +334,7 @@ describe('AppController', () => {
 
     const expectedObject =null;
 
-    const res = await testMethod({ url: '/crud/batch', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+    const res = await testMethod({ url: '/crud/batch', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
 
     expect(res?.length).toEqual(2);
     for(const profile in profilesToPatchBatch){
@@ -345,14 +348,15 @@ describe('AppController', () => {
   it('should delete profile',async ()  => {
     const payload: Partial<UserProfile> = {
     } as any;
+    const formatedId = formatId(users['Delme Dude'].profileId, crudConfig);
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ id: (users['Delme Dude'].profileId as any).toString() })
+      query: JSON.stringify({ id: formatedId })
     }
 
     const expectedObject = null;
 
-    const res = await testMethod({ url: '/crud/one', method: 'DELETE', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+    const res = await testMethod({ url: '/crud/one', method: 'DELETE', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
     expect(res).toEqual(1);
 
     const resDb = await entityManager.fork().findOne(UserProfile, { id: users['Delme Dude'].id });
@@ -366,7 +370,8 @@ describe('AppController', () => {
     } as any;
     const ids = [];
     for(const key in profilesToRemoveIn){
-      ids.push((profilesToRemoveIn[key].id as any).toString());
+      const formatedId = formatId(profilesToRemoveIn[key].id, crudConfig);
+      ids.push(formatedId);
     }
     const query: CrudQuery = {
       service: 'user-profile',
@@ -375,7 +380,7 @@ describe('AppController', () => {
 
     const expectedObject = null;
 
-    const res = await testMethod({ url: '/crud/in', method: 'DELETE', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+    const res = await testMethod({ url: '/crud/in', method: 'DELETE', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
     expect(res).toEqual(ids.length);
     
     for(const profile in profilesToRemoveIn) {
@@ -396,7 +401,7 @@ describe('AppController', () => {
 
     const expectedObject = null;
 
-    const res = await testMethod({ url: '/crud/many', method: 'DELETE', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject });
+    const res = await testMethod({ url: '/crud/many', method: 'DELETE', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
     expect(res).toEqual(2);
     
     for(const profile in profilesToRemoveMany) {
