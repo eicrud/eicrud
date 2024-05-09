@@ -11,10 +11,12 @@ export interface TestUser{
   bio: string,
   id?: string,
   profileId?: string,
+  profileType?: string,
   jwt?: string,
   skipProfile?:boolean
   store?: any,
-  melons?: number
+  melons?: number,
+  favoriteColor?: string
 }
 
 export function formatId(id: any, crudConfig: CrudConfigService){
@@ -71,14 +73,18 @@ export function testMethod(arg: { app: NestFastifyApplication,
 }
 
 
-export async function createNewProfileTest(app, jwt, entityManager, payload, query, crudConfig: CrudConfigService){ 
-  const res = await  testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: jwt, entityManager, payload, query, crudConfig});
+export async function createNewProfileTest(app, jwt, entityManager, payload, query, crudConfig: CrudConfigService, expectedCode = 201){ 
+  const res = await  testMethod({ url: '/crud/one', method: 'POST', expectedCode, app, jwt: jwt, entityManager, payload, query, crudConfig});
+  if(expectedCode !== 201){
+    return;
+  }
   let resDb = await entityManager.fork().findOne(UserProfile, { id: res[crudConfig.id_field] }) as UserProfile;
   resDb = JSON.parse(JSON.stringify(res));
   expect(res.address).toBeUndefined();
   expect((resDb as any).address).toBeUndefined();
   expect(res.userName).toEqual(payload.userName);
   expect(resDb.userName).toEqual(payload.userName);
+  return res;
 }
 
 export function createMelons(NB_MELONS, owner: TestUser, crudConfig: CrudConfigService){
@@ -105,14 +111,21 @@ export async function createAccountsAndProfiles(users: Record<string, TestUser>,
         users[key][crudConfig.id_field] = accRes.userId;
         users[key].jwt = accRes.accessToken;
         if(!user.skipProfile){
-          const newProfile = em.create(UserProfile, {
-                id: userService.createNewId() as any,
-                userName: key,
-                user: users[key][crudConfig.id_field],
-                bio: user.bio,
-                createdAt: new Date(),
-                updatedAt: new Date()
-              });
+          const newObj = {
+            id: userService.createNewId() as any,
+            userName: key,
+            user: users[key][crudConfig.id_field],
+            bio: user.bio,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+          if(user.profileType){
+            newObj['type'] = user.profileType;
+          }
+          if(user.favoriteColor){
+            newObj['favoriteColor'] = user.favoriteColor;
+          }
+          const newProfile = em.create(UserProfile, newObj);
           if(user.store) { user.store[key] = newProfile; }
           em.persist(newProfile);
           users[key].profileId = newProfile[crudConfig.id_field];

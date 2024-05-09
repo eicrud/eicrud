@@ -23,6 +23,11 @@ export class UserProfile implements CrudEntity {
     @MaxLength(30)
     userName: string;
 
+    @Property()
+    @IsString()
+    @IsOptional()
+    type: "basic" | "admin" = "basic";
+
     @Property({ nullable: true })
     @IsString()
     @IsOptional()
@@ -34,6 +39,17 @@ export class UserProfile implements CrudEntity {
     @IsOptional()
     @MaxLength(15)
     astroSign: string;
+
+    @Property({ nullable: true})
+    @IsString()
+    @IsOptional()
+    @MaxLength(15)
+    chineseSign: string;
+
+    @Property()
+    @IsString()
+    @IsOptional()
+    favoriteColor: string = "blue";
 
     @Property()
     createdAt: Date;

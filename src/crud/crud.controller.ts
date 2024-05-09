@@ -76,6 +76,7 @@ export class CrudController {
         ctx.options = crudQuery.options;
         ctx.security = currentService?.security;
         ctx.origin = type;
+        
         if (ctx.origin == 'cmd') {
             ctx.cmdName = crudQuery.cmd;
         }

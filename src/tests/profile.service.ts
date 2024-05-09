@@ -8,6 +8,7 @@ import { ModuleRef } from "@nestjs/core";
 import { UserProfile } from "./entities/UserProfile";
 import { IsString, MaxLength } from "class-validator";
 import { CrudUser } from "../user/model/CrudUser";
+import { CrudContext } from "../crud/model/CrudContext";
 
 
 class TestCmdDto {
@@ -35,7 +36,14 @@ const myProfileSecurity = (USER_PROFILE) => { return {
        
         },
         admin: {
-    
+            defineCRUDAbility(can, cannot, context: CrudContext) {
+                can('crud', USER_PROFILE, { type: 'basic' });
+            },
+        },
+        moderator: {
+            defineCRUDAbility(can, cannot, context: CrudContext) {
+                can('read', USER_PROFILE, { type: 'basic' });
+            },
         },
         user: {
   
@@ -43,6 +51,8 @@ const myProfileSecurity = (USER_PROFILE) => { return {
                 const user: CrudUser = context.user;
                 const userId = context.userId;
                 can('crud', USER_PROFILE, { user: userId });
+                cannot('cu', USER_PROFILE, { type: 'admin' });
+                cannot('update', USER_PROFILE, ['type', 'user']);
             },
 
             defineCMDAbility(can, cannot, context) {
