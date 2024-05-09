@@ -1,6 +1,6 @@
 import { Property, PrimaryKey, OneToOne, Entity, Embeddable, Embedded, Unique } from "@mikro-orm/core";
 import { CrudEntity } from "../../crud/model/CrudEntity";
-import { IsOptional, IsString,MaxLength, } from "class-validator";
+import { IsMongoId, IsOptional, IsString,MaxLength, } from "class-validator";
 import { MyUser } from "./MyUser";
 
 
@@ -14,7 +14,7 @@ export class UserProfile implements CrudEntity {
     id: string;
 
     @OneToOne(() => MyUser, user => user.profile, { owner: true })
-    @IsString()
+    @IsMongoId()
     user: MyUser | string;
 
     @Property()

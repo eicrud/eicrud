@@ -21,6 +21,4 @@ export class CrudQuery {
     @IsString()
     cmd?: string;
 
-
-
 }
