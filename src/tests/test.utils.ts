@@ -74,7 +74,6 @@ export async function createNewProfileTest(app, jwt, entityManager, payload, que
 export function createMelons(NB_MELONS, owner){
   const payloadArray = [];
   for(let i = 0; i < NB_MELONS; i++){
-    i++;
     const newMelon: Partial<Melon> = {
       name: `Melon ${i}`,
       owner: owner.id,
@@ -82,6 +81,7 @@ export function createMelons(NB_MELONS, owner){
     }
     payloadArray.push(newMelon);
   }
+  return payloadArray;
 }
 
 

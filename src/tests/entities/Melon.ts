@@ -29,11 +29,9 @@ export class Melon implements CrudEntity {
     price: number;
 
     @Property()
-    @IsDate()
     createdAt: Date;
 
     @Property()
-    @IsDate()
     updatedAt: Date;
 
 

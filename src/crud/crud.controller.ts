@@ -147,7 +147,7 @@ export class CrudController {
         const currentService = await this.assignContext('POST', query, null, null, 'crud', ctx);
         ctx.isBatch = true;
         try {
-            await this.crudAuthorization.authorizeBatch(ctx, newEntities.length);
+            await this.crudAuthorization.authorizeBatch(ctx, newEntities?.length);
             ctx.noFlush = true;
             const results = [];
             for (const entity of newEntities) {
@@ -347,7 +347,7 @@ export class CrudController {
         const currentService = await this.assignContext('PATCH', query, null, null, 'crud', ctx);
         ctx.isBatch = true;
         try {
-            await this.crudAuthorization.authorizeBatch(ctx, data.length);
+            await this.crudAuthorization.authorizeBatch(ctx, data?.length);
             ctx.noFlush = true;
             const results = [];
             for (let i = 0; i < data.length; i++) {
