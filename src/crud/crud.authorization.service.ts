@@ -55,7 +55,7 @@ export class CrudAuthorizationService {
 
     authorizeBatch(ctx: CrudContext, batchSize: number) {
 
-        if(batchSize < 1){
+        if((batchSize || 0) < 1){
             throw new ForbiddenException(`Batchsize must be at least 1`);
         }
         
@@ -145,24 +145,25 @@ export class CrudAuthorizationService {
 
     recursCheckRolesAndParents(role: CrudRole, crudContext: CrudContext, fields: string[]): CrudRole | null {
         const roleRights = crudContext.security.rolesRights[role.name];
-        if(!roleRights){
-            return null;
+        let allGood = false;
+
+        if(roleRights){
+            const userAbilities = defineAbility((can, cannot) => {
+                
+                if(crudContext.origin == "crud"){
+                    roleRights.defineCRUDAbility?.(can, cannot, crudContext);
+                }else{
+                    roleRights.defineCMDAbility?.(can, cannot, crudContext);
+                }
+                
+                if (roleRights.fields && crudContext.method == 'GET') {
+                    crudContext.options.fields = roleRights.fields as any;
+                }
+            }, { resolveAction: httpAliasResolver });
+            const methodToCheck = crudContext.origin == "crud" ? crudContext.method : crudContext.cmdName;
+            allGood = this.loopFieldAndCheckCannot(true, methodToCheck, crudContext.query, fields, userAbilities, crudContext);
         }
-        const userAbilities = defineAbility((can, cannot) => {
-            
-            if(crudContext.origin == "crud"){
-                roleRights.defineCRUDAbility?.(can, cannot, crudContext);
-            }else{
-                roleRights.defineCMDAbility?.(can, cannot, crudContext);
-            }
-            
-            if (roleRights.fields && crudContext.method == 'GET') {
-                crudContext.options.fields = roleRights.fields as any;
-            }
-        }, { resolveAction: httpAliasResolver });
-        const methodToCheck = crudContext.origin == "crud" ? crudContext.method : crudContext.cmdName;
-        let allGood = this.loopFieldAndCheckCannot(true, methodToCheck, crudContext.query, fields, userAbilities, crudContext);
-        
+
         if (allGood && crudContext.options) {
             const userOptionsAbilities = defineAbility((can, cannot) => {
                 roleRights.defineOPTAbility?.(can, cannot, crudContext);

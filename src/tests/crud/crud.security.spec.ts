@@ -24,9 +24,7 @@ describe('AppController', () => {
   let userService: MyUserService;
   let authService: CrudAuthService;
   let profileService: MyProfileService;
-  let jwt: string;
   let app: NestFastifyApplication;
-  let userId: string;
 
   let entityManager: EntityManager;
 
@@ -90,7 +88,6 @@ describe('AppController', () => {
 
     await createAccountsAndProfiles(users, em, userService, { testAdminCreds });
 
-    jwt = users["Michael Doe"].jwt;
     
   });
 
@@ -101,125 +98,140 @@ describe('AppController', () => {
       method: 'GET',
       url: '/crud/auth',
       headers: {
-        Authorization: `Bearer ${jwt}`
+        Authorization: `Bearer ${users["Michael Doe"].jwt}`
       }
     })
     .then((result) => {
       expect(result.statusCode).toEqual(200);
-      expect(result.json().userId).toEqual(userId);
+      expect(result.json().userId).toEqual(users["Michael Doe"].id?.toString());
     });
   });
 
-  // //@Post('/crud/one')
-  // it('should create a new profile (own id)', async () => {
-  //   const userName = "John NoProfile";
-  //   const user: TestUser = users[userName];
-  //   const payload: Partial<UserProfile> = {
-  //     userName,
-  //     user: user.id,
-  //     bio: user.bio,
-  //     address: '1234 Main St.' // This should be removed
-  //   } as any;
-  //   const query: CrudQuery = {
-  //     service: 'user-profile'
-  //   }
-  //   await createNewProfileTest(app, user.jwt, entityManager, payload, query);
-  // });  
+  //@Post('/crud/one')
+  it('should create a new profile (own id)', async () => {
+    const userName = "John NoProfile";
+    const user: TestUser = users[userName];
+    const payload: Partial<UserProfile> = {
+      userName,
+      user: user.id,
+      bio: user.bio,
+      address: '1234 Main St.' // This should be removed
+    } as any;
+    const query: CrudQuery = {
+      service: 'user-profile'
+    }
+    await createNewProfileTest(app, user.jwt, entityManager, payload, query);
+  });  
 
-  // it('should inherit right to create own profile', async () => {
-  //   const userName = "Trusted NoProfile";
-  //   const user: TestUser = users[userName];
-  //   const payload: Partial<UserProfile> = {
-  //     userName,
-  //     user: user.id,
-  //     bio: user.bio,
-  //     address: '1234 Main St.' // This should be removed
-  //   } as any;
-  //   const query: CrudQuery = {
-  //     service: 'user-profile'
-  //   }
-  //   await createNewProfileTest(app, user.jwt, entityManager, payload, query);
-  // });
+  it('should inherit right to create own profile', async () => {
+    const userName = "Trusted NoProfile";
+    const user: TestUser = users[userName];
+    const payload: Partial<UserProfile> = {
+      userName,
+      user: user.id,
+      bio: user.bio,
+      address: '1234 Main St.' // This should be removed
+    } as any;
+    const query: CrudQuery = {
+      service: 'user-profile'
+    }
+    await createNewProfileTest(app, user.jwt, entityManager, payload, query);
+  });
 
-  //  it('should fail create a new profile (other id)', async () => {
-  //   const userName = "John NoProfile";
-  //   const user: TestUser = users[userName];
-  //   const otherUser: TestUser = users["Michael Doe"];
-  //   const bio_key = "SHOULD_FAIL_NEW_PROFILE_OTHER_ID";
-  //   const payload: Partial<UserProfile> = {
-  //     userName,
-  //     user: otherUser.id,
-  //     bio: bio_key,
-  //   } as any;
-  //   const query: CrudQuery = {
-  //     service: 'user-profile'
-  //   }
-  //   const res = await  testMethod({ url: '/crud/one', method: 'POST', expectedCode: 403, app, jwt: user.jwt, entityManager, payload, query});
-  //   let resDb = await entityManager.fork().findOne(UserProfile, { bio: bio_key }) as UserProfile;
-  //   expect(resDb).toBeNull();
-  //  }); 
+   it('should fail create a new profile (other id)', async () => {
+    const userName = "John NoProfile";
+    const user: TestUser = users[userName];
+    const otherUser: TestUser = users["Michael Doe"];
+    const bio_key = "SHOULD_FAIL_NEW_PROFILE_OTHER_ID";
+    const payload: Partial<UserProfile> = {
+      userName,
+      user: otherUser.id,
+      bio: bio_key,
+    } as any;
+    const query: CrudQuery = {
+      service: 'user-profile'
+    }
+    const res = await  testMethod({ url: '/crud/one', method: 'POST', expectedCode: 403, app, jwt: user.jwt, entityManager, payload, query});
+    let resDb = await entityManager.fork().findOne(UserProfile, { bio: bio_key }) as UserProfile;
+    expect(resDb).toBeNull();
+   }); 
 
-  //  it('should fail create a new profile (other id, herited right)', async () => {
-  //   const userName = "Trusted NoProfile";
-  //   const user: TestUser = users[userName];
-  //   const otherUser: TestUser = users["Michael Doe"];
-  //   const bio_key = "SHOULD_FAIL_INHERITED_NEW_PROFILE_OTHER_ID";
-  //   const payload: Partial<UserProfile> = {
-  //     userName,
-  //     user: otherUser.id,
-  //     bio: bio_key,
-  //   } as any;
-  //   const query: CrudQuery = {
-  //     service: 'user-profile'
-  //   }
-  //   const res = await  testMethod({ url: '/crud/one', method: 'POST', expectedCode: 403, app, jwt: user.jwt, entityManager, payload, query});
-  //   let resDb = await entityManager.fork().findOne(UserProfile, { bio: bio_key }) as UserProfile;
-  //   expect(resDb).toBeNull();
-  //  });  
+   it('should fail create a new profile (other id, herited right)', async () => {
+    const userName = "Trusted NoProfile";
+    const user: TestUser = users[userName];
+    const otherUser: TestUser = users["Michael Doe"];
+    const bio_key = "SHOULD_FAIL_INHERITED_NEW_PROFILE_OTHER_ID";
+    const payload: Partial<UserProfile> = {
+      userName,
+      user: otherUser.id,
+      bio: bio_key,
+    } as any;
+    const query: CrudQuery = {
+      service: 'user-profile'
+    }
+    const res = await  testMethod({ url: '/crud/one', method: 'POST', expectedCode: 403, app, jwt: user.jwt, entityManager, payload, query});
+    let resDb = await entityManager.fork().findOne(UserProfile, { bio: bio_key }) as UserProfile;
+    expect(resDb).toBeNull();
+   });  
 
-  // //@Post('/crud/batch')
-  // it('should batch create new melon (own id)',async ()  => {
-  //   const userName = "Trusted NoProfile";
-  //   const user: TestUser = users[userName];
-  //   const query: CrudQuery = {
-  //     service: CrudService.getName(Melon)
-  //   }
-  //   const NB_MELONS = 5;
-  //   const payload: any = createMelons(NB_MELONS, user);
+  //@Post('/crud/batch')
+  it('should batch create new melon (own id)',async ()  => {
+    const userName = "Trusted NoProfile";
+    const user: TestUser = users[userName];
+    const query: CrudQuery = {
+      service: CrudService.getName(Melon)
+    }
+    const NB_MELONS = 5;
+    const payload: any = createMelons(NB_MELONS, user);
 
-  //   const res = await testMethod({ url: '/crud/batch', method: 'POST', app, jwt, entityManager, payload, query, expectedCode: 201 });
-  //   expect(res?.length).toEqual(NB_MELONS);
-  //   let i = 0;
-  //   for(const profile in res){
-  //     i++;
-  //     const query = { id: userService.createNewId(res[profile].id) }; //Weird that I need to convert to objectId here
-  //     const resDB = await entityManager.fork().findOne(Melon, query as any);
-  //     expect(resDB.price).toEqual(i);
-  //   }
-  // });
+    const res = await testMethod({ url: '/crud/batch', method: 'POST', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 201 });
+    expect(res?.length).toEqual(NB_MELONS);
+    let i = 0;
+    for(const profile in res){
+      const query = { id: userService.createNewId(res[profile].id) }; //Weird that I need to convert to objectId here
+      const resDB = await entityManager.fork().findOne(Melon, query as any);
+      expect(resDB.price).toEqual(i);
+      i++;
+    }
+  });
 
-  // it('should fail batch create when over maxBatchSize',async ()  => {
-  //   const userName = "Trusted NoProfile";
-  //   const user: TestUser = users[userName];
-  //   const query: CrudQuery = {
-  //     service: CrudService.getName(Melon)
-  //   }
-  //   const NB_MELONS = 6;
-  //   const payload: any = createMelons(NB_MELONS, user);
-  //   const res = await testMethod({ url: '/crud/batch', method: 'POST', app, jwt, entityManager, payload, query, expectedCode: 403 });
-  // });
+    it('should fail batch create when one melon has forbidden property',async ()  => {
+      const userName = "Trusted NoProfile";
+      const user: TestUser = users[userName];
+      const query: CrudQuery = {
+        service: CrudService.getName(Melon)
+      }
+      const NB_MELONS = 5;
+      const payload: any = createMelons(NB_MELONS, user);
+
+      payload[2].size = 200;
+  
+      const res = await testMethod({ url: '/crud/batch', method: 'POST', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 403 });
+
+    });
+
+  it('should fail batch create when over maxBatchSize',async ()  => {
+    const userName = "Trusted NoProfile";
+    const user: TestUser = users[userName];
+    const query: CrudQuery = {
+      service: CrudService.getName(Melon)
+    }
+    const NB_MELONS = 6;
+    const payload: any = createMelons(NB_MELONS, user);
+    const res = await testMethod({ url: '/crud/batch', method: 'POST', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 403 });
+  });
   
 
-  // it('should fail batch create when no maxBatchSize in rights',async ()  => {
-  //   const userName = "Michael Doe";
-  //   const user: TestUser = users[userName];
-  //   const query: CrudQuery = {
-  //     service: CrudService.getName(Melon)
-  //   }
-  //   const NB_MELONS = 5;
-  //   const payload: any = createMelons(NB_MELONS, user);
-  //   const res = await testMethod({ url: '/crud/batch', method: 'POST', app, jwt, entityManager, payload, query, expectedCode: 403 });
-  // });
+  it('should fail batch create when no maxBatchSize in rights',async ()  => {
+    const userName = "Michael Doe";
+    const user: TestUser = users[userName];
+    const query: CrudQuery = {
+      service: CrudService.getName(Melon)
+    }
+    const NB_MELONS = 5;
+    const payload: any = createMelons(NB_MELONS, user);
+    const res = await testMethod({ url: '/crud/batch', method: 'POST', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 403 });
+  });
 
 
 /////////////////////////////////////////////////////////////////////////////
