@@ -383,17 +383,6 @@ export class CrudController {
         return this.crudAuthService.signIn(data.email, data.password, data.expiresIn, data.twoFA_code);
     }
 
-    checkMongoId(id: any) {
-        if(typeof id == 'string' &&id.match(/^[0-9a-fA-F]{24}$/)){
-            let oldValue = id;
-            const newValue = new ObjectId(id as string);
-            if(newValue.toString() === oldValue){
-                return newValue;
-            }
-        };
-        return id;
-    }
-
     async performValidationAuthorizationAndHooks(ctx: CrudContext, currentService: any) {
         await this.validate(ctx, currentService);
         await this.crudAuthorization.authorize(ctx);

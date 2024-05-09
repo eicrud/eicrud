@@ -6,6 +6,12 @@
             "request": "launch",
             "name": "npm run test",
             "command": "npm run test",
+        },
+        {
+            "type": "node-terminal",
+            "request": "launch",
+            "name": "npm run test sec",
+            "command": "npm run test crud.security.spec.ts",
         }
     ]
 }

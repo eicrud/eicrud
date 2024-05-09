@@ -16,6 +16,10 @@ export class Melon implements CrudEntity {
     owner: MyUser | string;
 
     @Property()
+    @IsString()
+    ownerEmail: string;
+
+    @Property()
     @IsInt()
     @IsOptional()
     size: number = 1;
