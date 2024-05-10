@@ -10,6 +10,7 @@ import { CrudUserService } from '../user/crud-user.service';
 import { CRUD_CONFIG_KEY, CacheOptions, CrudConfigService } from './crud.config.service';
 import { ModuleRef } from '@nestjs/core';
 import { ObjectId } from '@mikro-orm/mongodb';
+import { CrudTransformer } from './transform/CrudTransformer';
 
 
 function getAllMethodNames(obj) {
@@ -97,10 +98,16 @@ export class CrudService<T extends CrudEntity> {
             await this.checkItemDbCount(em, context);
         }
 
+  
+
         const opts = this.getReadOptions(context);
         newEntity.createdAt = new Date();
         newEntity.updatedAt = newEntity.createdAt;
         newEntity[this.crudConfig.id_field] = this.createNewId();
+
+        // if(!context.transformed){
+        //     CrudTransformer.transform(newEntity, this.entity);
+        // }
         const entity = em.create(this.entity, newEntity, opts as any);
         await em.persist(entity);
         if (!context?.noFlush) {
@@ -279,6 +286,9 @@ export class CrudService<T extends CrudEntity> {
                 await this.checkEntitySize(result, ctx);
             }
         }
+        // if(!ctx.transformed){
+        //     CrudTransformer.transform(newEntity, this.entity);
+        // }
         em.nativeUpdate(this.entity, query, newEntity, opts);
         return results;
     }
@@ -300,7 +310,10 @@ export class CrudService<T extends CrudEntity> {
             wrap(result).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true });
             await this.checkEntitySize(result, ctx);
         }
-        
+
+        // if(!context.transformed){
+        //     CrudTransformer.transform(newEntity, this.entity);
+        // }
         let res = em.getReference(this.entity, id);
         wrap(res).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true });
         return res;

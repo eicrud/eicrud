@@ -16,3 +16,7 @@
 [ ] security test with null query, null data etc..
 
 [ ] security test default fields option
+
+[ ] remove crudService methods to $
+
+[ ] test nested validation & transform

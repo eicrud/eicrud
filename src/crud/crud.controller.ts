@@ -429,15 +429,17 @@ export class CrudController {
             //const obj = this.plainToInstanceNoDefaultValues(ctx.query, queryClass);
             // const oldProto = Object.getPrototypeOf(ctx.data);
             // Object.setPrototypeOf(ctx.query, dataClass.prototype);
+            CrudTransformer.transform(ctx.query, queryClass);
             const newObj = { ...ctx.query};
-            CrudTransformer.transformCrud(newObj, queryClass);
+            CrudTransformer.transformTypes(newObj, queryClass);
             Object.setPrototypeOf(newObj, queryClass.prototype);
             await this.validateOrReject(newObj, true, 'Query:');
         }
         if (dataClass) {
             //ctx.data = dataDefaultValues ? this.plainToInstanceWithDefaultValues(ctx.data, dataClass) : this.plainToInstanceNoDefaultValues(ctx.data, dataClass);
+            CrudTransformer.transform(ctx.data, dataClass);
             const newObj = { ...ctx.data};
-            CrudTransformer.transformCrud(newObj, dataClass);
+            CrudTransformer.transformTypes(newObj, dataClass);
             Object.setPrototypeOf(newObj, dataClass.prototype);
             await this.validateOrReject(newObj, !dataDefaultValues, 'Data:');
         }

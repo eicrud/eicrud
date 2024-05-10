@@ -2,6 +2,7 @@ import { PrimaryKey, OneToOne, Property, ManyToOne, Entity } from "@mikro-orm/co
 import { IsDate, IsInt, IsMongoId, IsOptional, IsString } from "class-validator";
 import { CrudEntity } from "../../crud/model/CrudEntity";
 import { MyUser } from "./MyUser";
+import { $ToLowerCase, $Transform, $Trim } from "../../crud/transform/decorators";
 
 @Entity()
 export class Melon implements CrudEntity {
@@ -28,6 +29,19 @@ export class Melon implements CrudEntity {
     @IsString()
     name: string;
 
+    @Property({nullable: true})
+    @IsString()
+    @$ToLowerCase()
+    @$Trim()
+    @IsOptional()
+    lowercaseTrimmedField: string;
+
+    @Property({nullable: true})
+    @IsString()
+    @IsOptional()
+    @$Transform((value: string) => value.toUpperCase())
+    upperCaseField: string;
+
     @Property()
     @IsInt()
     price: number;
@@ -37,6 +51,5 @@ export class Melon implements CrudEntity {
 
     @Property()
     updatedAt: Date;
-
 
 }
