@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { CrudUserService } from '../user/crud-user.service';
 import { JwtService } from '@nestjs/jwt';
 import { _utils } from '../utils';
@@ -9,6 +9,9 @@ import { CRUD_CONFIG_KEY, CrudConfigService } from '../crud/crud.config.service'
 import { CrudErrors } from '../crud/model/CrudErrors';
 import { CrudUser } from '../user/model/CrudUser';
 import { ModuleRef } from '@nestjs/core';
+import { LoginResponseDto } from '../crud/model/dtos';
+import { CrudContext } from '../crud/model/CrudContext';
+
 
 export interface AuthenticationOptions {
   SALT_ROUNDS;
@@ -47,15 +50,12 @@ export class CrudAuthService {
 
   rateLimitCount = 6;
 
-  async updateUserLoginDetails(user, updatePass = null){
-    const patch: Partial<CrudUser> = {failedLoginCount: user.failedLoginCount, lastLoginAttempt: user.lastLoginAttempt};
-    if(updatePass){
-      patch.password = updatePass;
-    }
-    await this.crudConfig.userService.unsecure_fastPatchOne(user[this.crudConfig.id_field], patch as any, null);
+  async updateUser(user: CrudUser, patch: Partial<CrudUser>, ctx: CrudContext){
+    const res = this.crudConfig.userService.unsecure_fastPatchOne(user[this.crudConfig.id_field], patch as any, ctx);
+    return res;
   }
 
-  async signIn(email, pass, expiresIn = '30m', twoFA_code?) {
+  async signIn(ctx: CrudContext, email, pass, expiresIn = '30m', twoFA_code?): Promise<LoginResponseDto> {
     email = email.toLowerCase().trim();
     const entity = {};
     entity[this.USERNAME_FIELD] = email;
@@ -70,9 +70,13 @@ export class CrudAuthService {
 
     if(user.failedLoginCount >= this.rateLimitCount){
       const timeoutMS = Math.min(user.failedLoginCount*user.failedLoginCount*1000, 60000 * 5);
-      const diffMs = _utils.diffBetweenDatesMs(user.lastLoginAttempt, new Date());
+      const diffMs = _utils.diffBetweenDatesMs(new Date(), user.lastLoginAttempt);
       if(diffMs < timeoutMS){ 
-        throw new UnauthorizedException(CrudErrors.TOO_MANY_LOGIN_ATTEMPTS.str(Math.round((timeoutMS-diffMs)/1000) + " seconds"));
+          throw new HttpException({
+            statusCode: HttpStatus.TOO_MANY_REQUESTS,
+            error: 'Too Many Requests',
+            message: CrudErrors.TOO_MANY_LOGIN_ATTEMPTS.str(Math.round((timeoutMS-diffMs)/1000) + " seconds"),
+        }, 429);
       }
     }
 
@@ -88,8 +92,11 @@ export class CrudAuthService {
 
     const match = await bcrypt.compare(pass, user?.password);
     if (!match) {
-      user.failedLoginCount++;
-      await this.updateUserLoginDetails(user)
+      const addPatch: Partial<CrudUser> =  { lastLoginAttempt: user.lastLoginAttempt};
+      const query = { [this.crudConfig.id_field]: user[this.crudConfig.id_field] };
+      const increments = {failedLoginCount: 1}
+      this.crudConfig.userService.unsecure_incPatch({ query, increments, addPatch }, ctx);
+
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }
 
@@ -100,14 +107,19 @@ export class CrudAuthService {
     }
 
     user.failedLoginCount = 0;
-    await this.updateUserLoginDetails(user, updatePass)
+    const patch = { failedLoginCount: 0, lastLoginAttempt: user.lastLoginAttempt} as Partial<CrudUser>;
+    if(updatePass){
+      patch.password = updatePass;
+    }
+    await this.updateUser(user, patch, ctx);
     const payload = {};
     this.FIELDS_IN_PAYLOAD.forEach(field => {
         payload[field] = user[field];
     });
     return {
       accessToken: await this.signTokenForUser(user, expiresIn),
-    }
+      userId: user[this.crudConfig.id_field],
+    } as LoginResponseDto;
   }
 
   signTokenForUser(user,  expiresIn = '30m'){

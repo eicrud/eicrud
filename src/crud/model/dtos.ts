@@ -9,9 +9,14 @@ export class LoginDto {
 
     @IsOptional()
     @IsString()
-    twoFA_code: string;
+    twoFA_code?: string;
 
     @IsOptional()
     @IsString()
-    expiresIn: string;
+    expiresIn?: string;
+}
+
+export class LoginResponseDto {
+    userId: string;
+    accessToken?: string;
 }

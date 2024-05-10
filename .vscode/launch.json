@@ -18,6 +18,12 @@
             "request": "launch",
             "name": "npm run test orm",
             "command": "npm run test crud.orm.spec.ts",
+        },
+        {
+            "type": "node-terminal",
+            "request": "launch",
+            "name": "npm run test account",
+            "command": "npm run test crud.account.spec.ts",
         }
     ]
 }

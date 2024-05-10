@@ -176,6 +176,35 @@ export class CrudService<T extends CrudEntity> {
         return results;
     }
 
+    async unsecure_incPatch(args: { query: Partial<T>, increments: { [key: string]: number },  addPatch: any }, ctx: CrudContext, inheritance: any = {}) {
+        const em = ctx?.em || this.crudConfig.entityManager.fork();
+        switch(this.crudConfig.dbType){
+          case 'mongo':
+              let updateMongo = { $inc: {} };
+              for (let key in args.increments) {
+                updateMongo.$inc[key] = args.increments[key];
+              }
+              em.nativeUpdate(this.entity, args.query, updateMongo as any);
+            break;
+          default: 
+            //UNTESTED
+            let updateSql = {};
+            for (let key in args.increments) {
+                updateSql[key] = () => `${key} + ${args.increments[key]}`;
+            }
+            em.nativeUpdate(this.entity, args.query, updateSql);
+          break;
+        }
+        ctx.em = em;
+        let res;
+        if(args.addPatch){
+            res = await this.unsecure_fastPatch(args.query, args.addPatch, ctx, inheritance);
+        }else if(!ctx.noFlush){
+            res = await em.flush();
+        }
+        return res;
+      }
+
     async patchIn(ids: string[], query: Partial<T>, newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
         this.makeInQuery(ids, query);
         return await this.patch(query, newEntity, context, secure, inheritance);
@@ -248,7 +277,7 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async checkEntitySize(entity: Partial<T>, context: CrudContext) {
-        if (!context?.security.maxSize) {
+        if (!context?.security?.maxSize) {
             return;
         }
         const entitySize = JSON.stringify(entity).length;
