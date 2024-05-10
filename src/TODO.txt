@@ -14,3 +14,5 @@
 [ ] remove put, patch & delete can only take data (no query) /client maybe
 
 [ ] security test with null query, null data etc..
+
+[ ] security test default fields option

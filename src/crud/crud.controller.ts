@@ -109,23 +109,6 @@ export class CrudController {
         throw e;
     }
 
-
-
-    async subCreate(query: CrudQuery, newEntity: any, ctx: CrudContext, currentService = undefined) {
-        const service: CrudService<any> = currentService || await this.assignContext('POST', query, newEntity, newEntity, 'crud', ctx);
-
-        await this.performValidationAuthorizationAndHooks(ctx, service);
-
-        const res = await service.create(newEntity, ctx);
-
-        await this.afterHooks(service, res, ctx);
-
-        this.addCountToDataMap(ctx, 1);
-
-        return res;
-
-    }
-
     checkServiceNotFound(currentService, crudQuery) {
         if (!currentService) {
             throw new BadRequestException("Service not found: " + crudQuery.service);
@@ -136,8 +119,16 @@ export class CrudController {
     async _create(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() newEntity: any, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('POST', query, newEntity, newEntity, 'crud', ctx);
         try {
-            return await this.subCreate(query, newEntity, ctx, currentService);
 
+            await this.performValidationAuthorizationAndHooks(ctx, currentService);
+
+            const res = await currentService.create(newEntity, ctx);
+    
+            await this.afterHooks(currentService, res, ctx);
+    
+            this.addCountToDataMap(ctx, 1);
+    
+            return res;
         } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
@@ -145,18 +136,24 @@ export class CrudController {
 
     @Post('batch')
     async _batchCreate(@Query(new ValidationPipe({ transform: true, expectedType: CrudQuery})) query: CrudQuery, @Body() newEntities: any[], @Context() ctx: CrudContext) {
-        const currentService = await this.assignContext('POST', query, null, null, 'crud', ctx);
+        const currentService = await this.assignContext('POST', query, null, newEntities, 'crud', ctx);
         ctx.isBatch = true;
         try {
             await this.crudAuthorization.authorizeBatch(ctx, newEntities?.length);
-            ctx.noFlush = true;
-            const results = [];
+        
             for (const entity of newEntities) {
-                results.push(await this.subCreate(query, entity, ctx));
+                await this.assignContext('POST', query, entity, entity, 'crud', ctx);
+                await this.performValidationAuthorizationAndHooks(ctx, currentService, true);
             }
-            ctx.noFlush = false;
-            await ctx.em.flush();
+
+            await this.assignContext('POST', query, null, newEntities, 'crud', ctx);
+            await this.beforeHooks(currentService, ctx);
+            const results = await currentService.createBatch(newEntities, ctx);
+            await this.afterHooks(currentService, results, ctx);
+
+            this.addCountToDataMap(ctx, newEntities.length);
             this.crudConfig.userService.setCached(ctx.user);
+
             return results;
 
         } catch (e) {
@@ -309,19 +306,16 @@ export class CrudController {
     async _patchOne(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
         try {
-            return await this.subPatchOne(query, query.query, data, ctx, currentService);
+            await this.performValidationAuthorizationAndHooks(ctx, currentService);
+            const res = await currentService.patchOne(ctx.query, ctx.data, ctx);
+            await this.afterHooks(currentService, res, ctx);
+            return res;        
         } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
     }
 
-    async subPatchOne(crudQuery: CrudQuery, query: any, data: any, ctx: CrudContext, service = undefined) {
-        const currentService: CrudService<any> = service || await this.assignContext('PATCH', crudQuery, query, data, 'crud', ctx);
-        await this.performValidationAuthorizationAndHooks(ctx, currentService);
-        const res = await currentService.patchOne(ctx.query, ctx.data, ctx);
-        await this.afterHooks(currentService, res, ctx);
-        return res;
-    }
+
 
     @Patch('in')
     async _patchIn(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
@@ -349,13 +343,17 @@ export class CrudController {
         ctx.isBatch = true;
         try {
             await this.crudAuthorization.authorizeBatch(ctx, data?.length);
-            ctx.noFlush = true;
-            const results = [];
-            for (let i = 0; i < data.length; i++) {
-                results.push(await this.subPatchOne(query, data[i].query, data[i].data, ctx));
+
+            for (const d of data) {
+                await this.assignContext('PATCH', query, d.query, d.data, 'crud', ctx);
+                await this.performValidationAuthorizationAndHooks(ctx, currentService, true);
             }
-            ctx.noFlush = false;
-            await ctx.em.flush();
+
+            await this.assignContext('PATCH', query, null, data, 'crud', ctx);
+            await this.beforeHooks(currentService, ctx);
+            const results = await currentService.patchBatch(data, ctx);
+            await this.afterHooks(currentService, results, ctx);         
+
             return results;
         } catch (e) {
             await this.errorHooks(currentService, e, ctx);
@@ -384,10 +382,12 @@ export class CrudController {
         return this.crudAuthService.signIn(data.email, data.password, data.expiresIn, data.twoFA_code);
     }
 
-    async performValidationAuthorizationAndHooks(ctx: CrudContext, currentService: any) {
+    async performValidationAuthorizationAndHooks(ctx: CrudContext, currentService: any, skipBeforeHooks = false) {
         await this.validate(ctx, currentService);
         await this.crudAuthorization.authorize(ctx);
-        await this.beforeHooks(currentService, ctx);
+        if(!skipBeforeHooks){
+            await this.beforeHooks(currentService, ctx);
+        }
     }
 
     async validate(ctx: CrudContext, currentService: CrudService<any>) {

@@ -156,6 +156,4 @@ describe('AppController', () => {
     expect(res.favoriteColor).toEqual("red");
   });
 
-
-
 });

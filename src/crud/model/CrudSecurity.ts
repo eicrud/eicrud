@@ -9,6 +9,8 @@ export interface CmdSecurity {
 }
 export class CrudSecurity {
 
+    guest_can_read_all?: boolean;
+
     maxSize?: number;
     maxItemsInDb?: number;
     maxItemsPerUser?: number;

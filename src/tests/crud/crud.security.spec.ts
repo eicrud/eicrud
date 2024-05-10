@@ -75,6 +75,7 @@ describe('AppController', () => {
 
 
   const users: Record<string, TestUser> = {
+
     "Michael Doe": {
       email: "michael.doe@test.com",
       role: "user",
@@ -192,7 +193,7 @@ describe('AppController', () => {
   });
 
   //@Post('/crud/one')
-  it('should forbid create a profile with forbidden type', async () => {
+  it('should forbid create a profile with forbidden field (type)', async () => {
     const userName = "John NoProfile";
     const user: TestUser = users[userName];
     const payload: Partial<UserProfile> = {
@@ -392,6 +393,19 @@ describe('AppController', () => {
       ownerEmail: otherUser.email,
     }
     return testMethod({ expectedCode: 200, url: '/crud/one', method: 'GET', app, jwt: user.jwt, entityManager, payload, query, expectedObject, crudConfig });
+  }
+  );
+
+  it('should forbid find melon for guest', async () => {
+    const otherUser: TestUser = users["Sarah Doe"];
+    const payload: Partial<Melon> = {
+    } as any;
+    const query: CrudQuery = {
+      service: CrudService.getName(Melon),
+      query: JSON.stringify({ owner: formatId(otherUser.id as any, crudConfig) })
+    }
+    const expectedObject: Partial<Melon> = null;
+    return testMethod({ expectedCode: 403, url: '/crud/one', method: 'GET', app, jwt: null, entityManager, payload, query, expectedObject, crudConfig });
   }
   );
 
