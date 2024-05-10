@@ -19,6 +19,7 @@ import { LoginDto, LoginResponseDto } from './model/dtos';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { LRUCache } from 'mnemonist';
 import { _utils } from '../utils';
+import { CrudTransformer } from './transform/CrudTransformer';
 
 
 
@@ -64,7 +65,7 @@ export class CrudController {
         //     }
         //     delete data?.[this.crudConfig.id_field];
         // }
-        
+
         const currentService: CrudService<any> = this.crudConfig.servicesMap[crudQuery?.service];
         this.checkServiceNotFound(currentService, query);
         ctx.method = method
@@ -429,15 +430,16 @@ export class CrudController {
             // const oldProto = Object.getPrototypeOf(ctx.data);
             // Object.setPrototypeOf(ctx.query, dataClass.prototype);
             const newObj = { ...ctx.query};
+            CrudTransformer.transformCrud(newObj, queryClass);
             Object.setPrototypeOf(newObj, queryClass.prototype);
             await this.validateOrReject(newObj, true, 'Query:');
         }
         if (dataClass) {
             //ctx.data = dataDefaultValues ? this.plainToInstanceWithDefaultValues(ctx.data, dataClass) : this.plainToInstanceNoDefaultValues(ctx.data, dataClass);
             const newObj = { ...ctx.data};
+            CrudTransformer.transformCrud(newObj, dataClass);
             Object.setPrototypeOf(newObj, dataClass.prototype);
             await this.validateOrReject(newObj, !dataDefaultValues, 'Data:');
-  
         }
 
     }

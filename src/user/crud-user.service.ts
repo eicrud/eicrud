@@ -11,11 +11,14 @@ import { CrudErrors } from '../crud/model/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
 import { IsString, MaxLength, MinLength } from 'class-validator';
 import { ModuleRef } from '@nestjs/core';
+import { Transform } from 'class-transformer';
 
 
 export class CreateAccountDto {
   @IsString()
+  @Transform(({ value }) => value.toLowerCase().trim())
   email: string;
+
   @IsString()
   password: string;
 }

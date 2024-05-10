@@ -67,6 +67,7 @@ export class CrudConfigService {
     protected orm: MikroORM;
 
     public dbType: 'mongo' | 'other' = 'mongo';
+    isIsolated: any;
 
     constructor(config: {userService: CrudUserService<any>, 
         logService?: LogService,
@@ -82,8 +83,10 @@ export class CrudConfigService {
         id_field?: string,
         guest_role?: string,
         dbType?: string,
+        isIsolated?: boolean,
     }
         ) {
+            this.isIsolated = config.isIsolated;
             this.id_field = config.id_field || this.id_field;
             this.guest_role = config.guest_role || this.guest_role;
             this.orm = config.orm;

@@ -4,6 +4,7 @@ import { Equals, IsBoolean, IsDate, IsEmail, IsInt, IsMongoId, IsOptional, IsStr
 import { UserProfile } from "./UserProfile";
 import { Melon } from "./Melon";
 import { Exclude } from "class-transformer";
+import { $ToLowerCase, $Trim } from "../../crud/transform/decorators";
 
 @Entity()
 export class MyUser implements CrudUser {

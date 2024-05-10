@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   Inject,
@@ -89,6 +90,11 @@ export class AuthGuard implements CanActivate {
 
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+
+    if(this.crudConfig.isIsolated){
+      throw new BadRequestException('This instance is isolated.')
+    }
+
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
     let user: Partial<CrudUser> = { role: this.crudConfig.guest_role };
@@ -117,7 +123,7 @@ export class AuthGuard implements CanActivate {
         }
 
         if(user?.captchaRequested && !user?.didCaptcha 
-          && !request.path.includes('crud/captcha')
+          && !request.url.includes('crud/captcha')
           && this.crudConfig.captchaService
           ){
           throw new UnauthorizedException(CrudErrors.CAPTCHA_REQUIRED.str());
