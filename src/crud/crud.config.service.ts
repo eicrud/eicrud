@@ -51,7 +51,8 @@ export class CrudConfigService {
     }
 
 
-    services: CrudService<any>[] = [];
+    servicesMap: Record<string, CrudService<any>> = {};
+
     id_field: string = 'id';
     guest_role: string = "guest" 
     public rolesMap: Record<string, CrudRole> = {};
@@ -74,7 +75,6 @@ export class CrudConfigService {
         emailService: EmailService,
         jwtSecret: string,
         cacheManager: SecurityCacheManager,
-        roles?: CrudRole[],
         authenticationOptions?: AuthenticationOptions,
         watchTrafficOptions?: TrafficWatchOptions,
         defaultCacheOptions?: CacheOptions,
@@ -99,19 +99,29 @@ export class CrudConfigService {
             this.captchaService = config.captchaService;
             this.emailService = config.emailService;
 
-            this.services.push(...[
-                this.userService,
-                this.logService
-            ])
+    }
 
-            //unique defined services 
-            this.services = this.services.filter((v, i, a) => (v && a.indexOf(v) === i));
+    addRoles(roles: CrudRole[]){
+        roles.forEach(r => this.addRole(r));
+    }
 
-            this.rolesMap = config.roles?.reduce((acc, role) => {
-                acc[role.name] = role;
-                return acc;
-            }, {} as Record<string, CrudRole>) || {};
+    addRole(role: CrudRole){
+        if(this.rolesMap[role.name]){
+            throw new Error("Duplicate role name: " + role.name);
+        }
+        this.rolesMap[role.name] = role;
+    }
 
+    addServices(services: CrudService<any>[]){
+        services.forEach(s => this.addService(s));
+    }
+
+    addService(service: CrudService<any>){
+        const key = service.getName();
+        if(this.servicesMap[key]){
+            throw new Error("Duplicate service name: " + service.entity.name + ' > ' + key);
+        }
+        this.servicesMap[key] = service;    
     }
 
     async onModuleInit() {

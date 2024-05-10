@@ -47,8 +47,6 @@ export class MyConfigService extends CrudConfigService {
         public userService: MyUserService,
         public entityManager: EntityManager,
         public emailService: MyEmailService,
-        public melonService: MelonService,
-        public myProfileService: MyProfileService,
         protected orm: MikroORM
     ) {
         super({
@@ -56,12 +54,12 @@ export class MyConfigService extends CrudConfigService {
             entityManager,
             emailService,
             jwtSecret: 'myTestSecret',
-            roles: roles,
             cacheManager: new BasicMemoryCache(),
             orm,
             id_field: 'id',
         });
-        this.services.push(...[emailService, melonService, myProfileService]);
+
+        this.addRoles(roles);
     }
 
 

@@ -50,5 +50,9 @@ export class MelonService extends CrudService<Melon> {
     constructor(protected moduleRef: ModuleRef) {
         const serviceName = CrudService.getName(Melon);
         super(moduleRef, Melon, melonSecurity(serviceName));
+
+    }
+
+    onApplicationBootstrap() {
     }
 }

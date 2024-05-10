@@ -35,6 +35,7 @@ export class CrudService<T extends CrudEntity> {
     onModuleInit() {
         this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY, { strict: false });
         this.CACHE_TTL = this.config?.cacheOptions?.TTL || this.crudConfig.defaultCacheOptions.TTL;
+        this.crudConfig.addService(this);
     }
 
 

@@ -72,5 +72,8 @@ export class MyProfileService extends CrudService<UserProfile> {
         const serviceName = CrudService.getName(UserProfile);
         super(moduleRef, UserProfile, myProfileSecurity(serviceName));
     }
+
+    onApplicationBootstrap() {
+    }
     
 }
