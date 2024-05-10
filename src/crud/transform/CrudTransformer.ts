@@ -8,36 +8,45 @@ export interface IFieldMetadata {
 }
 
 export class CrudTransformer {
+    
 
-    static transformCrud(obj: any, cls: any) {
+    static transformTypes(obj: any, cls: any) {
+        return CrudTransformer.transform(obj, cls, true);
+    }
+
+    static transform(obj: any, cls: any, convertTypes = false) {
         const metadata = CrudTransformer.getClassMetadata(cls);
         if(!metadata) return obj;
         
         for (const key in obj) {
             if (metadata[key]) {
-
-                metadata[key].transforms.forEach((transform) => {
-                    if(Array.isArray(obj[key]) && transform.opts?.each) {
-                        obj[key] = obj[key].map((value: any) => transform.func(value));
-                    }
-                    else{
-                        obj[key] = transform.func(obj[key]);
-                    }
-                });
+                if(!convertTypes){
+                    metadata[key].transforms.forEach((transform) => {
+                        if(Array.isArray(obj[key]) && transform.opts?.each) {
+                            obj[key] = obj[key].map((value: any) => transform.func(value));
+                        }
+                        else{
+                            obj[key] = transform.func(obj[key]);
+                        }
+                    });
+                }
                 const type = metadata[key].type;
                 if(type) {
                     if(Array.isArray(obj[key]) && type.opts?.each) {
                         obj[key] = obj[key].map((value: any) => {
-                            const res = CrudTransformer.transformCrud(value, type.class);
-                            Object.setPrototypeOf(value, type.class.prototype);
+                            const res = CrudTransformer.transform(value, type.class, convertTypes);
+                            if(convertTypes){
+                                Object.setPrototypeOf(value, type.class.prototype);
+                            }
                             return res;
                         });
                     }else{
-                        obj[key] = CrudTransformer.transformCrud(obj[key], type.class);
-                        Object.setPrototypeOf(obj[key],type.class.prototype);
+                        obj[key] = CrudTransformer.transform(obj[key], type.class, convertTypes);
+                        if(convertTypes){
+                            Object.setPrototypeOf(obj[key],type.class.prototype);
+                        }
                     }
                 }
-
             }
         }
         return obj;

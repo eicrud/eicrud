@@ -4,8 +4,8 @@ export interface ICrudTransformOptions {
     each?: boolean;
 }
 
-export function $Transform(opts?: ICrudTransformOptions) {
-    return (target: any, propertyKey: string, func: (value: any) => any) => {
+export function $Transform(func: (value) => any, opts?: ICrudTransformOptions) {
+    return (target: any, propertyKey: string) => {
         const metadata = CrudTransformer.getOrCreateFieldMetadata(target, propertyKey);
         metadata.transforms.push({ func, opts });
         CrudTransformer.setFieldMetadata(target, propertyKey, metadata);
@@ -14,13 +14,13 @@ export function $Transform(opts?: ICrudTransformOptions) {
 
 export function $ToLowerCase() {
     return (target: any, propertyKey: string) => {
-        $Transform({ each: true })(target, propertyKey, (value: string) => value.toLowerCase());
+        $Transform((value: string) => value.toLowerCase(),{ each: true })(target, propertyKey);
     }
 }
 
 export function $Trim() {
     return (target: any, propertyKey: string) => {
-        $Transform({ each: true })(target, propertyKey, (value: string) => value.trim());
+        $Transform((value: string) => value.trim(), { each: true })(target, propertyKey);
     }
 }
 
