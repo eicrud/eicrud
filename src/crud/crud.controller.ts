@@ -28,7 +28,6 @@ import { _utils } from '../utils';
 })
 export class CrudController {
 
-    crudMap: Record<string, CrudService<any>>;
 
 
     userLastLoginAttemptMap: LRUCache<string, Date>;
@@ -53,14 +52,7 @@ export class CrudController {
 
     onModuleInit() {
         this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY,{ strict: false })
-        this.crudMap = this.crudConfig.services.reduce((acc, service) => {
-            const key = service.getName();
-            if(acc[key]){
-                throw new Error("Duplicate service name: " + service.entity.name + ' > ' + key);
-            }
-            acc[key] = service;
-            return acc;
-        }, {});
+
         this.userLastLoginAttemptMap = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_USERS/2);
       }
 
@@ -73,7 +65,7 @@ export class CrudController {
         //     delete data?.[this.crudConfig.id_field];
         // }
         
-        const currentService: CrudService<any> = this.crudMap[crudQuery?.service];
+        const currentService: CrudService<any> = this.crudConfig.servicesMap[crudQuery?.service];
         this.checkServiceNotFound(currentService, query);
         ctx.method = method
         ctx.serviceName = crudQuery.service
