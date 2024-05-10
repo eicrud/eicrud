@@ -3,7 +3,7 @@ import { CrudRole } from "./model/CrudRole";
 import { CrudService } from "./crud.service";
 import { CrudUserService } from "../user/crud-user.service";
 import { LogService } from "../log/log.service";
-import { EntityManager } from "@mikro-orm/core";
+import { EntityManager, raw } from "@mikro-orm/core";
 import { CrudContext } from "./model/CrudContext";
 import { CrudAuthorizationService } from "./crud.authorization.service";
 import { TrafficWatchOptions } from "../authentification/auth.guard";
@@ -25,6 +25,7 @@ export interface CacheOptions {
 export const CRUD_CONFIG_KEY = 'CRUD_CONFIG_U4u7YojMIZ';
 
 export class CrudConfigService {
+
     
     watchTrafficOptions: TrafficWatchOptions = {
         MAX_USERS: 10000, 

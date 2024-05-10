@@ -9,7 +9,7 @@ import { CrudAuthorizationService } from '../crud/crud.authorization.service';
 import { Loaded, Type } from '@mikro-orm/core';
 import { CrudErrors } from '../crud/model/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
-import { IsString } from 'class-validator';
+import { IsString, MaxLength, MinLength } from 'class-validator';
 import { ModuleRef } from '@nestjs/core';
 
 
@@ -19,28 +19,30 @@ export class CreateAccountDto {
   @IsString()
   password: string;
 }
+
+export const baseCmds = {
+  sendVerificationEmail: {
+    name: 'sendVerificationEmail'
+  },
+  verifyEmail: {
+    name: 'verifyEmail'
+  },
+  sendPasswordResetEmail: {
+    name: 'sendPasswordResetEmail'
+  },
+  resetPassword: {
+    name: 'resetPassword'
+  },
+  createAccount: {
+    name: 'createAccount',
+    dto: CreateAccountDto
+  }
+
+}
 @Injectable()
 export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
-  baseCmds = {
-    sendVerificationEmail: {
-      name: 'sendVerificationEmail'
-    },
-    verifyEmail: {
-      name: 'verifyEmail'
-    },
-    sendPasswordResetEmail: {
-      name: 'sendPasswordResetEmail'
-    },
-    resetPassword: {
-      name: 'resetPassword'
-    },
-    createAccount: {
-      name: 'createAccount',
-      dto: CreateAccountDto
-    }
-
-  }
+ 
 
   protected crudConfig: CrudConfigService;
   protected authorizationService: CrudAuthorizationService;
@@ -55,12 +57,12 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     security = security || new CrudSecurity();
     super(moduleRef, userEntityClass, security);
 
-    for(const cmd in this.baseCmds){
+    for(const cmd in baseCmds){
       security.cmdSecurityMap = security.cmdSecurityMap || {};
       security.cmdSecurityMap[cmd] = security.cmdSecurityMap?.[cmd] || {};
       security.cmdSecurityMap[cmd].secureOnly = true;
       if(!security.cmdSecurityMap[cmd].dto){
-        security.cmdSecurityMap[cmd].dto = this.baseCmds[cmd].dto;
+        security.cmdSecurityMap[cmd].dto = baseCmds[cmd].dto;
       }
     }
   }
@@ -350,23 +352,23 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   override async cmdHandler(cmdName: string, ctx: CrudContext, inheritance?: any) {
 
     switch (cmdName) {
-      case this.baseCmds.sendVerificationEmail.name:
+      case baseCmds.sendVerificationEmail.name:
           return await this.sendVerificationEmail(ctx);
       break;
 
-      case this.baseCmds.verifyEmail.name:
+      case baseCmds.verifyEmail.name:
           return await this.verifyEmail(ctx);
       break;
 
-      case this.baseCmds.sendPasswordResetEmail.name:
+      case baseCmds.sendPasswordResetEmail.name:
           return await this.sendPasswordResetEmail(ctx);
           break;
 
-      case this.baseCmds.resetPassword.name:
+      case baseCmds.resetPassword.name:
           return await this.resetPassword(ctx);
           break;
 
-      case this.baseCmds.createAccount.name:
+      case baseCmds.createAccount.name:
           return await this.createAccount(ctx.data.email, ctx.data.password, ctx);
           break;
 

@@ -63,7 +63,7 @@ describe('AppController', () => {
   beforeAll(async () => {
 
     const moduleRef: TestingModule = await Test.createTestingModule(
-      getModule('basic-orm-db')
+      getModule('test-orm-db')
     ).compile();
     await moduleRef.get<EntityManager>(EntityManager).getConnection().getDb().dropDatabase();
 

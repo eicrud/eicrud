@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Inject, Patch, Post, Put, Query, UnauthorizedException, ValidationPipe, forwardRef } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpException, HttpStatus, Inject, Patch, Post, Put, Query, UnauthorizedException, ValidationPipe, forwardRef } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
 import { CrudContext } from './model/CrudContext';
@@ -15,8 +15,10 @@ import { CrudErrors } from './model/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
 import { CrudOptions } from './model/CrudOptions';
 import { ModuleRef } from '@nestjs/core';
-import { LoginDto } from './model/dtos';
+import { LoginDto, LoginResponseDto } from './model/dtos';
 import { ObjectId } from '@mikro-orm/mongodb';
+import { LRUCache } from 'mnemonist';
+import { _utils } from '../utils';
 
 
 
@@ -27,6 +29,9 @@ import { ObjectId } from '@mikro-orm/mongodb';
 export class CrudController {
 
     crudMap: Record<string, CrudService<any>>;
+
+
+    userLastLoginAttemptMap: LRUCache<string, Date>;
 
 
     NON_ADMIN_LIMIT_QUERY = 40;
@@ -56,6 +61,7 @@ export class CrudController {
             acc[key] = service;
             return acc;
         }, {});
+        this.userLastLoginAttemptMap = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_USERS/2);
       }
 
     assignContext(method: string, crudQuery: CrudQuery, query: any, data: any, type, ctx: CrudContext): CrudService<any> {
@@ -362,15 +368,26 @@ export class CrudController {
 
     @Get('auth')
     async getConnectedUser(@Context() ctx: CrudContext) {
-        return { userId: ctx.user[this.crudConfig.id_field] };
+        return { userId: ctx.user[this.crudConfig.id_field] } as LoginResponseDto;
     }
 
     ALLOWED_EXPIRES_IN = ['15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '4d', '5d', '6d', '7d', '14d', '30d'];
 
     @Post('auth')
-    async login(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data: LoginDto, @Context() ctx: CrudContext) {
-        data = this.plainToInstanceNoDefaultValues(data, LoginDto);
-        await this.validateOrReject(data, false, 'Data:');
+    async login(@Body(new ValidationPipe({ transform: true })) data: LoginDto, @Context() ctx: CrudContext) {
+   
+        const lastLogingAttempt: Date = this.userLastLoginAttemptMap.get(data.email);
+        const now = new Date();
+        if(lastLogingAttempt && _utils.diffBetweenDatesMs(now, lastLogingAttempt) < 600){
+            throw new HttpException({
+                statusCode: 425,
+                error: 'Too early',
+                message: CrudErrors.TOO_MANY_LOGIN_ATTEMPTS.str(),
+            }, 425);        
+        }
+
+        this.userLastLoginAttemptMap.set(data.email, now);
+
         if(data.expiresIn && !this.ALLOWED_EXPIRES_IN.includes(data.expiresIn)){
             throw new BadRequestException("Invalid expiresIn: " + data.expiresIn + " allowed: " + this.ALLOWED_EXPIRES_IN.join(', '));
         }
@@ -379,7 +396,7 @@ export class CrudController {
             throw new UnauthorizedException(CrudErrors.PASSWORD_TOO_LONG.str());
         }
 
-        return this.crudAuthService.signIn(data.email, data.password, data.expiresIn, data.twoFA_code);
+        return this.crudAuthService.signIn(ctx, data.email, data.password, data.expiresIn, data.twoFA_code);
     }
 
     async performValidationAuthorizationAndHooks(ctx: CrudContext, currentService: any, skipBeforeHooks = false) {
