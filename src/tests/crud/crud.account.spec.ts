@@ -96,8 +96,6 @@ describe('AppController', () => {
     const em = entityManager.fork();
   
     await createAccountsAndProfiles(users, em, userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
-
-
     
   }, 10000);
 
@@ -210,6 +208,45 @@ describe('AppController', () => {
       
 
   }, 5000);
+  
+  it('should trim and lowercase email on login', async () => {
+    const user = users["Michael Doe"];
+    const payload: LoginDto = {
+      email: user.email.toUpperCase() + "  ",
+      password: testAdminCreds.password,
+    }
+    const query = { };
+
+    let jwt = null;
+
+    const res: LoginResponseDto = await testMethod({ url: '/crud/auth', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload, query, crudConfig});
+
+    expect(res.userId.toString()).toEqual(user.id.toString());
+    jwt = res.accessToken;
+    const res2: LoginResponseDto = await testMethod({ url: '/crud/auth', method: 'GET', expectedCode: 200, app, jwt, entityManager, payload, query, crudConfig});
+    expect(res2.userId.toString()).toEqual(user.id.toString());
+
+  });
+
+  it('should trim and lowercase email on createAccount', async () => {
+    const payload: CreateAccountDto = {
+      email: " nonTriMMed@mail.com ",
+      password: testAdminCreds.password,
+    };
+    const query: CrudQuery = {
+      service: 'my-user',
+      cmd: 'createAccount',
+    }
+    let jwt = null;
+
+    const { userId, accessToken } = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload, query, crudConfig});
+
+    const em = entityManager.fork();
+    const userDb: MyUser = await em.findOne(MyUser, { id: userService.createNewId(userId) as any }) as any;
+    expect(userDb.email).toEqual(payload.email.trim().toLowerCase());
+
+  });
+
 
 
 

@@ -1,7 +1,9 @@
+import { Transform } from "class-transformer";
 import { IsString, IsOptional } from "class-validator";
 
 export class LoginDto {
     @IsString()
+    @Transform(({ value, key, obj, type }) => value.toLowerCase().trim())
     email: string;
 
     @IsString()
@@ -20,3 +22,7 @@ export class LoginResponseDto {
     userId: string;
     accessToken?: string;
 }
+function ToLowerCase(): (target: LoginDto, propertyKey: "password") => void {
+    throw new Error("Function not implemented.");
+}
+

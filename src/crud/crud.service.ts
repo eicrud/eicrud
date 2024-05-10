@@ -12,11 +12,31 @@ import { ModuleRef } from '@nestjs/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 
 
+function getAllMethodNames(obj) {
+    let methodNames = [];
+  
+    // Loop through the prototype chain
+    let currentObj = obj;
+    while (currentObj) {
+      const currentMethodNames = Object.getOwnPropertyNames(currentObj)
+        .filter(propertyName => typeof currentObj[propertyName] === 'function');
+  
+      methodNames = methodNames.concat(currentMethodNames);
+  
+      // Move up the prototype chain
+      currentObj = Object.getPrototypeOf(currentObj);
+    }
+  
+    // Remove duplicates
+    methodNames = [...new Set(methodNames)];
+  
+    return methodNames;
+  }
+  
 
-
+  
+ 
 export class CrudService<T extends CrudEntity> {
-
-
 
     CACHE_TTL = 60 * 10 * 1000; // 10 minutes
     public serviceName: string;
@@ -36,6 +56,19 @@ export class CrudService<T extends CrudEntity> {
         this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY, { strict: false });
         this.CACHE_TTL = this.config?.cacheOptions?.TTL || this.crudConfig.defaultCacheOptions.TTL;
         this.crudConfig.addService(this);
+
+    }
+    
+
+    onApplicationBootstrap() {
+        // const allMethodNames = getAllMethodNames(this);
+  
+        // // Display all method names
+        // allMethodNames.forEach(methodName => {
+        //   console.log(methodName);
+        // });
+      
+        // console.log("DONE");
     }
 
 

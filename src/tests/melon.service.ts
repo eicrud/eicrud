@@ -53,6 +53,4 @@ export class MelonService extends CrudService<Melon> {
 
     }
 
-    onApplicationBootstrap() {
-    }
 }

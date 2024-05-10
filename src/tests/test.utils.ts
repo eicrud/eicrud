@@ -17,6 +17,7 @@ export interface TestUser{
   store?: any,
   melons?: number,
   favoriteColor?: string
+  password?: string
 }
 
 export function formatId(id: any, crudConfig: CrudConfigService){
@@ -104,11 +105,11 @@ export function createMelons(NB_MELONS, owner: TestUser, crudConfig: CrudConfigS
 }
 
 
-export async function createAccountsAndProfiles(users: Record<string, TestUser>, em: EntityManager, userService, crudConfig: CrudConfigService, config : { usersWithoutProfiles?: string[], testAdminCreds: { email: string, password: string } }){
+export async function createAccountsAndProfiles(users: Record<string, TestUser>, em: EntityManager, userService, crudConfig: CrudConfigService, config : { usersWithoutProfiles?: string[], testAdminCreds: { email?: string, password: string } }){
   const promises = [];
   for(const key in users){
     const user = users[key];
-    const prom = userService.createAccount(user.email, config.testAdminCreds.password, null, user.role ).then(
+    const prom = userService.createAccount(user.email, user.password || config.testAdminCreds.password, null, user.role ).then(
       async (accRes) => {
         users[key][crudConfig.id_field] = accRes.userId;
         users[key].jwt = accRes.accessToken;
