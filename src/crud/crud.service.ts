@@ -77,6 +77,32 @@ export class CrudService<T extends CrudEntity> {
         return entity;
     }
 
+    async createBatch(newEntities: Partial<T>[], context: CrudContext, secure: boolean = true, inheritance: any = {}) {
+        context.noFlush = true;
+        const results = [];
+        for (let entity of newEntities) {
+            const res = await this.create(entity, context, secure, inheritance);
+            results.push(res);
+        }
+        await context.em.flush();
+        context.noFlush = false;
+
+        return results;
+    }
+
+    async patchBatch(data: any[], ctx: CrudContext, secure: boolean = true, inheritance: any = {}) {
+        ctx.noFlush = true;
+        const results = [];
+        for (let d of data) {
+            const res = await this.patch(d.query, d.data, ctx, secure, inheritance);
+            results.push(res);
+        }
+        await ctx.em.flush();
+        ctx.noFlush = false;
+        return results;
+    }
+
+
     async unsecure_fastCreate(newEntity: Partial<T>, context: CrudContext, inheritance: any = {}) {
         return await this.create(newEntity, context, false, inheritance);
     }

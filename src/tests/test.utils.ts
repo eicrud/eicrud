@@ -42,13 +42,15 @@ export function testMethod(arg: { app: NestFastifyApplication,
     expectedObject?: any,
     crudConfig: CrudConfigService
     }){
+    const headers = {};
+    if(arg.jwt){
+        headers['Authorization'] = `Bearer ${arg.jwt}`;
+    }
     return arg.app
       .inject({
         method: arg.method as any,
         url: arg.url,
-        headers: {
-          Authorization: `Bearer ${arg.jwt}`
-        },
+        headers,
         payload: arg.payload,
         query: new URLSearchParams(arg.query as any).toString()
       })

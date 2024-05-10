@@ -92,9 +92,13 @@ export class CrudAuthorizationService {
 
     async authorize(ctx: CrudContext) {
 
+        if(ctx.security.guest_can_read_all && ctx.method == 'GET'){
+            return true;
+        }
+
         const fields = AuthUtils.getObjectFields(ctx.data);
 
-        if (ctx.origin == 'crud'){
+        if (ctx.origin == 'crud' && !ctx.isBatch){
             await this.checkmaxItemsPerUser(ctx);
         }else if (ctx.origin == 'cmd'){
             const cmdSec = ctx.security.cmdSecurityMap?.[ctx.cmdName];
