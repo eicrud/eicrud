@@ -12,7 +12,6 @@ import { createAccountsAndProfiles, createNewProfileTest, formatId, testMethod }
 import { MyProfileService } from '../profile.service';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../crud/crud.config.service';
 import { TestUser } from '../test.utils';
-import e from 'express';
 
 const testAdminCreds = {
   email: "admin@testmail.com",

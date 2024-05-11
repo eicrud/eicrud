@@ -1,6 +1,6 @@
 import { ICrudTransformOptions } from "./decorators";
 
-export const _crudClassMetadataMap: Record<string, Record<string, IFieldMetadata>> = {};
+export const crudClassMetadataMap: Record<string, Record<string, IFieldMetadata>> = {};
 
 export interface IFieldMetadata {
     transforms: {func:((value: any) => any), opts: ICrudTransformOptions}[],
@@ -15,7 +15,8 @@ export class CrudTransformer {
     }
 
     static transform(obj: any, cls: any, convertTypes = false) {
-        const metadata = CrudTransformer.getClassMetadata(cls);
+        const classKey =  cls.name + '_' + CrudTransformer.hashClass(cls);
+        const metadata = crudClassMetadataMap[classKey];
         if(!metadata) return obj;
         
         for (const key in obj) {
@@ -76,29 +77,29 @@ export class CrudTransformer {
     
     static getClassMetadata(target: any): Record<string, IFieldMetadata> {
         const classKey = CrudTransformer.getClassKey(target);
-        return _crudClassMetadataMap[classKey];
+        return crudClassMetadataMap[classKey];
     }
 
     static getFieldMetadata(target: any, propertyKey: string): IFieldMetadata {
         const classKey = CrudTransformer.getClassKey(target);
-        return _crudClassMetadataMap[classKey]?.[propertyKey];
+        return crudClassMetadataMap[classKey]?.[propertyKey];
     }
     
     static getOrCreateFieldMetadata(target: any, propertyKey: string): IFieldMetadata {
         const classKey = CrudTransformer.getClassKey(target);
-        if (!_crudClassMetadataMap[classKey]) {
-            _crudClassMetadataMap[classKey] = {};
+        if (!crudClassMetadataMap[classKey]) {
+            crudClassMetadataMap[classKey] = {};
         }
-        if (!_crudClassMetadataMap[classKey][propertyKey]) {
-            _crudClassMetadataMap[classKey][propertyKey] = {
+        if (!crudClassMetadataMap[classKey][propertyKey]) {
+            crudClassMetadataMap[classKey][propertyKey] = {
                 transforms: []
             };
         }
-        return _crudClassMetadataMap[classKey][propertyKey];
+        return crudClassMetadataMap[classKey][propertyKey];
     }
     
     static setFieldMetadata(target: any, propertyKey: string, metadata: IFieldMetadata) {
         const classKey = CrudTransformer.getClassKey(target);
-        _crudClassMetadataMap[classKey][propertyKey] = metadata;
+        crudClassMetadataMap[classKey][propertyKey] = metadata;
     }
 }

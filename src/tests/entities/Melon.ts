@@ -29,19 +29,6 @@ export class Melon implements CrudEntity {
     @IsString()
     name: string;
 
-    @Property({nullable: true})
-    @IsString()
-    @$ToLowerCase()
-    @$Trim()
-    @IsOptional()
-    lowercaseTrimmedField: string;
-
-    @Property({nullable: true})
-    @IsString()
-    @IsOptional()
-    @$Transform((value: string) => value.toUpperCase())
-    upperCaseField: string;
-
     @Property()
     @IsInt()
     price: number;
