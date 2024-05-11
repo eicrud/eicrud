@@ -9,6 +9,7 @@ export interface CrudContext {
     serviceName?: string, 
     user?: CrudUser, 
     userId?: string,
+    userTrust?: number,
     method?: string, 
     security?: CrudSecurity,
     query?: any, 

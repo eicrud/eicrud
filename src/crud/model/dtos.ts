@@ -22,7 +22,15 @@ export class LoginResponseDto {
     userId: string;
     accessToken?: string;
 }
-function ToLowerCase(): (target: LoginDto, propertyKey: "password") => void {
-    throw new Error("Function not implemented.");
+
+export interface ICrudRightsFieldInfo {
+    maxSize?: number;
+    maxLength?: number;
+    type?: Record<string, ICrudRightsFieldInfo>;
+}
+export interface ICrudRightsInfo {
+    maxItemsPerUser: number;
+    usersItemsInDb: number;
+    fields: Record<string, ICrudRightsFieldInfo>;
 }
 

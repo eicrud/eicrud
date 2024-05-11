@@ -17,6 +17,10 @@
 
 [ ] security test default fields option
 
-[ ] remove crudService methods to $
+[ ] rename crudService methods to $
 
 [ ] test nested validation & transform
+
+[ ] replace maxSize with per field decorator value
+
+[ ] patch many

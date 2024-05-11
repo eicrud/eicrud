@@ -6,7 +6,7 @@ import { LogService } from "../log/log.service";
 import { EntityManager, raw } from "@mikro-orm/core";
 import { CrudContext } from "./model/CrudContext";
 import { CrudAuthorizationService } from "./crud.authorization.service";
-import { TrafficWatchOptions } from "../authentification/auth.guard";
+import { TrafficWatchOptions, ValidationOptions } from "../authentification/auth.guard";
 import { CrudUser } from "../user/model/CrudUser";
 import { EmailService } from "../email/email.service";
 import { AuthenticationOptions } from "../authentification/auth.service";
@@ -32,6 +32,11 @@ export class CrudConfigService {
         REQUEST_THRESHOLD: 350,
         TIMEOUT_THRESHOLD_TOTAL: 10,
         TIMEOUT_DURATION_MIN: 15
+    };   
+    
+    validationOptions: ValidationOptions = {
+        DEFAULT_MAX_SIZE: 50,
+        DEFAULT_MAX_LENGTH: 20
     };
 
     authenticationOptions: AuthenticationOptions = {
@@ -79,6 +84,7 @@ export class CrudConfigService {
         authenticationOptions?: AuthenticationOptions,
         watchTrafficOptions?: TrafficWatchOptions,
         defaultCacheOptions?: CacheOptions,
+        validationOptions?: ValidationOptions,
         orm: MikroORM,
         id_field?: string,
         guest_role?: string,
@@ -93,6 +99,7 @@ export class CrudConfigService {
             this.authenticationOptions = { ...this.authenticationOptions, ...(config.authenticationOptions||{})};
             this.watchTrafficOptions = { ...this.watchTrafficOptions, ...(config.watchTrafficOptions||{})};
             this.defaultCacheOptions = { ...this.defaultCacheOptions, ...(config.defaultCacheOptions||{})};
+            this.validationOptions = { ...this.validationOptions, ...(config.validationOptions||{})};
             this.cacheManager = config.cacheManager;
             this.authenticationOptions.JWT_SECRET = config.jwtSecret;
 

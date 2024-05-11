@@ -306,7 +306,7 @@ describe('AppController', () => {
 
     const res = await testMethod({ url: '/crud/in', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
 
-    expect(res.length).toEqual(ids.length);
+    expect(res).toEqual(ids.length);
     for (const profile in profiles) {
       const resDB = await entityManager.fork().findOne(UserProfile, { id: profiles[profile].id });
       expect(resDB.astroSign).toEqual('Aries');
@@ -340,6 +340,28 @@ describe('AppController', () => {
     for (const profile in profilesToPatchBatch) {
       const resDB = await entityManager.fork().findOne(UserProfile, { id: profilesToPatchBatch[profile].id });
       expect(resDB.astroSign).toEqual('Taurus');
+    }
+
+  });
+
+  //@Patch('/crud/many')
+  it('should patch many profiles', async () => {
+    const payload: Partial<UserProfile> = {
+      chineseSign: 'Pig',
+    };
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ bio: 'BIO_FIND_KEY' })
+    }
+
+    const expectedObject = null;
+
+    const res = await testMethod({ url: '/crud/many', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
+
+    expect(res).toEqual(3);
+    for (const profile in profiles) {
+      const resDB = await entityManager.fork().findOne(UserProfile, { id: profiles[profile].id });
+      expect(resDB.chineseSign).toEqual('Pig');
     }
 
   });

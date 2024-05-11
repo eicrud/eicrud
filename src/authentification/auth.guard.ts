@@ -34,6 +34,15 @@ export interface TrafficWatchOptions{
 
 }
 
+
+
+export interface ValidationOptions{
+  DEFAULT_MAX_SIZE: number;
+
+  DEFAULT_MAX_LENGTH: number;
+}
+
+
 @Injectable()
 export class AuthGuard implements CanActivate {
   
@@ -96,7 +105,7 @@ export class AuthGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
-    let user: Partial<CrudUser> = { role: this.crudConfig.guest_role };
+    let user: Partial<CrudUser> = { role: this.crudConfig.guest_role};
     let userId;
     const options: CrudOptions = request.query?.query?.options || {};
     if (token) {
@@ -148,6 +157,9 @@ export class AuthGuard implements CanActivate {
 
     user.crudUserDataMap = user.crudUserDataMap || {};
     const crudContext: CrudContext = { user: user as any, userId };
+    if(!token){
+      crudContext.userTrust = 0;
+    }
     request['crudContext'] = crudContext
     return true;
   }

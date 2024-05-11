@@ -31,3 +31,21 @@ export function $Type(type: any, opts?: ICrudTransformOptions) {
         CrudTransformer.setFieldMetadata(target, propertyKey, metadata);
     }
 }
+
+export function $MaxSize(size: number, addPerTrustPoint?: number) {
+    return (target: any, propertyKey: string) => {
+        const metadata = CrudTransformer.getOrCreateFieldMetadata(target, propertyKey);
+        metadata.maxSize = size;
+        metadata.addMaxSizePerTrustPoint = addPerTrustPoint;
+        CrudTransformer.setFieldMetadata(target, propertyKey, metadata);
+    }
+}
+
+export function $MaxLength(length: number, addPerTrustPoint?: number) {
+    return (target: any, propertyKey: string) => {
+        const metadata = CrudTransformer.getOrCreateFieldMetadata(target, propertyKey);
+        metadata.maxLength = length;
+        metadata.addMaxLengthPerTrustPoint = addPerTrustPoint;
+        CrudTransformer.setFieldMetadata(target, propertyKey, metadata);
+    }
+}

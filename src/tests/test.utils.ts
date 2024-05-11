@@ -40,6 +40,7 @@ export function testMethod(arg: { app: NestFastifyApplication,
     query: any,
     expectedCode: number,
     fetchEntity?: { entity: any, id: string },
+    fetchEntities?: { entity: any, query: any },
     expectedObject?: any,
     crudConfig: CrudConfigService
     }){
@@ -64,12 +65,18 @@ export function testMethod(arg: { app: NestFastifyApplication,
         if(arg.fetchEntity){
             res = await arg.entityManager.fork().findOne(arg.fetchEntity.entity, { id: arg.fetchEntity[arg.crudConfig.id_field] });
             res = JSON.parse(JSON.stringify(res));
+        }else if(arg.fetchEntities){
+            res = await arg.entityManager.fork().find(arg.fetchEntities.entity, arg.fetchEntities.query);
+            res = JSON.parse(JSON.stringify(res));
         }
 
         if(arg.expectedObject){
+          const arr = Array.isArray(res) ? res : [res];
+          for(const re of arr){
             for(const key in arg.expectedObject){
-                expect(JSON.stringify(res[key])).toEqual(JSON.stringify(arg.expectedObject[key]));
+                expect(JSON.stringify(re[key])).toEqual(JSON.stringify(arg.expectedObject[key]));
             }
+          }
         }
         return res;
       });

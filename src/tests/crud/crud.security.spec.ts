@@ -15,6 +15,7 @@ import { CrudService } from '../../crud/crud.service';
 import { TestUser } from '../test.utils';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../crud/crud.config.service';
 import { format } from 'path';
+import exp from 'constants';
 
 const testAdminCreds = {
   email: "admin@testmail.com",
@@ -128,7 +129,23 @@ describe('AppController', () => {
       role: "admin",
       bio: 'I am a sys admin.',
       profileType: "admin",
-    }
+    },
+    "Joe Many": {
+      email: "Joe.Many@mail.com",
+      role: "user",
+      bio: 'BIO_FIND_MANY_KEY',
+    },
+    "Don Many": {
+      email: "Don.Many@mail.com",
+      role: "user",
+      bio: 'BIO_FIND_MANY_KEY',
+    },    
+    "Moe Many": {
+      email: "Moe.Many@mail.com",
+      role: "user",
+      bio: 'BIO_FIND_MANY_KEY',
+    },
+
   }
 
   beforeAll(async () => {
@@ -653,7 +670,7 @@ describe('AppController', () => {
 
     const res = await testMethod({ url: '/crud/in', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
 
-    expect(res.length).toEqual(ids.length);
+    expect(res).toEqual(ids.length);
     for (const id of ids) {
       const resDB = await entityManager.fork().findOne(UserProfile, { id: userService.createNewId(id) as any });
       expect(resDB.astroSign).toEqual('Cancer');
@@ -665,7 +682,7 @@ describe('AppController', () => {
     const userName = "Admin Dude";
     const user = users[userName];
     const payload: Partial<UserProfile> = {
-      astroSign: 'Cancer',
+      favoritePlanet: 'Uranus',
     };
     const ids = [];
     for (const key in users) {
@@ -684,8 +701,8 @@ describe('AppController', () => {
     expect(ids.length).toBeGreaterThan(0);
 
     const res = await testMethod({ url: '/crud/in', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
-    expect(res.length).toBeGreaterThan(0);
-    expect(res.length).toBeLessThan(ids.length);
+    expect(res).toBeGreaterThan(0);
+    expect(res).toBeLessThan(ids.length);
 
   });
 
@@ -713,7 +730,67 @@ describe('AppController', () => {
 
     const res = await testMethod({ url: '/crud/in', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 403, expectedObject, crudConfig });
 
+  });  
+  
+  it('should forbid admin patch many profiles without limiting key', async () => {
+    const userName = "Admin Dude";
+    const user = users[userName];
+    const payload: Partial<UserProfile> = {
+      chineseSign: 'Pig',
+    };
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ bio: 'BIO_FIND_MANY_KEY'})
+    }
+
+    const expectedObject = null;
+    const res = await testMethod({ url: '/crud/many', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 403, expectedObject, crudConfig });
+
   });
+
+  it('should forbid moderator patch many profiles with limiting key', async () => {
+    const userName = "Moderator Joe";
+    const user = users[userName];
+    const payload: Partial<UserProfile> = {
+      chineseSign: 'Pig',
+    };
+
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ bio: 'BIO_FIND_MANY_KEY', type: 'basic' })
+    }
+    const expectedObject = null;
+    const res = await testMethod({ url: '/crud/many', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 403, expectedObject, crudConfig });
+
+  });
+
+  it('should authorize admin patch many profiles with limiting key', async () => {
+    const userName = "Admin Dude";
+    const user = users[userName];
+    const payload: Partial<UserProfile> = {
+      chineseSign: 'Pig',
+    };
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ bio: 'BIO_FIND_MANY_KEY', type: 'basic'})
+    }
+
+    const expectedObject = null;
+    const res = await testMethod({ url: '/crud/many', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
+    let count = 0;
+    for(const key in users){
+      const iuser = users[key];
+      if(iuser.bio === 'BIO_FIND_MANY_KEY'){
+        count++;
+        const resDB = await entityManager.fork().findOne(UserProfile, { id: userService.createNewId(iuser.profileId) as any });
+        expect(resDB.chineseSign).toEqual('Pig');
+      }
+    }
+    expect(count).toBeGreaterThan(0);
+    expect(count).toEqual(res);
+
+  });
+
 
   it('should forbid moderator patch in profiles with limiting key', async () => {
     const userName = "Moderator Joe";

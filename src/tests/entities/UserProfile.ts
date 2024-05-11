@@ -66,6 +66,12 @@ export class UserProfile implements CrudEntity {
     @MaxLength(15)
     chineseSign: string;
 
+    @Property({ nullable: true})
+    @IsString()
+    @IsOptional()
+    @MaxLength(15)
+    favoritePlanet: string;
+
     @Property()
     @IsString()
     @IsOptional()
