@@ -11,7 +11,6 @@ export class MyUser implements CrudUser {
 
     @OneToMany(() => Melon, mel => mel.owner)
     @Equals(undefined)
-    @Exclude({ toPlainOnly: true })
     melons = new Collection<Melon>(this);
 
     @OneToOne(() => UserProfile, profile => profile.user)

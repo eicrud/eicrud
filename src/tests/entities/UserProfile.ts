@@ -1,8 +1,9 @@
-import { Property, PrimaryKey, OneToOne, Entity, Embeddable, Embedded, Unique } from "@mikro-orm/core";
+import { Property, PrimaryKey, OneToOne, Entity, Embeddable, Embedded, Unique, Collection, OneToMany } from "@mikro-orm/core";
 import { CrudEntity } from "../../crud/model/CrudEntity";
-import { IsMongoId, IsNumber, IsOptional, IsString,MaxLength, ValidateNested, } from "class-validator";
+import { Equals, IsMongoId, IsNumber, IsOptional, IsString,MaxLength, ValidateNested, } from "class-validator";
 import { MyUser } from "./MyUser";
-import { $ToLowerCase, $Trim, $Transform, $Type } from "../../crud/transform/decorators";
+import { $ToLowerCase, $Trim, $Transform, $Type, $Delete } from "../../crud/transform/decorators";
+import { Picture } from "./Picture";
 
 @Embeddable()
 export class Geoloc {
@@ -36,6 +37,9 @@ export class UserProfile implements CrudEntity {
     @OneToOne(() => MyUser, user => user.profile, { owner: true })
     @IsMongoId()
     user: MyUser | string;
+
+    @OneToMany(() => Picture, mel => mel.profile)
+    pictures = new Collection<Picture>(this);
 
     @Property()
     @Unique()
@@ -102,5 +106,9 @@ export class UserProfile implements CrudEntity {
     @$Type(Geoloc)
     @ValidateNested()
     geoloc: Geoloc;
+
+    @Property({ nullable: true})
+    @$Delete()
+    fieldToDelete: string;
 
 }

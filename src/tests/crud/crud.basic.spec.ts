@@ -12,6 +12,7 @@ import { createAccountsAndProfiles, createNewProfileTest, formatId, testMethod }
 import { MyProfileService } from '../profile.service';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../crud/crud.config.service';
 import { TestUser } from '../test.utils';
+import exp from 'constants';
 
 const testAdminCreds = {
   email: "admin@testmail.com",
@@ -289,8 +290,9 @@ describe('AppController', () => {
 
   //@Patch('/crud/in')
   it('should patch in profiles', async () => {
-    const payload: Partial<UserProfile> = {
+    const payload: any = {
       astroSign: 'Aries',
+      fakeProp: 'fake'
     };
     const ids = [];
     for (const key in profiles) {
@@ -308,8 +310,10 @@ describe('AppController', () => {
 
     expect(res).toEqual(ids.length);
     for (const profile in profiles) {
-      const resDB = await entityManager.fork().findOne(UserProfile, { id: profiles[profile].id });
+      const resDB: any = await entityManager.fork().findOne(UserProfile, { id: profiles[profile].id });
       expect(resDB.astroSign).toEqual('Aries');
+      expect(resDB.fakeProp).toBeUndefined();
+
     }
 
   });
@@ -326,7 +330,7 @@ describe('AppController', () => {
     for (const key in profilesToPatchBatch) {
       payloadArray.push({
         query: { id: profilesToPatchBatch[key].id },
-        data: { astroSign: 'Taurus' }
+        data: { astroSign: 'Taurus', fakeProp: 'fake' }
       });
     }
 
@@ -338,16 +342,18 @@ describe('AppController', () => {
 
     expect(res?.length).toEqual(2);
     for (const profile in profilesToPatchBatch) {
-      const resDB = await entityManager.fork().findOne(UserProfile, { id: profilesToPatchBatch[profile].id });
+      const resDB: any = await entityManager.fork().findOne(UserProfile, { id: profilesToPatchBatch[profile].id });
       expect(resDB.astroSign).toEqual('Taurus');
+      expect(resDB.fakeProp).toBeUndefined();
     }
 
   });
 
   //@Patch('/crud/many')
   it('should patch many profiles', async () => {
-    const payload: Partial<UserProfile> = {
+    const payload: any = {
       chineseSign: 'Pig',
+      fakeProp: 'fake'
     };
     const query: CrudQuery = {
       service: 'user-profile',
@@ -360,8 +366,9 @@ describe('AppController', () => {
 
     expect(res).toEqual(3);
     for (const profile in profiles) {
-      const resDB = await entityManager.fork().findOne(UserProfile, { id: profiles[profile].id });
+      const resDB: any = await entityManager.fork().findOne(UserProfile, { id: profiles[profile].id });
       expect(resDB.chineseSign).toEqual('Pig');
+      expect(resDB.fakeProp).toBeUndefined();
     }
 
   });

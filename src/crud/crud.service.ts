@@ -79,8 +79,9 @@ export class CrudService<T extends CrudEntity> {
     createNewId(str?: string) {
         switch (this.crudConfig.dbType) {
             case 'mongo':
-            default: 
                 return str ? new ObjectId(str) : new ObjectId();
+            default: 
+                return str || Math.random().toString(36).substring(7);
         }
     }
 
@@ -106,9 +107,12 @@ export class CrudService<T extends CrudEntity> {
         const opts = this.getReadOptions(context);
         newEntity.createdAt = new Date();
         newEntity.updatedAt = newEntity.createdAt;
-        newEntity[this.crudConfig.id_field] = this.createNewId();
 
         const entity = em.create(this.entity, newEntity, opts as any);
+        //const entity = new (this.entity as any)();
+        wrap(entity).assign(newEntity as any, { em, mergeObjectProperties: true, onlyProperties: true });
+        entity[this.crudConfig.id_field] = this.createNewId();
+
         await em.persist(entity);
         if (!context?.noFlush) {
             await em.flush();
@@ -276,8 +280,12 @@ export class CrudService<T extends CrudEntity> {
     }
 
     private async doQueryPatch(query: Partial<T>, newEntity: Partial<T>, ctx: CrudContext, em: EntityManager, secure: boolean) {
-        const opts = this.getReadOptions(ctx);        
-        return em.nativeUpdate(this.entity, query, newEntity, opts);
+        const opts = this.getReadOptions(ctx);
+        let ormEntity = {};
+        Object.setPrototypeOf(ormEntity, this.entity.prototype);
+        wrap(ormEntity).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true });
+        ormEntity = (ormEntity as any).toJSON() ;
+        return em.nativeUpdate(this.entity, query, ormEntity, opts);
     }
 
     private async doOnePatch(query: Partial<T>, newEntity: Partial<T>, ctx: CrudContext, em: EntityManager, secure: boolean, context: CrudContext) {
@@ -369,10 +377,24 @@ export class CrudService<T extends CrudEntity> {
         return id;
     }
 
+    // checkObjectForIds(obj: any, level = 0): any {
+    //     for (let key in obj) {
+    //         if (obj.hasOwnProperty(key)) {
+    //             if (typeof obj[key] === 'object' && obj[key] !== null) {
+    //                 if(level < 3){
+    //                     this.checkObjectForIds(obj[key], level + 1);
+    //                 }
+    //             } else {
+    //                 obj[key] = this.checkId(obj[key]);
+    //             }
+    //         }
+    //     }
+    // }
+
     checkObjectForIds(obj: any) {
-        for (let key in obj || {}) {
-            obj[key] = this.checkId(obj[key]);
-        }
+         for (let key in obj || {}) {
+             obj[key] = this.checkId(obj[key]); 
+        } 
     }
 
     convertMongoPrimaryKey(key) {

@@ -8,7 +8,7 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../crud/model/CrudQuery';
-import { createAccountsAndProfiles, createMelons, createNewProfileTest, formatId, testMethod } from '../test.utils';
+import { createAccountsAndProfiles, createId, createMelons, createNewProfileTest, formatId, testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
 import { Melon } from '../entities/Melon';
 import { CrudService } from '../../crud/crud.service';
@@ -68,7 +68,14 @@ describe('AppController', () => {
       email: "john.doe@test.com",
       role: "user",
       profileType: "admin",
-      bio: 'I am a cool gal.',
+      bio: 'I am a cool doe.',
+    },
+    "John Don": {
+      email: "john.Don@test.com",
+      role: "user",
+      profileType: "admin",
+      bio: 'I am a cool Don.',
+      skipProfile: true,
     },
     "Geoloc Dude": {
       email: "Geoloc.dude@mail.com",
@@ -89,7 +96,7 @@ describe('AppController', () => {
   beforeAll(async () => {
 
     const moduleRef: TestingModule = await Test.createTestingModule(
-      getModule('test-transform-db')
+      getModule('test-validation-transform-db')
     ).compile();
     await moduleRef.get<EntityManager>(EntityManager).getConnection().getDb().dropDatabase();
 
@@ -311,6 +318,251 @@ describe('AppController', () => {
         userName: payload.userName,
       }
       await  testMethod({ expectedObject, url: '/crud/one', method: 'PATCH', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+    });
+
+    it('should delete @$Delete() anotted field', async () => {
+      const user = users["John Don"];
+      const userId = user.id;
+      const payload: Partial<UserProfile> = {
+        userName: "John Don",
+        user: userId,
+        bio: 'I am a cool guy.',
+        fieldToDelete: "Should be deleted",
+      } as any;
+      const query: CrudQuery = {
+        service: 'user-profile'
+      }
+      const expectedObject = {
+        userName: payload.userName,
+        user: userId,
+        bio: payload.bio,
+        fieldToDelete: undefined,
+      }
+      await  testMethod({ expectedObject, url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+    });
+
+    it('should validate name stringified size when creating melon', async () => {
+      const user = users["Michael Doe"];
+      const payload: Partial<Melon> = {
+        name: "M",
+        price: 1,
+        owner: formatId(user.id, crudConfig),
+        ownerEmail: user.email,
+      } as any;
+
+      
+      const query: CrudQuery = {
+        service: 'melon'
+      }
+
+      await  testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+      for(let i = 0; i <= 55; i++){
+        payload.name += "e";
+      }
+
+      await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 400, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+      
+    });
+
+
+    it('should validate longName stringified size when creating melon', async () => {
+      const user = users["Michael Doe"];
+      const payload: Partial<Melon> = {
+        longName: "M",
+        name: "MyMelon",
+        price: 1,
+        owner: formatId(user.id, crudConfig),
+        ownerEmail: user.email,
+      } as any;
+
+      
+      const query: CrudQuery = {
+        service: 'melon'
+      }
+
+      for(let i = 0; i <= 55; i++){
+        payload.longName += "e";
+      }
+
+      await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+      
+      
+      for(let i = 0; i <= 55; i++){
+        payload.longName += "e";
+      }
+
+      await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 400, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+
+      //User with more trust 
+      const trustedUser = users["Admin Dude"];
+
+      payload.owner = formatId(trustedUser.id, crudConfig);
+
+      await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: trustedUser.jwt, entityManager, payload, query, crudConfig});
+      for(let i = 0; i <= 30; i++){
+        payload.longName += "e";
+      }
+      await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 400, app, jwt: trustedUser.jwt, entityManager, payload, query, crudConfig});
+    });
+
+    it('should validate nested seed name stringigied size when creating melon', async () => {
+      const user = users["Michael Doe"];
+      const payload: Partial<Melon> = {
+        name: "MyMelon",
+        price: 1,
+        owner: formatId(user.id, crudConfig),
+        ownerEmail: user.email,
+        seeds: [
+          {
+            name: "M",
+            size: 1,
+          }
+        ]
+      } as any;
+
+      
+      const query: CrudQuery = {
+        service: 'melon'
+      }
+
+      await  testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+      for(let i = 0; i <= 10; i++){
+        payload.seeds[0].name += "e";
+      }
+
+      await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 400, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+      
+    });
+
+    it('should validate nested slice name stringigied size when creating melon', async () => {
+      const user = users["Michael Doe"];
+      const payload: Partial<Melon> = {
+        name: "MyMelon",
+        price: 1,
+        owner: formatId(user.id, crudConfig),
+        ownerEmail: user.email,
+        firstSlice: {
+          name: "M",
+          size: 1,
+        }
+      } as any;
+
+      
+      const query: CrudQuery = {
+        service: 'melon'
+      }
+
+      await  testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+      for(let i = 0; i <= 10; i++){
+        payload.firstSlice.name += "e";
+      }
+
+      await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 400, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+      
+    });
+
+    it('should validate number of seeds when creating melon', async () => {
+      const user = users["Michael Doe"];
+      const payload: Partial<Melon> = {
+        name: "MyMelon",
+        price: 1,
+        owner: formatId(user.id, crudConfig),
+        ownerEmail: user.email,
+        seeds: [
+          {
+            name: "Seed",
+            size: 1,
+          }
+        ]
+      };
+
+      const query: CrudQuery = {
+        service: 'melon'
+      }
+
+      await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+
+      for(let i = 0; i < 6; i++){
+        payload.seeds.push({
+          name: "Seed" + i,
+          size: 1,
+        });
+      }
+
+      await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 400, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+    
+      //User with more trust
+      const trustedUser = users["Admin Dude"];
+      payload.owner = formatId(trustedUser.id, crudConfig);
+      await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: trustedUser.jwt, entityManager, payload, query, crudConfig});
+
+      for(let i = 0; i < 8; i++){
+        payload.seeds.push({
+          name: "Seed" + i,
+          size: 1,
+        });
+      }
+
+      await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 400, app, jwt: trustedUser.jwt, entityManager, payload, query, crudConfig});
+    
+    });
+
+    it('should transform seed array twice when creating melon', async () => {
+      const user = users["Michael Doe"];
+      const payload: Partial<Melon> = {
+        name: "MyMelon",
+        price: 1,
+        owner: formatId(user.id, crudConfig),
+        ownerEmail: user.email,
+        seeds: [
+          {
+            name: "Seed",
+            size: 1,
+          },
+          {
+            name: "Seedxl",
+            size: 2,
+          },
+          {
+            name: "Filtered",
+            size: 0,
+          },
+        ]
+      };
+
+      const query: CrudQuery = {
+        service: 'melon'
+      }
+
+      const fetchEntity = {
+        id: payload.id,
+        entity: Melon,
+      }
+
+      const expectedObject = {
+        name: payload.name,
+        price: payload.price,
+        owner: payload.owner,
+        ownerEmail: payload.ownerEmail,
+        seeds: [
+          {
+            size: payload.seeds[0].size,
+            name: payload.seeds[0].name.toLowerCase(),
+          }, 
+          {
+            size: payload.seeds[1].size,
+            name: payload.seeds[1].name.toLowerCase(),
+          }
+        ]
+      }
+
+      await testMethod({ url: '/crud/one', method: 'POST', expectedObject, expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig, fetchEntity});
 
     });
 });

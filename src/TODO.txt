@@ -1,12 +1,12 @@
 [x] Use one controller for all crud services
-[ ] Add cmd & batch methods 
-[ ] Add cmd rights
-[ ] add before, after & error hooks
+[x] Add cmd & batch methods 
+[x] Add cmd rights
+[x] add before, after & error hooks
 [x] make sur to pass ctx for datadog trace tracking 
 [ ] check cannot default throw
 [x] batch wait for flush 
 [x] add inheritance argument 
-[ ] VALIDATION
+[x] VALIDATION
 [ ] test that put does not merge
 [ ] Check CMD method, get non cached user for cmd
 [ ] crudQuery Validation
@@ -19,8 +19,8 @@
 
 [ ] rename crudService methods to $
 
-[ ] test nested validation & transform
+[x] test nested validation & transform
 
-[ ] replace maxSize with per field decorator value
+[x] replace maxSize with per field decorator value
 
-[ ] patch many
+[x] patch many

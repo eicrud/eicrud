@@ -73,7 +73,7 @@ export class CrudAuthorizationService {
     }
 
     async computeMaxItemsPerUser(ctx: CrudContext, addCount: number = 0) {
-        let max = ctx.security.maxItemsPerUser;
+        let max = ctx.security.maxItemsPerUser || this.crudConfig.validationOptions.DEFAULT_MAX_ITEMS_PER_USER; ;
         let add = ctx.security.additionalItemsInDbPerTrustPoints;
         if(add){
            const trust = (await this.crudConfig.userService.getOrComputeTrust(ctx.user, ctx));
@@ -85,8 +85,7 @@ export class CrudAuthorizationService {
     }
 
     async checkmaxItemsPerUser(ctx: CrudContext, addCount: number = 0) {
-        if (ctx.origin == 'crud' && ctx.security.maxItemsPerUser && 
-            this.crudConfig.userService.notGuest(ctx.user) &&
+        if (ctx.origin == 'crud' && this.crudConfig.userService.notGuest(ctx.user) &&
             ctx.method == 'POST') {
 
             const count = ctx.user?.crudUserDataMap?.[ctx.serviceName]?.itemsCreated + addCount;
@@ -170,7 +169,7 @@ export class CrudAuthorizationService {
                 if (roleRights.fields && crudContext.method == 'GET') {
                     crudContext.options.fields = roleRights.fields as any;
                 }
-            }, { resolveAction: httpAliasResolver });
+            }, { resolveAction: httpAliasResolver});
             const methodToCheck = crudContext.origin == "crud" ? crudContext.method : crudContext.cmdName;
             allGood = this.loopFieldAndCheckCannot(true, methodToCheck, crudContext.query, fields, userAbilities, crudContext);
         }

@@ -5,7 +5,7 @@ export interface CmdSecurity {
     maxUsesPerUser?: number;
     additionalUsesPerTrustPoint?: number;
     secureOnly?: boolean;
-    dto?: { new(): any };
+    dto: { new(): any };
 }
 export class CrudSecurity {
 

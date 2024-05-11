@@ -1,13 +1,44 @@
-import { PrimaryKey, OneToOne, Property, ManyToOne, Entity } from "@mikro-orm/core";
+import { PrimaryKey, OneToOne, Property, ManyToOne, Entity, Embeddable, Embedded } from "@mikro-orm/core";
 import { IsDate, IsInt, IsMongoId, IsOptional, IsString } from "class-validator";
 import { CrudEntity } from "../../crud/model/CrudEntity";
 import { MyUser } from "./MyUser";
-import { $ToLowerCase, $Transform, $Trim } from "../../crud/transform/decorators";
+import { $MaxLength, $MaxSize, $ToLowerCase, $Transform, $Trim, $Type } from "../../crud/transform/decorators";
+
+
+
+@Embeddable()
+export class Slice {
+
+    @Property()
+    @IsInt()
+    @IsOptional()
+    size: number = 1;
+
+    @Property()
+    @IsString()
+    @$MaxSize(10)
+    name: string;
+}
+
+@Embeddable()
+export class Seed {
+
+    @Property()
+    @IsInt()
+    @IsOptional()
+    size: number = 1;
+
+    @Property()
+    @IsString()
+    @$MaxSize(10)
+    name: string;
+
+}
 
 @Entity()
 export class Melon implements CrudEntity {
 
-    @PrimaryKey({ name: '_id'})
+    @PrimaryKey({ name: '_id' })
     @IsString()
     @IsOptional()
     id: string;
@@ -28,6 +59,21 @@ export class Melon implements CrudEntity {
     @Property()
     @IsString()
     name: string;
+
+    @Property({ nullable: true })
+    @$MaxSize(100, 5)
+    longName: string;
+
+    @Embedded(() => Slice, { nullable: true })
+    @$Type(Slice)
+    firstSlice: Slice;
+
+    @Embedded(() => Seed, { array: true, nullable: true })
+    @$Type(Seed)
+    @$Transform((value: Seed) => {return { ...value, name: value.name.toLowerCase() }}, { each: true })
+    @$Transform((value: Seed[]) => {return value.filter((v) => v.size > 0)})
+    @$MaxLength(5, 2)
+    seeds: Seed[];
 
     @Property()
     @IsInt()

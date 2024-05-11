@@ -12,6 +12,7 @@ export interface IFieldMetadata {
     addMaxSizePerTrustPoint?: number,
     maxLength?: number,
     addMaxLengthPerTrustPoint?: number,
+    delete?: boolean
 }
 
 export class CrudTransformer {
@@ -32,8 +33,11 @@ export class CrudTransformer {
         if(!metadata) return obj;
         
         for (const key in obj) {
-            const field_metadata = metadata[key]
-            if (field_metadata) {
+            const field_metadata = metadata[key] || { transforms: []};
+                if(field_metadata.delete){
+                    delete obj[key];
+                    continue;
+                }
                 if(!convertTypes){
                     field_metadata.transforms.forEach((transform) => {
                         if(Array.isArray(obj[key]) && transform.opts?.each) {
@@ -60,18 +64,18 @@ export class CrudTransformer {
                             throw new BadRequestException(`Array ${key} length is too big (max: ${maxLength})`);
                         }
                     }
-                    if(Array.isArray(obj[key]) && type.opts?.each) {
-                        obj[key] = await obj[key].map(async (value: any) => {
+                    if(Array.isArray(obj[key])) {
+                        obj[key] = await Promise.all(obj[key].map(async (value: any) => {
                             const res = await this.transform(value, type.class, convertTypes, checkSize);
                             if(convertTypes){
-                                Object.setPrototypeOf(value, type.class.prototype);
+                                Object.setPrototypeOf(res, type.class.prototype);
                             }
                             return res;
-                        });
+                        }));
                     }else{
                         obj[key] = await this.transform(obj[key], type.class, convertTypes, checkSize);
                         if(convertTypes){
-                            Object.setPrototypeOf(obj[key],type.class.prototype);
+                            Object.setPrototypeOf(obj[key], type.class.prototype);
                         }
                     }
                 }else if (checkSize){
@@ -87,7 +91,7 @@ export class CrudTransformer {
                         throw new BadRequestException(`Field ${key} size is too big (max: ${maxSize})`);
                     }
                 }
-            }
+            
         }
         return obj;
     }
