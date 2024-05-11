@@ -68,13 +68,12 @@ export function testMethod(arg: { app: NestFastifyApplication,
 
         if(arg.expectedObject){
             for(const key in arg.expectedObject){
-                expect(res[key]?.toString()).toEqual(arg.expectedObject[key]?.toString());
+                expect(JSON.stringify(res[key])).toEqual(JSON.stringify(arg.expectedObject[key]));
             }
         }
         return res;
       });
 }
-
 
 export async function createNewProfileTest(app, jwt, entityManager, payload, query, crudConfig: CrudConfigService, expectedCode = 201){ 
   const res = await  testMethod({ url: '/crud/one', method: 'POST', expectedCode, app, jwt: jwt, entityManager, payload, query, crudConfig});

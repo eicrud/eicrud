@@ -40,6 +40,7 @@ function getAllMethodNames(obj) {
 export class CrudService<T extends CrudEntity> {
 
     CACHE_TTL = 60 * 10 * 1000; // 10 minutes
+    protected entityManager: EntityManager;
     public serviceName: string;
     protected crudConfig: CrudConfigService;
     constructor(
@@ -49,12 +50,14 @@ export class CrudService<T extends CrudEntity> {
         private config?: {
             cacheOptions?: CacheOptions,
             serviceName?: string,
+            entityManager?: EntityManager
         }
     ) {
     }
 
     onModuleInit() {
         this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY, { strict: false });
+        this.entityManager = this.config?.entityManager || this.crudConfig.entityManager;
         this.CACHE_TTL = this.config?.cacheOptions?.TTL || this.crudConfig.defaultCacheOptions.TTL;
         this.crudConfig.addService(this);
 
@@ -92,7 +95,7 @@ export class CrudService<T extends CrudEntity> {
     async create(newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
         this.checkObjectForIds(newEntity);
 
-        const em = context?.em || this.crudConfig.entityManager.fork();
+        const em = context?.em || this.entityManager.fork();
         if (secure) {
             await this.checkEntitySize(newEntity, context);
             await this.checkItemDbCount(em, context);
@@ -151,7 +154,7 @@ export class CrudService<T extends CrudEntity> {
     async find(entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
         this.checkObjectForIds(entity);
 
-        const em = context?.em || this.crudConfig.entityManager.fork();
+        const em = context?.em || this.entityManager.fork();
         const opts = this.getReadOptions(context);
         const result = await em.find(this.entity, entity, opts as any);
         return result;
@@ -175,7 +178,7 @@ export class CrudService<T extends CrudEntity> {
 
     async findOne(entity: Partial<T>, context: CrudContext, inheritance: any = {}) {
         this.checkObjectForIds(entity);
-        const em = context?.em || this.crudConfig.entityManager.fork();
+        const em = context?.em || this.entityManager.fork();
         const opts = this.getReadOptions(context);
         const result = await em.findOne(this.entity, entity, opts as any);
         return result;
@@ -207,7 +210,7 @@ export class CrudService<T extends CrudEntity> {
         this.checkObjectForIds(query);
         this.checkObjectForIds(newEntity);
 
-        const em = context?.em || this.crudConfig.entityManager.fork();
+        const em = context?.em || this.entityManager.fork();
         const results = await this.doQueryPatch(query, newEntity, context, em, secure);
         if (!context?.noFlush) {
             await em.flush();
@@ -218,7 +221,7 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async unsecure_incPatch(args: { query: Partial<T>, increments: { [key: string]: number },  addPatch: any }, ctx: CrudContext, inheritance: any = {}) {
-        const em = ctx?.em || this.crudConfig.entityManager.fork();
+        const em = ctx?.em || this.entityManager.fork();
         switch(this.crudConfig.dbType){
           case 'mongo':
               let updateMongo = { $inc: {} };
@@ -261,7 +264,7 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async patchOne(query: Partial<T>, newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
-        const em = context?.em || this.crudConfig.entityManager.fork();
+        const em = context?.em || this.entityManager.fork();
         const result = await this.doOnePatch(query, newEntity, context, em, secure, context);
         if (!context?.noFlush) {
             await em.flush();
@@ -350,7 +353,7 @@ export class CrudService<T extends CrudEntity> {
 
     async remove(query: Partial<T>, context: CrudContext, inheritance: any = {}) {
         this.checkObjectForIds(query);
-        const em = context?.em || this.crudConfig.entityManager.fork();
+        const em = context?.em || this.entityManager.fork();
         const opts = this.getReadOptions(context);
         const length = em.nativeDelete(this.entity, query, opts);
         if (!context?.noFlush) {
@@ -363,7 +366,7 @@ export class CrudService<T extends CrudEntity> {
 
     async removeOne(query: Partial<T>, context: CrudContext, inheritance: any = {}) {
         this.checkObjectForIds(query);
-        const em = context?.em || this.crudConfig.entityManager.fork();
+        const em = context?.em || this.entityManager.fork();
         let entity = await em.findOne(this.entity, query);
         if (!entity) {
             throw new BadRequestException('Entity not found (removeOne)');
@@ -448,7 +451,7 @@ export class CrudService<T extends CrudEntity> {
     // }
 
     // async putOne(newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
-    //     const em = context?.em || this.crudConfig.entityManager.fork();
+    //     const em = context?.em || this.entityManager.fork();
     //     delete newEntity[this.crudConfig.id_field];
     //     const ref = em.getReference(this.entity, id as any);
     //     const result = await this.doPut(ref, newEntity, context, secure);

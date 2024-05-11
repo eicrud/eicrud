@@ -7,7 +7,6 @@ import {
   UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
-import { Request } from 'express';
 
 import { CrudContext } from '../crud/model/CrudContext';
 
@@ -153,7 +152,7 @@ export class AuthGuard implements CanActivate {
     return true;
   }
 
-  private extractTokenFromHeader(request: Request): string | undefined {
+  private extractTokenFromHeader(request: any): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
   }
