@@ -12,6 +12,7 @@ import { OCRUDModule } from "../ocrud.module";
 import { MelonService } from "./melon.service";
 import { CRUD_CONFIG_KEY } from "../crud/crud.config.service";
 import { MyProfileService } from "./profile.service";
+import { Picture } from "./entities/Picture";
 
 
 
@@ -20,7 +21,7 @@ export const getModule = (dbName) => {
     return {
         imports: [
             MikroOrmModule.forRoot({
-                entities: [MyUser, UserProfile, FakeEmail, Melon],
+                entities: [MyUser, UserProfile, FakeEmail, Melon, Picture],
                 driver: MongoDriver,
                 dbName,
             }),

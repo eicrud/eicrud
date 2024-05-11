@@ -49,3 +49,11 @@ export function $MaxLength(length: number, addPerTrustPoint?: number) {
         CrudTransformer.setFieldMetadata(target, propertyKey, metadata);
     }
 }
+
+export function $Delete() {
+    return (target: any, propertyKey: string) => {
+        const metadata = CrudTransformer.getOrCreateFieldMetadata(target, propertyKey);
+        metadata.delete = true;
+        CrudTransformer.setFieldMetadata(target, propertyKey, metadata);
+    }
+}

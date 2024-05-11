@@ -17,6 +17,12 @@
         {
             "type": "node-terminal",
             "request": "launch",
+            "name": "npm run test basic nested",
+            "command": "npm run test crud.basic-nested.spec.ts",
+        },
+        {
+            "type": "node-terminal",
+            "request": "launch",
             "name": "npm run test security",
             "command": "npm run test crud.security.spec.ts",
         },

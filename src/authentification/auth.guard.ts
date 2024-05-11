@@ -38,8 +38,8 @@ export interface TrafficWatchOptions{
 
 export interface ValidationOptions{
   DEFAULT_MAX_SIZE: number;
-
   DEFAULT_MAX_LENGTH: number;
+  DEFAULT_MAX_ITEMS_PER_USER: number;
 }
 
 

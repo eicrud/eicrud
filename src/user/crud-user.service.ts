@@ -61,8 +61,8 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     super(moduleRef, userEntityClass, security);
 
     for(const cmd in baseCmds){
-      security.cmdSecurityMap = security.cmdSecurityMap || {};
-      security.cmdSecurityMap[cmd] = security.cmdSecurityMap?.[cmd] || {};
+      security.cmdSecurityMap = security.cmdSecurityMap || {} as any;
+      security.cmdSecurityMap[cmd] = security.cmdSecurityMap?.[cmd] || {} as any;
       security.cmdSecurityMap[cmd].secureOnly = true;
       if(!security.cmdSecurityMap[cmd].dto){
         security.cmdSecurityMap[cmd].dto = baseCmds[cmd].dto;
@@ -353,7 +353,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
       const res = await this.create(user, ctx);
 
-      return { userId: res[this.crudConfig.id_field], accessToken: await this.authService.signTokenForUser(user)}
+      return { userId: res[this.crudConfig.id_field], accessToken: await this.authService.signTokenForUser(res)}
   }
 
 

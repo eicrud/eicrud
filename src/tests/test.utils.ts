@@ -1,4 +1,4 @@
-import { EntityManager } from "@mikro-orm/mongodb";
+import { EntityManager, ObjectId } from "@mikro-orm/mongodb";
 import { NestFastifyApplication } from "@nestjs/platform-fastify";
 import { UserProfile } from "./entities/UserProfile";
 import { Melon } from "./entities/Melon";
@@ -20,6 +20,18 @@ export interface TestUser{
   password?: string
 }
 
+export function createId(crudConfig: CrudConfigService){
+  let id;
+  switch(crudConfig.dbType){
+    case 'mongo':
+      id = new ObjectId();
+    break;
+    default:
+      id = Math.random().toString(36).substring(7);
+  }
+  return formatId(id, crudConfig);
+}
+
 export function formatId(id: any, crudConfig: CrudConfigService){
   switch(crudConfig.dbType){
     case 'mongo':
@@ -27,7 +39,6 @@ export function formatId(id: any, crudConfig: CrudConfigService){
     default:
       return id;
   }
-
 }
 
 
@@ -63,7 +74,9 @@ export function testMethod(arg: { app: NestFastifyApplication,
         expect(result.statusCode).toEqual(arg.expectedCode);
         let res: any = result.payload != '' ? result.json() : {};
         if(arg.fetchEntity){
-            res = await arg.entityManager.fork().findOne(arg.fetchEntity.entity, { id: arg.fetchEntity[arg.crudConfig.id_field] });
+            let id = arg.fetchEntity.id || res.id;
+            id = arg.crudConfig.userService.checkId(id);
+            res = await arg.entityManager.fork().findOne(arg.fetchEntity.entity, { id });
             res = JSON.parse(JSON.stringify(res));
         }else if(arg.fetchEntities){
             res = await arg.entityManager.fork().find(arg.fetchEntities.entity, arg.fetchEntities.query);
