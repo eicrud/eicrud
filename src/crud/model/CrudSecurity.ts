@@ -11,12 +11,10 @@ export class CrudSecurity {
 
     guest_can_read_all?: boolean;
 
-    maxSize?: number;
     maxItemsInDb?: number;
     maxItemsPerUser?: number;
 
     additionalItemsInDbPerTrustPoints?: number;
-    additionalMaxSizePerTrustPoints?: number;
 
     cmdSecurityMap?: Record<string, CmdSecurity> = {};
 

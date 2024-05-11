@@ -97,7 +97,7 @@ export class CrudService<T extends CrudEntity> {
 
         const em = context?.em || this.entityManager.fork();
         if (secure) {
-            await this.checkEntitySize(newEntity, context);
+            
             await this.checkItemDbCount(em, context);
         }
 
@@ -108,9 +108,6 @@ export class CrudService<T extends CrudEntity> {
         newEntity.updatedAt = newEntity.createdAt;
         newEntity[this.crudConfig.id_field] = this.createNewId();
 
-        // if(!context.transformed){
-        //     CrudTransformer.transform(newEntity, this.entity);
-        // }
         const entity = em.create(this.entity, newEntity, opts as any);
         await em.persist(entity);
         if (!context?.noFlush) {
@@ -279,21 +276,8 @@ export class CrudService<T extends CrudEntity> {
     }
 
     private async doQueryPatch(query: Partial<T>, newEntity: Partial<T>, ctx: CrudContext, em: EntityManager, secure: boolean) {
-        const opts = this.getReadOptions(ctx);
-        let results;
-        if (secure) {
-            const em0 = em.fork();
-            results = await em0.find(this.entity, query, opts as any);
-            for (let result of results) {
-                wrap(result).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true });
-                await this.checkEntitySize(result, ctx);
-            }
-        }
-        // if(!ctx.transformed){
-        //     CrudTransformer.transform(newEntity, this.entity);
-        // }
-        em.nativeUpdate(this.entity, query, newEntity, opts);
-        return results;
+        const opts = this.getReadOptions(ctx);        
+        return em.nativeUpdate(this.entity, query, newEntity, opts);
     }
 
     private async doOnePatch(query: Partial<T>, newEntity: Partial<T>, ctx: CrudContext, em: EntityManager, secure: boolean, context: CrudContext) {
@@ -301,22 +285,16 @@ export class CrudService<T extends CrudEntity> {
         this.checkObjectForIds(newEntity);
 
         const opts = this.getReadOptions(context);
-   
-        const tempEm = em.fork();
-        let result = await tempEm.findOne(this.entity, query, opts as any);
-        if (!result) {
-            throw new BadRequestException('Entity not found (patch)');
-        }
+        let result = query;
+        if(!result[this.crudConfig.id_field]){
+            const tempEm = em.fork();
+            result = await tempEm.findOne(this.entity, query, opts as any);
+            if (!result) {
+                throw new BadRequestException('Entity not found (patch)');
+            }
+        };
         const id = this.checkId(result[this.crudConfig.id_field]);
-        
-        if(secure){
-            wrap(result).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true });
-            await this.checkEntitySize(result, ctx);
-        }
 
-        // if(!context.transformed){
-        //     CrudTransformer.transform(newEntity, this.entity);
-        // }
         let res = em.getReference(this.entity, id);
         wrap(res).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true });
         return res;
@@ -326,20 +304,8 @@ export class CrudService<T extends CrudEntity> {
         return user.role != this.crudConfig.guest_role;
     }
 
-    async checkEntitySize(entity: Partial<T>, context: CrudContext) {
-        if (!context?.security?.maxSize) {
-            return;
-        }
-        const entitySize = JSON.stringify(entity).length;
-        let maxSize = context?.security.maxSize;
-        let add = context?.security.additionalMaxSizePerTrustPoints;
-        if (add) {
-            add = add * (await this.crudConfig.userService.getOrComputeTrust(context.user, context));
-            maxSize += Math.max(add, 0);;
-        }
-        if ((entitySize > maxSize) || !entitySize) {
-            throw new BadRequestException('Entity size is too big');
-        }
+    isGuest(user: CrudUser) {
+        return !this.notGuest(user);
     }
 
     async checkItemDbCount(em: EntityManager, context: CrudContext) {
@@ -384,18 +350,6 @@ export class CrudService<T extends CrudEntity> {
         throw new BadRequestException('Command not found');
     }
 
-    async beforeControllerHook(context: CrudContext): Promise<any> {
-
-    }
-
-    async afterControllerHook(context: CrudContext, res: any): Promise<any> {
-
-    }
-
-    async errorControllerHook(e: Error, context: CrudContext): Promise<any> {
-
-    }
-
 
     async addToComputedTrust(user: CrudUser, trust: number, ctx: CrudContext) {
         return trust;
@@ -438,34 +392,5 @@ export class CrudService<T extends CrudEntity> {
         };
         return id;
     }
-
-
-
-    
-    // private async doPut(entity: Partial<T>, newEntity: Partial<T>, ctx: CrudContext, secure: boolean) {
-    //     newEntity.updatedAt = new Date();
-    //     wrap(entity).assign(newEntity as any, { merge: false, mergeObjectProperties: false, onlyProperties: true });
-    //     if (secure) {
-    //         await this.checkEntitySize(entity, ctx);
-    //     }
-    // }
-
-    // async putOne(newEntity: Partial<T>, context: CrudContext, secure: boolean = true, inheritance: any = {}) {
-    //     const em = context?.em || this.entityManager.fork();
-    //     delete newEntity[this.crudConfig.id_field];
-    //     const ref = em.getReference(this.entity, id as any);
-    //     const result = await this.doPut(ref, newEntity, context, secure);
-    //     if (!context?.noFlush) {
-    //         await em.flush();
-    //     }
-    //     context = context || {};
-    //     context.em = em;
-    //     return result;
-    // }
-
-    // async unsecure_fastPutOne(newEntity: Partial<T>, context: CrudContext, inheritance: any = {}) {
-    //     return await this.putOne(newEntity, context, false, inheritance);
-    // }
-
 
 }

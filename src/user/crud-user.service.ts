@@ -147,7 +147,11 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
   async getOrComputeTrust(user: CrudUser, ctx: CrudContext){
     const TRUST_COMPUTE_INTERVAL = 1000 * 60 * 60 * 24;
+    if(ctx.userTrust){
+      return ctx.userTrust;
+    }
     if(user.lastComputedTrust && (user.lastComputedTrust.getTime() + TRUST_COMPUTE_INTERVAL) > Date.now()){
+      ctx.userTrust = user.trust;
       return user.trust || 0;
     }
     let trust = 0;
@@ -200,6 +204,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const patch: any = {trust, lastComputedTrust: new Date()};
     this.unsecure_fastPatchOne(user[this.crudConfig.id_field] ,patch, ctx);
     user.trust = trust;
+    ctx.userTrust = trust;
     user.lastComputedTrust = patch.lastComputedTrust;
     this.setCached(user as any, ctx);
     return trust;

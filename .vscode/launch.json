@@ -7,10 +7,17 @@
             "name": "npm run test",
             "command": "npm run test",
         },
+ 
         {
             "type": "node-terminal",
             "request": "launch",
-            "name": "npm run test sec",
+            "name": "npm run test basic",
+            "command": "npm run test crud.basic.spec.ts",
+        },
+        {
+            "type": "node-terminal",
+            "request": "launch",
+            "name": "npm run test security",
             "command": "npm run test crud.security.spec.ts",
         },
         {
@@ -29,7 +36,7 @@
             "type": "node-terminal",
             "request": "launch",
             "name": "npm run test transform",
-            "command": "npm run test crud.transform.spec.ts",
+            "command": "npm run test crud.validation-transform.spec.ts",
         }
     ]
 }

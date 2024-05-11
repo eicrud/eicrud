@@ -72,18 +72,25 @@ export class CrudAuthorizationService {
 
     }
 
+    async computeMaxItemsPerUser(ctx: CrudContext, addCount: number = 0) {
+        let max = ctx.security.maxItemsPerUser;
+        let add = ctx.security.additionalItemsInDbPerTrustPoints;
+        if(add){
+           const trust = (await this.crudConfig.userService.getOrComputeTrust(ctx.user, ctx));
+           if(trust >= 1){
+            max+= add*trust;
+           }
+        }
+        return max
+    }
+
     async checkmaxItemsPerUser(ctx: CrudContext, addCount: number = 0) {
         if (ctx.origin == 'crud' && ctx.security.maxItemsPerUser && 
             this.crudConfig.userService.notGuest(ctx.user) &&
             ctx.method == 'POST') {
 
             const count = ctx.user?.crudUserDataMap?.[ctx.serviceName]?.itemsCreated + addCount;
-            let max = ctx.security.maxItemsPerUser;
-            let add = ctx.security.additionalItemsInDbPerTrustPoints;
-            if(add){
-               add = add*(await this.crudConfig.userService.getOrComputeTrust(ctx.user, ctx));
-               max+=Math.max(add,0);
-            }
+            const max = await this.computeMaxItemsPerUser(ctx, addCount);
             if (count >= max) {
                 throw new ForbiddenException(`You have reached the maximum number of items for this resource (${ctx.security.maxItemsPerUser})`);
             }
