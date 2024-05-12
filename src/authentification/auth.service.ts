@@ -11,6 +11,7 @@ import { CrudUser } from '../user/model/CrudUser';
 import { ModuleRef } from '@nestjs/core';
 import { LoginResponseDto } from '../crud/model/dtos';
 import { CrudContext } from '../crud/model/CrudContext';
+import { CrudAuthGuard } from './auth.guard';
 
 
 export interface AuthenticationOptions {
@@ -27,6 +28,8 @@ export interface AuthenticationOptions {
 
 @Injectable()
 export class CrudAuthService {
+  
+  authGuard: CrudAuthGuard;
 
   protected JWT_SECRET: string;
   protected FIELDS_IN_PAYLOAD: string[] = ['revokedCount'];

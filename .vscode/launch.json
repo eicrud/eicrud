@@ -41,8 +41,14 @@
         {
             "type": "node-terminal",
             "request": "launch",
-            "name": "npm run test transform",
+            "name": "npm run test validation/transform",
             "command": "npm run test crud.validation-transform.spec.ts",
+        },
+        {
+            "type": "node-terminal",
+            "request": "launch",
+            "name": "npm run test traffic",
+            "command": "npm run test traffic",
         }
     ]
 }

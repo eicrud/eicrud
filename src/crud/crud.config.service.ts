@@ -6,7 +6,7 @@ import { LogService } from "../log/log.service";
 import { EntityManager, raw } from "@mikro-orm/core";
 import { CrudContext } from "./model/CrudContext";
 import { CrudAuthorizationService } from "./crud.authorization.service";
-import { TrafficWatchOptions, ValidationOptions } from "../authentification/auth.guard";
+import { CrudAuthGuard, TrafficWatchOptions, ValidationOptions } from "../authentification/auth.guard";
 import { CrudUser } from "../user/model/CrudUser";
 import { EmailService } from "../email/email.service";
 import { AuthenticationOptions } from "../authentification/auth.service";
@@ -25,14 +25,9 @@ export interface CacheOptions {
 export const CRUD_CONFIG_KEY = 'CRUD_CONFIG_U4u7YojMIZ';
 
 export class CrudConfigService {
-
     
-    watchTrafficOptions: TrafficWatchOptions = {
-        MAX_USERS: 10000, 
-        REQUEST_THRESHOLD: 350,
-        TIMEOUT_THRESHOLD_TOTAL: 10,
-        TIMEOUT_DURATION_MIN: 15
-    };   
+    watchTrafficOptions = new TrafficWatchOptions();
+  
     
     validationOptions: ValidationOptions = {
         DEFAULT_MAX_SIZE: 50,

@@ -57,6 +57,7 @@ export class MyConfigService extends CrudConfigService {
             cacheManager: new BasicMemoryCache(),
             orm,
             id_field: 'id',
+            captchaService: true,
         });
 
         this.addRoles(roles);

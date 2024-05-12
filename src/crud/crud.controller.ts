@@ -54,7 +54,7 @@ export class CrudController {
     onModuleInit() {
         this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY, { strict: false })
 
-        this.userLastLoginAttemptMap = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_USERS / 2);
+        this.userLastLoginAttemptMap = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_TRACKED_USERS / 2);
     }
 
     assignContext(method: string, crudQuery: CrudQuery, query: any, data: any, type, ctx: CrudContext): CrudService<any> {
@@ -304,6 +304,9 @@ export class CrudController {
     @Patch('one')
     async _patchOne(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
+        if(!query.query || !data){
+            throw new BadRequestException("Query and data are required for PATCH one.");
+        }
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
             const res = await currentService.patchOne(ctx.query, ctx.data, ctx);
