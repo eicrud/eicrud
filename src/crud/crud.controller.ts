@@ -5,7 +5,6 @@ import { CrudContext } from './model/CrudContext';
 import { Context } from '../authentification/auth.utils';
 import { CrudQuery } from './model/CrudQuery';
 import { CrudAuthorizationService } from './crud.authorization.service';
-import { TransformationType, plainToInstance as dontuseme } from 'class-transformer';
 import { TransformOperationExecutor } from 'class-transformer/cjs/TransformOperationExecutor';
 import { defaultOptions } from 'class-transformer/cjs/constants/default-options.constant';
 import { IsEmail, IsOptional, IsString, MaxLength, validateOrReject } from 'class-validator';
@@ -21,19 +20,7 @@ import { LRUCache } from 'mnemonist';
 import { _utils } from '../utils';
 import { CrudTransformer, IFieldMetadata } from './transform/CrudTransformer';
 
-
-
-@Controller({
-    path: "crud",
-    version: "1"
-})
-export class CrudController {
-
-
-
-    userLastLoginAttemptMap: LRUCache<string, Date>;
-
-
+export class LimitOptions {
     NON_ADMIN_LIMIT_QUERY = 40;
     ADMIN_LIMIT_QUERY = 400;
 
@@ -41,6 +28,15 @@ export class CrudController {
     ADMIN_LIMIT_QUERY_IDS = 8000;
 
     MAX_GET_IN = 250;
+}
+
+@Controller({
+    path: "crud",
+    version: "1"
+})
+export class CrudController {
+
+    userLastLoginAttemptMap: LRUCache<string, Date>;
 
     protected crudConfig: CrudConfigService;
     constructor(
@@ -190,7 +186,7 @@ export class CrudController {
     async _find(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
-            return await this.subFind(query, ctx, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY, currentService);
+            return await this.subFind(query, ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY, currentService);
         } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
@@ -202,14 +198,14 @@ export class CrudController {
         query.options.fields = [this.crudConfig.id_field as any];
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
-            return await this.subFind(query, ctx, this.NON_ADMIN_LIMIT_QUERY_IDS, this.ADMIN_LIMIT_QUERY_IDS);
+            return await this.subFind(query, ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY_IDS, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY_IDS);
         } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
     }
 
     async subFind(query: CrudQuery, ctx: CrudContext, NON_ADMIN_LIMIT_QUERY, ADMIN_LIMIT_QUERY, currentService = undefined) {
-        this.limitQuery(ctx, query, NON_ADMIN_LIMIT_QUERY, ADMIN_LIMIT_QUERY);
+        this.limitQuery(ctx, NON_ADMIN_LIMIT_QUERY, ADMIN_LIMIT_QUERY);
         await this.performValidationAuthorizationAndHooks(ctx, currentService);
         const res = await currentService.find(ctx.query, ctx);
         await this.afterHooks(currentService, res, ctx);
@@ -222,10 +218,10 @@ export class CrudController {
     async _findIn(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
-            this.limitQuery(ctx, query, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
+            this.limitQuery(ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
             const ids = ctx.query?.[this.crudConfig.id_field];
-            if (!ids || !ids.length || ids.length > this.MAX_GET_IN) {
-                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.MAX_GET_IN));
+            if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.MAX_GET_IN) {
+                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.crudConfig.limitOptions.MAX_GET_IN));
             }
             ctx.ids = ids;
             delete ctx.query[this.crudConfig.id_field];
@@ -284,10 +280,10 @@ export class CrudController {
     async _deleteIn(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
-            this.limitQuery(ctx, query, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
+            this.limitQuery(ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
             const ids = ctx.query?.[this.crudConfig.id_field];
-            if (!ids || !ids.length || ids.length > this.MAX_GET_IN) {
-                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.MAX_GET_IN));
+            if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.MAX_GET_IN) {
+                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.crudConfig.limitOptions.MAX_GET_IN));
             }
             ctx.ids = ids;
             delete ctx.query[this.crudConfig.id_field];
@@ -323,10 +319,10 @@ export class CrudController {
     async _patchIn(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
         try {
-            this.limitQuery(ctx, query, this.NON_ADMIN_LIMIT_QUERY, this.ADMIN_LIMIT_QUERY);
+            this.limitQuery(ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
             const ids = ctx.query?.[this.crudConfig.id_field];
-            if (!ids || !ids.length || ids.length > this.MAX_GET_IN) {
-                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.MAX_GET_IN));
+            if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.MAX_GET_IN) {
+                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.crudConfig.limitOptions.MAX_GET_IN));
             }
             ctx.ids = ids;
             delete ctx.query[this.crudConfig.id_field];
@@ -375,9 +371,21 @@ export class CrudController {
         }
     }
 
+    reciprocal20percent = 1/20;
+
     @Get('auth')
     async getConnectedUser(@Context() ctx: CrudContext) {
-        return { userId: ctx.user[this.crudConfig.id_field] } as LoginResponseDto;
+        const ret: any = { userId: ctx.user[this.crudConfig.id_field] };
+        if(this.crudConfig.authenticationOptions.renewJwt){
+            const totalSec = (ctx.jwtPayload.exp - ctx.jwtPayload.iat);
+            const elapsedMs = new Date().getTime() - (ctx.jwtPayload.iat * 1000);
+            const thresholdMs = (totalSec * 1000 * this.reciprocal20percent); // 20% of total time
+            if(elapsedMs >= thresholdMs){
+                const newToken = await this.crudAuthService.signTokenForUser(ctx.user, totalSec);
+                ret.accessToken = newToken;
+            }
+        }
+        return ret as LoginResponseDto;
     }
 
     ALLOWED_EXPIRES_IN = ['15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '4d', '5d', '6d', '7d', '14d', '30d'];
@@ -407,7 +415,6 @@ export class CrudController {
 
         return this.crudAuthService.signIn(ctx, data.email, data.password, data.expiresIn, data.twoFA_code);
     }
-
 
     @Get('rights')
     async getRights(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
@@ -459,7 +466,6 @@ export class CrudController {
 
         return ret;
     }
-
 
     async performValidationAuthorizationAndHooks(ctx: CrudContext, currentService: any, skipBeforeHooks = false) {
         await this.validate(ctx, currentService);
@@ -537,28 +543,14 @@ export class CrudController {
         }
     }
 
-    limitQuery(ctx: CrudContext, query: CrudQuery, nonAdmin, admin) {
+    limitQuery(ctx: CrudContext, nonAdmin, admin) {
         const isAdmin = this.crudAuthorization.getCtxUserRole(ctx)?.isAdminRole;
         const MAX_LIMIT_FIND = isAdmin ? admin : nonAdmin;
-        if (!query.options?.limit || query.options?.limit > MAX_LIMIT_FIND) {
-            query.options = query.options || {};
-            query.options.limit = MAX_LIMIT_FIND;
+        if (!ctx.options?.limit || ctx.options?.limit > MAX_LIMIT_FIND) {
+            ctx.options = ctx.options || {};
+            ctx.options.limit = MAX_LIMIT_FIND;
         }
     }
-
-    plainToInstanceNoDefaultValues(plain: any, cls) {
-        //https://github.com/typestack/class-transformer/issues/1429
-        const executor = new TransformOperationExecutor(TransformationType.CLASS_TO_CLASS, {
-            ...defaultOptions,
-            ... { exposeDefaultValues: false },
-        });
-        return executor.transform({}, plain, cls, undefined, undefined, undefined);
-    }
-
-    plainToInstanceWithDefaultValues(plain: any, cls) {
-        return dontuseme(cls, plain, { exposeDefaultValues: true });
-    }
-
 
 
 }

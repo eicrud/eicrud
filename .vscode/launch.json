@@ -49,6 +49,12 @@
             "request": "launch",
             "name": "npm run test traffic",
             "command": "npm run test traffic",
+        },
+        {
+            "type": "node-terminal",
+            "request": "launch",
+            "name": "npm run test limits",
+            "command": "npm run test limits",
         }
     ]
 }

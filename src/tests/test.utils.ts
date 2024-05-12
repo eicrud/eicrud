@@ -53,7 +53,8 @@ export function testMethod(arg: { app: NestFastifyApplication,
     fetchEntity?: { entity: any, id: string },
     fetchEntities?: { entity: any, query: any },
     expectedObject?: any,
-    crudConfig: CrudConfigService
+    crudConfig: CrudConfigService,
+    returnLimitAndTotal?: boolean
     }){
     const headers = {};
     if(arg.jwt){
@@ -68,11 +69,17 @@ export function testMethod(arg: { app: NestFastifyApplication,
         query: new URLSearchParams(arg.query as any).toString()
       })
       .then(async (result) => {
+        let total;
+        let limit;
         if(result.statusCode !== arg.expectedCode){
             console.error(result.json());
         }
         expect(result.statusCode).toEqual(arg.expectedCode);
         let res: any = result.payload != '' ? result.json() : {};
+        if(arg.method === 'GET' && (arg.url.includes('many') || arg.url.includes('in') || arg.url.includes('ids'))){
+          ({ total, limit } = res);
+          res = res.data;
+        }
         if(arg.fetchEntity){
             let id = arg.fetchEntity.id || res.id;
             id = arg.crudConfig.userService.checkId(id);
@@ -90,6 +97,9 @@ export function testMethod(arg: { app: NestFastifyApplication,
                 expect(JSON.stringify(re[key])).toEqual(JSON.stringify(arg.expectedObject[key]));
             }
           }
+        }
+        if(arg.returnLimitAndTotal){
+          return { data: res, total, limit };
         }
         return res;
       });
