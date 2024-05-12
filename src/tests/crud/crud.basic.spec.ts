@@ -136,7 +136,7 @@ describe('AppController', () => {
 
     await createAccountsAndProfiles(users, em, userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
 
-    const accRes = await userService.createAccount(testAdminCreds.email, testAdminCreds.password, null, "super_admin");
+    const accRes = await userService.$createAccount(testAdminCreds.email, testAdminCreds.password, null, "super_admin");
     jwt = accRes.accessToken;
     userId = formatId(accRes.userId, crudConfig);
 
@@ -190,7 +190,7 @@ describe('AppController', () => {
     i = 0;
     for (const profile in res) {
       i++;
-      const res2 = await profileService.findOne({ id: res[profile].id }, null);
+      const res2 = await profileService.$findOne({ id: res[profile].id }, null);
       expect(res2.userName).toEqual(`Batch Doe ${i}`);
       const query = { id: userService.createNewId(res[profile].id) }; //Weird that I need to convert to objectId here
       const resDB = await entityManager.fork().findOne(UserProfile, query as any);

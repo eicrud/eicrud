@@ -108,7 +108,7 @@ describe('AppController', () => {
       if(!didCaptcha){
         await testMethod({ url: '/crud/many', method: 'GET', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 401, crudConfig });
 
-        await userService.unsecure_fastPatchOne(user.id, { didCaptcha: true } as any, null);
+        await userService.$unsecure_fastPatchOne(user.id, { didCaptcha: true } as any, null);
   
         //Will refresh user cache (POST)
         await testMethod({ url: '/crud/one', method: 'POST', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 400, crudConfig });
@@ -124,7 +124,7 @@ describe('AppController', () => {
 
     await testMethod({ url: '/crud/many', method: 'GET', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 401, crudConfig });
 
-    await userService.unsecure_fastPatchOne(user.id, { timeout: new Date() } as any, null);
+    await userService.$unsecure_fastPatchOne(user.id, { timeout: new Date() } as any, null);
 
     //Will refresh user cache (POST)
     await testMethod({ url: '/crud/one', method: 'POST', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 400, crudConfig });

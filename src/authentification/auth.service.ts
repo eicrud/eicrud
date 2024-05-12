@@ -57,7 +57,7 @@ export class CrudAuthService {
   rateLimitCount = 6;
 
   async updateUser(user: CrudUser, patch: Partial<CrudUser>, ctx: CrudContext){
-    const res = this.crudConfig.userService.unsecure_fastPatchOne(user[this.crudConfig.id_field], patch as any, ctx);
+    const res = this.crudConfig.userService.$unsecure_fastPatchOne(user[this.crudConfig.id_field], patch as any, ctx);
     return res;
   }
 
@@ -65,7 +65,7 @@ export class CrudAuthService {
     email = email.toLowerCase().trim();
     const entity = {};
     entity[this.USERNAME_FIELD] = email;
-    const user: CrudUser = await this.crudConfig.userService.findOne(entity, null);
+    const user: CrudUser = await this.crudConfig.userService.$findOne(entity, ctx);
     if(!user){
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }
@@ -88,7 +88,7 @@ export class CrudAuthService {
 
     if(user.twoFA && this.crudConfig.emailService){
       if(!twoFA_code){
-        await this.crudConfig.userService.sendTwoFACode(user[this.crudConfig.id_field], user as CrudUser, null);
+        await this.crudConfig.userService.sendTwoFACode(user[this.crudConfig.id_field], user as CrudUser, ctx);
         throw new UnauthorizedException(CrudErrors.TWOFA_REQUIRED.str());
       }
       await this.crudConfig.userService.verifyTwoFA(user, twoFA_code);
@@ -101,7 +101,7 @@ export class CrudAuthService {
       const addPatch: Partial<CrudUser> =  { lastLoginAttempt: user.lastLoginAttempt};
       const query = { [this.crudConfig.id_field]: user[this.crudConfig.id_field] };
       const increments = {failedLoginCount: 1}
-      this.crudConfig.userService.unsecure_incPatch({ query, increments, addPatch }, ctx);
+      this.crudConfig.userService.$unsecure_incPatch({ query, increments, addPatch }, ctx);
 
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }

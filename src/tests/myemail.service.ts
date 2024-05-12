@@ -24,7 +24,7 @@ export class MyEmailService extends CrudService<FakeEmail> implements EmailServi
             message: token,
             type: 'verification',
         }
-        return this.create(email, null);
+        return this.$create(email, null);
     }
     sendTwoFactorEmail(to: string, code: string): Promise<any> {
         const email: Partial<FakeEmail> = {
@@ -32,7 +32,7 @@ export class MyEmailService extends CrudService<FakeEmail> implements EmailServi
             message: code,
             type: 'twoFactor',
         }
-        return this.create(email, null);
+        return this.$create(email, null);
     }
     sendPasswordResetEmail(to: string, token: string): Promise<any> {
         const email: Partial<FakeEmail> = {
@@ -40,6 +40,6 @@ export class MyEmailService extends CrudService<FakeEmail> implements EmailServi
             message: token,
             type: 'passwordReset',
         }
-        return this.create(email, null);
+        return this.$create(email, null);
     }
 }

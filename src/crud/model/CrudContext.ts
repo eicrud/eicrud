@@ -22,5 +22,4 @@ export interface CrudContext {
     ids?: string[];
     ip?: string;
     jwtPayload?: any;
-
 }

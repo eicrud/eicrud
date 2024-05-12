@@ -82,7 +82,7 @@ describe('AppController', () => {
   
     await createAccountsAndProfiles(users, em, userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
 
-    const accRes = await userService.createAccount(testAdminCreds.email,testAdminCreds.password, null, "super_admin" );
+    const accRes = await userService.$createAccount(testAdminCreds.email,testAdminCreds.password, null, "super_admin" );
     jwt = accRes.accessToken;
     userId = formatId(accRes.userId, crudConfig);
     
