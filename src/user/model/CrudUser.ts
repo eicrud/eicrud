@@ -7,6 +7,11 @@ export interface CrudData {
   itemsCreated: number;
 }
 
+/**
+ * User entity base interface.
+ * @interface
+ * @public
+ */
 export interface CrudUser extends CrudEntity{
     saltRounds: number;
   
@@ -38,6 +43,11 @@ export interface CrudUser extends CrudEntity{
     incidentCount: number;
     highTrafficCount: number;
 
+    /**
+     * Computed trust score for a user
+     * @type {number}
+     * @public
+     */
     trust: number;
     lastComputedTrust: Date;
 

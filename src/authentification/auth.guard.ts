@@ -42,11 +42,11 @@ export class TrafficWatchOptions{
   userTrafficProtection: boolean = true;
 }
 
-export interface ValidationOptions{
-  DEFAULT_MAX_SIZE: number;
-  DEFAULT_MAX_LENGTH: number;
-  DEFAULT_MAX_ITEMS_PER_USER: number;
-}
+export class ValidationOptions{
+  DEFAULT_MAX_SIZE = 50;
+  DEFAULT_MAX_LENGTH = 20;
+  DEFAULT_MAX_ITEMS_PER_USER = 1000;
+};
 
 
 @Injectable()
