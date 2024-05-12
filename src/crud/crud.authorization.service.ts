@@ -129,7 +129,7 @@ export class CrudAuthorizationService {
                 }
                 const count = ctx.user?.crudUserDataMap?.[ctx.serviceName]?.cmdMap?.[ctx.cmdName];
                 if (count >= max) {
-                    throw new ForbiddenException(`You have reached the maximum uses for this command (${ctx.security.maxItemsPerUser})`);
+                    throw new ForbiddenException(`You have reached the maximum uses for this command (${max})`);
                 }
             }
         }

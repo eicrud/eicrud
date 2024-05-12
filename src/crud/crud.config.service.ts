@@ -47,11 +47,7 @@ export class CrudConfigService {
   
     microServicesOptions = new MicroServicesOptions();
     
-    validationOptions: ValidationOptions = {
-        DEFAULT_MAX_SIZE: 50,
-        DEFAULT_MAX_LENGTH: 20,
-        DEFAULT_MAX_ITEMS_PER_USER: 1000,
-    };
+    validationOptions: ValidationOptions = new ValidationOptions();
 
     limitOptions = new LimitOptions();
 
