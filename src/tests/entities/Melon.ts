@@ -1,5 +1,5 @@
 import { PrimaryKey, OneToOne, Property, ManyToOne, Entity, Embeddable, Embedded } from "@mikro-orm/core";
-import { IsDate, IsInt, IsMongoId, IsOptional, IsString } from "class-validator";
+import { IsDate, IsInt, IsMongoId, IsOptional, IsString, ValidateNested } from "class-validator";
 import { CrudEntity } from "../../crud/model/CrudEntity";
 import { MyUser } from "./MyUser";
 import { $MaxLength, $MaxSize, $ToLowerCase, $Transform, $Trim, $Type } from "../../crud/transform/decorators";
@@ -12,7 +12,7 @@ export class Slice {
     @Property()
     @IsInt()
     @IsOptional()
-    size: number = 1;
+    size?: number = 1;
 
     @Property()
     @IsString()
@@ -72,8 +72,13 @@ export class Melon implements CrudEntity {
     @$Type(Seed)
     @$Transform((value: Seed) => {return { ...value, name: value.name.toLowerCase() }}, { each: true })
     @$Transform((value: Seed[]) => {return value.filter((v) => v.size > 0)})
+    @ValidateNested({ each: true })
     @$MaxLength(5, 2)
     seeds: Seed[];
+
+
+    @Property({ nullable: true })
+    stringSeeds: string[];
 
     @Property()
     @IsInt()

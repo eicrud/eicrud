@@ -366,7 +366,6 @@ describe('AppController', () => {
       
     });
 
-
     it('should validate longName stringified size when creating melon', async () => {
       const user = users["Michael Doe"];
       const payload: Partial<Melon> = {
@@ -563,6 +562,38 @@ describe('AppController', () => {
       }
 
       await testMethod({ url: '/crud/one', method: 'POST', expectedObject, expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig, fetchEntity});
+
+    });
+
+    it('should validate nested seed array thanks to $type decorator' , async () => {
+      const user = users["Michael Doe"];
+      const payload: Partial<Melon> = {
+        name: "MyMelon",
+        price: 1,
+        owner: formatId(user.id, crudConfig),
+        ownerEmail: user.email,
+        seeds: [
+          {
+            name: "Seed",
+            size: 1,
+          },
+          {
+            name: "Seedxl",
+            size: '2' as any,
+          },
+        ]
+      };
+
+      const query: CrudQuery = {
+        service: 'melon'
+      }
+
+      const fetchEntity = {
+        id: payload.id,
+        entity: Melon,
+      }
+
+      await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 400, app, jwt: user.jwt, entityManager, payload, query, crudConfig, fetchEntity});
 
     });
 });

@@ -24,3 +24,5 @@
 [x] replace maxSize with per field decorator value
 
 [x] patch many
+
+[ ] log service

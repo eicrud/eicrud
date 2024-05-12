@@ -34,7 +34,7 @@ const melonSecurity = (MELON) => { return {
                 const user: CrudUser = context.user;
                 const userId = context.userId;
                 can('cud', MELON, { owner: userId });
-                cannot('cu', MELON, ['size'])
+                cannot('cu', MELON, ['size']);
                 can('read', MELON);
             },
 
@@ -42,6 +42,11 @@ const melonSecurity = (MELON) => { return {
                 can('testCmd', MELON);
             },
         },
+        guest: {
+            defineCRUDAbility(can, cannot, context) {
+                can('read', MELON);
+            }
+        }
     },
 
 } as CrudSecurity}

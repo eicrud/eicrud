@@ -14,6 +14,7 @@ import { MyProfileService } from '../profile.service';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../crud/crud.config.service';
 import { TestUser } from '../test.utils';
 import { Picture } from '../entities/Picture';
+import { Melon } from '../entities/Melon';
 
 const testAdminCreds = {
   email: "admin@testmail.com",
@@ -157,21 +158,125 @@ describe('AppController', () => {
 
   }, 10000);
 
-    //@Get('/crud/auth')
-    it('should get auth', () => {
-      return app
-        .inject({
-          method: 'GET',
-          url: '/crud/auth',
-          headers: {
-            Authorization: `Bearer ${users["Michael Doe"].jwt}`
+
+
+    it('should merge embedded object when patching', async () => {
+        const user = users["Michael Doe"];
+        const payload: Partial<Melon> = {
+          name: "MyMelon",
+          price: 1,
+          owner: formatId(user.id, crudConfig),
+          ownerEmail: user.email,
+          firstSlice: {
+            name: "M",
+            size: 1,
           }
-        })
-        .then((result) => {
-          expect(result.statusCode).toEqual(200);
-          expect(result.json().userId).toEqual(users["Michael Doe"].id?.toString());
-        });
-    });
+        } as any;
+  
+        
+        const query: CrudQuery = {
+          service: 'melon'
+        }
+  
+        const created = await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+        query.query = JSON.stringify({ id: created.id});
+        payload.firstSlice = {
+          name: "Replaced",
+        }
+
+        const expectedObject = {
+          firstSlice: {
+            size: 1,
+            ...payload.firstSlice,
+          },
+        }
+
+        const fetchEntity = { entity: Melon, id: created.id };
+
+        const res = await testMethod({ url: '/crud/one', expectedObject, fetchEntity, method: 'PATCH', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+
+     });
+
+     it('should replace embedded array when patching', async () => {
+      const user = users["Michael Doe"];
+      const payload: Partial<Melon> = {
+        name: "MyMelon",
+        price: 1,
+        owner: formatId(user.id, crudConfig),
+        ownerEmail: user.email,
+        seeds: [
+          {
+            name: "seed1",
+            size: 1,
+          },
+          {
+            name: "seed2",
+            size: 1,
+          }
+        ]
+      } as any;
+
+      
+      const query: CrudQuery = {
+        service: 'melon'
+      }
+
+      const created = await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+      query.query = JSON.stringify({ id: created.id});
+      payload.seeds = [
+        {
+          size: 1,
+          name: "seed3",
+        }
+      ]
+
+      const expectedObject = {
+        seeds: payload.seeds,
+      }
+
+      const fetchEntity = { entity: Melon, id: created.id };
+
+      const res = await testMethod({ url: '/crud/one', expectedObject, fetchEntity, method: 'PATCH', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+
+   });
+
+   it('should replace basic array when patching', async () => {
+    const user = users["Michael Doe"];
+    const payload: Partial<Melon> = {
+      name: "MyMelon",
+      price: 1,
+      owner: formatId(user.id, crudConfig),
+      ownerEmail: user.email,
+      stringSeeds: ["seed1","seed2"],
+    } as any;
+
+    
+    const query: CrudQuery = {
+      service: 'melon'
+    }
+
+    const created = await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+    query.query = JSON.stringify({ id: created.id});
+    payload.stringSeeds = ['seed3'];
+
+    const expectedObject = {
+      stringSeeds: ['seed3'],
+    }
+
+    const fetchEntity = { entity: Melon, id: created.id };
+
+    const res = await testMethod({ url: '/crud/one', expectedObject, fetchEntity, method: 'PATCH', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+
+ });
+
+
+
 
   ////@Post('/crud/one')
   // it('should create a new profile with pictures', async () => {

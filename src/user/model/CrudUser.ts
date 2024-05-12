@@ -52,4 +52,6 @@ export interface CrudUser extends CrudEntity{
     lastTwoFACodeSent: Date;
     twoFACodeCount: number;
 
+    allowedTrafficMultiplier?: number;
+
   };

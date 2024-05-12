@@ -2,6 +2,8 @@ import {
   BadRequestException,
   CanActivate,
   ExecutionContext,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   UnauthorizedException,
@@ -21,19 +23,26 @@ import { CrudRole } from '../crud/model/CrudRole';
 import { CrudAuthService } from './auth.service';
 import { ModuleRef } from '@nestjs/core';
 import { LRUCache } from 'mnemonist';
+import { time } from 'console';
 
 
-export interface TrafficWatchOptions{
-  MAX_USERS: number;
+export class TrafficWatchOptions{
+  MAX_TRACKED_USERS: number = 10000;
 
-  REQUEST_THRESHOLD: number;
+  MAX_TRACKED_IPS: number = 10000;
 
-  TIMEOUT_THRESHOLD_TOTAL: number;
+  USER_REQUEST_THRESHOLD: number = 350;
+  
+  IP_REQUEST_THRESHOLD: number = 700;
 
-  TIMEOUT_DURATION_MIN: number;
+  TIMEOUT_THRESHOLD_TOTAL: number = 5;
 
+  TIMEOUT_DURATION_MIN: number = 15;
+
+  useForwardedIp: boolean = false;
+  ddosProtection: boolean = true;
+  userTrafficProtection: boolean = true;
 }
-
 
 
 export interface ValidationOptions{
@@ -44,9 +53,12 @@ export interface ValidationOptions{
 
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class CrudAuthGuard implements CanActivate {
   
   userTrafficMap: LRUCache<string, number>;
+  ipTrafficMap: LRUCache<string, number>;
+  timedOutIps: LRUCache<string, number>;
+
   reciprocalRequestThreshold: number;
   
   protected crudConfig: CrudConfigService;
@@ -55,6 +67,7 @@ export class AuthGuard implements CanActivate {
   @Cron(CronExpression.EVERY_5_MINUTES)
   handleCron() {
     this.userTrafficMap.clear();
+    this.ipTrafficMap.clear();
   }
 
   
@@ -62,26 +75,57 @@ export class AuthGuard implements CanActivate {
     protected moduleRef: ModuleRef,
     protected authService: CrudAuthService
     ) {
+      authService.authGuard = this;
     }
 
     onModuleInit() {
       this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY,{ strict: false })
-      this.userTrafficMap = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_USERS);
-      this.reciprocalRequestThreshold = 1 / this.crudConfig.watchTrafficOptions.REQUEST_THRESHOLD;
+      this.userTrafficMap = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_TRACKED_USERS);
+      this.ipTrafficMap = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_TRACKED_IPS);
+      this.timedOutIps = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_TRACKED_IPS);
+
+      this.reciprocalRequestThreshold = 1 / this.crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD;
     }
 
 
 
+    async addTrafficToIpTrafficMap(ip: string, silent = false){
+      let traffic = this.ipTrafficMap.get(ip);
+      if (traffic === undefined) {
+        traffic = 0;
+      }
+      if(traffic > this.crudConfig.watchTrafficOptions.IP_REQUEST_THRESHOLD){
+        if(!silent){
+          this.crudConfig.logService?.log(LogType.SECURITY, 
+            `High traffic event for ip ${ip} with ${traffic} requests.`, 
+            { ip } as CrudContext
+            )
+        }
+        const timeout_end = Date.now() + this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN * 60 * 1000;
+        this.timedOutIps.set(ip, timeout_end);
+        return true;
+      }
+      this.ipTrafficMap.set(ip, traffic + 1);
+      return false;
+    }
 
     async addTrafficToUserTrafficMap(userId, user: Partial<CrudUser>){
       let traffic = this.userTrafficMap.get(userId);
       if (traffic === undefined) {
         traffic = 0;
       }
-      if(traffic > this.crudConfig.watchTrafficOptions.REQUEST_THRESHOLD){
+      const multiplier = user.allowedTrafficMultiplier || 1;
+      if(traffic >= (this.crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD * multiplier)){
         user.highTrafficCount = user.highTrafficCount || 0;
-        user.highTrafficCount += Math.round(traffic * this.reciprocalRequestThreshold);
-        if(user.highTrafficCount > this.crudConfig.watchTrafficOptions.TIMEOUT_THRESHOLD_TOTAL){
+        let count;
+        if(multiplier > 1){
+          count = traffic / (this.crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD*multiplier);
+        }else{
+          count = traffic * this.reciprocalRequestThreshold;
+        }          
+        user.highTrafficCount += Math.round(count);
+
+        if(user.highTrafficCount >= this.crudConfig.watchTrafficOptions.TIMEOUT_THRESHOLD_TOTAL){
           this.crudConfig.userService.addTimeoutToUser(user as CrudUser, this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN)
         }
         user.captchaRequested = true;
@@ -92,6 +136,7 @@ export class AuthGuard implements CanActivate {
           { userId, user } as CrudContext
           )
         await this.crudConfig.onHighTrafficEvent(traffic, user);
+        traffic = 0;
       }
       this.userTrafficMap.set(userId, traffic + 1);
     }
@@ -104,6 +149,23 @@ export class AuthGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
+
+    if(this.crudConfig.watchTrafficOptions.ddosProtection){
+      const ip = this.crudConfig.watchTrafficOptions.useForwardedIp ? request.headers['x-forwarded-for'] : request.socket.remoteAddress;
+      let timeout = this.timedOutIps.get(ip);
+      if(timeout != undefined){
+        if(timeout > Date.now()){
+          await this.addTrafficToIpTrafficMap(ip, true);
+          throw new HttpException({
+            statusCode: HttpStatus.TOO_MANY_REQUESTS,
+            error: 'Too Many Requests',
+            message: `Your IP (${ip}) is timed out.`,
+          }, 429);
+        }
+      }
+      await this.addTrafficToIpTrafficMap(ip);
+    }
+
     const token = this.extractTokenFromHeader(request);
     let user: Partial<CrudUser> = { role: this.crudConfig.guest_role};
     let userId;
@@ -122,6 +184,10 @@ export class AuthGuard implements CanActivate {
 
         if(!user){
           throw new UnauthorizedException(CrudErrors.USER_NOT_FOUND.str());
+        }
+
+        if(user?.timeout && user.timeout > new Date()){
+          throw new UnauthorizedException(CrudErrors.TIMED_OUT.str(user.timeout.toISOString()));
         }
 
         const role: CrudRole = this.crudConfig?.rolesMap[user?.role];
@@ -148,7 +214,9 @@ export class AuthGuard implements CanActivate {
           user.role = options.mockRole;
         }
 
-        await this.addTrafficToUserTrafficMap(userId, user);
+        if(this.crudConfig.watchTrafficOptions.userTrafficProtection){
+          await this.addTrafficToUserTrafficMap(userId, user);
+        }
 
       } catch(e) {
         throw new UnauthorizedException(e);

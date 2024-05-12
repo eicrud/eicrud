@@ -139,9 +139,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   }
 
   addTimeoutToUser(user: CrudUser, TIMEOUT_DURATION_MIN: number){
+    user.timeoutCount = user.timeoutCount || 1;
     const duration = TIMEOUT_DURATION_MIN * 60 * 1000 * user.timeoutCount;
     user.timeout = new Date(Date.now() + duration);
-    user.timeoutCount = user.timeoutCount || 0;
     user.timeoutCount++;
   }
 
@@ -222,13 +222,13 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   }
 
   getVerificationEmailTimeoutHours(user: CrudUser){
-    const emailCount = (user.verifiedEmailAttempCount || 0);
+    const emailCount = (user.verifiedEmailAttempCount || 1);
     const timeout = emailCount * this.crudConfig.authenticationOptions.VERIFICATION_EMAIL_TIMEOUT_HOURS * 60 * 60 * 1000;
     return { emailCount, timeout};
   }
 
   getPasswordResetEmailTimeoutHours(user: CrudUser){
-    const emailCount = (user.passwordResetAttempCount || 0);
+    const emailCount = (user.passwordResetAttempCount || 1);
     const timeout = emailCount * this.crudConfig.authenticationOptions.PASSWORD_RESET_EMAIL_TIMEOUT_HOURS * 60 * 60 * 1000;
     return { emailCount, timeout};
   }

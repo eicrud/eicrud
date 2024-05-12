@@ -45,7 +45,7 @@ export function formatId(id: any, crudConfig: CrudConfigService){
 export function testMethod(arg: { app: NestFastifyApplication, 
     method: string,
     url: string,
-    jwt: string, 
+    jwt?: string, 
     entityManager: EntityManager, 
     payload: any, 
     query: any,
