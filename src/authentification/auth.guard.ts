@@ -122,9 +122,9 @@ export class CrudAuthGuard implements CanActivate {
           [this.crudConfig.id_field] : payload[this.crudConfig.id_field]
         }
         if(request.method == 'POST' ){
-          user = await this.crudConfig.userService.findOne(query, null) as any;
+          user = await this.crudConfig.userService.$findOne(query, crudContext) as any;
         }else{
-          user = await this.crudConfig.userService.findOneCached(query, null);
+          user = await this.crudConfig.userService.$findOneCached(query, crudContext);
         }
 
         if(!user){
@@ -160,7 +160,7 @@ export class CrudAuthGuard implements CanActivate {
         }
 
         if(this.crudConfig.watchTrafficOptions.userTrafficProtection){
-          await this.addTrafficToUserTrafficMap(userId, user, ip);
+          await this.addTrafficToUserTrafficMap(userId, user, ip, crudContext);
         }
 
       } catch(e) {
@@ -205,7 +205,7 @@ export class CrudAuthGuard implements CanActivate {
     return false;
   }
 
-  async addTrafficToUserTrafficMap(userId, user: Partial<CrudUser>, ip){
+  async addTrafficToUserTrafficMap(userId, user: Partial<CrudUser>, ip, ctx: CrudContext){
     let traffic = this.userTrafficMap.get(userId);
     if (traffic === undefined) {
       traffic = 0;
@@ -225,8 +225,8 @@ export class CrudAuthGuard implements CanActivate {
         this.crudConfig.userService.addTimeoutToUser(user as CrudUser, this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN)
       }
       user.captchaRequested = true;
-      this.crudConfig.userService.unsecure_fastPatchOne(userId, { highTrafficCount: user.highTrafficCount }, null);
-      this.crudConfig.userService.setCached(user, null);
+      this.crudConfig.userService.$unsecure_fastPatchOne(userId, { highTrafficCount: user.highTrafficCount }, ctx);
+      this.crudConfig.userService.$setCached(user, ctx);
       this.crudConfig.logService?.log(LogType.SECURITY, 
         `High traffic event for user ${userId} with ${traffic} requests.`, 
         { userId, user, ip } as CrudContext

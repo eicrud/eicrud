@@ -37,14 +37,14 @@ export class LogService extends CrudService<Log> {
         } catch (error) {
             log.failNotif = true;
         }
-        return this.create(log, null);
+        return this.$create(log, ctx);
     }
 
-    override async create(newEntity: Log, context: CrudContext): Promise<any> {
+    override async $create(newEntity: Log, context: CrudContext): Promise<any> {
  
         let res = newEntity; 
         if(newEntity.type?.includes[LogType.CRITICAL, LogType.ERROR, LogType.SECURITY]) {
-            res = await super.create(newEntity, context);
+            res = await super.$create(newEntity, context);
         }    
         switch (newEntity.type) {
             case LogType.CRITICAL:

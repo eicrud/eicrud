@@ -3,6 +3,8 @@ import { NestFastifyApplication } from "@nestjs/platform-fastify";
 import { UserProfile } from "./entities/UserProfile";
 import { Melon } from "./entities/Melon";
 import { CrudConfigService } from "../crud/crud.config.service";
+import { CrudUserService } from "../user/crud-user.service";
+import { CrudUser } from "../user/model/CrudUser";
 
 
 export interface TestUser{
@@ -134,11 +136,11 @@ export function createMelons(NB_MELONS, owner: TestUser, crudConfig: CrudConfigS
 }
 
 
-export async function createAccountsAndProfiles(users: Record<string, TestUser>, em: EntityManager, userService, crudConfig: CrudConfigService, config : { usersWithoutProfiles?: string[], testAdminCreds: { email?: string, password: string } }){
+export async function createAccountsAndProfiles(users: Record<string, TestUser>, em: EntityManager, userService: CrudUserService<CrudUser>, crudConfig: CrudConfigService, config : { usersWithoutProfiles?: string[], testAdminCreds: { email?: string, password: string } }){
   const promises = [];
   for(const key in users){
     const user = users[key];
-    const prom = userService.createAccount(user.email, user.password || config.testAdminCreds.password, null, user.role ).then(
+    const prom = userService.$createAccount(user.email, user.password || config.testAdminCreds.password, null, user.role ).then(
       async (accRes) => {
         users[key][crudConfig.id_field] = accRes.userId;
         users[key].jwt = accRes.accessToken;

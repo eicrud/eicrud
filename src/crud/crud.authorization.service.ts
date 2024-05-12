@@ -81,7 +81,7 @@ export class CrudAuthorizationService {
         let max = ctx.security.maxItemsPerUser || this.crudConfig.validationOptions.DEFAULT_MAX_ITEMS_PER_USER; ;
         let add = ctx.security.additionalItemsInDbPerTrustPoints;
         if(add){
-           const trust = (await this.crudConfig.userService.getOrComputeTrust(ctx.user, ctx));
+           const trust = (await this.crudConfig.userService.$getOrComputeTrust(ctx.user, ctx));
            if(trust >= 1){
             max+= add*trust;
            }
@@ -124,7 +124,7 @@ export class CrudAuthorizationService {
                 let max = cmdSec.maxUsesPerUser;
                 let add = cmdSec.additionalUsesPerTrustPoint;
                 if(add){
-                   add = add*(await this.crudConfig.userService.getOrComputeTrust(ctx.user, ctx));
+                   add = add*(await this.crudConfig.userService.$getOrComputeTrust(ctx.user, ctx));
                    max+=Math.max(add,0);
                 }
                 const count = ctx.user?.crudUserDataMap?.[ctx.serviceName]?.cmdMap?.[ctx.cmdName];

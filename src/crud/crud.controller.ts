@@ -95,11 +95,11 @@ export class CrudController {
         const notGuest = this.crudConfig.userService.notGuest(ctx?.user);
         if (notGuest) {
             if (e instanceof ForbiddenException) {
-                this.crudConfig.userService.unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], { incidentCount: ctx.user.incidentCount + 1 }, ctx);
+                this.crudConfig.userService.$unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], { incidentCount: ctx.user.incidentCount + 1 }, ctx);
             } else {
-                this.crudConfig.userService.unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], { errorCount: ctx.user.errorCount + 1 }, ctx);
+                this.crudConfig.userService.$unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], { errorCount: ctx.user.errorCount + 1 }, ctx);
             }
-            this.crudConfig.userService.setCached(ctx.user);
+            this.crudConfig.userService.$setCached(ctx.user);
         }
         throw e;
     }
@@ -117,7 +117,7 @@ export class CrudController {
 
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
 
-            const res = await currentService.create(newEntity, ctx);
+            const res = await currentService.$create(newEntity, ctx);
 
             await this.afterHooks(currentService, res, ctx);
 
@@ -143,11 +143,11 @@ export class CrudController {
 
             await this.assignContext('POST', query, null, newEntities, 'crud', ctx);
             await this.beforeHooks(currentService, ctx);
-            const results = await currentService.createBatch(newEntities, ctx);
+            const results = await currentService.$createBatch(newEntities, ctx);
             await this.afterHooks(currentService, results, ctx);
 
             this.addCountToDataMap(ctx, newEntities.length);
-            this.crudConfig.userService.setCached(ctx.user);
+            this.crudConfig.userService.$setCached(ctx.user);
 
             return results;
 
@@ -161,7 +161,7 @@ export class CrudController {
         const currentService = await this.assignContext('POST', query, data, data, 'cmd', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.cmdHandler(query.cmd, ctx);
+            const res = await currentService.$cmdHandler(query.cmd, ctx);
             await this.afterHooks(currentService, res, ctx);
             return res;
         } catch (e) {
@@ -174,7 +174,7 @@ export class CrudController {
         const currentService = await this.assignContext('PATCH', query, data, data, 'cmd', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.cmdHandler(query.cmd, ctx);
+            const res = await currentService.$cmdHandler(query.cmd, ctx);
             await this.afterHooks(currentService, res, ctx);
             return res;
         } catch (e) {
@@ -226,7 +226,7 @@ export class CrudController {
             ctx.ids = ids;
             delete ctx.query[this.crudConfig.id_field];
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.findIn(ids, ctx.query, ctx);
+            const res = await currentService.$findIn(ids, ctx.query, ctx);
             await this.afterHooks(currentService, res, ctx);
             return res;
         } catch (e) {
@@ -240,7 +240,7 @@ export class CrudController {
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.findOne(ctx.query, ctx);
+            const res = await currentService.$findOne(ctx.query, ctx);
             await this.afterHooks(currentService, res, ctx);
             return res;
         } catch (e) {
@@ -253,7 +253,7 @@ export class CrudController {
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            await currentService.removeOne(ctx.query, ctx);
+            await currentService.$removeOne(ctx.query, ctx);
             await this.afterHooks(currentService, 1, ctx);
             this.addCountToDataMap(ctx, -1);
             return 1;
@@ -267,7 +267,7 @@ export class CrudController {
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.remove(ctx.query, ctx);
+            const res = await currentService.$remove(ctx.query, ctx);
             await this.afterHooks(currentService, res, ctx);
             this.addCountToDataMap(ctx, -res);
             return res;
@@ -288,7 +288,7 @@ export class CrudController {
             ctx.ids = ids;
             delete ctx.query[this.crudConfig.id_field];
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.removeIn(ids, ctx.query, ctx);
+            const res = await currentService.$removeIn(ids, ctx.query, ctx);
             await this.afterHooks(currentService, res, ctx);
             this.addCountToDataMap(ctx, -res);
             return res;
@@ -305,7 +305,7 @@ export class CrudController {
         }
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.patchOne(ctx.query, ctx.data, ctx);
+            const res = await currentService.$patchOne(ctx.query, ctx.data, ctx);
             await this.afterHooks(currentService, res, ctx);
             return res;
         } catch (e) {
@@ -327,7 +327,7 @@ export class CrudController {
             ctx.ids = ids;
             delete ctx.query[this.crudConfig.id_field];
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.patchIn(ids, ctx.query, ctx.data, ctx);
+            const res = await currentService.$patchIn(ids, ctx.query, ctx.data, ctx);
             await this.afterHooks(currentService, res, ctx);
             return res;
         } catch (e) {
@@ -340,7 +340,7 @@ export class CrudController {
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.patch(ctx.query, ctx.data, ctx);
+            const res = await currentService.$patch(ctx.query, ctx.data, ctx);
             await this.afterHooks(currentService, res, ctx);
             return res;
         } catch (e) {
@@ -362,7 +362,7 @@ export class CrudController {
 
             await this.assignContext('PATCH', query, null, data, 'crud', ctx);
             await this.beforeHooks(currentService, ctx);
-            const results = await currentService.patchBatch(data, ctx);
+            const results = await currentService.$patchBatch(data, ctx);
             await this.afterHooks(currentService, results, ctx);
 
             return results;
@@ -419,7 +419,7 @@ export class CrudController {
     @Get('rights')
     async getRights(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('GET', query, null, null, 'crud', ctx);
-        let trust = await this.crudConfig.userService.getOrComputeTrust(ctx.user, ctx);
+        let trust = await this.crudConfig.userService.$getOrComputeTrust(ctx.user, ctx);
         if (trust < 0) {
             trust = 0;
         }
@@ -536,9 +536,9 @@ export class CrudController {
             ctx.user.crudUserDataMap[ctx.serviceName] = ctx?.user.crudUserDataMap[ctx.serviceName] || {} as any;
             const count = ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated || 0;
             ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated = count + ct;
-            this.crudConfig.userService.unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { crudUserDataMap: ctx.user.crudUserDataMap }, ctx);
+            this.crudConfig.userService.$unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { crudUserDataMap: ctx.user.crudUserDataMap }, ctx);
             if (!ctx.noFlush) {
-                this.crudConfig.userService.setCached(ctx.user);
+                this.crudConfig.userService.$setCached(ctx.user);
             }
         }
     }

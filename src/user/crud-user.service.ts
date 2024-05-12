@@ -76,36 +76,36 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     super.onModuleInit();
   }
 
-  override async create(newEntity: T, ctx: CrudContext): Promise<any> {
+  override async $create(newEntity: T, ctx: CrudContext): Promise<any> {
     await this.checkPassword(newEntity);
-    return super.create(newEntity, ctx);
+    return super.$create(newEntity, ctx);
   }
 
-  override async unsecure_fastCreate(newEntity: T, ctx: CrudContext): Promise<any> {
+  override async $unsecure_fastCreate(newEntity: T, ctx: CrudContext): Promise<any> {
     await this.checkPassword(newEntity);
-    return super.unsecure_fastCreate(newEntity, ctx);
+    return super.$unsecure_fastCreate(newEntity, ctx);
   }
 
 
-  override async patch(entity: T, newEntity: T, ctx: CrudContext) {
+  override async $patch(entity: T, newEntity: T, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
-    return super.patch(entity, newEntity, ctx);
+    return super.$patch(entity, newEntity, ctx);
   }
 
-  override async patchOne(query: T, newEntity: T, ctx: CrudContext) {
+  override async $patchOne(query: T, newEntity: T, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
-    return super.patchOne(query, newEntity, ctx);
+    return super.$patchOne(query, newEntity, ctx);
   }
 
-  override async unsecure_fastPatch(query: T, newEntity: T, ctx: CrudContext) {
+  override async $unsecure_fastPatch(query: T, newEntity: T, ctx: CrudContext) {
     await this.checkUserBeforePatch(newEntity)
-    return super.unsecure_fastPatch(query, newEntity, ctx);
+    return super.$unsecure_fastPatch(query, newEntity, ctx);
   }
 
-  override async unsecure_fastPatchOne(id: string, newEntity: T, ctx: CrudContext) {
+  override async $unsecure_fastPatchOne(id: string, newEntity: T, ctx: CrudContext) {
       await this.checkPassword(newEntity);
       this.checkFieldsThatIncrementRevokedCount(newEntity);
-      return super.unsecure_fastPatchOne(id, newEntity, ctx);
+      return super.$unsecure_fastPatchOne(id, newEntity, ctx);
   }
 
   async checkPassword(newEntity: T) {
@@ -135,7 +135,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   async timeoutUser(user: CrudUser, TIMEOUT_DURATION_MIN: number){
     this.addTimeoutToUser(user, TIMEOUT_DURATION_MIN);
     const patch: any = {timeout: user.timeout, timeoutCount: user.timeoutCount};
-    this.unsecure_fastPatchOne(user[this.crudConfig.id_field] , patch, null);
+    this.$unsecure_fastPatchOne(user[this.crudConfig.id_field] , patch, null);
   }
 
   addTimeoutToUser(user: CrudUser, TIMEOUT_DURATION_MIN: number){
@@ -145,7 +145,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     user.timeoutCount++;
   }
 
-  async getOrComputeTrust(user: CrudUser, ctx: CrudContext){
+  async $getOrComputeTrust(user: CrudUser, ctx: CrudContext){
     const TRUST_COMPUTE_INTERVAL = 1000 * 60 * 60 * 24;
     if(ctx.userTrust){
       return ctx.userTrust;
@@ -202,11 +202,11 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
     trust = await this.addToComputedTrust(user, trust, ctx);
     const patch: any = {trust, lastComputedTrust: new Date()};
-    this.unsecure_fastPatchOne(user[this.crudConfig.id_field] ,patch, ctx);
+    this.$unsecure_fastPatchOne(user[this.crudConfig.id_field] ,patch, ctx);
     user.trust = trust;
     ctx.userTrust = trust;
     user.lastComputedTrust = patch.lastComputedTrust;
-    this.setCached(user as any, ctx);
+    this.$setCached(user as any, ctx);
     return trust;
   }
 
@@ -242,7 +242,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       ){
       const token = _utils.generateRandomString(16);
       const patch: Partial<CrudUser> = {[tokenKey]: token, [lastEmailSentKey]: new Date(), [attempCountKey]: emailCount+1};
-      await this.unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], patch as any, ctx);
+      await this.$unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], patch as any, ctx);
       await sendEmailFunc(ctx.data.email, token);
       return true;
     }
@@ -253,7 +253,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   async useToken(ctx: CrudContext, lastEmailVerificationSentKey, userConditionFunc, tokenKey, userGetTimeoutFunc, callBackFunc ){
     const userId = ctx.data.userId;
     const lastEmailSent = ctx.user[lastEmailVerificationSentKey];
-    const user: CrudUser = await this.findOne(userId, ctx) as any;
+    const user: CrudUser = await this.$findOne(userId, ctx) as any;
     if(userConditionFunc(user)){
       return true;
     }
@@ -262,14 +262,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       const { emailCount, timeout } = userGetTimeoutFunc(user);
       if((lastEmailSent && lastEmailSent.getTime() + timeout ) < Date.now()){
           const patch = callBackFunc(user)
-          await this.unsecure_fastPatchOne(userId, patch as any, ctx);
+          await this.$unsecure_fastPatchOne(userId, patch as any, ctx);
           return true;
       }
     }
     return new BadRequestException(CrudErrors.TOKEN_EXPIRED.str());
   }
 
-  async sendVerificationEmail(ctx: CrudContext){
+  async $sendVerificationEmail(ctx: CrudContext){
     //Doing this for type checking
     const user: Partial<CrudUser> = { lastEmailVerificationSent: null, emailVerificationToken: null, verifiedEmailAttempCount: 0} 
     const keys = Object.keys(user); 
@@ -281,7 +281,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       keys[2]);
   }
 
-  async verifyEmail(ctx: CrudContext){
+  async $verifyEmail(ctx: CrudContext){
     //Doing this for type checking
     const user: Partial<CrudUser> = { lastEmailVerificationSent: null, emailVerificationToken: null} 
     const keys = Object.keys(user); 
@@ -310,11 +310,11 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const twoFACodeCount = user.twoFACodeCount || 0;
     const patch: Partial<CrudUser> = {lastTwoFACode: code, lastTwoFACodeSent: new Date(), twoFACodeCount: twoFACodeCount+1};
     await this.crudConfig.emailService.sendTwoFactorEmail(user.email, code);
-    await this.unsecure_fastPatchOne(userId, patch as any, ctx);
+    await this.$unsecure_fastPatchOne(userId, patch as any, ctx);
     return true;
   }
 
-  async sendPasswordResetEmail(ctx: CrudContext){
+  async $sendPasswordResetEmail(ctx: CrudContext){
         //Doing this for type checking
         const user: Partial<CrudUser> = { lastPasswordResetSent: null, passwordResetToken: null, passwordResetAttempCount: 0} 
         const keys = Object.keys(user); 
@@ -326,7 +326,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
           keys[2]);
   }
 
-  async resetPassword(ctx: CrudContext) {
+  async $resetPassword(ctx: CrudContext) {
      //Doing this for type checking
     const user: Partial<CrudUser> = { lastPasswordResetSent: null, passwordResetToken: null} 
     const keys = Object.keys(user); 
@@ -342,7 +342,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return { res, accessToken: await this.authService.signTokenForUser(ctx.user)}
   }
 
-  async createAccount(email: string, password: string, ctx: CrudContext, role?: string){
+  async $createAccount(email: string, password: string, ctx: CrudContext, role?: string){
       if(password?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH){
         throw new BadRequestException(CrudErrors.PASSWORD_TOO_LONG.str());
       }
@@ -351,37 +351,37 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       user.password = password;
       user.role = role || this.crudConfig.guest_role;
 
-      const res = await this.create(user, ctx);
+      const res = await this.$create(user, ctx);
 
       return { userId: res[this.crudConfig.id_field], accessToken: await this.authService.signTokenForUser(res)}
   }
 
 
-  override async cmdHandler(cmdName: string, ctx: CrudContext, inheritance?: any) {
+  override async $cmdHandler(cmdName: string, ctx: CrudContext, inheritance?: any) {
 
     switch (cmdName) {
       case baseCmds.sendVerificationEmail.name:
-          return await this.sendVerificationEmail(ctx);
+          return await this.$sendVerificationEmail(ctx);
       break;
 
       case baseCmds.verifyEmail.name:
-          return await this.verifyEmail(ctx);
+          return await this.$verifyEmail(ctx);
       break;
 
       case baseCmds.sendPasswordResetEmail.name:
-          return await this.sendPasswordResetEmail(ctx);
+          return await this.$sendPasswordResetEmail(ctx);
           break;
 
       case baseCmds.resetPassword.name:
-          return await this.resetPassword(ctx);
+          return await this.$resetPassword(ctx);
           break;
 
       case baseCmds.createAccount.name:
-          return await this.createAccount(ctx.data.email, ctx.data.password, ctx);
+          return await this.$createAccount(ctx.data.email, ctx.data.password, ctx);
           break;
 
       default:
-        return super.cmdHandler(cmdName, ctx, inheritance);
+        return super.$cmdHandler(cmdName, ctx, inheritance);
 
   }
     

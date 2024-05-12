@@ -55,7 +55,7 @@ export class CrudTransformer {
                         let maxLength = field_metadata.maxLength || this.crudConfig.validationOptions.DEFAULT_MAX_LENGTH;
                         let add = field_metadata.addMaxLengthPerTrustPoint || 0;
                         if (add) {
-                            const trust = (await this.crudConfig.userService.getOrComputeTrust(this.ctx.user, this.ctx));
+                            const trust = (await this.crudConfig.userService.$getOrComputeTrust(this.ctx.user, this.ctx));
                             if(trust >= 1){
                                 maxLength += add * trust;
                             }
@@ -83,7 +83,7 @@ export class CrudTransformer {
                     let maxSize = field_metadata.maxSize || this.crudConfig.validationOptions.DEFAULT_MAX_SIZE;
                     let add = field_metadata.addMaxSizePerTrustPoint || 0;
                     if (add) {
-                        const trust = (await this.crudConfig.userService.getOrComputeTrust(this.ctx.user, this.ctx));
+                        const trust = (await this.crudConfig.userService.$getOrComputeTrust(this.ctx.user, this.ctx));
                         add = add * trust;
                         maxSize += Math.max(add, 0);;
                     }
