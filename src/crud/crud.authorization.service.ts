@@ -147,9 +147,9 @@ export class CrudAuthorizationService {
         return true;
     }
 
-    loopFieldAndCheckCannot(allGood, method, query, fields, userAbilities, crudContext: CrudContext){
+    loopFieldAndCheckCannot(allGood, method, query, fields, userAbilities, ctx: CrudContext){
         for (const field of fields) {
-            const sub = subject(crudContext.serviceName, query);
+            const sub = subject(ctx.serviceName, query);
             if (userAbilities.cannot(method, sub, field)) {
                 allGood = false;
                 break;
@@ -158,37 +158,37 @@ export class CrudAuthorizationService {
         return allGood;
     }
 
-    recursCheckRolesAndParents(role: CrudRole, crudContext: CrudContext, fields: string[]): CrudRole | null {
-        const roleRights = crudContext.security.rolesRights[role.name];
+    recursCheckRolesAndParents(role: CrudRole, ctx: CrudContext, fields: string[]): CrudRole | null {
+        const roleRights = ctx.security.rolesRights[role.name];
         let allGood = false;
 
         if(roleRights){
             const userAbilities = defineAbility((can, cannot) => {
                 
-                if(crudContext.origin == "crud"){
-                    roleRights.defineCRUDAbility?.(can, cannot, crudContext);
+                if(ctx.origin == "crud"){
+                    roleRights.defineCRUDAbility?.(can, cannot, ctx);
                 }else{
-                    roleRights.defineCMDAbility?.(can, cannot, crudContext);
+                    roleRights.defineCMDAbility?.(can, cannot, ctx);
                 }
                 
-                if (roleRights.fields && crudContext.method == 'GET') {
-                    crudContext.options.fields = roleRights.fields as any;
+                if (roleRights.fields && ctx.method == 'GET') {
+                    ctx.options.fields = roleRights.fields as any;
                 }
             }, { resolveAction: httpAliasResolver});
-            const methodToCheck = crudContext.origin == "crud" ? crudContext.method : crudContext.cmdName;
-            allGood = this.loopFieldAndCheckCannot(true, methodToCheck, crudContext.query, fields, userAbilities, crudContext);
+            const methodToCheck = ctx.origin == "crud" ? ctx.method : ctx.cmdName;
+            allGood = this.loopFieldAndCheckCannot(true, methodToCheck, ctx.query, fields, userAbilities, ctx);
         }
 
-        if (allGood && crudContext.options) {
+        if (allGood && ctx.options) {
             const userOptionsAbilities = defineAbility((can, cannot) => {
-                roleRights.defineOPTAbility?.(can, cannot, crudContext);
+                roleRights.defineOPTAbility?.(can, cannot, ctx);
             }, {});
 
-            for(const key of Object.keys(crudContext.options)){
+            for(const key of Object.keys(ctx.options)){
                 if(SKIPPABLE_OPTIONS.includes(key)){
                     continue;
                 }
-                allGood = this.loopFieldAndCheckCannot(true, key, crudContext.options, fields, userOptionsAbilities, crudContext);
+                allGood = this.loopFieldAndCheckCannot(true, key, ctx.options, fields, userOptionsAbilities, ctx);
                 if(!allGood){
                     break;
                 }
@@ -201,7 +201,7 @@ export class CrudAuthorizationService {
         if (role.inherits?.length) {
             for (const parent of role.inherits) {
                 const parentRole = this.rolesMap[parent];
-                const checkRes = this.recursCheckRolesAndParents(parentRole, crudContext, fields)
+                const checkRes = this.recursCheckRolesAndParents(parentRole, ctx, fields)
                 if (checkRes) {
                     return checkRes;
                 }

@@ -28,7 +28,7 @@ const myUserSecurity = (USER) => { return {
 
         },
         guest: {
-            defineCMDAbility(can, cannot, context) {
+            defineCMDAbility(can, cannot, ctx) {
                 const createAccount = baseCmds.createAccount.name;
                 can(createAccount, USER);
             }

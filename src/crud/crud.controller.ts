@@ -94,12 +94,19 @@ export class CrudController {
         await this.crudConfig.errorAllHook(e, ctx);
         const notGuest = this.crudConfig.userService.notGuest(ctx?.user);
         if (notGuest) {
+            let patch;
             if (e instanceof ForbiddenException) {
-                this.crudConfig.userService.$unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], { incidentCount: ctx.user.incidentCount + 1 }, ctx);
+                patch = { incidentCount: ctx.user.incidentCount + 1 };
+                this.crudConfig.userService.$unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], patch, ctx);
             } else {
-                this.crudConfig.userService.$unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], { errorCount: ctx.user.errorCount + 1 }, ctx);
+                patch = { errorCount: ctx.user.errorCount + 1 };
+                this.crudConfig.userService.$unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], patch, ctx);
             }
-            this.crudConfig.userService.$setCached(ctx.user);
+            ctx.user = {
+                ...ctx.user,
+                ...patch
+            };
+            this.crudConfig.userService.$setCached(ctx.user, ctx);
         }
         throw e;
     }
@@ -147,7 +154,7 @@ export class CrudController {
             await this.afterHooks(currentService, results, ctx);
 
             this.addCountToDataMap(ctx, newEntities.length);
-            this.crudConfig.userService.$setCached(ctx.user);
+            this.crudConfig.userService.$setCached(ctx.user, ctx);
 
             return results;
 
@@ -538,7 +545,7 @@ export class CrudController {
             ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated = count + ct;
             this.crudConfig.userService.$unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { crudUserDataMap: ctx.user.crudUserDataMap }, ctx);
             if (!ctx.noFlush) {
-                this.crudConfig.userService.$setCached(ctx.user);
+                this.crudConfig.userService.$setCached(ctx.user, ctx);
             }
         }
     }

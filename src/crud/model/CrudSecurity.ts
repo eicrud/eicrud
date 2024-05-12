@@ -45,11 +45,11 @@ export interface CrudSecurityRights {
     
     fields?: string[];
 
-    defineCRUDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], context: CrudContext);
+    defineCRUDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext);
     
-    defineCMDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], context: CrudContext);
+    defineCMDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext);
 
-    defineOPTAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], context: CrudContext);
+    defineOPTAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext);
     
 }
 

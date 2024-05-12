@@ -3,7 +3,7 @@ import { CrudRole } from "./model/CrudRole";
 import { CrudService } from "./crud.service";
 import { CrudUserService } from "../user/crud-user.service";
 import { LogService } from "../log/log.service";
-import { EntityManager, raw } from "@mikro-orm/core";
+import { EntityClass, EntityManager, raw } from "@mikro-orm/core";
 import { CrudContext } from "./model/CrudContext";
 import { CrudAuthorizationService } from "./crud.authorization.service";
 import { CrudAuthGuard, TrafficWatchOptions, ValidationOptions } from "../authentification/auth.guard";
@@ -26,11 +26,26 @@ export interface CacheOptions {
 export const CRUD_CONFIG_KEY = 'CRUD_CONFIG_U4u7YojMIZ';
 
 
+export interface MicroServiceConfig {
+    services: EntityClass<any>[],
+    openBackDoor: boolean,
+    openController: boolean,
+    url: string,
+    username?: string,
+    password?: string,
+}
+
+export class MicroServicesOptions {
+    microServices: Record<string, MicroServiceConfig> = {};
+    username: string;
+    password: string;
+}
 
 export class CrudConfigService {
     
     watchTrafficOptions = new TrafficWatchOptions();
   
+    microServicesOptions = new MicroServicesOptions();
     
     validationOptions: ValidationOptions = {
         DEFAULT_MAX_SIZE: 50,
@@ -45,7 +60,6 @@ export class CrudConfigService {
     defaultCacheOptions: CacheOptions = {
         TTL: 60 * 12 * 1000, // 12 minutes
     }
-
 
     servicesMap: Record<string, CrudService<any>> = {};
 
@@ -82,12 +96,14 @@ export class CrudConfigService {
         guest_role?: string,
         dbType?: string,
         isIsolated?: boolean,
+        microServicesOptions?: MicroServicesOptions,
     }
         ) {
             this.isIsolated = config.isIsolated;
             this.id_field = config.id_field || this.id_field;
             this.guest_role = config.guest_role || this.guest_role;
             this.orm = config.orm;
+            this.microServicesOptions = { ...this.microServicesOptions, ...(config.microServicesOptions||{})};
             this.limitOptions = { ...this.limitOptions, ...(config.limitOptions||{})};
             this.authenticationOptions = { ...this.authenticationOptions, ...(config.authenticationOptions||{})};
             this.watchTrafficOptions = { ...this.watchTrafficOptions, ...(config.watchTrafficOptions||{})};
@@ -166,5 +182,10 @@ export class CrudConfigService {
         }
           return this.authenticationOptions.SALT_ROUNDS;
       }
+
+
+    callBackDoor(service, method, args: any[], ctxPos, inheritancePos ){
+
+    }
 
 }
