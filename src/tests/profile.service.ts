@@ -29,33 +29,33 @@ const myProfileSecurity = (USER_PROFILE) => { return {
     rolesRights: {
         super_admin: {
 
-            defineCRUDAbility(can, cannot, context) {
+            defineCRUDAbility(can, cannot, ctx) {
                 can('crud', USER_PROFILE);
             },
 
        
         },
         admin: {
-            defineCRUDAbility(can, cannot, context: CrudContext) {
+            defineCRUDAbility(can, cannot, ctx: CrudContext) {
                 can('crud', USER_PROFILE, { type: 'basic' });
             },
         },
         moderator: {
-            defineCRUDAbility(can, cannot, context: CrudContext) {
+            defineCRUDAbility(can, cannot, ctx: CrudContext) {
                 can('read', USER_PROFILE, { type: 'basic' });
             },
         },
         user: {
   
-            defineCRUDAbility(can, cannot, context) {
-                const user: CrudUser = context.user;
-                const userId = context.userId;
+            defineCRUDAbility(can, cannot, ctx) {
+                const user: CrudUser = ctx.user;
+                const userId = ctx.userId;
                 can('crud', USER_PROFILE, { user: userId });
                 cannot('cu', USER_PROFILE, { type: 'admin' });
                 cannot('update', USER_PROFILE, ['type', 'user']);
             },
 
-            defineCMDAbility(can, cannot, context) {
+            defineCMDAbility(can, cannot, ctx) {
                 can('testCmd', USER_PROFILE);
             },
         },

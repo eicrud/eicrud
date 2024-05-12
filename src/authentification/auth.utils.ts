@@ -16,8 +16,8 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 export const Context = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
-    const context: CrudContext = request['crudContext'];
-    return context;
+    const ctx: CrudContext = request['crudContext'];
+    return ctx;
   },
 );
 
@@ -44,10 +44,10 @@ export class BasicMemoryCache implements SecurityCacheManager {
 }
 
 export class AuthUtils {
-  static isPublicKey(context, reflector: Reflector) {
+  static isPublicKey(ctx, reflector: Reflector) {
     const isPublic = reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-      context.getHandler(),
-      context.getClass(),
+      ctx.getHandler(),
+      ctx.getClass(),
     ]);
     return isPublic;
   }

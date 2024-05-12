@@ -142,11 +142,16 @@ export class CrudAuthService {
 
 
   async getJwtPayload(token: string) {
-    return await this.jwtService.verifyAsync(
-      token,
-      {
-        secret: this.JWT_SECRET,
-      }
-    );
+    try {
+      const res = await this.jwtService.verifyAsync(
+        token,
+        {
+          secret: this.JWT_SECRET,
+        }
+      );
+      return res;
+    } catch (e) {
+      throw new UnauthorizedException(e);
+    }
   }
 }

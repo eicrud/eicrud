@@ -84,16 +84,43 @@ export class CrudAuthGuard implements CanActivate {
       this.reciprocalRequestThreshold = 1 / this.crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD;
     }
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  async canActivate(ctx: ExecutionContext): Promise<boolean> {
 
     if(this.crudConfig.isIsolated){
       throw new BadRequestException('This instance is isolated.')
     }
 
-    const request = context.switchToHttp().getRequest();
-    
+    const request = ctx.switchToHttp().getRequest();
+    const url = request.url;
     const ip = this.crudConfig.watchTrafficOptions.useForwardedIp ? request.headers['x-forwarded-for'] : request.socket.remoteAddress;
-    const crudContext: CrudContext = { ip };
+    
+    const msOptions = this.crudConfig.microServicesOptions;
+    const currentMs = process.env.CRUD_CURRENT_MS;
+    const currentMsConfig = msOptions.microServices[currentMs];
+
+    const crudContext: CrudContext = { ip, url, currentMs };
+
+    if(url.includes('crud/backdoor')){
+      if(!currentMsConfig){
+        throw new UnauthorizedException('Microservice not found.');
+      } else if(currentMsConfig && !currentMsConfig.openBackDoor){
+        throw new UnauthorizedException('Backdoor is closed.');
+      }
+      const requiredUsername = currentMsConfig.username || msOptions.username; 
+      const requiredPassword = currentMsConfig.password || msOptions.password;
+      const basicAuth = request.headers.authorization?.split(' ')[1];
+      if(!basicAuth){
+        throw new UnauthorizedException('No credentials provided for backdoor access.');
+      }
+      const [username, password] = Buffer.from(basicAuth, 'base64').toString().split(':');
+      if(username != requiredUsername || password != requiredPassword){
+        throw new UnauthorizedException('Invalid backdoor credentials.');
+      }
+    }else if(url.includes('crud/')){
+      if(currentMsConfig && !currentMsConfig.openController){
+        throw new UnauthorizedException('Controller is closed.');
+      }
+    } 
 
     if(this.crudConfig.watchTrafficOptions.ddosProtection){
       let timeout = this.timedOutIps.get(ip);
@@ -115,7 +142,6 @@ export class CrudAuthGuard implements CanActivate {
     let userId;
     const options: CrudOptions = request.query?.query?.options || {};
     if (token) {
-      try {
         const payload = await this.authService.getJwtPayload(token);
         crudContext.jwtPayload = payload;
         const query = {
@@ -142,7 +168,7 @@ export class CrudAuthGuard implements CanActivate {
         }
 
         if(user?.captchaRequested && !user?.didCaptcha 
-          && !request.url.includes('crud/captcha')
+          && !url.includes('crud/captcha')
           && this.crudConfig.captchaService
           ){
           throw new UnauthorizedException(CrudErrors.CAPTCHA_REQUIRED.str());
@@ -163,9 +189,6 @@ export class CrudAuthGuard implements CanActivate {
           await this.addTrafficToUserTrafficMap(userId, user, ip, crudContext);
         }
 
-      } catch(e) {
-        throw new UnauthorizedException(e);
-      }
     }
 
     user.crudUserDataMap = user.crudUserDataMap || {};
