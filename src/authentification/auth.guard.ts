@@ -23,8 +23,6 @@ import { CrudRole } from '../crud/model/CrudRole';
 import { CrudAuthService } from './auth.service';
 import { ModuleRef } from '@nestjs/core';
 import { LRUCache } from 'mnemonist';
-import { time } from 'console';
-
 
 export class TrafficWatchOptions{
   MAX_TRACKED_USERS: number = 10000;
@@ -40,10 +38,9 @@ export class TrafficWatchOptions{
   TIMEOUT_DURATION_MIN: number = 15;
 
   useForwardedIp: boolean = false;
-  ddosProtection: boolean = true;
+  ddosProtection: boolean = false;
   userTrafficProtection: boolean = true;
 }
-
 
 export interface ValidationOptions{
   DEFAULT_MAX_SIZE: number;
@@ -87,61 +84,6 @@ export class CrudAuthGuard implements CanActivate {
       this.reciprocalRequestThreshold = 1 / this.crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD;
     }
 
-
-
-    async addTrafficToIpTrafficMap(ip: string, silent = false){
-      let traffic = this.ipTrafficMap.get(ip);
-      if (traffic === undefined) {
-        traffic = 0;
-      }
-      if(traffic > this.crudConfig.watchTrafficOptions.IP_REQUEST_THRESHOLD){
-        if(!silent){
-          this.crudConfig.logService?.log(LogType.SECURITY, 
-            `High traffic event for ip ${ip} with ${traffic} requests.`, 
-            { ip } as CrudContext
-            )
-        }
-        const timeout_end = Date.now() + this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN * 60 * 1000;
-        this.timedOutIps.set(ip, timeout_end);
-        return true;
-      }
-      this.ipTrafficMap.set(ip, traffic + 1);
-      return false;
-    }
-
-    async addTrafficToUserTrafficMap(userId, user: Partial<CrudUser>){
-      let traffic = this.userTrafficMap.get(userId);
-      if (traffic === undefined) {
-        traffic = 0;
-      }
-      const multiplier = user.allowedTrafficMultiplier || 1;
-      if(traffic >= (this.crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD * multiplier)){
-        user.highTrafficCount = user.highTrafficCount || 0;
-        let count;
-        if(multiplier > 1){
-          count = traffic / (this.crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD*multiplier);
-        }else{
-          count = traffic * this.reciprocalRequestThreshold;
-        }          
-        user.highTrafficCount += Math.round(count);
-
-        if(user.highTrafficCount >= this.crudConfig.watchTrafficOptions.TIMEOUT_THRESHOLD_TOTAL){
-          this.crudConfig.userService.addTimeoutToUser(user as CrudUser, this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN)
-        }
-        user.captchaRequested = true;
-        this.crudConfig.userService.unsecure_fastPatchOne(userId, { highTrafficCount: user.highTrafficCount }, null);
-        this.crudConfig.userService.setCached(user, null);
-        this.crudConfig.logService?.log(LogType.SECURITY, 
-          `High traffic event for user ${userId} with ${traffic} requests.`, 
-          { userId, user } as CrudContext
-          )
-        await this.crudConfig.onHighTrafficEvent(traffic, user);
-        traffic = 0;
-      }
-      this.userTrafficMap.set(userId, traffic + 1);
-    }
-
-
   async canActivate(context: ExecutionContext): Promise<boolean> {
 
     if(this.crudConfig.isIsolated){
@@ -149,9 +91,11 @@ export class CrudAuthGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
+    
+    const ip = this.crudConfig.watchTrafficOptions.useForwardedIp ? request.headers['x-forwarded-for'] : request.socket.remoteAddress;
+    const crudContext: CrudContext = { ip };
 
     if(this.crudConfig.watchTrafficOptions.ddosProtection){
-      const ip = this.crudConfig.watchTrafficOptions.useForwardedIp ? request.headers['x-forwarded-for'] : request.socket.remoteAddress;
       let timeout = this.timedOutIps.get(ip);
       if(timeout != undefined){
         if(timeout > Date.now()){
@@ -173,6 +117,7 @@ export class CrudAuthGuard implements CanActivate {
     if (token) {
       try {
         const payload = await this.authService.getJwtPayload(token);
+        crudContext.jwtPayload = payload;
         const query = {
           [this.crudConfig.id_field] : payload[this.crudConfig.id_field]
         }
@@ -215,7 +160,7 @@ export class CrudAuthGuard implements CanActivate {
         }
 
         if(this.crudConfig.watchTrafficOptions.userTrafficProtection){
-          await this.addTrafficToUserTrafficMap(userId, user);
+          await this.addTrafficToUserTrafficMap(userId, user, ip);
         }
 
       } catch(e) {
@@ -224,7 +169,8 @@ export class CrudAuthGuard implements CanActivate {
     }
 
     user.crudUserDataMap = user.crudUserDataMap || {};
-    const crudContext: CrudContext = { user: user as any, userId };
+    crudContext.user = user as any;
+    crudContext.userId = userId;
     if(!token){
       crudContext.userTrust = 0;
     }
@@ -235,6 +181,60 @@ export class CrudAuthGuard implements CanActivate {
   private extractTokenFromHeader(request: any): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
+  }
+
+  
+
+  async addTrafficToIpTrafficMap(ip: string, silent = false){
+    let traffic = this.ipTrafficMap.get(ip);
+    if (traffic === undefined) {
+      traffic = 0;
+    }
+    if(traffic > this.crudConfig.watchTrafficOptions.IP_REQUEST_THRESHOLD){
+      if(!silent){
+        this.crudConfig.logService?.log(LogType.SECURITY, 
+          `High traffic event for ip with ${traffic} requests.`, 
+          { ip } as CrudContext
+          )
+      }
+      const timeout_end = Date.now() + this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN * 60 * 1000;
+      this.timedOutIps.set(ip, timeout_end);
+      return true;
+    }
+    this.ipTrafficMap.set(ip, traffic + 1);
+    return false;
+  }
+
+  async addTrafficToUserTrafficMap(userId, user: Partial<CrudUser>, ip){
+    let traffic = this.userTrafficMap.get(userId);
+    if (traffic === undefined) {
+      traffic = 0;
+    }
+    const multiplier = user.allowedTrafficMultiplier || 1;
+    if(traffic >= (this.crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD * multiplier)){
+      user.highTrafficCount = user.highTrafficCount || 0;
+      let count;
+      if(multiplier > 1){
+        count = traffic / (this.crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD*multiplier);
+      }else{
+        count = traffic * this.reciprocalRequestThreshold;
+      }          
+      user.highTrafficCount += Math.round(count);
+
+      if(user.highTrafficCount >= this.crudConfig.watchTrafficOptions.TIMEOUT_THRESHOLD_TOTAL){
+        this.crudConfig.userService.addTimeoutToUser(user as CrudUser, this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN)
+      }
+      user.captchaRequested = true;
+      this.crudConfig.userService.unsecure_fastPatchOne(userId, { highTrafficCount: user.highTrafficCount }, null);
+      this.crudConfig.userService.setCached(user, null);
+      this.crudConfig.logService?.log(LogType.SECURITY, 
+        `High traffic event for user ${userId} with ${traffic} requests.`, 
+        { userId, user, ip } as CrudContext
+        )
+      await this.crudConfig.onHighTrafficEvent(traffic, user);
+      traffic = 0;
+    }
+    this.userTrafficMap.set(userId, traffic + 1);
   }
 
 }

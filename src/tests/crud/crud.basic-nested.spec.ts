@@ -273,7 +273,7 @@ describe('AppController', () => {
     const res = await testMethod({ url: '/crud/one', expectedObject, fetchEntity, method: 'PATCH', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
 
 
- });
+    });
 
 
 

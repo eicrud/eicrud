@@ -413,13 +413,13 @@ describe('AppController', () => {
   }
   );
 
-  it('should forbid find melon for guest', async () => {
+  it('should forbid find profile for guest', async () => {
     const otherUser: TestUser = users["Sarah Doe"];
     const payload: Partial<Melon> = {
     } as any;
     const query: CrudQuery = {
-      service: CrudService.getName(Melon),
-      query: JSON.stringify({ owner: formatId(otherUser.id as any, crudConfig) })
+      service: CrudService.getName(UserProfile),
+      query: JSON.stringify({ user: formatId(otherUser.id as any, crudConfig) })
     }
     const expectedObject: Partial<Melon> = null;
     return testMethod({ expectedCode: 403, url: '/crud/one', method: 'GET', app, jwt: null, entityManager, payload, query, expectedObject, crudConfig });

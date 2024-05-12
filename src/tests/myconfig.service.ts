@@ -58,6 +58,9 @@ export class MyConfigService extends CrudConfigService {
             orm,
             id_field: 'id',
             captchaService: true,
+            watchTrafficOptions: {
+                ddosProtection: true,
+            }
         });
 
         this.addRoles(roles);

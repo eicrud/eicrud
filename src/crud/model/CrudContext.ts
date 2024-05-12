@@ -20,5 +20,7 @@ export interface CrudContext {
     noFlush?: boolean;
     cmdName?: string;
     ids?: string[];
+    ip?: string;
+    jwtPayload?: any;
 
 }

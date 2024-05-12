@@ -14,17 +14,20 @@ import { CrudContext } from '../crud/model/CrudContext';
 import { CrudAuthGuard } from './auth.guard';
 
 
-export interface AuthenticationOptions {
-  SALT_ROUNDS;
-  SALT_ROUNDS_ADMIN;
-  USERNAME_FIELD: string;
-  JWT_FIELD_IN_PAYLOAD: string[];
-  JWT_SECRET: string;
-  VERIFICATION_EMAIL_TIMEOUT_HOURS: number;
-  TWOFA_EMAIL_TIMEOUT_MIN: number;
-  PASSWORD_RESET_EMAIL_TIMEOUT_HOURS: number;
-  PASSWORD_MAX_LENGTH: number;
+export class AuthenticationOptions {
+  SALT_ROUNDS = 11;
+  SALT_ROUNDS_ADMIN = 14;
+  VERIFICATION_EMAIL_TIMEOUT_HOURS = 6;
+  TWOFA_EMAIL_TIMEOUT_MIN = 15;
+  PASSWORD_RESET_EMAIL_TIMEOUT_HOURS = 6;
+  PASSWORD_MAX_LENGTH = 64;
+  JWT_SECRET = 'aeFzLsZAKL4153s9zsq2samXnv';
+  JWT_FIELD_IN_PAYLOAD = ['revokedCount'];
+  USERNAME_FIELD = 'email';
+  renewJwt = true;
 }
+
+
 
 @Injectable()
 export class CrudAuthService {
@@ -125,12 +128,12 @@ export class CrudAuthService {
     } as LoginResponseDto;
   }
 
-  signTokenForUser(user,  expiresIn = '30m'){
+  async signTokenForUser(user,  expiresIn: string | number = '30m'){
     const payload = {};
     this.FIELDS_IN_PAYLOAD.forEach(field => {
         payload[field] = user[field];
     });
-    return this.jwtService.sign(payload,
+    return await this.jwtService.signAsync(payload,
         {
         secret: this.JWT_SECRET,
         expiresIn

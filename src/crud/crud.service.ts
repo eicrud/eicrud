@@ -157,7 +157,15 @@ export class CrudService<T extends CrudEntity> {
 
         const em = context?.em || this.entityManager.fork();
         const opts = this.getReadOptions(context);
-        const result = await em.find(this.entity, entity, opts as any);
+        let result;
+        if(opts.limit){
+            result = await em.findAndCount(this.entity, entity, opts as any);
+            result = { data: result[0], total: result[1], limit: opts.limit };
+        }else{
+            result = await em.find(this.entity, entity, opts as any);
+            result = { data: result };
+        }
+
         return result;
     }
 

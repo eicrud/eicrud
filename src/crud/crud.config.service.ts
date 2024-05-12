@@ -11,6 +11,7 @@ import { CrudUser } from "../user/model/CrudUser";
 import { EmailService } from "../email/email.service";
 import { AuthenticationOptions } from "../authentification/auth.service";
 import { MikroORM } from "@mikro-orm/core";
+import { LimitOptions } from "./crud.controller";
 
 
 export interface SecurityCacheManager {
@@ -24,6 +25,8 @@ export interface CacheOptions {
 
 export const CRUD_CONFIG_KEY = 'CRUD_CONFIG_U4u7YojMIZ';
 
+
+
 export class CrudConfigService {
     
     watchTrafficOptions = new TrafficWatchOptions();
@@ -35,17 +38,9 @@ export class CrudConfigService {
         DEFAULT_MAX_ITEMS_PER_USER: 1000,
     };
 
-    authenticationOptions: AuthenticationOptions = {
-        SALT_ROUNDS: 11,
-        SALT_ROUNDS_ADMIN: 14,
-        VERIFICATION_EMAIL_TIMEOUT_HOURS: 6,
-        TWOFA_EMAIL_TIMEOUT_MIN: 15,
-        PASSWORD_RESET_EMAIL_TIMEOUT_HOURS: 6,
-        PASSWORD_MAX_LENGTH: 64,
-        JWT_SECRET: 'aeFzLsZAKL4153s9zsq2samXnv',
-        JWT_FIELD_IN_PAYLOAD: ['revokedCount'],
-        USERNAME_FIELD: 'email',
-    }
+    limitOptions = new LimitOptions();
+
+    authenticationOptions = new AuthenticationOptions();
 
     defaultCacheOptions: CacheOptions = {
         TTL: 60 * 12 * 1000, // 12 minutes
@@ -77,10 +72,11 @@ export class CrudConfigService {
         emailService: EmailService,
         jwtSecret: string,
         cacheManager: SecurityCacheManager,
-        authenticationOptions?: AuthenticationOptions,
-        watchTrafficOptions?: TrafficWatchOptions,
-        defaultCacheOptions?: CacheOptions,
-        validationOptions?: ValidationOptions,
+        authenticationOptions?: Partial<AuthenticationOptions>,
+        watchTrafficOptions?: Partial<TrafficWatchOptions>,
+        defaultCacheOptions?: Partial<CacheOptions>,
+        validationOptions?: Partial<ValidationOptions>,
+        limitOptions?: Partial<LimitOptions>,
         orm: MikroORM,
         id_field?: string,
         guest_role?: string,
@@ -92,6 +88,7 @@ export class CrudConfigService {
             this.id_field = config.id_field || this.id_field;
             this.guest_role = config.guest_role || this.guest_role;
             this.orm = config.orm;
+            this.limitOptions = { ...this.limitOptions, ...(config.limitOptions||{})};
             this.authenticationOptions = { ...this.authenticationOptions, ...(config.authenticationOptions||{})};
             this.watchTrafficOptions = { ...this.watchTrafficOptions, ...(config.watchTrafficOptions||{})};
             this.defaultCacheOptions = { ...this.defaultCacheOptions, ...(config.defaultCacheOptions||{})};

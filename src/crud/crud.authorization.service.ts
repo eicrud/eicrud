@@ -9,6 +9,9 @@ import { CRUD_CONFIG_KEY, CrudConfigService } from "./crud.config.service";
 import { CrudUser } from "../user/model/CrudUser";
 import { ModuleRef } from "@nestjs/core";
 
+
+const SKIPPABLE_OPTIONS = ['limit', 'skip', 'sort', 'fields'];
+
 @Injectable()
 export class CrudAuthorizationService {
     protected crudConfig: CrudConfigService;
@@ -18,6 +21,8 @@ export class CrudAuthorizationService {
     ) { 
 
     }
+
+    
 
     onModuleInit() {
         this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY,{ strict: false })
@@ -178,7 +183,11 @@ export class CrudAuthorizationService {
             const userOptionsAbilities = defineAbility((can, cannot) => {
                 roleRights.defineOPTAbility?.(can, cannot, crudContext);
             }, {});
+
             for(const key of Object.keys(crudContext.options)){
+                if(SKIPPABLE_OPTIONS.includes(key)){
+                    continue;
+                }
                 allGood = this.loopFieldAndCheckCannot(true, key, crudContext.options, fields, userOptionsAbilities, crudContext);
                 if(!allGood){
                     break;
