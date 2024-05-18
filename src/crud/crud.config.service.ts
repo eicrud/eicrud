@@ -113,7 +113,7 @@ export class CrudConfigService {
         dbType?: string,
         isIsolated?: boolean,
         microServicesOptions?: MicroServicesOptions,
-        dbAdapter?: CrudDbAdapter
+        dbAdapter: CrudDbAdapter
     }
         ) {
             this.isIsolated = config.isIsolated;

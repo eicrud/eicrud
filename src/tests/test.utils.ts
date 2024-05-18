@@ -41,13 +41,14 @@ export function testMethod(arg: { app: NestFastifyApplication,
     if(arg.jwt){
         headers['Authorization'] = `Bearer ${arg.jwt}`;
     }
+    const query = new URLSearchParams(arg.query as any).toString();
     return arg.app
       .inject({
         method: arg.method as any,
         url: arg.url,
         headers,
         payload: arg.payload,
-        query: new URLSearchParams(arg.query as any).toString()
+        query
       })
       .then(async (result) => {
         let total;

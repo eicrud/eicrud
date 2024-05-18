@@ -96,10 +96,12 @@ export class CrudController {
             let patch;
             if (e instanceof ForbiddenException) {
                 patch = { incidentCount: ctx.user.incidentCount + 1 };
-                this.crudConfig.userService.$unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], patch, ctx);
+                const inc = { incidentCount: 1 };
+                this.crudConfig.userService.$unsecure_incPatch({ query: { [this.crudConfig.id_field]: ctx.user[this.crudConfig.id_field] }, increments: inc }, ctx);
             } else {
                 patch = { errorCount: ctx.user.errorCount + 1 };
-                this.crudConfig.userService.$unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], patch, ctx);
+                const inc = { errorCount: 1 };
+                this.crudConfig.userService.$unsecure_incPatch({ query: { [this.crudConfig.id_field]: ctx.user[this.crudConfig.id_field] }, increments: inc }, ctx);
             }
             ctx.user = {
                 ...ctx.user,
@@ -539,13 +541,17 @@ export class CrudController {
 
     addCountToDataMap(ctx: CrudContext, ct: number) {
         if (this.crudConfig.userService.notGuest(ctx?.user)) {
-            ctx.user.crudUserDataMap[ctx.serviceName] = ctx?.user.crudUserDataMap[ctx.serviceName] || {} as any;
-            const count = ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated || 0;
-            ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated = count + ct;
-            this.crudConfig.userService.$unsecure_fastPatchOne(ctx?.user[this.crudConfig.id_field], { crudUserDataMap: ctx.user.crudUserDataMap }, ctx);
-            if (!ctx.noFlush) {
-                this.crudConfig.userService.$setCached(ctx.user, ctx);
-            }
+
+            const increments = {['crudUserDataMap.' + ctx.serviceName + '.itemsCreated']: ct}
+            const query = { [this.crudConfig.id_field]: ctx.user[this.crudConfig.id_field] };
+            this.crudConfig.userService.$unsecure_incPatch({ query, increments }, ctx);
+
+            // if (!ctx.noFlush) {
+            //     ctx.user.crudUserDataMap[ctx.serviceName] = ctx?.user.crudUserDataMap[ctx.serviceName] || {} as any;
+            //     const count = ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated || 0;
+            //     ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated = count + ct;
+            //     this.crudConfig.userService.$setCached(ctx.user, ctx);
+            // }
         }
     }
 

@@ -312,7 +312,7 @@ export class CrudService<T extends CrudEntity> {
     }
 
 
-    async $unsecure_incPatch(args: { query: Partial<T>, increments: { [key: string]: number }, addPatch: any }, ctx: CrudContext, inheritance: any = {}) {
+    async $unsecure_incPatch(args: { query: Partial<T>, increments: { [key: string]: number }, addPatch?: any }, ctx: CrudContext, inheritance: any = {}) {
         const em = ctx?.em || this.entityManager.fork();
         const update = await this.dbAdapter.getIncrementUpdate(args.increments, ctx);
         await em.nativeUpdate(this.entity, args.query, update as any);

@@ -93,7 +93,7 @@ export class CrudAuthorizationService {
         if (ctx.origin == 'crud' && this.crudConfig.userService.notGuest(ctx.user) &&
             ctx.method == 'POST') {
 
-            const count = ctx.user?.crudUserDataMap?.[ctx.serviceName]?.itemsCreated + addCount;
+            const count = (ctx.user?.crudUserDataMap?.[ctx.serviceName]?.itemsCreated || 0) + addCount;
             const max = await this.computeMaxItemsPerUser(ctx, security, addCount);
             if (count >= max) {
                 throw new ForbiddenException(`You have reached the maximum number of items for this resource (${security.maxItemsPerUser})`);

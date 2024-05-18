@@ -194,7 +194,7 @@ export class CrudAuthGuard implements CanActivate {
 
     }
 
-    user.crudUserDataMap = user.crudUserDataMap || {};
+    user.crudUserDataMap = user.crudUserDataMap || {} as any;
     crudContext.user = user as any;
     crudContext.userId = userId;
     if(!token){
