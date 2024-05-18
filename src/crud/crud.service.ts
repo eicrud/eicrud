@@ -7,10 +7,12 @@ import { CrudContext } from './model/CrudContext';
 
 import { CrudUser } from '../user/model/CrudUser';
 import { CrudUserService } from '../user/crud-user.service';
-import { CRUD_CONFIG_KEY, CacheOptions, CrudConfigService } from './crud.config.service';
+import { CRUD_CONFIG_KEY, CacheOptions, CrudConfigService, MicroServiceConfig, MicroServicesOptions } from './crud.config.service';
 import { ModuleRef } from '@nestjs/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { CrudTransformer } from './transform/CrudTransformer';
+import { BackdoorQuery } from './model/CrudQuery';
+import axios from 'axios';
 
 const NAMES_REGEX = /([^\s,]+)/g;
 const COMMENTS_REGEX = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
@@ -70,18 +72,22 @@ export class CrudService<T extends CrudEntity> {
         this.entityManager = this.config?.entityManager || this.crudConfig.entityManager;
         this.CACHE_TTL = this.config?.cacheOptions?.TTL || this.crudConfig.defaultCacheOptions.TTL;
         this.crudConfig.addService(this);
-
     }
 
 
 
 
     onApplicationBootstrap() {
+        const msConfig: MicroServicesOptions = this.crudConfig.microServicesOptions;
+
+        if(!msConfig.microServices?.length){
+            return;
+        }
+
         const allMethodNames = getAllMethodNames(this);
 
-        // Display all method names
-        allMethodNames.forEach(methodName => {
-            console.log(methodName);
+        for(const methodName of allMethodNames) {
+
             if (methodName.startsWith('$')) {
                 const names = getFunctionParamsNames(this[methodName]);
 
@@ -91,15 +97,72 @@ export class CrudService<T extends CrudEntity> {
                 if(ctxPos == -1){
                     console.warn('No ctx found in method call:' + methodName);
                 }
-                this[methodName] = (...args) => {
-                 
-                    return this[methodName](...args);
 
+                const currentService = MicroServicesOptions.getCurrentService();
+
+                let matches = msConfig.findCurrentServiceMatches(this);
+
+                if(matches.includes(currentService)){
+                    continue;
+                }
+
+                matches = matches.map((m) => msConfig.microServices[m]).filter(m => m.openBackDoor);
+                if(matches.length > 1){
+                    console.warn('More than one MicroServiceConfig found for service:' + this.serviceName);
+                    const closedController = matches.filter(m => !m.openController);
+                    if(closedController.length > 0){
+                        matches = closedController;
+                    }
+                }
+
+                if(matches.length <= 0){
+                    throw new Error('No MicroServiceConfig found for service:' + this.serviceName);
+                }
+                const targetServiceConfig: MicroServiceConfig = matches[0];
+
+                const orignalMethod = this[methodName].bind(this);
+
+                if(!currentService){
+                    console.warn(`No current micro-service specified, enabling simulation mode (fake_delay_ms: ${msConfig.fake_delay_ms}ms)`);
+                    this[methodName] = async (...args) => {
+                        return new Promise((resolve) => {
+                            setTimeout(() => {
+                                resolve(orignalMethod(...args));
+                            }, msConfig.fake_delay_ms);
+                        });
+                    };
+                    continue;
+                }
+
+                if(!targetServiceConfig.url.includes('https') && !targetServiceConfig.allowNonSecureUrl){
+                    throw new Error('MicroServiceConfig url must be https, or allowNonSecureUrl must be set.' );
+                }
+
+                this[methodName] = async (...args) => {
+                    return this.forwardToBackdoor(args, methodName, targetServiceConfig, ctxPos, inheritancePos);
                 };
             }
-        });
+        }
     }
 
+    async forwardToBackdoor(args: any[], methodName: string, msConfig: MicroServiceConfig, ctxPos: number, inheritancePos: number) {
+        const query: BackdoorQuery = {
+            service: this.serviceName,
+            methodName,
+            ctxPos,
+            inheritancePos
+        };
+
+        const url = msConfig.url + '/crud/backdoor';
+
+        const payload = {
+            args,
+        }
+        
+        return axios.patch(url, payload, {
+            params: query,
+        });
+    }
 
     createNewId(str?: string) {
         switch (this.crudConfig.dbType) {
@@ -347,9 +410,9 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async checkItemDbCount(em: EntityManager, ctx: CrudContext) {
-        if (ctx?.security.maxItemsInDb) {
+        if (this.security.maxItemsInDb) {
             const count = await em.count(this.entity);
-            if (count > ctx?.security.maxItemsInDb) {
+            if (count > this.security.maxItemsInDb) {
                 throw new Error('Too many items in DB.');
             }
         }

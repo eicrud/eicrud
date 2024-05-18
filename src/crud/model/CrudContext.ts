@@ -11,7 +11,6 @@ export interface CrudContext {
     userId?: string,
     userTrust?: number,
     method?: string, 
-    security?: CrudSecurity,
     query?: any, 
     data?: any,
     origin?: "crud" | "cmd" | "webhook" | string,
@@ -24,4 +23,5 @@ export interface CrudContext {
     jwtPayload?: any;
     url?: string;
     currentMs?: string;
+    backdoorGuarded?: boolean;
 }

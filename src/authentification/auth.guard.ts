@@ -15,7 +15,7 @@ import { CrudContext } from '../crud/model/CrudContext';
 import { CrudUser } from '../user/model/CrudUser';
 
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { CRUD_CONFIG_KEY, CrudConfigService } from '../crud/crud.config.service';
+import { CRUD_CONFIG_KEY, CrudConfigService, MicroServicesOptions } from '../crud/crud.config.service';
 import { LogType } from '../log/entities/log';
 import { CrudErrors } from '../crud/model/CrudErrors';
 import { CrudOptions } from '../crud/model/CrudOptions';
@@ -95,7 +95,7 @@ export class CrudAuthGuard implements CanActivate {
     const ip = this.crudConfig.watchTrafficOptions.useForwardedIp ? request.headers['x-forwarded-for'] : request.socket.remoteAddress;
     
     const msOptions = this.crudConfig.microServicesOptions;
-    const currentMs = process.env.CRUD_CURRENT_MS;
+    const currentMs = MicroServicesOptions.getCurrentService();
     const currentMsConfig = msOptions.microServices[currentMs];
 
     const crudContext: CrudContext = { ip, url, currentMs };
@@ -116,6 +116,9 @@ export class CrudAuthGuard implements CanActivate {
       if(username != requiredUsername || password != requiredPassword){
         throw new UnauthorizedException('Invalid backdoor credentials.');
       }
+      crudContext.backdoorGuarded = true;
+      request['crudContext'] = crudContext
+      return true;
     }else if(url.includes('crud/')){
       if(currentMsConfig && !currentMsConfig.openController){
         throw new UnauthorizedException('Controller is closed.');

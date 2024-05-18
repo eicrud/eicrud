@@ -30,6 +30,7 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/platform-fastify": "^10.3.3",
     "@nestjs/schedule": "^4.0.1",
+    "axios": "^1.6.8",
     "bcrypt": "^5.1.1",
     "cache-manager": "^5.4.0",
     "class-transformer": "^0.5.1",
