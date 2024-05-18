@@ -49,6 +49,9 @@ const melonSecurity = (MELON) => { return {
         }
     },
 
+    maxItemsPerUser: 10,
+    additionalItemsInDbPerTrustPoints: 1,
+
 } as CrudSecurity}
 @Injectable()
 export class MelonService extends CrudService<Melon> {

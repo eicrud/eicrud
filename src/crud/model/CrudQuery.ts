@@ -9,6 +9,9 @@ export class CrudQuery {
     service: string;
 
     @IsOptional()
+    @Transform(({value}) => {
+        return JSON.parse(value)
+    })
     @Type(() => CrudOptions)
     @ValidateNested()
     options?: CrudOptions;
