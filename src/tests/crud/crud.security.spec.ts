@@ -8,7 +8,7 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../crud/model/CrudQuery';
-import { createAccountsAndProfiles, createMelons, createNewProfileTest, formatId, testMethod } from '../test.utils';
+import { createAccountsAndProfiles, createMelons, createNewProfileTest, testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
 import { Melon } from '../entities/Melon';
 import { CrudService } from '../../crud/crud.service';
@@ -291,7 +291,7 @@ describe('AppController', () => {
     expect(res?.length).toEqual(NB_MELONS);
     let i = 0;
     for (const profile in res) {
-      const query = { id: userService.createNewId(res[profile].id) }; //Weird that I need to convert to objectId here
+      const query = { id: userService.dbAdapter.createNewId(res[profile].id) }; //Weird that I need to convert to objectId here
       const resDB = await entityManager.fork().findOne(Melon, query as any);
       expect(resDB.price).toEqual(i);
       i++;
@@ -344,7 +344,7 @@ describe('AppController', () => {
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ user: formatId(user.id as any, crudConfig) })
+      query: JSON.stringify({ user: crudConfig.dbAdapter.formatId(user.id as any, crudConfig) })
     }
     const expectedObject = {
       bio: user.bio,
@@ -359,7 +359,7 @@ describe('AppController', () => {
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ user: formatId(user.id as any, crudConfig), type: 'admin' })
+      query: JSON.stringify({ user: crudConfig.dbAdapter.formatId(user.id as any, crudConfig), type: 'admin' })
     }
     const expectedObject = {
       bio: user.bio,
@@ -375,7 +375,7 @@ describe('AppController', () => {
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ user: formatId(otherUser.id as any, crudConfig), type: 'admin' })
+      query: JSON.stringify({ user: crudConfig.dbAdapter.formatId(otherUser.id as any, crudConfig), type: 'admin' })
     }
     const expectedObject = null;
     return testMethod({ url: '/crud/one', method: 'GET', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 403, expectedObject, crudConfig });
@@ -389,7 +389,7 @@ describe('AppController', () => {
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ user: formatId(otherUser.id as any, crudConfig) })
+      query: JSON.stringify({ user: crudConfig.dbAdapter.formatId(otherUser.id as any, crudConfig) })
     }
     const expectedObject = {
     }
@@ -404,7 +404,7 @@ describe('AppController', () => {
     } as any;
     const query: CrudQuery = {
       service: CrudService.getName(Melon),
-      query: JSON.stringify({ owner: formatId(otherUser.id as any, crudConfig) })
+      query: JSON.stringify({ owner: crudConfig.dbAdapter.formatId(otherUser.id as any, crudConfig) })
     }
     const expectedObject: Partial<Melon> = {
       ownerEmail: otherUser.email,
@@ -419,7 +419,7 @@ describe('AppController', () => {
     } as any;
     const query: CrudQuery = {
       service: CrudService.getName(UserProfile),
-      query: JSON.stringify({ user: formatId(otherUser.id as any, crudConfig) })
+      query: JSON.stringify({ user: crudConfig.dbAdapter.formatId(otherUser.id as any, crudConfig) })
     }
     const expectedObject: Partial<Melon> = null;
     return testMethod({ expectedCode: 403, url: '/crud/one', method: 'GET', app, jwt: null, entityManager, payload, query, expectedObject, crudConfig });
@@ -434,7 +434,7 @@ describe('AppController', () => {
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ bio: user.bio, user: formatId(user.id as any, crudConfig) })
+      query: JSON.stringify({ bio: user.bio, user: crudConfig.dbAdapter.formatId(user.id as any, crudConfig) })
     }
 
     const expectedObject = null;
@@ -472,7 +472,7 @@ describe('AppController', () => {
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ bio: user.bio, user: formatId(otherUser.id as any, crudConfig) })
+      query: JSON.stringify({ bio: user.bio, user: crudConfig.dbAdapter.formatId(otherUser.id as any, crudConfig) })
     }
 
     const expectedObject = null;
@@ -491,7 +491,7 @@ describe('AppController', () => {
     for (const key in users) {
       const us = users[key];
       if (!us.skipProfile && (!us.profileType || us.profileType === "basic")) {
-        const formatedId = formatId(us.profileId, crudConfig);
+        const formatedId = crudConfig.dbAdapter.formatId(us.profileId, crudConfig);
         ids.push(formatedId);
       }
     }
@@ -518,7 +518,7 @@ describe('AppController', () => {
     for (const key in users) {
       const us = users[key];
       if (!us.skipProfile) {
-        const formatedId = formatId(us.profileId, crudConfig);
+        const formatedId = crudConfig.dbAdapter.formatId(us.profileId, crudConfig);
         ids.push(formatedId);
       }
     }
@@ -545,7 +545,7 @@ describe('AppController', () => {
     for (const key in users) {
       const us = users[key];
       if (!us.skipProfile && (!us.profileType || us.profileType === "basic")) {
-        const formatedId = formatId(us.profileId, crudConfig);
+        const formatedId = crudConfig.dbAdapter.formatId(us.profileId, crudConfig);
         ids.push(formatedId);
       }
     }
@@ -570,7 +570,7 @@ describe('AppController', () => {
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ id: formatId(user.profileId, crudConfig), user: formatId(user.id, crudConfig) })
+      query: JSON.stringify({ id: crudConfig.dbAdapter.formatId(user.profileId, crudConfig), user: crudConfig.dbAdapter.formatId(user.id, crudConfig) })
     }
 
     const expectedObject = {
@@ -595,7 +595,7 @@ describe('AppController', () => {
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ id: formatId(user.profileId, crudConfig) })
+      query: JSON.stringify({ id: crudConfig.dbAdapter.formatId(user.profileId, crudConfig) })
     }
     const expectedObject = null
     const fetchEntity = null;;
@@ -615,7 +615,7 @@ describe('AppController', () => {
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ id: formatId(user.profileId, crudConfig), user: formatId(user.id, crudConfig) })
+      query: JSON.stringify({ id: crudConfig.dbAdapter.formatId(user.profileId, crudConfig), user: crudConfig.dbAdapter.formatId(user.id, crudConfig) })
     }
     const expectedObject = null
     const fetchEntity = null;;
@@ -632,11 +632,11 @@ describe('AppController', () => {
     const payload: Partial<UserProfile> = {
       userName: 'Sarah Jane',
       fakeField: 'fake',
-      user: formatId(otherUser.id, crudConfig)
+      user: crudConfig.dbAdapter.formatId(otherUser.id, crudConfig)
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ id: formatId(user.profileId, crudConfig), user: formatId(user.id, crudConfig) })
+      query: JSON.stringify({ id: crudConfig.dbAdapter.formatId(user.profileId, crudConfig), user: crudConfig.dbAdapter.formatId(user.id, crudConfig) })
     }
     const expectedObject = null
     const fetchEntity = null;;
@@ -656,7 +656,7 @@ describe('AppController', () => {
     for (const key in users) {
       const us = users[key];
       if (!us.skipProfile && (!us.profileType || us.profileType === "basic")) {
-        const formatedId = formatId(us.profileId, crudConfig);
+        const formatedId = crudConfig.dbAdapter.formatId(us.profileId, crudConfig);
         ids.push(formatedId);
       }
     }
@@ -672,7 +672,7 @@ describe('AppController', () => {
 
     expect(res).toEqual(ids.length);
     for (const id of ids) {
-      const resDB = await entityManager.fork().findOne(UserProfile, { id: userService.createNewId(id) as any });
+      const resDB = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(id) as any });
       expect(resDB.astroSign).toEqual('Cancer');
     }
 
@@ -688,7 +688,7 @@ describe('AppController', () => {
     for (const key in users) {
       const us = users[key];
       if (!us.skipProfile) {
-        const formatedId = formatId(us.profileId, crudConfig);
+        const formatedId = crudConfig.dbAdapter.formatId(us.profileId, crudConfig);
         ids.push(formatedId);
       }
     }
@@ -716,7 +716,7 @@ describe('AppController', () => {
     for (const key in users) {
       const us = users[key];
       if (!us.skipProfile && (!us.profileType || us.profileType === "basic")) {
-        const formatedId = formatId(us.profileId, crudConfig);
+        const formatedId = crudConfig.dbAdapter.formatId(us.profileId, crudConfig);
         ids.push(formatedId);
       }
     }
@@ -782,7 +782,7 @@ describe('AppController', () => {
       const iuser = users[key];
       if(iuser.bio === 'BIO_FIND_MANY_KEY'){
         count++;
-        const resDB = await entityManager.fork().findOne(UserProfile, { id: userService.createNewId(iuser.profileId) as any });
+        const resDB = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(iuser.profileId) as any });
         expect(resDB.chineseSign).toEqual('Pig');
       }
     }
@@ -802,7 +802,7 @@ describe('AppController', () => {
     for (const key in users) {
       const us = users[key];
       if (!us.skipProfile && (!us.profileType || us.profileType === "basic")) {
-        const formatedId = formatId(us.profileId, crudConfig);
+        const formatedId = crudConfig.dbAdapter.formatId(us.profileId, crudConfig);
         ids.push(formatedId);
       }
     }
@@ -834,7 +834,7 @@ describe('AppController', () => {
     for (const key in users) {
       const us = users[key];
       if (!us.skipProfile && (!us.profileType || us.profileType === "basic")) {
-        const formatedId = formatId(us.profileId, crudConfig);
+        const formatedId = crudConfig.dbAdapter.formatId(us.profileId, crudConfig);
         profilesToPatchBatch.push({ id: formatedId });
         payloadArray.push({
           query: { id: formatedId, type: 'basic' },
@@ -850,7 +850,7 @@ describe('AppController', () => {
     const res = await testMethod({ url: '/crud/batch', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
     expect(res?.length).toEqual(profilesToPatchBatch.length);
     for (const profileId of profilesToPatchBatch) {
-      const resDB = await entityManager.fork().findOne(UserProfile, { id: userService.createNewId(profileId) as any });
+      const resDB = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(profileId) as any });
       expect(resDB.chineseSign).toEqual('Rat');
     }
 
@@ -870,7 +870,7 @@ describe('AppController', () => {
     for (const key in users) {
       const us = users[key];
       if (!us.skipProfile && (!us.profileType || us.profileType === "basic")) {
-        const formatedId = formatId(us.profileId, crudConfig);
+        const formatedId = crudConfig.dbAdapter.formatId(us.profileId, crudConfig);
         profilesToPatchBatch.push({ id: formatedId });
         payloadArray.push({
           query: { id: formatedId, type: 'basic' },
@@ -902,7 +902,7 @@ describe('AppController', () => {
     for (const key in users) {
       const us = users[key];
       if (!us.skipProfile && (!us.profileType || us.profileType === "basic")) {
-        const formatedId = formatId(us.profileId, crudConfig);
+        const formatedId = crudConfig.dbAdapter.formatId(us.profileId, crudConfig);
         profilesToPatchBatch.push({ id: formatedId });
         payloadArray.push({
           query: { id: formatedId, type: 'basic' },
@@ -925,10 +925,10 @@ describe('AppController', () => {
     const user = usersForDeletion[userName];
     const payload: Partial<UserProfile> = {
     } as any;
-    const formatedId = formatId(user.profileId, crudConfig);
+    const formatedId = crudConfig.dbAdapter.formatId(user.profileId, crudConfig);
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ id: formatedId, user: formatId(user.id, crudConfig) })
+      query: JSON.stringify({ id: formatedId, user: crudConfig.dbAdapter.formatId(user.id, crudConfig) })
     }
 
     const expectedObject = null;
@@ -950,7 +950,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ id: formatId(otherUser.profileId, crudConfig), user: formatId(user.id, crudConfig) })
+      query: JSON.stringify({ id: crudConfig.dbAdapter.formatId(otherUser.profileId, crudConfig), user: crudConfig.dbAdapter.formatId(user.id, crudConfig) })
     }
 
     const expectedObject = null;
@@ -964,7 +964,7 @@ describe('AppController', () => {
     const user = usersForDeletion[userName];
     const payload: Partial<UserProfile> = {
     } as any;
-    const formatedId = formatId(user.profileId, crudConfig);
+    const formatedId = crudConfig.dbAdapter.formatId(user.profileId, crudConfig);
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: formatedId })
@@ -982,7 +982,7 @@ describe('AppController', () => {
     const delUser = usersForDeletion["Joe Deletedbyadmin"];
     const payload: Partial<UserProfile> = {
     } as any;
-    const formatedId = formatId(delUser.profileId, crudConfig);
+    const formatedId = crudConfig.dbAdapter.formatId(delUser.profileId, crudConfig);
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: formatedId, type: 'basic' })
@@ -1004,7 +1004,7 @@ describe('AppController', () => {
     const delUser = usersForDeletion["Joe Deletedbyadmin"];
     const payload: Partial<UserProfile> = {
     } as any;
-    const formatedId = formatId(delUser.profileId, crudConfig);
+    const formatedId = crudConfig.dbAdapter.formatId(delUser.profileId, crudConfig);
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: formatedId })
@@ -1023,7 +1023,7 @@ describe('AppController', () => {
     const delUser = users["Moderator Joe"];
     const payload: Partial<UserProfile> = {
     } as any;
-    const formatedId = formatId(delUser.profileId, crudConfig);
+    const formatedId = crudConfig.dbAdapter.formatId(delUser.profileId, crudConfig);
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: formatedId, type: 'admin' })
@@ -1044,7 +1044,7 @@ describe('AppController', () => {
     } as any;
     const ids = [];
     for (const key in usersForInDeletion) {
-      const formatedId = formatId(usersForInDeletion[key].profileId, crudConfig);
+      const formatedId = crudConfig.dbAdapter.formatId(usersForInDeletion[key].profileId, crudConfig);
       ids.push(formatedId);
     }
     const query: CrudQuery = {
@@ -1056,7 +1056,7 @@ describe('AppController', () => {
 
     for (const profile in usersForInDeletion) {
       const usedel = usersForInDeletion[profile];
-      const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.createNewId(usedel.profileId) as any });
+      const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(usedel.profileId) as any });
       expect(resDb.userName).toBeDefined();
       break;
     }
@@ -1066,7 +1066,7 @@ describe('AppController', () => {
 
     for (const profile in usersForInDeletion) {
       const usedel = usersForInDeletion[profile];
-      const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.createNewId(usedel.profileId) as any });
+      const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(usedel.profileId) as any });
       expect(resDb).toBeNull();
     }
 
@@ -1079,7 +1079,7 @@ describe('AppController', () => {
     } as any;
     const ids = [];
     for (const key in usersForInDeletion) {
-      const formatedId = formatId(usersForInDeletion[key].profileId, crudConfig);
+      const formatedId = crudConfig.dbAdapter.formatId(usersForInDeletion[key].profileId, crudConfig);
       ids.push(formatedId);
     }
     const query: CrudQuery = {
@@ -1099,7 +1099,7 @@ describe('AppController', () => {
     } as any;
     const ids = [];
     for (const key in users) {
-      const formatedId = formatId(users[key].profileId, crudConfig);
+      const formatedId = crudConfig.dbAdapter.formatId(users[key].profileId, crudConfig);
       ids.push(formatedId);
     }
     const query: CrudQuery = {
@@ -1119,7 +1119,7 @@ describe('AppController', () => {
     } as any;
     const ids = [];
     for (const key in users) {
-      const formatedId = formatId(users[key].profileId, crudConfig);
+      const formatedId = crudConfig.dbAdapter.formatId(users[key].profileId, crudConfig);
       ids.push(formatedId);
     }
     const query: CrudQuery = {
@@ -1138,7 +1138,7 @@ describe('AppController', () => {
     } as any;
     const ids = [];
     for (const key in users) {
-      const formatedId = formatId(users[key].profileId, crudConfig);
+      const formatedId = crudConfig.dbAdapter.formatId(users[key].profileId, crudConfig);
       if (formatedId) {
         ids.push(formatedId);
       }
@@ -1154,7 +1154,7 @@ describe('AppController', () => {
     for (const profile in users) {
       if (!users[profile].skipProfile) {
         const usedel = users[profile];
-        const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.createNewId(usedel.profileId) as any });
+        const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(usedel.profileId) as any });
         expect(resDb.userName).toBeDefined();
         break;
       }
@@ -1176,7 +1176,7 @@ describe('AppController', () => {
 
     for (const profile in usersForManyDeletion) {
       const delUser = usersForManyDeletion[profile];
-      const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.createNewId(delUser.profileId) as any });
+      const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(delUser.profileId) as any });
       expect(resDb.userName).toBeDefined();
       break;
     }
@@ -1186,7 +1186,7 @@ describe('AppController', () => {
 
     for (const profile in usersForManyDeletion) {
       const delUser = usersForManyDeletion[profile];
-      const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.createNewId(delUser.profileId) as any });
+      const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(delUser.profileId) as any });
       expect(resDb).toBeNull();
     }
 

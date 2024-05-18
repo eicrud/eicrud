@@ -8,7 +8,7 @@
 [x] add inheritance argument 
 [x] VALIDATION
 [ ] test that put does not merge
-[ ] Check CMD method, get non cached user for cmd
+[x] Check CMD method, get non cached user for cmd
 [ ] crudQuery Validation
 [ ] test QueryPatch (or queryPut behavior)
 [ ] remove put, patch & delete can only take data (no query) /client maybe

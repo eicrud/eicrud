@@ -8,7 +8,7 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { EntityManager } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../crud/model/CrudQuery';
-import { createAccountsAndProfiles, createNewProfileTest, formatId, testMethod } from '../test.utils';
+import { createAccountsAndProfiles, createNewProfileTest, testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../crud/crud.config.service';
 import { TestUser } from '../test.utils';
@@ -114,7 +114,7 @@ describe('AppController', () => {
     const { userId, accessToken } = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload, query, crudConfig});
 
     const em = entityManager.fork();
-    const userDb: MyUser = await em.findOne(MyUser, { id: userService.createNewId(userId) as any }) as any;
+    const userDb: MyUser = await em.findOne(MyUser, { id: userService.dbAdapter.createNewId(userId) as any }) as any;
     expect(userDb.email).toEqual(payload.email);
 
     jwt = accessToken;
@@ -241,7 +241,7 @@ describe('AppController', () => {
     const { userId, accessToken } = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload, query, crudConfig});
 
     const em = entityManager.fork();
-    const userDb: MyUser = await em.findOne(MyUser, { id: userService.createNewId(userId) as any }) as any;
+    const userDb: MyUser = await em.findOne(MyUser, { id: userService.dbAdapter.createNewId(userId) as any }) as any;
     expect(userDb.email).toEqual(payload.email.trim().toLowerCase());
 
   });

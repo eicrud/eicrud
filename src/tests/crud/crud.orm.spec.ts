@@ -8,7 +8,7 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { EntityManager } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../crud/model/CrudQuery';
-import { createAccountsAndProfiles, createNewProfileTest, formatId, testMethod } from '../test.utils';
+import { createAccountsAndProfiles, createNewProfileTest,testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../crud/crud.config.service';
 import { TestUser } from '../test.utils';
@@ -84,7 +84,7 @@ describe('AppController', () => {
 
     const accRes = await userService.$createAccount(testAdminCreds.email,testAdminCreds.password, null, "super_admin" );
     jwt = accRes.accessToken;
-    userId = formatId(accRes.userId, crudConfig);
+    userId = crudConfig.dbAdapter.formatId(accRes.userId, crudConfig);
     
   }, 10000);
 
@@ -135,7 +135,7 @@ describe('AppController', () => {
       userName: 'John Green',
       fakeField: 'fake',
     } as any;
-    const formatedId = formatId(user.profileId, crudConfig);
+    const formatedId = crudConfig.dbAdapter.formatId(user.profileId, crudConfig);
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: formatedId })

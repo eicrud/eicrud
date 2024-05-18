@@ -22,27 +22,6 @@ export interface TestUser{
   password?: string
 }
 
-export function createId(crudConfig: CrudConfigService){
-  let id;
-  switch(crudConfig.dbType){
-    case 'mongo':
-      id = new ObjectId();
-    break;
-    default:
-      id = Math.random().toString(36).substring(7);
-  }
-  return formatId(id, crudConfig);
-}
-
-export function formatId(id: any, crudConfig: CrudConfigService){
-  switch(crudConfig.dbType){
-    case 'mongo':
-      return id?.toString();
-    default:
-      return id;
-  }
-}
-
 
 export function testMethod(arg: { app: NestFastifyApplication, 
     method: string,
@@ -84,7 +63,7 @@ export function testMethod(arg: { app: NestFastifyApplication,
         }
         if(arg.fetchEntity){
             let id = arg.fetchEntity.id || res.id;
-            id = arg.crudConfig.userService.checkId(id);
+            id = arg.crudConfig.userService.dbAdapter.checkId(id);
             res = await arg.entityManager.fork().findOne(arg.fetchEntity.entity, { id });
             res = JSON.parse(JSON.stringify(res));
         }else if(arg.fetchEntities){
@@ -146,7 +125,7 @@ export async function createAccountsAndProfiles(users: Record<string, TestUser>,
         users[key].jwt = accRes.accessToken;
         if(!user.skipProfile){
           const newObj = {
-            id: userService.createNewId() as any,
+            id: userService.dbAdapter.createNewId() as any,
             userName: key,
             user: users[key][crudConfig.id_field],
             bio: user.bio,
@@ -169,7 +148,7 @@ export async function createAccountsAndProfiles(users: Record<string, TestUser>,
         if(user.melons){
           const melons = createMelons(user.melons, user, crudConfig);
           for(const melon of melons){
-            melon.id = userService.createNewId() as any;
+            melon.id = userService.dbAdapter.createNewId() as any;
             melon.createdAt = new Date();
             melon.updatedAt = new Date();
             const newMelon = em.create(Melon, melon)

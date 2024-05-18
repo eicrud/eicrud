@@ -8,7 +8,7 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../crud/model/CrudQuery';
-import { createAccountsAndProfiles, createId, createMelons, createNewProfileTest, formatId, testMethod } from '../test.utils';
+import { createAccountsAndProfiles,createMelons, createNewProfileTest,  testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
 import { Melon } from '../entities/Melon';
 import { CrudService } from '../../crud/crud.service';
@@ -347,7 +347,7 @@ describe('AppController', () => {
       const payload: Partial<Melon> = {
         name: "M",
         price: 1,
-        owner: formatId(user.id, crudConfig),
+        owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
         ownerEmail: user.email,
       } as any;
 
@@ -372,7 +372,7 @@ describe('AppController', () => {
         longName: "M",
         name: "MyMelon",
         price: 1,
-        owner: formatId(user.id, crudConfig),
+        owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
         ownerEmail: user.email,
       } as any;
 
@@ -398,7 +398,7 @@ describe('AppController', () => {
       //User with more trust 
       const trustedUser = users["Admin Dude"];
 
-      payload.owner = formatId(trustedUser.id, crudConfig);
+      payload.owner = crudConfig.dbAdapter.formatId(trustedUser.id, crudConfig);
 
       await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: trustedUser.jwt, entityManager, payload, query, crudConfig});
       for(let i = 0; i <= 30; i++){
@@ -412,7 +412,7 @@ describe('AppController', () => {
       const payload: Partial<Melon> = {
         name: "MyMelon",
         price: 1,
-        owner: formatId(user.id, crudConfig),
+        owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
         ownerEmail: user.email,
         seeds: [
           {
@@ -442,7 +442,7 @@ describe('AppController', () => {
       const payload: Partial<Melon> = {
         name: "MyMelon",
         price: 1,
-        owner: formatId(user.id, crudConfig),
+        owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
         ownerEmail: user.email,
         firstSlice: {
           name: "M",
@@ -470,7 +470,7 @@ describe('AppController', () => {
       const payload: Partial<Melon> = {
         name: "MyMelon",
         price: 1,
-        owner: formatId(user.id, crudConfig),
+        owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
         ownerEmail: user.email,
         seeds: [
           {
@@ -498,7 +498,7 @@ describe('AppController', () => {
     
       //User with more trust
       const trustedUser = users["Admin Dude"];
-      payload.owner = formatId(trustedUser.id, crudConfig);
+      payload.owner = crudConfig.dbAdapter.formatId(trustedUser.id, crudConfig);
       await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: trustedUser.jwt, entityManager, payload, query, crudConfig});
 
       for(let i = 0; i < 8; i++){
@@ -517,7 +517,7 @@ describe('AppController', () => {
       const payload: Partial<Melon> = {
         name: "MyMelon",
         price: 1,
-        owner: formatId(user.id, crudConfig),
+        owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
         ownerEmail: user.email,
         seeds: [
           {
@@ -570,7 +570,7 @@ describe('AppController', () => {
       const payload: Partial<Melon> = {
         name: "MyMelon",
         price: 1,
-        owner: formatId(user.id, crudConfig),
+        owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
         ownerEmail: user.email,
         seeds: [
           {

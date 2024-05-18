@@ -12,6 +12,7 @@ import { EmailService } from "../email/email.service";
 import { AuthenticationOptions } from "../authentification/auth.service";
 import { MikroORM } from "@mikro-orm/core";
 import { LimitOptions } from "./crud.controller";
+import { CrudDbAdapter } from "./dbAdapter/crudDbAdapter";
 
 
 export interface SecurityCacheManager {
@@ -92,6 +93,7 @@ export class CrudConfigService {
 
     public dbType: 'mongo' | 'other' = 'mongo';
     isIsolated: any;
+    public dbAdapter: CrudDbAdapter;
 
     constructor(config: {userService: CrudUserService<any>, 
         logService?: LogService,
@@ -111,13 +113,20 @@ export class CrudConfigService {
         dbType?: string,
         isIsolated?: boolean,
         microServicesOptions?: MicroServicesOptions,
+        dbAdapter?: CrudDbAdapter
     }
         ) {
             this.isIsolated = config.isIsolated;
             this.id_field = config.id_field || this.id_field;
             this.guest_role = config.guest_role || this.guest_role;
             this.orm = config.orm;
-            this.microServicesOptions = { ...this.microServicesOptions, ...(config.microServicesOptions||{})};
+            this.dbAdapter = config.dbAdapter;
+
+            this.microServicesOptions = Object.assign(
+                new MicroServicesOptions(),
+                config.microServicesOptions||{}
+            );
+            
             this.limitOptions = { ...this.limitOptions, ...(config.limitOptions||{})};
             this.authenticationOptions = { ...this.authenticationOptions, ...(config.authenticationOptions||{})};
             this.watchTrafficOptions = { ...this.watchTrafficOptions, ...(config.watchTrafficOptions||{})};
