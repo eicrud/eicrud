@@ -33,12 +33,30 @@ export interface MicroServiceConfig {
     url: string,
     username?: string,
     password?: string,
+    allowNonSecureUrl: boolean;
 }
 
 export class MicroServicesOptions {
+
     microServices: Record<string, MicroServiceConfig> = {};
     username: string;
     password: string;
+    fake_delay_ms: number = 40;
+
+    findCurrentServiceMatches(service: CrudService<any>){
+        let matches = [];
+        for(const key of Object.keys(this.microServices)){
+            if(this.microServices[key].services.includes(service.entity)){
+               matches.push(key);
+            }
+        }
+        return matches;
+    }
+
+
+    static getCurrentService() {
+        return process.env.CRUD_CURRENT_MS;
+    }
 }
 
 export class CrudConfigService {
@@ -143,15 +161,27 @@ export class CrudConfigService {
         await this.orm.schema.ensureIndexes();
     }
 
-    async afterAllHook(res: any, ctx: CrudContext) {
+    async afterCrudHook(res: any, ctx: CrudContext) {
         return Promise.resolve();
     }
     
-    async beforeAllHook(ctx: CrudContext){
+    async beforeCrudHook(ctx: CrudContext){
         return Promise.resolve();
     }
 
-    async errorAllHook(error: Error, ctx: CrudContext){
+    async errorCrudHook(error: Error, ctx: CrudContext){
+        return Promise.resolve();
+    }
+
+    async afterBackdoorHook(res: any, ctx: CrudContext) {
+        return Promise.resolve();
+    }
+    
+    async beforeBackdoorHook(ctx: CrudContext){
+        return Promise.resolve();
+    }
+
+    async errorBackdoorHook(error: Error, ctx: CrudContext){
         return Promise.resolve();
     }
 

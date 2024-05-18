@@ -14,8 +14,8 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
 
 export const Context = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
+  (data: unknown, exctx: ExecutionContext) => {
+    const request = exctx.switchToHttp().getRequest();
     const ctx: CrudContext = request['crudContext'];
     return ctx;
   },

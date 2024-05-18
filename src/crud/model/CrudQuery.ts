@@ -1,4 +1,4 @@
-import { IsOptional, IsString, ValidateNested } from "class-validator";
+import { IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
 import { CrudOptions } from "./CrudOptions";
 import { Transform, Type } from "class-transformer";
 
@@ -20,5 +20,23 @@ export class CrudQuery {
     @IsOptional()
     @IsString()
     cmd?: string;
+
+}
+
+export class BackdoorQuery {
+
+    @IsString()
+    service: string;
+
+    @IsString()
+    methodName: string;
+  
+    @IsInt()
+    @IsOptional()
+    ctxPos?: number;
+
+    @IsInt()
+    @IsOptional()
+    inheritancePos?: number;
 
 }

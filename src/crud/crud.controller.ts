@@ -3,12 +3,12 @@ import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
 import { CrudContext } from './model/CrudContext';
 import { Context } from '../authentification/auth.utils';
-import { CrudQuery } from './model/CrudQuery';
+import { BackdoorQuery, CrudQuery } from './model/CrudQuery';
 import { CrudAuthorizationService } from './crud.authorization.service';
 import { TransformOperationExecutor } from 'class-transformer/cjs/TransformOperationExecutor';
 import { defaultOptions } from 'class-transformer/cjs/constants/default-options.constant';
 import { IsEmail, IsOptional, IsString, MaxLength, validateOrReject } from 'class-validator';
-import { CRUD_CONFIG_KEY, CrudConfigService } from './crud.config.service';
+import { CRUD_CONFIG_KEY, CrudConfigService, MicroServicesOptions } from './crud.config.service';
 import { CmdSecurity } from './model/CrudSecurity';
 import { CrudErrors } from './model/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
@@ -69,7 +69,6 @@ export class CrudController {
         ctx.query = query;
         ctx.data = data;
         ctx.options = crudQuery.options;
-        ctx.security = currentService?.security;
         ctx.origin = type;
 
         if (ctx.origin == 'cmd') {
@@ -82,16 +81,16 @@ export class CrudController {
 
     async beforeHooks(service: CrudService<any>, ctx: CrudContext) {
         //await service.beforeControllerHook(ctx);
-        await this.crudConfig.beforeAllHook(ctx);
+        await this.crudConfig.beforeCrudHook(ctx);
     }
 
     async afterHooks(service: CrudService<any>, res, ctx: CrudContext) {
         //await service.afterControllerHook(res, ctx);
-        await this.crudConfig.afterAllHook(ctx, res);
+        await this.crudConfig.afterCrudHook(ctx, res);
     }
     async errorHooks(service: CrudService<any>, e: Error, ctx: CrudContext) {
         //await service.errorControllerHook(e, ctx);
-        await this.crudConfig.errorAllHook(e, ctx);
+        await this.crudConfig.errorCrudHook(e, ctx);
         const notGuest = this.crudConfig.userService.notGuest(ctx?.user);
         if (notGuest) {
             let patch;
@@ -141,7 +140,7 @@ export class CrudController {
         const currentService = await this.assignContext('POST', query, null, newEntities, 'crud', ctx);
         ctx.isBatch = true;
         try {
-            await this.crudAuthorization.authorizeBatch(ctx, newEntities?.length);
+            await this.crudAuthorization.authorizeBatch(ctx, newEntities?.length, currentService.security);
 
             for (const entity of newEntities) {
                 await this.assignContext('POST', query, entity, entity, 'crud', ctx);
@@ -360,7 +359,7 @@ export class CrudController {
         const currentService = await this.assignContext('PATCH', query, null, null, 'crud', ctx);
         ctx.isBatch = true;
         try {
-            await this.crudAuthorization.authorizeBatch(ctx, data?.length);
+            await this.crudAuthorization.authorizeBatch(ctx, data?.length, currentService.security);
 
             for (const d of data) {
                 await this.assignContext('PATCH', query, d.query, d.data, 'crud', ctx);
@@ -434,7 +433,7 @@ export class CrudController {
             throw new BadRequestException("Service not found: " + query.service);
         }
         const ret: ICrudRightsInfo = {
-            maxItemsPerUser: await this.crudAuthorization.computeMaxItemsPerUser(ctx),
+            maxItemsPerUser: await this.crudAuthorization.computeMaxItemsPerUser(ctx, currentService.security),
             usersItemsInDb: ctx.user?.crudUserDataMap?.[ctx.serviceName]?.itemsCreated || 0,
             fields: {}
         }
@@ -474,9 +473,9 @@ export class CrudController {
         return ret;
     }
 
-    async performValidationAuthorizationAndHooks(ctx: CrudContext, currentService: any, skipBeforeHooks = false) {
+    async performValidationAuthorizationAndHooks(ctx: CrudContext, currentService: CrudService<any>, skipBeforeHooks = false) {
         await this.validate(ctx, currentService);
-        await this.crudAuthorization.authorize(ctx);
+        await this.crudAuthorization.authorize(ctx, currentService.security);
         if (!skipBeforeHooks) {
             await this.beforeHooks(currentService, ctx);
         }
@@ -501,7 +500,7 @@ export class CrudController {
                 queryClass = currentService.entity;
             }
         } else if (ctx.origin == 'cmd') {
-            const cmdSecurity: CmdSecurity = ctx.security?.cmdSecurityMap?.[ctx.cmdName];
+            const cmdSecurity: CmdSecurity = currentService.security?.cmdSecurityMap?.[ctx.cmdName];
             queryClass = null;
             if(!cmdSecurity?.dto){
                 throw new Error("dto missing for cmd: " + ctx.cmdName);
@@ -556,6 +555,28 @@ export class CrudController {
         if (!ctx.options?.limit || ctx.options?.limit > MAX_LIMIT_FIND) {
             ctx.options = ctx.options || {};
             ctx.options.limit = MAX_LIMIT_FIND;
+        }
+    }
+
+    @Patch('backdoor')
+    async backdoor(@Query(new ValidationPipe({ transform: true })) query: BackdoorQuery, @Body() data, @Context() backdoorCtx: CrudContext) {
+        if(!backdoorCtx.backdoorGuarded){
+            throw new UnauthorizedException("Backdoor not guarded : (something is wrong with your auth guard.)");
+        }
+        const ctx: CrudContext = query.ctxPos ? data.args[query.ctxPos] : null;
+        const inheritance = query.inheritancePos ? data.args[query.inheritancePos] : null;
+        ctx.currentMs = MicroServicesOptions.getCurrentService();
+        try {
+            const currentService = this.crudConfig.servicesMap[query.service];
+            if(!currentService[query.methodName]){
+                throw new BadRequestException("Backdoor method not found: " + query.methodName);
+            }
+            await this.crudConfig.beforeBackdoorHook(ctx);
+            const res = await currentService[query.methodName](...data.args);
+            await this.crudConfig.afterBackdoorHook(res, ctx);
+            return res
+        } catch (e) {
+            await this.crudConfig.errorBackdoorHook(e, ctx);
         }
     }
 

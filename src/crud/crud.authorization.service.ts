@@ -40,15 +40,15 @@ export class CrudAuthorizationService {
         return this.rolesMap[role];
     }
 
-    getMatchBatchSizeFromCrudRoleAndParents(ctx: CrudContext, userRole: CrudRole){
-        const roleRights: CrudSecurityRights = ctx.security.rolesRights?.[userRole.name] || {} as any;
+    getMatchBatchSizeFromCrudRoleAndParents(ctx: CrudContext, userRole: CrudRole, security: CrudSecurity){
+        const roleRights: CrudSecurityRights = security.rolesRights?.[userRole.name] || {} as any;
       
         let maxBatchSize = roleRights?.maxBatchSize || 0;
 
         if (userRole.inherits?.length) {
             for (const parent of userRole.inherits) {
                 const parentRole = this.rolesMap[parent];
-                const parentMaxBatchSize = this.getMatchBatchSizeFromCrudRoleAndParents(ctx, parentRole);
+                const parentMaxBatchSize = this.getMatchBatchSizeFromCrudRoleAndParents(ctx, parentRole, security);
                 if (parentMaxBatchSize > maxBatchSize) {
                     maxBatchSize = parentMaxBatchSize;
                 }
@@ -58,7 +58,7 @@ export class CrudAuthorizationService {
 
     }
 
-    authorizeBatch(ctx: CrudContext, batchSize: number) {
+    authorizeBatch(ctx: CrudContext, batchSize: number, security: CrudSecurity) {
 
         if((batchSize || 0) < 1){
             throw new ForbiddenException(`Batchsize must be at least 1`);
@@ -67,19 +67,19 @@ export class CrudAuthorizationService {
         const userRole: CrudRole = this.getCtxUserRole(ctx);
         const adminBatch = this.getCtxUserRole(ctx).isAdminRole ? 100 : 0;
 
-        const maxBatchSize = Math.max(adminBatch, this.getMatchBatchSizeFromCrudRoleAndParents(ctx, userRole));
+        const maxBatchSize = Math.max(adminBatch, this.getMatchBatchSizeFromCrudRoleAndParents(ctx, userRole, security));
         
         if (batchSize > maxBatchSize) {
             throw new ForbiddenException(`Maxbatchsize (${maxBatchSize}) exceeded (${batchSize}).`);
         }
 
-        this.checkmaxItemsPerUser(ctx, batchSize);        
+        this.checkmaxItemsPerUser(ctx, security, batchSize);        
 
     }
 
-    async computeMaxItemsPerUser(ctx: CrudContext, addCount: number = 0) {
-        let max = ctx.security.maxItemsPerUser || this.crudConfig.validationOptions.DEFAULT_MAX_ITEMS_PER_USER; ;
-        let add = ctx.security.additionalItemsInDbPerTrustPoints;
+    async computeMaxItemsPerUser(ctx: CrudContext, security: CrudSecurity, addCount: number = 0) {
+        let max = security.maxItemsPerUser || this.crudConfig.validationOptions.DEFAULT_MAX_ITEMS_PER_USER; ;
+        let add = security.additionalItemsInDbPerTrustPoints;
         if(add){
            const trust = (await this.crudConfig.userService.$getOrComputeTrust(ctx.user, ctx));
            if(trust >= 1){
@@ -89,30 +89,30 @@ export class CrudAuthorizationService {
         return max
     }
 
-    async checkmaxItemsPerUser(ctx: CrudContext, addCount: number = 0) {
+    async checkmaxItemsPerUser(ctx: CrudContext, security: CrudSecurity,  addCount: number = 0) {
         if (ctx.origin == 'crud' && this.crudConfig.userService.notGuest(ctx.user) &&
             ctx.method == 'POST') {
 
             const count = ctx.user?.crudUserDataMap?.[ctx.serviceName]?.itemsCreated + addCount;
-            const max = await this.computeMaxItemsPerUser(ctx, addCount);
+            const max = await this.computeMaxItemsPerUser(ctx, security, addCount);
             if (count >= max) {
-                throw new ForbiddenException(`You have reached the maximum number of items for this resource (${ctx.security.maxItemsPerUser})`);
+                throw new ForbiddenException(`You have reached the maximum number of items for this resource (${security.maxItemsPerUser})`);
             }
         }
     }
 
-    async authorize(ctx: CrudContext) {
+    async authorize(ctx: CrudContext, security: CrudSecurity) {
 
-        if(ctx.security.guest_can_read_all && ctx.method == 'GET'){
+        if(security.guest_can_read_all && ctx.method == 'GET'){
             return true;
         }
 
         const fields = AuthUtils.getObjectFields(ctx.data);
 
         if (ctx.origin == 'crud' && !ctx.isBatch){
-            await this.checkmaxItemsPerUser(ctx);
+            await this.checkmaxItemsPerUser(ctx, security);
         }else if (ctx.origin == 'cmd'){
-            const cmdSec = ctx.security.cmdSecurityMap?.[ctx.cmdName];
+            const cmdSec = security.cmdSecurityMap?.[ctx.cmdName];
             const hasMaxUses =cmdSec?.maxUsesPerUser && this.crudConfig.userService.notGuest(ctx.user)
             const isSecureOnly = cmdSec?.secureOnly;
             if(ctx.method != 'POST' && (hasMaxUses || isSecureOnly)){
@@ -137,7 +137,7 @@ export class CrudAuthorizationService {
 
         const crudRole: CrudRole = this.getCtxUserRole(ctx);
 
-        const checkRes = this.recursCheckRolesAndParents(crudRole, ctx, fields);
+        const checkRes = this.recursCheckRolesAndParents(crudRole, ctx, fields, security);
 
         if (!checkRes) {
             let msg = `Role ${ctx.user.role} is not allowed to ${ctx.method} ${ctx.serviceName} ${ctx.cmdName || ''}`;
@@ -158,8 +158,8 @@ export class CrudAuthorizationService {
         return allGood;
     }
 
-    recursCheckRolesAndParents(role: CrudRole, ctx: CrudContext, fields: string[]): CrudRole | null {
-        const roleRights = ctx.security.rolesRights[role.name];
+    recursCheckRolesAndParents(role: CrudRole, ctx: CrudContext, fields: string[], security: CrudSecurity): CrudRole | null {
+        const roleRights = security.rolesRights[role.name];
         let allGood = false;
 
         if(roleRights){
@@ -201,7 +201,7 @@ export class CrudAuthorizationService {
         if (role.inherits?.length) {
             for (const parent of role.inherits) {
                 const parentRole = this.rolesMap[parent];
-                const checkRes = this.recursCheckRolesAndParents(parentRole, ctx, fields)
+                const checkRes = this.recursCheckRolesAndParents(parentRole, ctx, fields, security)
                 if (checkRes) {
                     return checkRes;
                 }
