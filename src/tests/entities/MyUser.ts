@@ -1,5 +1,5 @@
 import {  Collection, Entity, Index, OneToMany, OneToOne, PrimaryKey, Property, Unique } from "@mikro-orm/core";
-import { CrudData, CrudUser } from "../../user/model/CrudUser";
+import { CrudUser } from "../../user/model/CrudUser";
 import { Equals, IsBoolean, IsDate, IsEmail, IsInt, IsMongoId, IsOptional, IsString } from "class-validator";
 import { UserProfile } from "./UserProfile";
 import { Melon } from "./Melon";
@@ -70,7 +70,10 @@ export class MyUser implements CrudUser {
     passwordResetAttempCount: number;
 
     @Property({ nullable: true })
-    crudUserDataMap: Record<string, CrudData>;
+    crudUserCountMap: Record<string, number>;
+
+    @Property({ nullable: true })
+    cmdUserCountMap: Record<string, number>
 
     @Property({ nullable: true })
     errorCount: number;

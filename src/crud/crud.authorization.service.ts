@@ -3,7 +3,7 @@ import { AuthUtils } from "../authentification/auth.utils";
 import { CrudContext } from "./model/CrudContext";
 import { CrudRole } from "./model/CrudRole";
 import { defineAbility, subject } from "@casl/ability";
-import { CrudSecurity, CrudSecurityRights, httpAliasResolver } from "./model/CrudSecurity";
+import { CmdSecurity, CrudSecurity, CrudSecurityRights, httpAliasResolver } from "./model/CrudSecurity";
 import { CrudUserService } from "../user/crud-user.service";
 import { CRUD_CONFIG_KEY, CrudConfigService } from "./crud.config.service";
 import { CrudUser } from "../user/model/CrudUser";
@@ -77,6 +77,16 @@ export class CrudAuthorizationService {
 
     }
 
+    async computeMaxUsesPerUser(ctx: CrudContext, cmdSec: CmdSecurity){
+        let max = cmdSec.maxUsesPerUser;
+        let add = cmdSec.additionalUsesPerTrustPoint;
+        if(add){
+           add = add*(await this.crudConfig.userService.$getOrComputeTrust(ctx.user, ctx));
+           max+=Math.max(add,0);
+        }
+        return max;
+    }
+
     async computeMaxItemsPerUser(ctx: CrudContext, security: CrudSecurity, addCount: number = 0) {
         let max = security.maxItemsPerUser || this.crudConfig.validationOptions.DEFAULT_MAX_ITEMS_PER_USER; ;
         let add = security.additionalItemsInDbPerTrustPoints;
@@ -93,7 +103,7 @@ export class CrudAuthorizationService {
         if (ctx.origin == 'crud' && this.crudConfig.userService.notGuest(ctx.user) &&
             ctx.method == 'POST') {
 
-            const count = (ctx.user?.crudUserDataMap?.[ctx.serviceName]?.itemsCreated || 0) + addCount;
+            const count = (ctx.user?.crudUserCountMap?.[ctx.serviceName] || 0) + addCount;
             const max = await this.computeMaxItemsPerUser(ctx, security, addCount);
             if (count >= max) {
                 throw new ForbiddenException(`You have reached the maximum number of items for this resource (${security.maxItemsPerUser})`);
@@ -120,14 +130,8 @@ export class CrudAuthorizationService {
                 throw new ForbiddenException(`Command must be used in secure mode (POST)`);
             }
             if(hasMaxUses) {
-            
-                let max = cmdSec.maxUsesPerUser;
-                let add = cmdSec.additionalUsesPerTrustPoint;
-                if(add){
-                   add = add*(await this.crudConfig.userService.$getOrComputeTrust(ctx.user, ctx));
-                   max+=Math.max(add,0);
-                }
-                const count = ctx.user?.crudUserDataMap?.[ctx.serviceName]?.cmdMap?.[ctx.cmdName];
+                let max = await this.computeMaxUsesPerUser(ctx, cmdSec);
+                const count = ctx.user?.cmdUserCountMap?.[ctx.serviceName+'_'+ctx.cmdName] || 0;
                 if (count >= max) {
                     throw new ForbiddenException(`You have reached the maximum uses for this command (${max})`);
                 }
