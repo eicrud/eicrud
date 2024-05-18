@@ -170,6 +170,7 @@ export class CrudController {
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
             const res = await currentService.$cmdHandler(query.cmd, ctx);
+            this.addCountToCmdMap(ctx, 1);
             await this.afterHooks(currentService, res, ctx);
             return res;
         } catch (e) {
@@ -183,6 +184,7 @@ export class CrudController {
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
             const res = await currentService.$cmdHandler(query.cmd, ctx);
+            this.addCountToCmdMap(ctx, 1);
             await this.afterHooks(currentService, res, ctx);
             return res;
         } catch (e) {
@@ -436,11 +438,20 @@ export class CrudController {
         }
         const ret: ICrudRightsInfo = {
             maxItemsPerUser: await this.crudAuthorization.computeMaxItemsPerUser(ctx, currentService.security),
-            usersItemsInDb: ctx.user?.crudUserDataMap?.[ctx.serviceName]?.itemsCreated || 0,
-            fields: {}
+            userItemsInDb: ctx.user?.crudUserCountMap?.[ctx.serviceName] || 0,
+            fields: {},
+            userCmdCount: {}
         }
         const cls = currentService.entity;
         ret.fields = await this.recursiveGetRightsType(cls, {}, trust);
+        
+        for(const cmd in currentService.security.cmdSecurityMap){
+            const cmdSecurity = currentService.security.cmdSecurityMap[cmd];
+            ret.userCmdCount[cmd] = {
+                max: await this.crudAuthorization.computeMaxUsesPerUser(ctx, cmdSecurity),
+                performed: ctx.user?.cmdUserCountMap?.[ctx.serviceName + '_' + cmd] || 0
+            }
+        }
 
         return ret;
     }
@@ -539,17 +550,25 @@ export class CrudController {
         }
     }
 
+    addCountToCmdMap(ctx: CrudContext, ct) {
+        if (this.crudConfig.userService.notGuest(ctx?.user)) {
+            const increments = {['cmdUserCountMap.' + ctx.serviceName + '_' + ctx.cmdName]: ct}
+            const query = { [this.crudConfig.id_field]: ctx.user[this.crudConfig.id_field] };
+            this.crudConfig.userService.$unsecure_incPatch({ query, increments }, ctx);
+        }
+    }
+
     addCountToDataMap(ctx: CrudContext, ct: number) {
         if (this.crudConfig.userService.notGuest(ctx?.user)) {
 
-            const increments = {['crudUserDataMap.' + ctx.serviceName + '.itemsCreated']: ct}
+            const increments = {['crudUserCountMap.' + ctx.serviceName]: ct}
             const query = { [this.crudConfig.id_field]: ctx.user[this.crudConfig.id_field] };
             this.crudConfig.userService.$unsecure_incPatch({ query, increments }, ctx);
 
             // if (!ctx.noFlush) {
-            //     ctx.user.crudUserDataMap[ctx.serviceName] = ctx?.user.crudUserDataMap[ctx.serviceName] || {} as any;
-            //     const count = ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated || 0;
-            //     ctx.user.crudUserDataMap[ctx.serviceName].itemsCreated = count + ct;
+            //     ctx.user.crudUserCountMap[ctx.serviceName] = ctx?.user.crudUserCountMap[ctx.serviceName] || {} as any;
+            //     const count = ctx.user.crudUserCountMap[ctx.serviceName].itemsCreated || 0;
+            //     ctx.user.crudUserCountMap[ctx.serviceName].itemsCreated = count + ct;
             //     this.crudConfig.userService.$setCached(ctx.user, ctx);
             // }
         }

@@ -2,10 +2,6 @@ import { CrudEntity } from "../../crud/model/CrudEntity";
 
 // This should be a real class/interface representing a user entity
 
-export interface CrudData {
-  cmdMap: Record<string, number>;
-  itemsCreated: number;
-}
 
 /**
  * User entity base interface.
@@ -37,7 +33,8 @@ export interface CrudUser extends CrudEntity{
     passwordResetToken: string;
     passwordResetAttempCount: number;
 
-    crudUserDataMap: Record<string, CrudData>
+    crudUserCountMap: Record<string, number>
+    cmdUserCountMap: Record<string, number>
 
     errorCount: number;
     incidentCount: number;

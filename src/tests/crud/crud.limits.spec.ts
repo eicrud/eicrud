@@ -78,72 +78,72 @@ describe('AppController', () => {
 
   });
 
-  // it('should ensure maximum limit when GET melon', async () => {
+  it('should ensure maximum limit when GET melon', async () => {
     
-  //   const user = users["Michael Doe"];
+    const user = users["Michael Doe"];
 
-  //   const payload = {}
+    const payload = {}
 
-  //   let query: CrudQuery = {
-  //     service: "melon",
-  //     query: "{}",
-  //   }
+    let query: CrudQuery = {
+      service: "melon",
+      query: "{}",
+    }
 
-  //   let res = await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
+    let res = await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
 
-  //   expect(res.data.length).toBe(crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY);
-
-
-  //   query = {
-  //     service: "melon",
-  //     query: "{}",
-  //     options: JSON.stringify({
-  //       limit: 99999999999999999999
-  //     }) as any
-  //   }
-
-  //   const res2 = await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
-
-  //   expect(res2.data.length).toBe(crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY);
+    expect(res.data.length).toBe(crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY);
 
 
-  // });
+    query = {
+      service: "melon",
+      query: "{}",
+      options: JSON.stringify({
+        limit: 99999999999999999999
+      }) as any
+    }
 
-  // it('should ensure limit when specified', async () => {
+    const res2 = await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
 
-  //   const user = users["Michael Doe"];
+    expect(res2.data.length).toBe(crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY);
 
-  //   const payload = {}
 
-  //   const query: CrudQuery = {
-  //     service: "melon",
-  //     query: "{}",
-  //     options: JSON.stringify({
-  //       limit: 5
-  //     }) as any
-  //   }
+  });
 
-  //   const res = await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
+  it('should ensure limit when specified', async () => {
 
-  //   expect(res.data.length).toBe(5);
+    const user = users["Michael Doe"];
 
-  // });
+    const payload = {}
 
-  // it('should ensure limit when admin GET melon', async () => {
+    const query: CrudQuery = {
+      service: "melon",
+      query: "{}",
+      options: JSON.stringify({
+        limit: 5
+      }) as any
+    }
+
+    const res = await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
+
+    expect(res.data.length).toBe(5);
+
+  });
+
+  it('should ensure limit when admin GET melon', async () => {
       
-  //     const user = users["Admin Dude"];
+      const user = users["Admin Dude"];
   
-  //     const payload = {}
+      const payload = {}
   
-  //     const query: CrudQuery = {
-  //       service: "melon",
-  //       query: "{}",
-  //     }
+      const query: CrudQuery = {
+        service: "melon",
+        query: "{}",
+      }
   
-  //     const res = await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
+      const res = await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
   
-  //     expect(res.data.length).toBe(crudConfig.limitOptions.ADMIN_LIMIT_QUERY);  
-  // });
+      expect(res.data.length).toBe(crudConfig.limitOptions.ADMIN_LIMIT_QUERY);  
+  });
 
 
   it('should limit number of MELON per users', async () => {

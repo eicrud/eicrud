@@ -30,7 +30,8 @@ export interface ICrudRightsFieldInfo {
 }
 export interface ICrudRightsInfo {
     maxItemsPerUser: number;
-    usersItemsInDb: number;
+    userItemsInDb: number;
+    userCmdCount: Record<string, {max: number, performed: number}>;
     fields: Record<string, ICrudRightsFieldInfo>;
 }
 
