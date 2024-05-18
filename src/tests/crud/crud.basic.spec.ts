@@ -8,7 +8,7 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { EntityManager } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../crud/model/CrudQuery';
-import { createAccountsAndProfiles, createNewProfileTest, formatId, testMethod } from '../test.utils';
+import { createAccountsAndProfiles, createNewProfileTest, testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../crud/crud.config.service';
 import { TestUser } from '../test.utils';
@@ -138,7 +138,7 @@ describe('AppController', () => {
 
     const accRes = await userService.$createAccount(testAdminCreds.email, testAdminCreds.password, null, "super_admin");
     jwt = accRes.accessToken;
-    userId = formatId(accRes.userId, crudConfig);
+    userId = crudConfig.dbAdapter.formatId(accRes.userId, crudConfig);
 
   }, 10000);
 
@@ -192,7 +192,7 @@ describe('AppController', () => {
       i++;
       const res2 = await profileService.$findOne({ id: res[profile].id }, null);
       expect(res2.userName).toEqual(`Batch Doe ${i}`);
-      const query = { id: userService.createNewId(res[profile].id) }; //Weird that I need to convert to objectId here
+      const query = { id: userService.dbAdapter.createNewId(res[profile].id) }; //Weird that I need to convert to objectId here
       const resDB = await entityManager.fork().findOne(UserProfile, query as any);
       expect(resDB.userName).toEqual(`Batch Doe ${i}`);
     }
@@ -206,7 +206,7 @@ describe('AppController', () => {
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ user: formatId((sarahDoeProfile.user as any).id, crudConfig) })
+      query: JSON.stringify({ user: crudConfig.dbAdapter.formatId((sarahDoeProfile.user as any).id, crudConfig) })
     }
 
     const expectedObject = {
@@ -243,7 +243,7 @@ describe('AppController', () => {
     } as any;
     const ids = [];
     for (const key in profiles) {
-      const formatedId = formatId(profiles[key].id, crudConfig);
+      const formatedId = crudConfig.dbAdapter.formatId(profiles[key].id, crudConfig);
       ids.push(formatedId);
     }
     const query: CrudQuery = {
@@ -266,10 +266,10 @@ describe('AppController', () => {
     const sarahDoeProfile = profiles["Sarah Doe"];
     const payload: Partial<UserProfile> = {
       userName: 'Sarah Jane',
-      user: formatId((sarahDoeProfile.user as any).id, crudConfig),
+      user: crudConfig.dbAdapter.formatId((sarahDoeProfile.user as any).id, crudConfig),
       fakeField: 'fake',
     } as any;
-    const formatedId = formatId(sarahDoeProfile.id, crudConfig);
+    const formatedId = crudConfig.dbAdapter.formatId(sarahDoeProfile.id, crudConfig);
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: formatedId })
@@ -296,7 +296,7 @@ describe('AppController', () => {
     };
     const ids = [];
     for (const key in profiles) {
-      const formatedId = formatId(profiles[key].id, crudConfig);
+      const formatedId = crudConfig.dbAdapter.formatId(profiles[key].id, crudConfig);
       ids.push(formatedId);
     }
     const query: CrudQuery = {
@@ -377,7 +377,7 @@ describe('AppController', () => {
   it('should delete profile', async () => {
     const payload: Partial<UserProfile> = {
     } as any;
-    const formatedId = formatId(users['Delme Dude'].profileId, crudConfig);
+    const formatedId = crudConfig.dbAdapter.formatId(users['Delme Dude'].profileId, crudConfig);
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: formatedId })
@@ -399,7 +399,7 @@ describe('AppController', () => {
     } as any;
     const ids = [];
     for (const key in profilesToRemoveIn) {
-      const formatedId = formatId(profilesToRemoveIn[key].id, crudConfig);
+      const formatedId = crudConfig.dbAdapter.formatId(profilesToRemoveIn[key].id, crudConfig);
       ids.push(formatedId);
     }
     const query: CrudQuery = {

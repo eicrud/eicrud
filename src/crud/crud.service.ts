@@ -13,6 +13,7 @@ import { ObjectId } from '@mikro-orm/mongodb';
 import { CrudTransformer } from './transform/CrudTransformer';
 import { BackdoorQuery } from './model/CrudQuery';
 import axios from 'axios';
+import { CrudDbAdapter } from './dbAdapter/crudDbAdapter';
 
 const NAMES_REGEX = /([^\s,]+)/g;
 const COMMENTS_REGEX = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
@@ -55,6 +56,8 @@ export class CrudService<T extends CrudEntity> {
     protected entityManager: EntityManager;
     public serviceName: string;
     protected crudConfig: CrudConfigService;
+    public dbAdapter: CrudDbAdapter;
+
     constructor(
         protected moduleRef: ModuleRef,
         public entity: EntityClass<T>,
@@ -62,7 +65,8 @@ export class CrudService<T extends CrudEntity> {
         private config?: {
             cacheOptions?: CacheOptions,
             serviceName?: string,
-            entityManager?: EntityManager
+            entityManager?: EntityManager,
+            dbAdapter?: CrudDbAdapter,
         }
     ) {
     }
@@ -71,6 +75,8 @@ export class CrudService<T extends CrudEntity> {
         this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY, { strict: false });
         this.entityManager = this.config?.entityManager || this.crudConfig.entityManager;
         this.CACHE_TTL = this.config?.cacheOptions?.TTL || this.crudConfig.defaultCacheOptions.TTL;
+        this.dbAdapter = this.config?.dbAdapter || this.crudConfig.dbAdapter;
+        this.dbAdapter.setConfigService(this.crudConfig);
         this.crudConfig.addService(this);
     }
 
@@ -164,15 +170,6 @@ export class CrudService<T extends CrudEntity> {
         });
     }
 
-    createNewId(str?: string) {
-        switch (this.crudConfig.dbType) {
-            case 'mongo':
-                return str ? new ObjectId(str) : new ObjectId();
-            default:
-                return str || Math.random().toString(36).substring(7);
-        }
-    }
-
     getName() {
         return CrudService.getName(this.entity);
     }
@@ -199,7 +196,7 @@ export class CrudService<T extends CrudEntity> {
         const entity = em.create(this.entity, newEntity, opts as any);
         //const entity = new (this.entity as any)();
         wrap(entity).assign(newEntity as any, { em, mergeObjectProperties: true, onlyProperties: true });
-        entity[this.crudConfig.id_field] = this.createNewId();
+        entity[this.crudConfig.id_field] = this.dbAdapter.createNewId();
 
         await em.persist(entity);
         if (!ctx?.noFlush) {
@@ -257,7 +254,7 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async $findIn(ids: string[], entity: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
-        this.makeInQuery(ids, entity);
+        this.dbAdapter.makeInQuery(ids, entity);
         return this.$find(entity, ctx, inheritance);
     }
 
@@ -314,25 +311,11 @@ export class CrudService<T extends CrudEntity> {
         return results;
     }
 
+
     async $unsecure_incPatch(args: { query: Partial<T>, increments: { [key: string]: number }, addPatch: any }, ctx: CrudContext, inheritance: any = {}) {
         const em = ctx?.em || this.entityManager.fork();
-        switch (this.crudConfig.dbType) {
-            case 'mongo':
-                let updateMongo = { $inc: {} };
-                for (let key in args.increments) {
-                    updateMongo.$inc[key] = args.increments[key];
-                }
-                em.nativeUpdate(this.entity, args.query, updateMongo as any);
-                break;
-            default:
-                //UNTESTED
-                let updateSql = {};
-                for (let key in args.increments) {
-                    updateSql[key] = () => `${key} + ${args.increments[key]}`;
-                }
-                em.nativeUpdate(this.entity, args.query, updateSql);
-                break;
-        }
+        const update = await this.dbAdapter.getIncrementUpdate(args.increments, ctx);
+        await em.nativeUpdate(this.entity, args.query, update as any);
         ctx.em = em;
         let res;
         if (args.addPatch) {
@@ -344,12 +327,12 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async $patchIn(ids: string[], query: Partial<T>, newEntity: Partial<T>, ctx: CrudContext, secure: boolean = true, inheritance: any = {}) {
-        this.makeInQuery(ids, query);
+        this.dbAdapter.makeInQuery(ids, query);
         return await this.$patch(query, newEntity, ctx, secure, inheritance);
     }
 
     async $removeIn(ids: any, query: any, ctx: CrudContext) {
-        this.makeInQuery(ids, query);
+        this.dbAdapter.makeInQuery(ids, query);
         return await this.$remove(query, ctx);
     }
 
@@ -394,7 +377,7 @@ export class CrudService<T extends CrudEntity> {
                 throw new BadRequestException('Entity not found (patch)');
             }
         };
-        const id = this.checkId(result[this.crudConfig.id_field]);
+        const id = this.dbAdapter.checkId(result[this.crudConfig.id_field]);
 
         let res = em.getReference(this.entity, id);
         wrap(res).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true });
@@ -456,37 +439,9 @@ export class CrudService<T extends CrudEntity> {
         return trust;
     }
 
-    makeInQuery(ids, query: any) {
-        if (this.crudConfig.dbType === 'mongo') {
-            ids = ids.map(id => this.convertMongoPrimaryKey(id));
-        }
-        query[this.crudConfig.id_field] = { $in: ids };
-    }
-
-    checkId(id: any) {
-        if (this.crudConfig.dbType === 'mongo') {
-            return this.checkMongoId(id);
-        }
-        return id;
-    }
-
-    // checkObjectForIds(obj: any, level = 0): any {
-    //     for (let key in obj) {
-    //         if (obj.hasOwnProperty(key)) {
-    //             if (typeof obj[key] === 'object' && obj[key] !== null) {
-    //                 if(level < 3){
-    //                     this.checkObjectForIds(obj[key], level + 1);
-    //                 }
-    //             } else {
-    //                 obj[key] = this.checkId(obj[key]);
-    //             }
-    //         }
-    //     }
-    // }
-
     checkObjectForIds(obj: any) {
         for (let key in obj || {}) {
-            obj[key] = this.checkId(obj[key]);
+            obj[key] = this.dbAdapter.checkId(obj[key]);
         }
     }
 

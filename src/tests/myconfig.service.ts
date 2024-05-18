@@ -9,6 +9,7 @@ import { MelonService } from "./melon.service";
 import { CrudRole } from "../crud/model/CrudRole";
 import { BasicMemoryCache } from "../authentification/auth.utils";
 import { MyProfileService } from "./profile.service";
+import { MongoDbAdapter } from "../db_mongo/mongoDbAdapter";
 
 
 const roles: CrudRole[] = [
@@ -60,7 +61,8 @@ export class MyConfigService extends CrudConfigService {
             captchaService: true,
             watchTrafficOptions: {
                 ddosProtection: true,
-            }
+            },
+            dbAdapter: new MongoDbAdapter(),
         });
 
         this.addRoles(roles);

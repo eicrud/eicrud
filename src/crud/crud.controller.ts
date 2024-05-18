@@ -210,10 +210,10 @@ export class CrudController {
         }
     }
 
-    async subFind(query: CrudQuery, ctx: CrudContext, NON_ADMIN_LIMIT_QUERY, ADMIN_LIMIT_QUERY, currentService = undefined) {
+    async subFind(query: CrudQuery, ctx: CrudContext, NON_ADMIN_LIMIT_QUERY, ADMIN_LIMIT_QUERY, currentService: CrudService<any> = undefined) {
         this.limitQuery(ctx, NON_ADMIN_LIMIT_QUERY, ADMIN_LIMIT_QUERY);
         await this.performValidationAuthorizationAndHooks(ctx, currentService);
-        const res = await currentService.find(ctx.query, ctx);
+        const res = await currentService.$find(ctx.query, ctx);
         await this.afterHooks(currentService, res, ctx);
         return res;
     }

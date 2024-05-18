@@ -9,7 +9,7 @@ import { EntityManager, ObjectId} from '@mikro-orm/mongodb';
 import { wrap } from '@mikro-orm/core';
 import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../crud/model/CrudQuery';
-import { createAccountsAndProfiles, createNewProfileTest, formatId, testMethod } from '../test.utils';
+import { createAccountsAndProfiles, createNewProfileTest, testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../crud/crud.config.service';
 import { TestUser } from '../test.utils';
@@ -141,7 +141,7 @@ describe('AppController', () => {
 
     const accRes = await userService.$createAccount(testAdminCreds.email, testAdminCreds.password, null, "super_admin");
     jwt = accRes.accessToken;
-    userId = formatId(accRes.userId, crudConfig);
+    userId = crudConfig.dbAdapter.formatId(accRes.userId, crudConfig);
 
     
     newPicture = new Picture();
@@ -165,7 +165,7 @@ describe('AppController', () => {
         const payload: Partial<Melon> = {
           name: "MyMelon",
           price: 1,
-          owner: formatId(user.id, crudConfig),
+          owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
           ownerEmail: user.email,
           firstSlice: {
             name: "M",
@@ -204,7 +204,7 @@ describe('AppController', () => {
       const payload: Partial<Melon> = {
         name: "MyMelon",
         price: 1,
-        owner: formatId(user.id, crudConfig),
+        owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
         ownerEmail: user.email,
         seeds: [
           {
@@ -249,7 +249,7 @@ describe('AppController', () => {
     const payload: Partial<Melon> = {
       name: "MyMelon",
       price: 1,
-      owner: formatId(user.id, crudConfig),
+      owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
       ownerEmail: user.email,
       stringSeeds: ["seed1","seed2"],
     } as any;
@@ -309,7 +309,7 @@ describe('AppController', () => {
     //   const sarahDoeProfile = profiles["Sarah Doe"];
     //   const payload: Partial<UserProfile> = {
     //     userName: 'Sarah Jane',
-    //     user: formatId((sarahDoeProfile.user as any).id, crudConfig),
+    //     user: crudConfig.dbAdapter.formatId((sarahDoeProfile.user as any).id, crudConfig),
     //     fakeField: 'fake',
     //     pictures: [ { 
     //     id: newPicture.id ,
@@ -322,7 +322,7 @@ describe('AppController', () => {
     //     updatedAt: new Date()
     //   } as Partial<Picture> ]
     //   } as any;
-    //   const formatedId = formatId(sarahDoeProfile.id, crudConfig);
+    //   const formatedId = crudConfig.dbAdapter.formatId(sarahDoeProfile.id, crudConfig);
     //   const query: CrudQuery = {
     //     service: 'user-profile',
     //     query: JSON.stringify({ id: formatedId })
