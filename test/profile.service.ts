@@ -11,7 +11,7 @@ import { CrudUser } from "../core/user/model/CrudUser";
 import { CrudContext } from "../core/crud/model/CrudContext";
 
 
-class TestCmdDto {
+export class TestCmdDto {
     @IsString()
     @MaxLength(30)
     returnMessage: string;
@@ -71,6 +71,13 @@ export class MyProfileService extends CrudService<UserProfile> {
     ) {
         const serviceName = CrudService.getName(UserProfile);
         super(moduleRef, UserProfile, myProfileSecurity(serviceName));
+    }
+
+    override $cmdHandler(cmdName: string, ctx: CrudContext, inheritance?: any): Promise<any> {
+        if (cmdName === 'testCmd') {
+            return Promise.resolve((ctx.data as TestCmdDto).returnMessage);
+        }
+        return super.$cmdHandler(cmdName, ctx, inheritance);
     }
     
 }

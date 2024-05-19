@@ -4,16 +4,13 @@ import { Melon } from "./entities/Melon";
 import { MyConfigService } from "./myconfig.service";
 import { Injectable } from "@nestjs/common";
 import { CrudService } from "../core/crud/crud.service";
-import { CmdSecurity, CrudSecurity } from "../core/crud/model/CrudSecurity";
+import { CrudSecurity } from "../core/crud/model/CrudSecurity";
 import { CrudUser } from "../core/user/model/CrudUser";
-
 
 const melonSecurity = (MELON) => { return {
 
     cmdSecurityMap: {
-        'testCmd': {
-            maxUsesPerUser: 10,
-        } as CmdSecurity
+
     },
 
     rolesRights: {
@@ -40,7 +37,6 @@ const melonSecurity = (MELON) => { return {
             },
 
             defineCMDAbility(can, cannot, ctx) {
-                can('testCmd', MELON);
             },
         },
         guest: {
@@ -61,5 +57,6 @@ export class MelonService extends CrudService<Melon> {
         super(moduleRef, Melon, melonSecurity(serviceName));
 
     }
+    
 
 }

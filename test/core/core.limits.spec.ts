@@ -9,7 +9,7 @@ import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
 import { createAccountsAndProfiles, createMelons, createNewProfileTest, testMethod } from '../test.utils';
-import { MyProfileService } from '../profile.service';
+import { MyProfileService, TestCmdDto } from '../profile.service';
 import { Melon } from '../entities/Melon';
 import { CrudService } from '../../core/crud/crud.service';
 import { TestUser } from '../test.utils';
@@ -44,6 +44,11 @@ describe('AppController', () => {
       role: "user",
       bio: 'I am a cool guy.',
       melons: 10000
+    },    
+    "Jon Doe": {
+      email: "jon.doe@test.com",
+      role: "user",
+      bio: 'I am a cool guy.',
     },
     "Admin Dude": {
       email: "admin.dude@mail.com",
@@ -57,7 +62,7 @@ describe('AppController', () => {
   beforeAll(async () => {
 
     const moduleRef: TestingModule = await Test.createTestingModule(
-      getModule('test-limits-db')
+      getModule(require('path').basename(__filename))
     ).compile();
     await moduleRef.get<EntityManager>(EntityManager).getConnection().getDb().dropDatabase();
 
@@ -145,9 +150,8 @@ describe('AppController', () => {
       expect(res.data.length).toBe(crudConfig.limitOptions.ADMIN_LIMIT_QUERY);  
   });
 
-
   it('should limit number of MELON per users', async () => {
-    const user = users["Michael Doe"];
+    const user = users["Jon Doe"];
     const baseMelon: Partial<Melon> = {
       price: 10,
       owner: user.id,
@@ -169,12 +173,49 @@ describe('AppController', () => {
     }
 
     await Promise.all(promises);
-
+    //50ms delay
+    await new Promise((r) => setTimeout(r, 50));
+    
     const payload = {
       ...baseMelon,
       name: `Melon too much`,
     }
     const res = await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 403, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+    query.query = JSON.stringify({owner: user.id});
+    //Delete melons
+    const res2 = await testMethod({ url: '/crud/many', method: 'DELETE', expectedCode: 200, app, jwt: user.jwt, entityManager, payload: {}, query, crudConfig});
+    expect(res2).toBe(10);
+
+    delete query.query;
+    const res3 = await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+  });
+
+  it('should limit number of cmd uses per user', async () => {
+    const user = users["Jon Doe"];
+
+    const payload: TestCmdDto = {
+      returnMessage: "Hello World"
+    }
+
+    const query: CrudQuery = {
+      service: "user-profile",
+      cmd: "testCmd",
+    }
+
+    const promises = [];
+    for(let i = 0; i < 10; i++){
+      const prom = testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+      promises.push(prom);
+    }
+
+    await Promise.all(promises);
+
+    //50ms delay
+    await new Promise((r) => setTimeout(r, 50));
+
+    const res = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 403, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
 
 
   });
