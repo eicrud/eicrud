@@ -46,7 +46,7 @@ export class CrudTransformer {
         return await this.transform(obj, cls, true, checkSize);
     }
 
-    async transform(obj: any, cls: any, convertTypes = false, checkSize = false) {
+    async transform(obj: any, cls: any, convertTypes = false, checkSize = true) {
         const classKey =  CrudTransformer.subGetClassKey(cls);
 
         const metadata = crudClassMetadataMap[classKey];
