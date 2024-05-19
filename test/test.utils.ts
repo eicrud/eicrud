@@ -19,7 +19,8 @@ export interface TestUser{
   store?: any,
   melons?: number,
   favoriteColor?: string
-  password?: string
+  password?: string,
+  lowercaseTrimmedField?: string
 }
 
 
@@ -87,6 +88,7 @@ export function testMethod(arg: { app: NestFastifyApplication,
 
         if(arg.expectedObject){
           const arr = Array.isArray(res) ? res : [res];
+          expect(arr.length).toBeGreaterThan(0);
           for(const re of arr){
             for(const key in arg.expectedObject){
                 expect(JSON.stringify(re[key])).toEqual(JSON.stringify(arg.expectedObject[key]));
@@ -145,6 +147,9 @@ export async function createAccountsAndProfiles(users: Record<string, TestUser>,
             bio: user.bio,
             createdAt: new Date(),
             updatedAt: new Date()
+          }
+          if(user.lowercaseTrimmedField){
+            newObj['lowercaseTrimmedField'] = user.lowercaseTrimmedField;
           }
           if(user.profileType){
             newObj['type'] = user.profileType;

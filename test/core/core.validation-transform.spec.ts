@@ -45,6 +45,13 @@ describe('AppController', () => {
       profileType: "admin",
       skipProfile: true,
     }, 
+    "Moderator Joe": {
+      email: "moderator.Joe@mail.com",
+      role: "moderator",
+      bio: 'I am a discord mod.',
+      profileType: "basic",
+      skipProfile: true,
+    },
     "Username Dude": {
       email: "Username.dude@mail.com",
       role: "admin",
@@ -67,8 +74,15 @@ describe('AppController', () => {
     "John Doe": {
       email: "john.doe@test.com",
       role: "user",
-      profileType: "admin",
+      profileType: "basic",
       bio: 'I am a cool doe.',
+    },    
+    "John Henry": {
+      email: "john.Henry@test.com",
+      role: "user",
+      profileType: "basic",
+      bio: 'I am a cool doe.',
+      lowercaseTrimmedField: 'should be lowercase and trimmed',
     },
     "John Don": {
       email: "john.Don@test.com",
@@ -300,6 +314,7 @@ describe('AppController', () => {
       await  testMethod({ expectedObject, url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
       
     });
+
     it('should validate PATCH username length', async () => {
       const user = users["John Doe"];
       const userId = user.id;
@@ -594,6 +609,85 @@ describe('AppController', () => {
       }
 
       await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 400, app, jwt: user.jwt, entityManager, payload, query, crudConfig, fetchEntity});
+
+    });
+
+    it('should validate query for GET melon', async () => {
+      const user = users["Michael Doe"];
+
+      const query: CrudQuery = {
+        service: 'melon',
+        query: JSON.stringify({ owner: user.id, name: 111 })
+      }
+
+      const payload = {}	
+
+      await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 400, app, jwt: user.jwt, entityManager, query, crudConfig, payload});
+
+      query.query = JSON.stringify({ owner: user.id, name: "MyMelon" });
+
+      await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, query, crudConfig, payload});
+      
+    });
+
+    it('should transform query for GET profile', async () => {
+
+      const user = users["Moderator Joe"];
+      const resUsername = "John Henry"
+      const resUser = users[resUsername];
+
+      const query: CrudQuery = {
+        service: 'user-profile',
+        query: JSON.stringify({ type: 'basic', lowercaseTrimmedField: "  SHOULD BE LOWERCASE AND TRIMMED  "} as Partial<UserProfile>)
+      }
+
+      const payload = {}
+
+      const expectedObject = {
+        type: 'basic',
+        userName: resUsername,
+        lowercaseTrimmedField: resUser.lowercaseTrimmedField.toLowerCase().trim(),
+      }
+
+      await testMethod({ url: '/crud/one', method: 'GET', expectedObject, expectedCode: 200, app, jwt: user.jwt, entityManager, query, crudConfig, payload});
+
+    });
+
+    it('should validate & transform query for PATCH profile', async () => {
+
+      const user = users["Admin Dude"];
+      const resUsername = "John Henry"
+      const resUser = users[resUsername];
+
+      const query: CrudQuery = {
+        service: 'user-profile',
+        query: JSON.stringify({ type: 2222 as any, lowercaseTrimmedField: "  SHOULD BE LOWERCASE AND TRIMMED  "} as Partial<UserProfile>)
+      }
+
+      const payload: Partial<UserProfile> = {
+        astroSign: "Pisces", 
+      }
+
+      const fetchEntity = {
+        id: resUser.profileId,
+        entity: UserProfile,
+      }
+
+      const expectedObject = {
+        type: 'basic',
+        userName: resUsername,
+        lowercaseTrimmedField: resUser.lowercaseTrimmedField.toLowerCase().trim(),
+        astroSign: payload.astroSign,
+      }
+
+
+      await testMethod({ url: '/crud/one', method: 'PATCH', expectedCode: 400, app, jwt: user.jwt, entityManager, query, crudConfig, payload});
+
+
+      query.query = JSON.stringify({ type: "basic", lowercaseTrimmedField: "  SHOULD BE LOWERCASE AND TRIMMED  "} as Partial<UserProfile>)
+
+
+      await testMethod({ url: '/crud/one', method: 'PATCH', expectedObject, fetchEntity, expectedCode: 200, app, jwt: user.jwt, entityManager, query, crudConfig, payload});
 
     });
 });

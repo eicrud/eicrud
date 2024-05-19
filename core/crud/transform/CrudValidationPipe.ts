@@ -1,6 +1,6 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from "@nestjs/common";
 import { CrudConfigService } from "../crud.config.service";
-import { CrudTransformer, CrudTransformerConfig } from "../transform/CrudTransformer";
+import { CrudTransformer, CrudTransformerConfig } from "./CrudTransformer";
 
 
 @Injectable()
@@ -20,7 +20,7 @@ export class CrudValidationPipe implements PipeTransform<any> {
         const crudTransformer = new CrudTransformer(null, null, this.transformConfig);
         const dataClass = metadata.metatype;
         if (dataClass) {
-            value = await crudTransformer.transform(value, dataClass, false, true);
+            value = await crudTransformer.transform(value, dataClass);
             const newObj = { ...value };
             await crudTransformer.transformTypes(newObj, dataClass);
             Object.setPrototypeOf(newObj, dataClass.prototype);

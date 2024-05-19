@@ -17,7 +17,7 @@ import { ObjectId } from '@mikro-orm/mongodb';
 import { LRUCache } from 'mnemonist';
 import { _utils } from '../utils';
 import { CrudTransformer, IFieldMetadata } from './transform/CrudTransformer';
-import { CrudValidationPipe } from './pipe/crudValidationPipe';
+import { CrudValidationPipe } from './transform/CrudValidationPipe';
 
 export class LimitOptions {
     NON_ADMIN_LIMIT_QUERY = 40;
@@ -499,10 +499,6 @@ export class CrudController {
             if (ctx.method == 'POST') {
                 dataClass = currentService.entity;
                 dataDefaultValues = true;
-            } else if (ctx.method == 'PUT') {
-                dataClass = currentService.entity;
-                queryClass = currentService.entity;
-                dataDefaultValues = true;
             } else if (ctx.method == 'PATCH') {
                 dataClass = currentService.entity;
                 queryClass = currentService.entity;
@@ -519,14 +515,14 @@ export class CrudController {
         }
         const crudTransformer = new CrudTransformer(this.crudConfig, ctx);
         if (queryClass) {
-            await crudTransformer.transform(this.crudConfig, ctx.query, queryClass);
+            await crudTransformer.transform(ctx.query, queryClass);
             const newObj = { ...ctx.query };
-            await crudTransformer.transformTypes(this.crudConfig, newObj, queryClass);
+            await crudTransformer.transformTypes(newObj, queryClass);
             Object.setPrototypeOf(newObj, queryClass.prototype);
             await crudTransformer.validateOrReject(newObj, true, 'Query:');
         }
         if (dataClass) {
-            await crudTransformer.transform(ctx.data, dataClass, false, true);
+            await crudTransformer.transform(ctx.data, dataClass);
             const newObj = { ...ctx.data };
             await crudTransformer.transformTypes(newObj, dataClass);
             Object.setPrototypeOf(newObj, dataClass.prototype);
