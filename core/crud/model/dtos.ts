@@ -1,9 +1,11 @@
-import { Transform } from "class-transformer";
 import { IsString, IsOptional } from "class-validator";
+import { $Transform } from "../transform/decorators";
 
 export class LoginDto {
     @IsString()
-    @Transform(({ value, key, obj, type }) => value.toLowerCase().trim())
+    @$Transform((value) => {
+       return value.toLowerCase().trim()
+    })
     email: string;
 
     @IsString()

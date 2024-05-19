@@ -6,15 +6,29 @@ import { CmdSecurity, CrudSecurity } from "../core/crud/model/CrudSecurity";
 import { MyConfigService } from "./myconfig.service";
 import { ModuleRef } from "@nestjs/core";
 import { UserProfile } from "./entities/UserProfile";
-import { IsString, MaxLength } from "class-validator";
+import { IsOptional, IsString, MaxLength } from "class-validator";
 import { CrudUser } from "../core/user/model/CrudUser";
 import { CrudContext } from "../core/crud/model/CrudContext";
+import { $MaxSize, $ToLowerCase, $Transform, $Type } from "../core/crud/transform/decorators";
 
 
+class subTestCmdDto {
+
+    @IsString()
+    @$MaxSize(100)
+    @$ToLowerCase()
+    subfield: string;
+
+}
 export class TestCmdDto {
     @IsString()
     @MaxLength(30)
+    @$Transform((value: string) => value.toUpperCase())
     returnMessage: string;
+
+    @IsOptional()
+    @$Type(subTestCmdDto)
+    sub?: subTestCmdDto;
 }
 
 const myProfileSecurity = (USER_PROFILE) => { return {
@@ -22,6 +36,7 @@ const myProfileSecurity = (USER_PROFILE) => { return {
     cmdSecurityMap: {
         'testCmd': {
             maxUsesPerUser: 10,
+            additionalUsesPerTrustPoint: 1,
             dto: TestCmdDto,
         } as CmdSecurity
     },
@@ -59,6 +74,12 @@ const myProfileSecurity = (USER_PROFILE) => { return {
                 can('testCmd', USER_PROFILE);
             },
         },
+
+        guest: {
+            defineCMDAbility(can, cannot, ctx) {
+                can('testCmd', USER_PROFILE, { returnMessage: "I'M A GUEST!" });
+            },
+        }
     },
 
 } as CrudSecurity}
@@ -75,7 +96,10 @@ export class MyProfileService extends CrudService<UserProfile> {
 
     override $cmdHandler(cmdName: string, ctx: CrudContext, inheritance?: any): Promise<any> {
         if (cmdName === 'testCmd') {
-            return Promise.resolve((ctx.data as TestCmdDto).returnMessage);
+            const dto = ctx.data as TestCmdDto;
+            let res = dto?.sub?.subfield || dto.returnMessage;
+ 
+            return Promise.resolve(res);
         }
         return super.$cmdHandler(cmdName, ctx, inheritance);
     }

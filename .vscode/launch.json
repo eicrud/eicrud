@@ -55,6 +55,18 @@
             "request": "launch",
             "name": "npm run test limits",
             "command": "npm run test limits",
+        },
+        {
+            "type": "node-terminal",
+            "request": "launch",
+            "name": "npm run test cmd",
+            "command": "npm run test cmd",
+        },
+        {
+            "type": "node-terminal",
+            "request": "launch",
+            "name": "npm run test options",
+            "command": "npm run test options",
         }
     ]
 }

@@ -192,6 +192,48 @@ describe('AppController', () => {
 
   });
 
+  it('trusted user be able to create more MELONs', async () => {
+    const user = users["Admin Dude"]
+    const baseMelon: Partial<Melon> = {
+      price: 10,
+      owner: user.id,
+      ownerEmail: user.email,
+    }
+
+    const query: CrudQuery = {
+      service: "melon",
+    }
+
+    const promises = [];
+    for(let i = 0; i < 14; i++){
+      const payload = {
+        ...baseMelon,
+        name: `Melon ${i}`,
+      }
+      const prom = testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+      promises.push(prom);
+    }
+
+    await Promise.all(promises);
+    //50ms delay
+    await new Promise((r) => setTimeout(r, 50));
+    
+    const payload = {
+      ...baseMelon,
+      name: `Melon too much`,
+    }
+    const res = await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 403, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+    query.query = JSON.stringify({owner: user.id});
+    //Delete melons
+    const res2 = await testMethod({ url: '/crud/many', method: 'DELETE', expectedCode: 200, app, jwt: user.jwt, entityManager, payload: {}, query, crudConfig});
+    expect(res2).toBe(14);
+
+    delete query.query;
+    const res3 = await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+  });
+
   it('should limit number of cmd uses per user', async () => {
     const user = users["Jon Doe"];
 
@@ -217,6 +259,33 @@ describe('AppController', () => {
 
     const res = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 403, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
 
+
+  });
+
+  it('trusted user should be able to use more cmd', async () => {
+    const user = users["Admin Dude"];
+
+    const payload: TestCmdDto = {
+      returnMessage: "Hello World"
+    }
+
+    const query: CrudQuery = {
+      service: "user-profile",
+      cmd: "testCmd",
+    }
+
+    const promises = [];
+    for(let i = 0; i < 14; i++){
+      const prom = testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+      promises.push(prom);
+    }
+
+    await Promise.all(promises);
+
+    //50ms delay
+    await new Promise((r) => setTimeout(r, 50));
+
+    const res = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 403, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
 
   });
 

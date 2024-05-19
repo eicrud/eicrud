@@ -1,6 +1,6 @@
 import { IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
 import { CrudOptions } from "./CrudOptions";
-import { Transform, Type } from "class-transformer";
+import { $Type, $Transform, $MaxSize } from "../transform/decorators";
 
 
 export class CrudQuery {
@@ -9,15 +9,16 @@ export class CrudQuery {
     service: string;
 
     @IsOptional()
-    @Transform(({value}) => {
+    @$Type(CrudOptions)
+    @$Transform((value) => {
         return JSON.parse(value)
     })
-    @Type(() => CrudOptions)
     @ValidateNested()
     options?: CrudOptions;
     
     @IsOptional()
-    @Transform(({value}) => JSON.parse(value))
+    @$Transform((value) => JSON.parse(value))
+    @$MaxSize(-1)
     query?: any;
 
     @IsOptional()

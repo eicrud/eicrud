@@ -5,9 +5,7 @@ import { CrudContext } from './model/CrudContext';
 import { Context } from '../authentification/auth.utils';
 import { BackdoorQuery, CrudQuery } from './model/CrudQuery';
 import { CrudAuthorizationService } from './crud.authorization.service';
-import { TransformOperationExecutor } from 'class-transformer/cjs/TransformOperationExecutor';
-import { defaultOptions } from 'class-transformer/cjs/constants/default-options.constant';
-import { IsEmail, IsOptional, IsString, MaxLength, validateOrReject } from 'class-validator';
+
 import { CRUD_CONFIG_KEY, CrudConfigService, MicroServicesOptions } from './crud.config.service';
 import { CmdSecurity } from './model/CrudSecurity';
 import { CrudErrors } from './model/CrudErrors';
@@ -19,6 +17,7 @@ import { ObjectId } from '@mikro-orm/mongodb';
 import { LRUCache } from 'mnemonist';
 import { _utils } from '../utils';
 import { CrudTransformer, IFieldMetadata } from './transform/CrudTransformer';
+import { CrudValidationPipe } from './pipe/crudValidationPipe';
 
 export class LimitOptions {
     NON_ADMIN_LIMIT_QUERY = 40;
@@ -119,7 +118,7 @@ export class CrudController {
     }
 
     @Post('one')
-    async _create(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() newEntity: any, @Context() ctx: CrudContext) {
+    async _create(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() newEntity: any, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('POST', query, newEntity, newEntity, 'crud', ctx);
         try {
 
@@ -165,7 +164,7 @@ export class CrudController {
     }
 
     @Post('cmd')
-    async _secureCMD(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    async _secureCMD(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('POST', query, data, data, 'cmd', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -179,7 +178,7 @@ export class CrudController {
     }
 
     @Patch('cmd')
-    async _unsecureCMD(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    async _unsecureCMD(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, data, data, 'cmd', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -193,7 +192,7 @@ export class CrudController {
     }
 
     @Get('many')
-    async _find(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
+    async _find(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
             return await this.subFind(query, ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY, currentService);
@@ -203,7 +202,7 @@ export class CrudController {
     }
 
     @Get('ids')
-    async _findIds(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
+    async _findIds(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
         query.options = query.options || {};
         query.options.fields = [this.crudConfig.id_field as any];
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
@@ -225,7 +224,7 @@ export class CrudController {
 
 
     @Get('in')
-    async _findIn(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
+    async _findIn(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
             this.limitQuery(ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
@@ -246,7 +245,7 @@ export class CrudController {
     }
 
     @Get('one')
-    async _findOne(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
+    async _findOne(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -259,7 +258,7 @@ export class CrudController {
     }
 
     @Delete('one')
-    async _delete(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
+    async _delete(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -273,7 +272,7 @@ export class CrudController {
     }
 
     @Delete('many')
-    async _deleteMany(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
+    async _deleteMany(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -287,7 +286,7 @@ export class CrudController {
     }
 
     @Delete('in')
-    async _deleteIn(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
+    async _deleteIn(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
             this.limitQuery(ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
@@ -308,7 +307,7 @@ export class CrudController {
     }
 
     @Patch('one')
-    async _patchOne(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    async _patchOne(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
         if(!query.query || !data){
             throw new BadRequestException("Query and data are required for PATCH one.");
@@ -324,7 +323,7 @@ export class CrudController {
     }
 
     @Patch('in')
-    async _patchIn(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    async _patchIn(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
         try {
             this.limitQuery(ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
@@ -344,7 +343,7 @@ export class CrudController {
     }
 
     @Patch('many')
-    async _patchMany(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    async _patchMany(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -357,7 +356,7 @@ export class CrudController {
     }
 
     @Patch('batch')
-    async _batchPatch(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Body() data: any[], @Context() ctx: CrudContext) {
+    async _batchPatch(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data: any[], @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, null, null, 'crud', ctx);
         ctx.isBatch = true;
         try {
@@ -399,7 +398,7 @@ export class CrudController {
     ALLOWED_EXPIRES_IN = ['15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '4d', '5d', '6d', '7d', '14d', '30d'];
 
     @Post('auth')
-    async login(@Body(new ValidationPipe({ transform: true })) data: LoginDto, @Context() ctx: CrudContext) {
+    async login(@Body(new CrudValidationPipe()) data: LoginDto, @Context() ctx: CrudContext) {
 
         const lastLogingAttempt: Date = this.userLastLoginAttemptMap.get(data.email);
         const now = new Date();
@@ -425,7 +424,7 @@ export class CrudController {
     }
 
     @Get('rights')
-    async getRights(@Query(new ValidationPipe({ transform: true })) query: CrudQuery, @Context() ctx: CrudContext) {
+    async getRights(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('GET', query, null, null, 'crud', ctx);
         let trust = await this.crudConfig.userService.$getOrComputeTrust(ctx.user, ctx);
         if (trust < 0) {
@@ -524,29 +523,19 @@ export class CrudController {
             const newObj = { ...ctx.query };
             await crudTransformer.transformTypes(this.crudConfig, newObj, queryClass);
             Object.setPrototypeOf(newObj, queryClass.prototype);
-            await this.validateOrReject(newObj, true, 'Query:');
+            await crudTransformer.validateOrReject(newObj, true, 'Query:');
         }
         if (dataClass) {
             await crudTransformer.transform(ctx.data, dataClass, false, true);
             const newObj = { ...ctx.data };
             await crudTransformer.transformTypes(newObj, dataClass);
             Object.setPrototypeOf(newObj, dataClass.prototype);
-            await this.validateOrReject(newObj, !dataDefaultValues, 'Data:');
+            await crudTransformer.validateOrReject(newObj, !dataDefaultValues, 'Data:');
         }
 
     }
 
-    async validateOrReject(obj, skipMissingProperties, label) {
-        try {
-            await validateOrReject(obj, {
-                stopAtFirstError: true,
-                skipMissingProperties,
-            });
-        } catch (errors) {
-            const msg = label + ' ' + errors.toString();
-            throw new BadRequestException("Validation error " + msg);
-        }
-    }
+
 
     addCountToCmdMap(ctx: CrudContext, ct) {
         if (this.crudConfig.userService.notGuest(ctx?.user)) {
@@ -582,7 +571,7 @@ export class CrudController {
     }
 
     @Patch('backdoor')
-    async backdoor(@Query(new ValidationPipe({ transform: true })) query: BackdoorQuery, @Body() data, @Context() backdoorCtx: CrudContext) {
+    async backdoor(@Query(new CrudValidationPipe()) query: BackdoorQuery, @Body() data, @Context() backdoorCtx: CrudContext) {
         if(!backdoorCtx.backdoorGuarded){
             throw new UnauthorizedException("Backdoor not guarded : (something is wrong with your auth guard.)");
         }
