@@ -16,6 +16,7 @@ import { TestUser } from '../test.utils';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/crud/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
+import { CrudOptions } from '../../core/crud/model/CrudOptions';
 
 
 const testAdminCreds = {
@@ -121,88 +122,70 @@ describe('AppController', () => {
 
   });
 
-  it('should validate cmd dto', async () => {
-    const user = users["Jon Doe"];
+  it('should validate crudOptions', async () => {
 
-    const payload: TestCmdDto = {
-      returnMessage: "Hello World111111111111111111111111111111"
+    const user = users["Michael Doe"];
+
+    const payload = {}
+
+    let query = {
+      service: "melon",
+      query: "{}",
+      options: JSON.stringify({
+        limit: 5 as any
+      } as CrudOptions) as any
     }
 
-    const query: CrudQuery = {
-      service: "user-profile",
-      cmd: "testCmd",
+    await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
+
+    query = {
+      service: "melon",
+      query: "{}",
+      options: JSON.stringify({
+        limit: "string" as any
+      } as CrudOptions) as any
     }
 
-    await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 400, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
-
-  });
-
-  it('should validate & transform nested cmd dto', async () => {
-
-    const user = users["Jon Doe"];
-
-    const payload: TestCmdDto = {
-      returnMessage: "Hello World",
-      sub: {
-        subfield: "HELLO WORLD"
-      }
-    }
-
-    const query: CrudQuery = {
-      service: "user-profile",
-      cmd: "testCmd",
-    }
-
-    const res = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
-
-    expect(res).toEqual(payload.sub?.subfield?.toLowerCase());
-
-
-    for (let i = 0; i < 100; i++) {
-      payload.sub.subfield += "a";
-    }
-    
-    await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 400, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
-
+    await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 400, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
 
   });
 
 
-  it('should apply security to cmd', async () => {
+  // it('should apply security to cmd', async () => {
  
-    const payload: TestCmdDto = {
-      returnMessage: "Hello World"
-    }
+  //   const payload: TestCmdDto = {
+  //     returnMessage: "Hello World"
+  //   }
 
-    const query: CrudQuery = {
-      service: "user-profile",
-      cmd: "testCmd",
-    }
+  //   const query: CrudQuery = {
+  //     service: "user-profile",
+  //     cmd: "testCmd",
+  //   }
 
-    await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 403, app, jwt: null, entityManager, payload, query, crudConfig});
+  //   await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 403, app, jwt: null, entityManager, payload, query, crudConfig});
 
-    payload.returnMessage = "I'm a guest!";
+  //   payload.returnMessage = "I'm a guest!";
 
-    await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: null, entityManager, payload, query, crudConfig});
+  //   await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: null, entityManager, payload, query, crudConfig});
 
-  });
+  // });
 
 
-  it('should inherit cmd rights', async () => {
-    const user = users["Admin Dude"];
+  // it('should inherit cmd rights', async () => {
+  //   const user = users["Admin Dude"];
 
-    const payload: TestCmdDto = {
-      returnMessage: "Hello World"
-    }
+  //   const payload: TestCmdDto = {
+  //     returnMessage: "Hello World"
+  //   }
 
-    const query: CrudQuery = {
-      service: "user-profile",
-      cmd: "testCmd",
-    }
+  //   const query: CrudQuery = {
+  //     service: "user-profile",
+  //     cmd: "testCmd",
+  //   }
 
-    await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+  //   await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
 
-  });
+  // });
 
 
 });

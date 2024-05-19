@@ -3,8 +3,6 @@ import { CrudUser } from "../../core/user/model/CrudUser";
 import { Equals, IsBoolean, IsDate, IsEmail, IsInt, IsMongoId, IsOptional, IsString } from "class-validator";
 import { UserProfile } from "./UserProfile";
 import { Melon } from "./Melon";
-import { Exclude } from "class-transformer";
-import { $ToLowerCase, $Trim } from "../../core/crud/transform/decorators";
 
 @Entity()
 export class MyUser implements CrudUser {

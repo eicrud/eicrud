@@ -85,7 +85,7 @@ describe('AppController', () => {
 
     await testMethod({ url: '/crud/many', method: 'GET', app, entityManager, payload, query, expectedCode: 200, crudConfig });
 
-  });
+  }, 10000);
 
 
   

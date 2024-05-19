@@ -2,6 +2,7 @@ import { BadRequestException } from "@nestjs/common";
 import { CrudConfigService } from "../crud.config.service";
 import { ICrudTransformOptions } from "./decorators";
 import { CrudContext } from "../model/CrudContext";
+import { IsEmail, IsOptional, IsString, MaxLength, validateOrReject } from 'class-validator';
 
 export const crudClassMetadataMap: Record<string, Record<string, IFieldMetadata>> = {};
 
@@ -15,12 +16,31 @@ export interface IFieldMetadata {
     delete?: boolean
 }
 
+export interface CrudTransformerConfig {
+
+    DEFAULT_MAX_LENGTH: number,
+    DEFAULT_MAX_SIZE: number,
+    checkMissingProperties?: boolean
+
+}
+
 export class CrudTransformer {
 
 
-    constructor(private readonly crudConfig: CrudConfigService, private ctx: CrudContext) {
+    constructor(private readonly crudConfig?: CrudConfigService, private ctx?: CrudContext, protected config?: CrudTransformerConfig) {
     }
     
+    async validateOrReject(obj, skipMissingProperties, label) {
+        try {
+            await validateOrReject(obj, {
+                stopAtFirstError: true,
+                skipMissingProperties,
+            });
+        } catch (errors) {
+            const msg = label + ' ' + errors.toString();
+            throw new BadRequestException("Validation error " + msg);
+        }
+    }
 
     async transformTypes(obj: any, cls: any, checkSize = false) {
         return await this.transform(obj, cls, true, checkSize);
@@ -52,9 +72,9 @@ export class CrudTransformer {
                 if(type) {
                     if(Array.isArray(obj[key]) && checkSize){
                         const length = obj[key].length;
-                        let maxLength = field_metadata.maxLength || this.crudConfig.validationOptions.DEFAULT_MAX_LENGTH;
+                        let maxLength = field_metadata.maxLength || this.crudConfig?.validationOptions.DEFAULT_MAX_LENGTH || this.config.DEFAULT_MAX_LENGTH;
                         let add = field_metadata.addMaxLengthPerTrustPoint || 0;
-                        if (add) {
+                        if (add && this.ctx && this.crudConfig) {
                             const trust = (await this.crudConfig.userService.$getOrComputeTrust(this.ctx.user, this.ctx));
                             if(trust >= 1){
                                 maxLength += add * trust;
@@ -80,22 +100,23 @@ export class CrudTransformer {
                     }
                 }else if (checkSize){
                     const entitySize = JSON.stringify(obj[key]).length;
-                    let maxSize = field_metadata.maxSize || this.crudConfig.validationOptions.DEFAULT_MAX_SIZE;
-                    let add = field_metadata.addMaxSizePerTrustPoint || 0;
-                    if (add) {
-                        const trust = (await this.crudConfig.userService.$getOrComputeTrust(this.ctx.user, this.ctx));
-                        add = add * trust;
-                        maxSize += Math.max(add, 0);;
-                    }
-                    if ((entitySize > maxSize)) {
-                        throw new BadRequestException(`Field ${key} size is too big (max: ${maxSize})`);
+                    let maxSize = field_metadata.maxSize || this.crudConfig?.validationOptions.DEFAULT_MAX_SIZE || this.config.DEFAULT_MAX_SIZE;
+                    if(maxSize > 0){
+                        let add = field_metadata.addMaxSizePerTrustPoint || 0;
+                        if (add && this.ctx && this.crudConfig) {
+                            const trust = (await this.crudConfig.userService.$getOrComputeTrust(this.ctx.user, this.ctx));
+                            add = add * trust;
+                            maxSize += Math.max(add, 0);;
+                        }
+                        if ((entitySize > maxSize)) {
+                            throw new BadRequestException(`Field ${key} size is too big (max: ${maxSize})`);
+                        }
                     }
                 }
             
         }
         return obj;
     }
-    
     
     static hashString(s: string) {
         let hash = 0;
