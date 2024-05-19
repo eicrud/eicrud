@@ -116,7 +116,7 @@ describe('AppController', () => {
   beforeAll(async () => {
 
     const moduleRef: TestingModule = await Test.createTestingModule(
-      getModule('test-basic-db')
+      getModule(require('path').basename(__filename))
     ).compile();
     await moduleRef.get<EntityManager>(EntityManager).getConnection().getDb().dropDatabase();
 

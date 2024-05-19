@@ -18,6 +18,9 @@ import { Picture } from "./entities/Picture";
 
 
 export const getModule = (dbName) => { 
+
+    dbName = "test-" + dbName.replace('.spec.ts', '').replaceAll('.', '-')
+
     return {
         imports: [
             MikroOrmModule.forRoot({

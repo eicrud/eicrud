@@ -54,10 +54,23 @@ export function testMethod(arg: { app: NestFastifyApplication,
         let total;
         let limit;
         if(result.statusCode !== arg.expectedCode){
+          if(typeof result.payload === 'string'){
+            console.log(result.payload);
+          }else{
             console.error(result.json());
+          }
         }
         expect(result.statusCode).toEqual(arg.expectedCode);
-        let res: any = result.payload != '' ? result.json() : {};
+        let res: any = {};
+
+        if(result.payload != ''){
+          try{
+            res = result.json();
+          }catch(e){
+            res = result.payload;
+          }
+        }
+
         if(arg.method === 'GET' && (arg.url.includes('many') || arg.url.includes('in') || arg.url.includes('ids'))){
           ({ total, limit } = res);
           res = res.data;

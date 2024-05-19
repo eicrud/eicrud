@@ -63,7 +63,7 @@ export class CrudController {
         // }
 
         const currentService: CrudService<any> = this.crudConfig.servicesMap[crudQuery?.service];
-        this.checkServiceNotFound(currentService, query);
+        this.checkServiceNotFound(currentService, crudQuery);
         ctx.method = method
         ctx.serviceName = crudQuery.service
         ctx.query = query;
@@ -112,7 +112,7 @@ export class CrudController {
         throw e;
     }
 
-    checkServiceNotFound(currentService, crudQuery) {
+    checkServiceNotFound(currentService, crudQuery: CrudQuery) {
         if (!currentService) {
             throw new BadRequestException("Service not found: " + crudQuery.service);
         }
