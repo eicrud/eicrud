@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
+import { BadRequestException, HttpException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { BaseEntity, EntityClass, EntityManager, EntityName, wrap } from '@mikro-orm/core';
 import { CrudSecurity } from './model/CrudSecurity';
@@ -182,11 +182,14 @@ export class CrudService<T extends CrudEntity> {
                 username: this.crudConfig.microServicesOptions.username,
                 password: this.crudConfig.microServicesOptions.password
             }
-        }).catch((e) => {
-            console.error(e);
-            console.error(payload);
-            console.error(query);
-            throw new Error('Backdoor failed');
+          })
+        .catch((e) => {
+            const error = e.response?.data || e;
+            throw new HttpException({
+                statusCode: error.statusCode,
+                error: error.error,
+                message: error.message,
+            }, error.statusCode);
         });
 
         return res.data;
@@ -335,12 +338,14 @@ export class CrudService<T extends CrudEntity> {
 
 
     async $unsecure_incPatch(args: { query: Partial<T>, increments: { [key: string]: number }, addPatch?: any }, ctx: CrudContext, inheritance: any = {}) {
+        this.checkObjectForIds(args.query);
         const em = ctx?.em || this.entityManager.fork();
         const update = await this.dbAdapter.getIncrementUpdate(args.increments, ctx);
         await em.nativeUpdate(this.entity, args.query, update as any);
         ctx.em = em;
         let res;
         if (args.addPatch) {
+            this.checkObjectForIds(args.addPatch)
             res = await this.$unsecure_fastPatch(args.query, args.addPatch, ctx, inheritance);
         } else if (!ctx.noFlush) {
             res = await em.flush();
