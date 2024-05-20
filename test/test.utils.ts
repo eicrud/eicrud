@@ -5,6 +5,7 @@ import { Melon } from "./entities/Melon";
 import { CrudConfigService } from "../core/crud/crud.config.service";
 import { CrudUserService } from "../core/user/crud-user.service";
 import { CrudUser } from "../core/user/model/CrudUser";
+import { Picture } from "./entities/Picture";
 
 
 export interface TestUser{
@@ -15,7 +16,7 @@ export interface TestUser{
   profileId?: string,
   profileType?: string,
   jwt?: string,
-  skipProfile?:boolean
+  skipProfile?:boolean,
   store?: any,
   melons?: number,
   favoriteColor?: string
@@ -175,6 +176,7 @@ export async function createAccountsAndProfiles(users: Record<string, TestUser>,
           }
         }
         await em.flush();
+
       }
     );
     promises.push(prom);

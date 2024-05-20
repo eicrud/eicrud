@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { getModule, createNestApplication, readyApp } from '../test.module';
+import { getModule, createNestApplication, readyApp, dropDatabases } from '../test.module';
 import { CrudController } from '../../core/crud/crud.controller';
 import { MyUserService } from '../myuser.service';
 import { CrudAuthService } from '../../core/authentification/auth.service';
@@ -25,7 +25,6 @@ describe('AppController', () => {
   let appController: CrudController;
   let userService: MyUserService;
   let authService: CrudAuthService;
-  let newPicture: Picture;
   let profileService: MyProfileService;
   let jwt: string;
   let app: NestFastifyApplication;
@@ -121,7 +120,7 @@ describe('AppController', () => {
     const moduleRef: TestingModule = await Test.createTestingModule(
       getModule(require('path').basename(__filename))
     ).compile();
-    await moduleRef.get<EntityManager>(EntityManager).getConnection().getDb().dropDatabase();
+    await dropDatabases(moduleRef);
 
     app = createNestApplication(moduleRef)
 
@@ -142,18 +141,6 @@ describe('AppController', () => {
     const accRes = await userService.$createAccount(testAdminCreds.email, testAdminCreds.password, null, "super_admin");
     jwt = accRes.accessToken;
     userId = crudConfig.dbAdapter.formatId(accRes.userId, crudConfig);
-
-    
-    newPicture = new Picture();
-    newPicture.id = new ObjectId() as any;
-    newPicture.src = "https://www.google.com";
-    newPicture.width = 200;
-    newPicture.height = 200;
-    newPicture.alt = "A cool picture";
-    newPicture.createdAt = new Date();
-    newPicture.updatedAt = new Date();
-    newPicture.profile = users["Sarah Doe"].profileId;
-    await em.persistAndFlush(newPicture);
 
 
   }, 10000);

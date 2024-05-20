@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { getModule, createNestApplication, readyApp } from '../test.module';
+import { getModule, createNestApplication, readyApp, dropDatabases } from '../test.module';
 import { CrudController } from '../../core/crud/crud.controller';
 import { MyUserService } from '../myuser.service';
 import { CrudAuthService } from '../../core/authentification/auth.service';
@@ -118,7 +118,7 @@ describe('AppController', () => {
     const moduleRef: TestingModule = await Test.createTestingModule(
       getModule(require('path').basename(__filename))
     ).compile();
-    await moduleRef.get<EntityManager>(EntityManager).getConnection().getDb().dropDatabase();
+    await dropDatabases(moduleRef);
 
     app = createNestApplication(moduleRef)
 

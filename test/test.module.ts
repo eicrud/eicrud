@@ -14,9 +14,16 @@ import { CRUD_CONFIG_KEY } from "../core/crud/crud.config.service";
 import { MyProfileService } from "./profile.service";
 import { Picture } from "./entities/Picture";
 import { NestFastifyApplication, FastifyAdapter } from "@nestjs/platform-fastify";
+import { EntityManager } from "@mikro-orm/core";
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, './.env') });
 
+
+
+export async function dropDatabases(moduleRef: any): Promise<void> {
+    const em = moduleRef.get(EntityManager);
+    await em.getConnection().getDb().dropDatabase();
+}
 
 export function createNestApplication(moduleRef: any): any {
     return moduleRef.createNestApplication(new FastifyAdapter());
