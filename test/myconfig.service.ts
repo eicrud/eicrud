@@ -53,8 +53,8 @@ msOptions.password = 'zMaXZAAQlqfZWkvm4545za';
 
 msOptions.microServices = {
     "entry": {
-        services: [Melon],
-        openBackDoor: true,
+        services: [],
+        openBackDoor: false,
         openController: true,
         url: "http://localhost:3004",
         allowNonSecureUrl: true
@@ -67,7 +67,7 @@ msOptions.microServices = {
         allowNonSecureUrl: true
     },
     "melon": {
-        services: [UserProfile, Picture],
+        services: [Melon, UserProfile, Picture],
         openBackDoor: true,
         openController: false,
         url: "http://localhost:3006",

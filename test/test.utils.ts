@@ -37,11 +37,15 @@ export function testMethod(arg: { app: NestFastifyApplication,
     fetchEntities?: { entity: any, query: any },
     expectedObject?: any,
     crudConfig: CrudConfigService,
-    returnLimitAndTotal?: boolean
+    returnLimitAndTotal?: boolean,
+    basicAuth?: { username: string, password: string }
     }){
     const headers = {};
     if(arg.jwt){
         headers['Authorization'] = `Bearer ${arg.jwt}`;
+    }
+    if(arg.basicAuth){
+      headers['Authorization'] = `Basic ${Buffer.from(`${arg.basicAuth.username}:${arg.basicAuth.password}`).toString('base64')}`;
     }
     const query = new URLSearchParams(arg.query as any).toString();
     return arg.app
@@ -50,7 +54,7 @@ export function testMethod(arg: { app: NestFastifyApplication,
         url: arg.url,
         headers,
         payload: arg.payload,
-        query
+        query,
       })
       .then(async (result) => {
         let total;

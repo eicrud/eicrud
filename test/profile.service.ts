@@ -96,7 +96,7 @@ export class MyProfileService extends CrudService<UserProfile> {
 
     override $cmdHandler(cmdName: string, ctx: CrudContext, inheritance?: any): Promise<any> {
         if (cmdName === 'testCmd') {
-            const dto = ctx.data as TestCmdDto;
+            const dto = ctx?.data as TestCmdDto;
             let res = dto?.sub?.subfield || dto.returnMessage;
  
             return Promise.resolve(res);

@@ -7,16 +7,17 @@ import { CrudAuthService } from '../../core/authentification/auth.service';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
-import { CrudQuery } from '../../core/crud/model/CrudQuery';
+import { BackdoorQuery, CrudQuery } from '../../core/crud/model/CrudQuery';
 import { createAccountsAndProfiles, createMelons, createNewProfileTest, testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
 import { Melon } from '../entities/Melon';
 import { CrudService } from '../../core/crud/crud.service';
 import { TestUser } from '../test.utils';
-import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/crud/crud.config.service';
+import { CRUD_CONFIG_KEY, CrudConfigService, MicroServiceConfig } from '../../core/crud/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
 import { MelonService } from '../melon.service';
+import axios from 'axios';
 
 const testAdminCreds = {
   email: "admin@testmail.com",
@@ -1253,6 +1254,74 @@ describe('AppController', () => {
     const res = await testMethod({ url: '/crud/many', method: 'DELETE', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 403, expectedObject, crudConfig });
 
 
+  });
+
+
+  it('backdoor should be guarded', async () => {
+    const userName = "Admin Dude";
+    const user = users[userName];
+    const payload: Partial<UserProfile> = {
+      args: {
+        cmdName: 'testCmd'
+      }
+    } as any;
+    const query: BackdoorQuery = {
+      service: 'user-profile',
+      methodName: '$cmdHandler',
+      ctxPos: 1,
+    }
+
+    const expectedObject = null;
+
+    const res = await testMethod({ url: '/crud/backdoor', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 401, expectedObject, crudConfig });
+
+    expect(['Microservice not found.','Backdoor is closed.']).toContain(res.message);
+
+    if(process.env.CRUD_CURRENT_MS){
+      const msConfig = crudConfig.microServicesOptions;
+      let matches = msConfig.findCurrentServiceMatches(profileService);
+
+      matches = matches.map((m) => msConfig.microServices[m]).filter(m => m.openBackDoor);
+
+      const targetServiceConfig: MicroServiceConfig = matches[0];
+
+      const url = targetServiceConfig.url + '/crud/backdoor';
+
+      const data = {
+        args: ['testCmd', { data: { returnMessage: 'backdoor ping' }}]
+      }
+      
+      const res = await axios.patch(url, data, {
+        params: query,
+        validateStatus: status => true
+      })
+
+      expect(res.status).toEqual(401);
+
+      const auth = {
+        username: crudConfig.microServicesOptions.username,
+        password: crudConfig.microServicesOptions.password,
+      }
+
+      const res2 = await axios.patch(url, data, {
+        params: query,
+        auth,
+      })
+
+      expect(res2.status).toEqual(200);
+      expect(res2.data).toEqual('backdoor ping');
+
+      auth.password = 'wrongpassword';
+
+      const res3 = await axios.patch(url, data, {
+        params: query,
+        validateStatus: status => true
+      })
+
+      expect(res3.status).toEqual(401);
+
+
+    }
   });
 
 
