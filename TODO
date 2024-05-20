@@ -3,7 +3,7 @@
 [x] Add cmd rights
 [x] add before, after & error hooks
 [x] make sur to pass ctx for datadog trace tracking 
-[ ] check cannot default throw
+[ ] check cannot default throw (CASL)
 [x] batch wait for flush 
 [x] add inheritance argument 
 [x] VALIDATION
@@ -29,4 +29,6 @@
 
 [ ] check nested entities are not exposed
 
-[ ] test create limits
+[x] test create limits
+
+[ ] options tests

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { getModule } from '../test.module';
+import { getModule, createNestApplication, readyApp } from '../test.module';
 import { CrudController } from '../../core/crud/crud.controller';
 import { MyUserService } from '../myuser.service';
 import { CrudAuthService } from '../../core/authentification/auth.service';
@@ -66,10 +66,10 @@ describe('AppController', () => {
     ).compile();
     await moduleRef.get<EntityManager>(EntityManager).getConnection().getDb().dropDatabase();
 
-    app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+    app = createNestApplication(moduleRef)
 
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await readyApp(app);
 
     appController = app.get<CrudController>(CrudController);
     userService = app.get<MyUserService>(MyUserService);

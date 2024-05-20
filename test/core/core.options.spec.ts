@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { getModule } from '../test.module';
+import { getModule, createNestApplication, readyApp } from '../test.module';
 import { CrudController } from '../../core/crud/crud.controller';
 import { MyUserService } from '../myuser.service';
 import { CrudAuthService } from '../../core/authentification/auth.service';
@@ -68,10 +68,10 @@ describe('AppController', () => {
     ).compile();
     await moduleRef.get<EntityManager>(EntityManager).getConnection().getDb().dropDatabase();
 
-    app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+    app = createNestApplication(moduleRef)
 
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await readyApp(app);
 
     appController = app.get<CrudController>(CrudController);
     userService = app.get<MyUserService>(MyUserService);
@@ -150,25 +150,33 @@ describe('AppController', () => {
 
   });
 
-
-  // it('should apply security to cmd', async () => {
+ it('should apply security to crudOptions', async () => {
  
-  //   const payload: TestCmdDto = {
-  //     returnMessage: "Hello World"
-  //   }
+    // const user = users["Michael Doe"];
 
-  //   const query: CrudQuery = {
-  //     service: "user-profile",
-  //     cmd: "testCmd",
-  //   }
+    // const payload = {}
 
-  //   await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 403, app, jwt: null, entityManager, payload, query, crudConfig});
+    // let query = {
+    //   service: "melon",
+    //   query: "{}",
+    //   options: JSON.stringify({
+    //     limit: 5 as any
+    //   } as CrudOptions) as any
+    // }
 
-  //   payload.returnMessage = "I'm a guest!";
+    // await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
 
-  //   await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: null, entityManager, payload, query, crudConfig});
+    // query = {
+    //   service: "melon",
+    //   query: "{}",
+    //   options: JSON.stringify({
+    //     limit: "string" as any
+    //   } as CrudOptions) as any
+    // }
 
-  // });
+    // await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 400, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
+
+  });
 
 
   // it('should inherit cmd rights', async () => {

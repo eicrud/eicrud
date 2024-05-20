@@ -13,9 +13,18 @@ import { MelonService } from "./melon.service";
 import { CRUD_CONFIG_KEY } from "../core/crud/crud.config.service";
 import { MyProfileService } from "./profile.service";
 import { Picture } from "./entities/Picture";
+import { NestFastifyApplication, FastifyAdapter } from "@nestjs/platform-fastify";
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, './.env') });
 
 
+export function createNestApplication(moduleRef: any): any {
+    return moduleRef.createNestApplication(new FastifyAdapter());
+}
 
+export async function readyApp(app){
+    return await app.getHttpAdapter().getInstance().ready();
+}
 
 export const getModule = (dbName) => { 
 

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { getModule } from '../test.module';
+import { getModule, createNestApplication, readyApp } from '../test.module';
 import { CrudController } from '../../core/crud/crud.controller';
 import { MyUserService } from '../myuser.service';
 import { CrudAuthService } from '../../core/authentification/auth.service';
@@ -167,10 +167,10 @@ describe('AppController', () => {
     ).compile();
     await moduleRef.get<EntityManager>(EntityManager).getConnection().getDb().dropDatabase();
 
-    app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+    app = createNestApplication(moduleRef)
 
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await readyApp(app);
 
     appController = app.get<CrudController>(CrudController);
     userService = app.get<MyUserService>(MyUserService);
@@ -189,19 +189,13 @@ describe('AppController', () => {
   });
 
   //@Get('/crud/auth')
-  it('should get auth', () => {
-    return app
-      .inject({
-        method: 'GET',
-        url: '/crud/auth',
-        headers: {
-          Authorization: `Bearer ${users["Michael Doe"].jwt}`
-        }
-      })
-      .then((result) => {
-        expect(result.statusCode).toEqual(200);
-        expect(result.json().userId).toEqual(users["Michael Doe"].id?.toString());
-      });
+  it('should get auth', async () => {
+
+    const user = users["Michael Doe"];
+
+    const res = await testMethod({ url: '/crud/auth', method: 'GET', app, jwt: user.jwt, crudConfig, entityManager, payload: {}, expectedCode: 200, query: {}})
+    expect(res.userId).toEqual(users["Michael Doe"].id?.toString());
+     
   });
 
   //@Post('/crud/one')
