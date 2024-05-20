@@ -29,18 +29,12 @@ export class CrudQuery {
 
 export class BackdoorQuery {
 
-    @IsString()
     service: string;
 
-    @IsString()
     methodName: string;
   
-    @IsInt()
-    @IsOptional()
     ctxPos?: number;
 
-    @IsInt()
-    @IsOptional()
     inheritancePos?: number;
 
 }

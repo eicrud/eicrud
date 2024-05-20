@@ -24,4 +24,5 @@ export interface CrudContext {
     url?: string;
     currentMs?: string;
     backdoorGuarded?: boolean;
+    getRequest?: () => any;
 }

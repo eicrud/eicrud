@@ -131,7 +131,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   }
 
   getUserAgeInWeeks(user: CrudUser){
-    return (Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24 * 7);
+    return (Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24 * 7);
   }
 
   async timeoutUser(user: CrudUser, TIMEOUT_DURATION_MIN: number){
@@ -152,7 +152,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     if(ctx.userTrust){
       return ctx.userTrust;
     }
-    if(user.lastComputedTrust && (user.lastComputedTrust.getTime() + TRUST_COMPUTE_INTERVAL) > Date.now()){
+    if(user.lastComputedTrust && (new Date(user.lastComputedTrust).getTime() + TRUST_COMPUTE_INTERVAL) > Date.now()){
       ctx.userTrust = user.trust;
       return user.trust || 0;
     }
@@ -217,7 +217,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     if(user.lastTwoFACode !== twoFA_code){
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }
-    if(user.lastTwoFACodeSent.getTime() + (this.crudConfig.authenticationOptions.TWOFA_EMAIL_TIMEOUT_MIN * 60 * 1000) < Date.now()){
+    if(new Date(user.lastTwoFACodeSent).getTime() + (this.crudConfig.authenticationOptions.TWOFA_EMAIL_TIMEOUT_MIN * 60 * 1000) < Date.now()){
       throw new UnauthorizedException(CrudErrors.TOKEN_EXPIRED.str());
     }
 
@@ -236,7 +236,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   }
 
   async sendTokenEmail(ctx: CrudContext, lastEmailSentKey, { emailCount, timeout }, tokenKey,  sendEmailFunc, attempCountKey){
-    const lastEmailSent = ctx.user[lastEmailSentKey];
+    const lastEmailSent = new Date(ctx.user[lastEmailSentKey]);
 
     if(emailCount < 2 
       || !lastEmailSent 
@@ -254,7 +254,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
   async useToken(ctx: CrudContext, lastEmailVerificationSentKey, userConditionFunc, tokenKey, userGetTimeoutFunc, callBackFunc ){
     const userId = ctx.data.userId;
-    const lastEmailSent = ctx.user[lastEmailVerificationSentKey];
+    const lastEmailSent = new Date(ctx.user[lastEmailVerificationSentKey]);
     const user: CrudUser = await this.$findOne(userId, ctx) as any;
     if(userConditionFunc(user)){
       return true;
@@ -304,7 +304,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   }
 
   async sendTwoFACode(userId: string, user: CrudUser, ctx: CrudContext){
-    const lastTwoFACodeSent = user.lastTwoFACodeSent;
+    const lastTwoFACodeSent = new Date(user.lastTwoFACodeSent);
     if(lastTwoFACodeSent && (lastTwoFACodeSent.getTime() + (this.crudConfig.authenticationOptions.TWOFA_EMAIL_TIMEOUT_MIN * 60 * 1000)) > Date.now()){
       return new UnauthorizedException(CrudErrors.EMAIL_ALREADY_SENT.str());
     }

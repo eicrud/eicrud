@@ -39,6 +39,10 @@ export interface MicroServiceConfig {
 
 export class MicroServicesOptions {
 
+    constructor() {
+
+    }
+
     microServices: Record<string, MicroServiceConfig> = {};
     username: string;
     password: string;

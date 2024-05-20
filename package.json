@@ -9,6 +9,11 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
+    "start:test-ms": "concurrently npm:start:ms-* npm:test:ms",
+    "start:ms-user": "cross-env CRUD_CURRENT_MS=user PORT=3005 nest start",
+    "start:ms-melon": "cross-env CRUD_CURRENT_MS=melon PORT=3006 nest start",
+    "start:ms-email": "cross-env CRUD_CURRENT_MS=email PORT=3007 nest start",
+    "test:ms": "wait-on http://localhost:3005/crud/rdy && wait-on http://localhost:3006/crud/rdy && wait-on http://localhost:3007/crud/rdy && cross-env CRUD_CURRENT_MS=entry jest --runInBand basic.",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
@@ -34,10 +39,12 @@
     "bcrypt": "^5.1.1",
     "cache-manager": "^5.4.0",
     "class-validator": "^0.14.1",
+    "concurrently": "^8.2.2",
     "lru-cache": "^10.2.0",
     "mnemonist": "^0.39.8",
     "reflect-metadata": "^0.2.1",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "wait-on": "^7.2.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.3.2",
@@ -49,6 +56,7 @@
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^7.0.2",
     "@typescript-eslint/parser": "^7.0.2",
+    "cross-env": "^7.0.3",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",

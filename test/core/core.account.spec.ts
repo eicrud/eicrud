@@ -92,9 +92,8 @@ describe('AppController', () => {
     profileService = app.get<MyProfileService>(MyProfileService);
     entityManager = app.get<EntityManager>(EntityManager);
 
-    const em = entityManager.fork();
   
-    await createAccountsAndProfiles(users, em, userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
+    await createAccountsAndProfiles(users, userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
     
   }, 10000);
 
@@ -113,8 +112,6 @@ describe('AppController', () => {
 
     const { userId, accessToken } = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload, query, crudConfig});
 
-    const em = entityManager.fork();
-    //const userDb: MyUser = await em.findOne(MyUser, { id: userService.dbAdapter.createNewId(userId) as any }) as any;
     const userDb: MyUser =  await userService.$findOne({ id: userService.dbAdapter.createNewId(userId) }, null);
     
     expect(userDb.email).toEqual(payload.email);
@@ -242,8 +239,6 @@ describe('AppController', () => {
 
     const { userId, accessToken } = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload, query, crudConfig});
 
-    const em = entityManager.fork();
-    //const userDb: MyUser = await em.findOne(MyUser, { id: userService.dbAdapter.createNewId(userId) as any }) as any;
     const userDb: MyUser =  await userService.$findOne({ id: userService.dbAdapter.createNewId(userId) }, null);
 
     expect(userDb.email).toEqual(payload.email.trim().toLowerCase());

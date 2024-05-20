@@ -78,9 +78,8 @@ describe('AppController', () => {
     profileService = app.get<MyProfileService>(MyProfileService);
     entityManager = app.get<EntityManager>(EntityManager);
 
-    const em = entityManager.fork();
   
-    await createAccountsAndProfiles(users, em, userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
+    await createAccountsAndProfiles(users, userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
 
     const accRes = await userService.$createAccount(testAdminCreds.email,testAdminCreds.password, null, "super_admin" );
     jwt = accRes.accessToken;
@@ -119,7 +118,7 @@ describe('AppController', () => {
     }
     const res = await  testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: jwt, entityManager, payload, query, crudConfig});
 
-    let resDb = await entityManager.fork().findOne(UserProfile, { id: res[crudConfig.id_field] }) as UserProfile;
+    let resDb = await profileService.$findOne({ id: res[crudConfig.id_field] }, null) as UserProfile;
     resDb = JSON.parse(JSON.stringify(res));
     expect(res.address).toBeUndefined();
     expect((resDb as any).address).toBeUndefined();

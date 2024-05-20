@@ -64,11 +64,11 @@ export class CrudService<T extends CrudEntity> {
         public security: CrudSecurity,
         private config?: {
             cacheOptions?: CacheOptions,
-            serviceName?: string,
             entityManager?: EntityManager,
             dbAdapter?: CrudDbAdapter,
         }
     ) {
+        this.serviceName = CrudService.getName(entity);
     }
 
     onModuleInit() {
@@ -86,7 +86,7 @@ export class CrudService<T extends CrudEntity> {
     onApplicationBootstrap() {
         const msConfig: MicroServicesOptions = this.crudConfig.microServicesOptions;
 
-        if(!msConfig.microServices?.length){
+        if(!Object.keys(msConfig.microServices)?.length){
             return;
         }
 
@@ -158,16 +158,38 @@ export class CrudService<T extends CrudEntity> {
             ctxPos,
             inheritancePos
         };
+  
 
         const url = msConfig.url + '/crud/backdoor';
 
         const payload = {
             args,
         }
+
+        if(ctxPos != null && args[ctxPos]){
+            args[ctxPos] = {
+                ...args[ctxPos],
+                em: undefined,
+                noFlush: undefined,
+
+            } as CrudContext;
+
+        }
         
-        return axios.patch(url, payload, {
+        const res = await axios.patch(url, payload, {
             params: query,
+            auth: {
+                username: this.crudConfig.microServicesOptions.username,
+                password: this.crudConfig.microServicesOptions.password
+            }
+        }).catch((e) => {
+            console.error(e);
+            console.error(payload);
+            console.error(query);
+            throw new Error('Backdoor failed');
         });
+
+        return res.data;
     }
 
     getName() {
@@ -427,7 +449,7 @@ export class CrudService<T extends CrudEntity> {
         }
         ctx = ctx || {};
         ctx.em = em;
-        return result;
+        return 1;
     }
 
     async $cmdHandler(cmdName: string, ctx: CrudContext, inheritance: any = {}): Promise<any> {
