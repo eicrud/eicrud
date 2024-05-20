@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { getModule, createNestApplication, readyApp } from '../test.module';
+import { getModule, createNestApplication, readyApp, dropDatabases } from '../test.module';
 import { CrudController } from '../../core/crud/crud.controller';
 import { MyUserService } from '../myuser.service';
 import { CrudAuthService } from '../../core/authentification/auth.service';
@@ -78,7 +78,7 @@ describe('AppController', () => {
     const moduleRef: TestingModule = await Test.createTestingModule(
       getModule(require('path').basename(__filename))
     ).compile();
-    await moduleRef.get<EntityManager>(EntityManager).getConnection().getDb().dropDatabase();
+    await dropDatabases(moduleRef);
 
     app = createNestApplication(moduleRef)
 
@@ -114,7 +114,9 @@ describe('AppController', () => {
     const { userId, accessToken } = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload, query, crudConfig});
 
     const em = entityManager.fork();
-    const userDb: MyUser = await em.findOne(MyUser, { id: userService.dbAdapter.createNewId(userId) as any }) as any;
+    //const userDb: MyUser = await em.findOne(MyUser, { id: userService.dbAdapter.createNewId(userId) as any }) as any;
+    const userDb: MyUser =  await userService.$findOne({ id: userService.dbAdapter.createNewId(userId) }, null);
+    
     expect(userDb.email).toEqual(payload.email);
 
     jwt = accessToken;
@@ -241,7 +243,9 @@ describe('AppController', () => {
     const { userId, accessToken } = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload, query, crudConfig});
 
     const em = entityManager.fork();
-    const userDb: MyUser = await em.findOne(MyUser, { id: userService.dbAdapter.createNewId(userId) as any }) as any;
+    //const userDb: MyUser = await em.findOne(MyUser, { id: userService.dbAdapter.createNewId(userId) as any }) as any;
+    const userDb: MyUser =  await userService.$findOne({ id: userService.dbAdapter.createNewId(userId) }, null);
+
     expect(userDb.email).toEqual(payload.email.trim().toLowerCase());
 
   });
