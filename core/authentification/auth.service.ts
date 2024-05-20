@@ -70,7 +70,7 @@ export class CrudAuthService {
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }
 
-    if(user?.timeout && user.timeout > new Date()){
+    if(user?.timeout && new Date(user.timeout) > new Date()){
       throw new UnauthorizedException(CrudErrors.TIMED_OUT.str(new Date(user.timeout).toISOString()));
     }
 

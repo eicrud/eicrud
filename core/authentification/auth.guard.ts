@@ -166,9 +166,9 @@ export class CrudAuthGuard implements CanActivate {
         if(!user){
           throw new UnauthorizedException(CrudErrors.USER_NOT_FOUND.str());
         }
-
-        if(user?.timeout && user.timeout > new Date()){
-          throw new UnauthorizedException(CrudErrors.TIMED_OUT.str(user.timeout.toISOString()));
+        let timeout = user?.timeout ? new Date(user.timeout) : null;
+        if(timeout && timeout > new Date()){
+          throw new UnauthorizedException(CrudErrors.TIMED_OUT.str(timeout.toISOString()));
         }
 
         const role: CrudRole = this.crudConfig?.rolesMap[user?.role];
@@ -254,11 +254,14 @@ export class CrudAuthGuard implements CanActivate {
       }          
       user.highTrafficCount += Math.round(count);
 
+      const addPatch: any = {}
       if(user.highTrafficCount >= this.crudConfig.watchTrafficOptions.TIMEOUT_THRESHOLD_TOTAL){
         this.crudConfig.userService.addTimeoutToUser(user as CrudUser, this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN)
+        addPatch.timeout = user.timeout
+        addPatch.timeoutCount = user.timeoutCount
       }
       user.captchaRequested = true;
-      this.crudConfig.userService.$unsecure_fastPatchOne(userId, { highTrafficCount: user.highTrafficCount }, ctx);
+      this.crudConfig.userService.$unsecure_fastPatchOne(userId, { highTrafficCount: user.highTrafficCount, ...addPatch }, ctx);
       this.crudConfig.userService.$setCached(user, ctx);
       this.crudConfig.logService?.log(LogType.SECURITY, 
         `High traffic event for user ${userId} with ${traffic} requests.`, 

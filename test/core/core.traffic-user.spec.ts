@@ -121,6 +121,9 @@ describe('AppController', () => {
 
     }
 
+    //50ms delay
+    await new Promise((r) => setTimeout(r, 50));
+
     await testMethod({ url: '/crud/many', method: 'GET', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 401, crudConfig });
 
     await userService.$unsecure_fastPatchOne(user.id, { timeout: new Date() } as any, null);

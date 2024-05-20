@@ -87,13 +87,13 @@ export class CrudController {
         //await service.afterControllerHook(res, ctx);
         await this.crudConfig.afterCrudHook(ctx, res);
     }
-    async errorHooks(service: CrudService<any>, e: Error, ctx: CrudContext) {
+    async errorHooks(service: CrudService<any>, e: Error | any, ctx: CrudContext) {
         //await service.errorControllerHook(e, ctx);
         await this.crudConfig.errorCrudHook(e, ctx);
         const notGuest = this.crudConfig.userService.notGuest(ctx?.user);
         if (notGuest) {
             let patch;
-            if (e instanceof ForbiddenException) {
+            if (e instanceof ForbiddenException || e.status == HttpStatus.FORBIDDEN) {
                 patch = { incidentCount: ctx.user.incidentCount + 1 };
                 const inc = { incidentCount: 1 };
                 this.crudConfig.userService.$unsecure_incPatch({ query: { [this.crudConfig.id_field]: ctx.user[this.crudConfig.id_field] }, increments: inc }, ctx);
