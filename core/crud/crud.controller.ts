@@ -567,11 +567,11 @@ export class CrudController {
     }
 
     @Patch('backdoor')
-    async backdoor(@Query(new CrudValidationPipe()) query: BackdoorQuery, @Body() data, @Context() backdoorCtx: CrudContext) {
+    async backdoor(@Query() query: BackdoorQuery, @Body() data, @Context() backdoorCtx: CrudContext) {
         if(!backdoorCtx.backdoorGuarded){
             throw new UnauthorizedException("Backdoor not guarded : (something is wrong with your auth guard.)");
         }
-        const ctx: CrudContext = query.ctxPos ? data.args[query.ctxPos] : null;
+        const ctx: CrudContext = query.ctxPos ? (data.args[query.ctxPos] || {}) : {};
         const inheritance = query.inheritancePos ? data.args[query.inheritancePos] : null;
         ctx.currentMs = MicroServicesOptions.getCurrentService();
         try {
@@ -585,7 +585,13 @@ export class CrudController {
             return res
         } catch (e) {
             await this.crudConfig.errorBackdoorHook(e, ctx);
+            throw e;
         }
+    }
+
+    @Get('rdy')
+    async ready() {
+        return true;
     }
 
 

@@ -71,12 +71,12 @@ export class CrudAuthService {
     }
 
     if(user?.timeout && user.timeout > new Date()){
-      throw new UnauthorizedException(CrudErrors.TIMED_OUT.str(user.timeout.toISOString()));
+      throw new UnauthorizedException(CrudErrors.TIMED_OUT.str(new Date(user.timeout).toISOString()));
     }
 
     if(user.failedLoginCount >= this.rateLimitCount){
       const timeoutMS = Math.min(user.failedLoginCount*user.failedLoginCount*1000, 60000 * 5);
-      const diffMs = _utils.diffBetweenDatesMs(new Date(), user.lastLoginAttempt);
+      const diffMs = _utils.diffBetweenDatesMs(new Date(), new Date(user.lastLoginAttempt));
       if(diffMs < timeoutMS){ 
           throw new HttpException({
             statusCode: HttpStatus.TOO_MANY_REQUESTS,

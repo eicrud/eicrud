@@ -132,7 +132,10 @@ export function createMelons(NB_MELONS, owner: TestUser, crudConfig: CrudConfigS
 }
 
 
-export async function createAccountsAndProfiles(users: Record<string, TestUser>, em: EntityManager, userService: CrudUserService<CrudUser>, crudConfig: CrudConfigService, config : { usersWithoutProfiles?: string[], testAdminCreds: { email?: string, password: string } }){
+export async function createAccountsAndProfiles(users: Record<string, TestUser>, userService: CrudUserService<CrudUser>, crudConfig: CrudConfigService, config : { usersWithoutProfiles?: string[], testAdminCreds: { email?: string, password: string } }){
+  
+  const em = crudConfig.entityManager.fork();
+
   const promises = [];
   for(const key in users){
     const user = users[key];

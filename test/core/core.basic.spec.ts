@@ -132,9 +132,8 @@ describe('AppController', () => {
     profileService = app.get<MyProfileService>(MyProfileService);
     entityManager = app.get<EntityManager>(EntityManager);
 
-    const em = entityManager.fork();
 
-    await createAccountsAndProfiles(users, em, userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
+    await createAccountsAndProfiles(users,  userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
 
     const accRes = await userService.$createAccount(testAdminCreds.email, testAdminCreds.password, null, "super_admin");
     jwt = accRes.accessToken;
@@ -192,9 +191,6 @@ describe('AppController', () => {
       i++;
       const res2 = await profileService.$findOne({ id: res[profile].id }, null);
       expect(res2.userName).toEqual(`Batch Doe ${i}`);
-      const query = { id: userService.dbAdapter.createNewId(res[profile].id) }; //Weird that I need to convert to objectId here
-      const resDB = await entityManager.fork().findOne(UserProfile, query as any);
-      expect(resDB.userName).toEqual(`Batch Doe ${i}`);
     }
 
   });
@@ -310,7 +306,7 @@ describe('AppController', () => {
 
     expect(res).toEqual(ids.length);
     for (const profile in profiles) {
-      const resDB: any = await entityManager.fork().findOne(UserProfile, { id: profiles[profile].id });
+      const resDB: any = await profileService.$findOne({ id: profiles[profile].id }, null);
       expect(resDB.astroSign).toEqual('Aries');
       expect(resDB.fakeProp).toBeUndefined();
 
@@ -342,7 +338,7 @@ describe('AppController', () => {
 
     expect(res?.length).toEqual(2);
     for (const profile in profilesToPatchBatch) {
-      const resDB: any = await entityManager.fork().findOne(UserProfile, { id: profilesToPatchBatch[profile].id });
+      const resDB: any = await profileService.$findOne({ id: profilesToPatchBatch[profile].id }, null);
       expect(resDB.astroSign).toEqual('Taurus');
       expect(resDB.fakeProp).toBeUndefined();
     }
@@ -366,7 +362,7 @@ describe('AppController', () => {
 
     expect(res).toEqual(3);
     for (const profile in profiles) {
-      const resDB: any = await entityManager.fork().findOne(UserProfile, { id: profiles[profile].id });
+      const resDB: any = await profileService.$findOne({ id: profiles[profile].id }, null);
       expect(resDB.chineseSign).toEqual('Pig');
       expect(resDB.fakeProp).toBeUndefined();
     }
@@ -388,7 +384,7 @@ describe('AppController', () => {
     const res = await testMethod({ url: '/crud/one', method: 'DELETE', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
     expect(res).toEqual(1);
 
-    const resDb = await entityManager.fork().findOne(UserProfile, { id: users['Delme Dude'].id });
+    const resDb = await profileService.$findOne({ id: users['Delme Dude'].id }, null);
     expect(resDb).toBeNull();
 
   });
@@ -413,7 +409,7 @@ describe('AppController', () => {
     expect(res).toEqual(ids.length);
 
     for (const profile in profilesToRemoveIn) {
-      const resDb = await entityManager.fork().findOne(UserProfile, { id: profilesToRemoveIn[profile].id });
+      const resDb = await profileService.$findOne({ id: profilesToRemoveIn[profile].id }, null);
       expect(resDb).toBeNull();
     }
 
@@ -434,7 +430,7 @@ describe('AppController', () => {
     expect(res).toEqual(2);
 
     for (const profile in profilesToRemoveMany) {
-      const resDb = await entityManager.fork().findOne(UserProfile, { id: profilesToRemoveMany[profile].id });
+      const resDb = await profileService.$findOne({ id: profilesToRemoveMany[profile].id }, null);
       expect(resDb).toBeNull();
     }
 

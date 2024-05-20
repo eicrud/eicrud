@@ -16,6 +16,7 @@ import { TestUser } from '../test.utils';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/crud/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
+import { MelonService } from '../melon.service';
 
 const testAdminCreds = {
   email: "admin@testmail.com",
@@ -27,6 +28,7 @@ describe('AppController', () => {
   let userService: MyUserService;
   let authService: CrudAuthService;
   let profileService: MyProfileService;
+  let melonService: MelonService;
   let app: NestFastifyApplication;
 
   let entityManager: EntityManager;
@@ -176,14 +178,14 @@ describe('AppController', () => {
     userService = app.get<MyUserService>(MyUserService);
     authService = app.get<CrudAuthService>(CrudAuthService);
     profileService = app.get<MyProfileService>(MyProfileService);
+    melonService = app.get<MelonService>(MelonService);
     entityManager = app.get<EntityManager>(EntityManager);
     crudConfig = app.get<CrudConfigService>(CRUD_CONFIG_KEY, { strict: false });
-    const em = entityManager.fork();
 
-    await createAccountsAndProfiles(users, em, userService, crudConfig, { testAdminCreds });
-    await createAccountsAndProfiles(usersForDeletion, em, userService, crudConfig, { testAdminCreds });
-    await createAccountsAndProfiles(usersForManyDeletion, em, userService, crudConfig, { testAdminCreds });
-    await createAccountsAndProfiles(usersForInDeletion, em, userService, crudConfig, { testAdminCreds });
+    await createAccountsAndProfiles(users, userService, crudConfig, { testAdminCreds });
+    await createAccountsAndProfiles(usersForDeletion, userService, crudConfig, { testAdminCreds });
+    await createAccountsAndProfiles(usersForManyDeletion, userService, crudConfig, { testAdminCreds });
+    await createAccountsAndProfiles(usersForInDeletion, userService, crudConfig, { testAdminCreds });
 
 
   });
@@ -261,7 +263,7 @@ describe('AppController', () => {
       service: 'user-profile'
     }
     const res = await testMethod({ crudConfig, url: '/crud/one', method: 'POST', expectedCode: 403, app, jwt: user.jwt, entityManager, payload, query });
-    let resDb = await entityManager.fork().findOne(UserProfile, { bio: bio_key }) as UserProfile;
+    let resDb = await profileService.$findOne({ bio: bio_key }, null) as UserProfile;
     expect(resDb).toBeNull();
   });
 
@@ -279,7 +281,7 @@ describe('AppController', () => {
       service: 'user-profile'
     }
     const res = await testMethod({ crudConfig, url: '/crud/one', method: 'POST', expectedCode: 403, app, jwt: user.jwt, entityManager, payload, query });
-    let resDb = await entityManager.fork().findOne(UserProfile, { bio: bio_key }) as UserProfile;
+    let resDb = await profileService.$findOne({ bio: bio_key }, null) as UserProfile;
     expect(resDb).toBeNull();
   });
 
@@ -298,7 +300,7 @@ describe('AppController', () => {
     let i = 0;
     for (const profile in res) {
       const query = { id: userService.dbAdapter.createNewId(res[profile].id) }; //Weird that I need to convert to objectId here
-      const resDB = await entityManager.fork().findOne(Melon, query as any);
+      const resDB = await melonService.$findOne(query as any, null);
       expect(resDB.price).toEqual(i);
       i++;
     }
@@ -678,7 +680,7 @@ describe('AppController', () => {
 
     expect(res).toEqual(ids.length);
     for (const id of ids) {
-      const resDB = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(id) as any });
+      const resDB = await profileService.$findOne({ id: userService.dbAdapter.createNewId(id) as any }, null);
       expect(resDB.astroSign).toEqual('Cancer');
     }
 
@@ -788,7 +790,7 @@ describe('AppController', () => {
       const iuser = users[key];
       if(iuser.bio === 'BIO_FIND_MANY_KEY'){
         count++;
-        const resDB = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(iuser.profileId) as any });
+        const resDB = await profileService.$findOne({ id: userService.dbAdapter.createNewId(iuser.profileId) as any }, null);
         expect(resDB.chineseSign).toEqual('Pig');
       }
     }
@@ -856,7 +858,7 @@ describe('AppController', () => {
     const res = await testMethod({ url: '/crud/batch', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
     expect(res?.length).toEqual(profilesToPatchBatch.length);
     for (const profileId of profilesToPatchBatch) {
-      const resDB = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(profileId) as any });
+      const resDB = await profileService.$findOne({ id: userService.dbAdapter.createNewId(profileId) as any }, null);
       expect(resDB.chineseSign).toEqual('Rat');
     }
 
@@ -942,7 +944,7 @@ describe('AppController', () => {
     const res = await testMethod({ url: '/crud/one', method: 'DELETE', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
     expect(res).toEqual(1);
 
-    const resDb = await entityManager.fork().findOne(UserProfile, { id: user.profileId });
+    const resDb = await profileService.$findOne({ id: user.profileId }, null);
     expect(resDb).toBeNull();
 
   });
@@ -999,7 +1001,7 @@ describe('AppController', () => {
     const res = await testMethod({ url: '/crud/one', method: 'DELETE', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
     expect(res).toEqual(1);
 
-    const resDb = await entityManager.fork().findOne(UserProfile, { id: delUser.profileId });
+    const resDb = await profileService.$findOne({ id: delUser.profileId }, null);
     expect(resDb).toBeNull();
 
   });
@@ -1062,7 +1064,7 @@ describe('AppController', () => {
 
     for (const profile in usersForInDeletion) {
       const usedel = usersForInDeletion[profile];
-      const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(usedel.profileId) as any });
+      const resDb = await profileService.$findOne({ id: userService.dbAdapter.createNewId(usedel.profileId) as any }, null);
       expect(resDb.userName).toBeDefined();
       break;
     }
@@ -1072,7 +1074,7 @@ describe('AppController', () => {
 
     for (const profile in usersForInDeletion) {
       const usedel = usersForInDeletion[profile];
-      const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(usedel.profileId) as any });
+      const resDb = await profileService.$findOne({ id: userService.dbAdapter.createNewId(usedel.profileId) as any }, null);
       expect(resDb).toBeNull();
     }
 
@@ -1160,7 +1162,7 @@ describe('AppController', () => {
     for (const profile in users) {
       if (!users[profile].skipProfile) {
         const usedel = users[profile];
-        const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(usedel.profileId) as any });
+        const resDb = await profileService.$findOne({ id: userService.dbAdapter.createNewId(usedel.profileId) as any }, null);
         expect(resDb.userName).toBeDefined();
         break;
       }
@@ -1182,7 +1184,7 @@ describe('AppController', () => {
 
     for (const profile in usersForManyDeletion) {
       const delUser = usersForManyDeletion[profile];
-      const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(delUser.profileId) as any });
+      const resDb = await profileService.$findOne({ id: userService.dbAdapter.createNewId(delUser.profileId) as any }, null);
       expect(resDb.userName).toBeDefined();
       break;
     }
@@ -1192,7 +1194,7 @@ describe('AppController', () => {
 
     for (const profile in usersForManyDeletion) {
       const delUser = usersForManyDeletion[profile];
-      const resDb = await entityManager.fork().findOne(UserProfile, { id: userService.dbAdapter.createNewId(delUser.profileId) as any });
+      const resDb = await profileService.$findOne({ id: userService.dbAdapter.createNewId(delUser.profileId) as any }, null);
       expect(resDb).toBeNull();
     }
 

@@ -98,7 +98,11 @@ export class CrudAuthGuard implements CanActivate {
     const currentMs = MicroServicesOptions.getCurrentService();
     const currentMsConfig = msOptions.microServices[currentMs];
 
-    const crudContext: CrudContext = { ip, url, currentMs };
+    function getRequest(){
+      return request;
+    }
+
+    const crudContext: CrudContext = { ip, url, currentMs, getRequest };
 
     if(url.includes('crud/backdoor')){
       if(!currentMsConfig){
@@ -120,6 +124,9 @@ export class CrudAuthGuard implements CanActivate {
       request['crudContext'] = crudContext
       return true;
     }else if(url.includes('crud/')){
+      if(url.includes('crud/rdy')){
+        return true;
+      }
       if(currentMsConfig && !currentMsConfig.openController){
         throw new UnauthorizedException('Controller is closed.');
       }

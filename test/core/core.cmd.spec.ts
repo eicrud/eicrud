@@ -44,7 +44,6 @@ describe('AppController', () => {
       email: "michael.doe@test.com",
       role: "user",
       bio: 'I am a cool guy.',
-      melons: 10000
     },    
     "Jon Doe": {
       email: "jon.doe@test.com",
@@ -78,9 +77,8 @@ describe('AppController', () => {
     profileService = app.get<MyProfileService>(MyProfileService);
     entityManager = app.get<EntityManager>(EntityManager);
     crudConfig = app.get<CrudConfigService>(CRUD_CONFIG_KEY, { strict: false });
-    const em = entityManager.fork();
 
-    await createAccountsAndProfiles(users, em, userService, crudConfig, { testAdminCreds });
+    await createAccountsAndProfiles(users, userService, crudConfig, { testAdminCreds });
 
   });
 

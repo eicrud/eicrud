@@ -134,9 +134,7 @@ describe('AppController', () => {
     profileService = app.get<MyProfileService>(MyProfileService);
     entityManager = app.get<EntityManager>(EntityManager);
 
-    const em = entityManager.fork();
-
-    await createAccountsAndProfiles(users, em, userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
+    await createAccountsAndProfiles(users, userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
 
     const accRes = await userService.$createAccount(testAdminCreds.email, testAdminCreds.password, null, "super_admin");
     jwt = accRes.accessToken;
