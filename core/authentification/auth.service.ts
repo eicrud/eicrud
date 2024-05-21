@@ -6,7 +6,7 @@ import { _utils } from '../utils';
 import * as bcrypt from 'bcrypt';
 import { t } from '@mikro-orm/core';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../crud/crud.config.service';
-import { CrudErrors } from '../crud/model/CrudErrors';
+import { CrudErrors } from '../../shared/CrudErrors';
 import { CrudUser } from '../user/model/CrudUser';
 import { ModuleRef } from '@nestjs/core';
 import { LoginResponseDto } from '../crud/model/dtos';

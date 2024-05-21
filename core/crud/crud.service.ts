@@ -11,9 +11,10 @@ import { CRUD_CONFIG_KEY, CacheOptions, CrudConfigService, MicroServiceConfig, M
 import { ModuleRef } from '@nestjs/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { CrudTransformer } from './transform/CrudTransformer';
-import { BackdoorQuery } from './model/CrudQuery';
+import { BackdoorQuery } from '../../shared/CrudQuery';
 import axios from 'axios';
 import { CrudDbAdapter } from './dbAdapter/crudDbAdapter';
+import { FindResponseDto } from '../../shared/FindResponseDto';
 
 const NAMES_REGEX = /([^\s,]+)/g;
 const COMMENTS_REGEX = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
@@ -250,18 +251,18 @@ export class CrudService<T extends CrudEntity> {
         return await this.$create(newEntity, ctx, false, inheritance);
     }
 
-    async $find(entity: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
+    async $find(entity: Partial<T>, ctx: CrudContext, inheritance: any = {}): Promise<FindResponseDto<T>> {
         this.checkObjectForIds(entity);
 
         const em = ctx?.em || this.entityManager.fork();
         const opts = this.getReadOptions(ctx);
-        let result;
+        let result: FindResponseDto<T>;
         if (opts.limit) {
-            result = await em.findAndCount(this.entity, entity, opts as any);
-            result = { data: result[0], total: result[1], limit: opts.limit };
+            const res = await em.findAndCount(this.entity, entity, opts as any);
+            result = { data: res[0], total: res[1], limit: opts.limit };
         } else {
-            result = await em.find(this.entity, entity, opts as any);
-            result = { data: result };
+            const res = await em.find(this.entity, entity, opts as any);
+            result = { data: res };
         }
 
         return result;

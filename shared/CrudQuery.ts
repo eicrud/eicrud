@@ -1,6 +1,6 @@
 import { IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
 import { CrudOptions } from "./CrudOptions";
-import { $Type, $Transform, $MaxSize } from "../transform/decorators";
+import { $Type, $Transform, $MaxSize } from "../core/crud/transform/decorators";
 
 
 export class CrudQuery {

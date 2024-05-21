@@ -1,5 +1,5 @@
 import { EntityManager } from "@mikro-orm/core";
-import { CrudOptions } from "./CrudOptions";
+import { CrudOptions } from "../../../shared/CrudOptions";
 import { CrudUser } from "../../user/model/CrudUser";
 import { CrudSecurity } from "./CrudSecurity";
 import { CrudConfigService } from "../crud.config.service";

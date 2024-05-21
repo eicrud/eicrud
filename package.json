@@ -43,6 +43,7 @@
     "cache-manager": "^5.4.0",
     "class-validator": "^0.14.1",
     "concurrently": "^8.2.2",
+    "js-cookie": "^3.0.5",
     "lru-cache": "^10.2.0",
     "mnemonist": "^0.39.8",
     "reflect-metadata": "^0.2.1",
