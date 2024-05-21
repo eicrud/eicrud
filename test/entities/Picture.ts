@@ -15,7 +15,7 @@ export class Picture implements CrudEntity {
     id: string;
 
     @ManyToOne(() => UserProfile)
-    @IsMongoId()
+    @IsString()
     profile: UserProfile | string;
 
     @Property()

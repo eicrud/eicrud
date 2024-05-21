@@ -1,3 +1,4 @@
+import { EntityClass, MikroORM } from "@mikro-orm/core";
 import { CrudConfigService } from "../crud.config.service";
 import { CrudContext } from "../model/CrudContext";
 
@@ -10,8 +11,10 @@ export abstract class CrudDbAdapter {
    setConfigService(crudConfig: CrudConfigService) {
        this.crudConfig = crudConfig;
    }
+   
+   abstract onModuleInit(orm: MikroORM): Promise<any>;
 
-   abstract getIncrementUpdate(increments: { [key: string]: number }, ctx: CrudContext);
+   abstract getIncrementUpdate(increments: { [key: string]: number }, entity: EntityClass<any>, ctx: CrudContext);
 
    abstract createNewId(str?: string);
 

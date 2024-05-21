@@ -106,6 +106,10 @@ export class CrudService<T extends CrudEntity> {
 
                 const currentService = MicroServicesOptions.getCurrentService();
 
+                if(!currentService){
+                    continue;
+                }
+
                 let matches = msConfig.findCurrentServiceMatches(this);
 
                 if(matches.includes(currentService)){
@@ -127,18 +131,6 @@ export class CrudService<T extends CrudEntity> {
                 const targetServiceConfig: MicroServiceConfig = matches[0];
 
                 const orignalMethod = this[methodName].bind(this);
-
-                if(!currentService){
-                    console.warn(`No current micro-service specified, enabling simulation mode (fake_delay_ms: ${msConfig.fake_delay_ms}ms)`);
-                    this[methodName] = async (...args) => {
-                        return new Promise((resolve) => {
-                            setTimeout(() => {
-                                resolve(orignalMethod(...args));
-                            }, msConfig.fake_delay_ms);
-                        });
-                    };
-                    continue;
-                }
 
                 if(!targetServiceConfig.url.includes('https') && !targetServiceConfig.allowNonSecureUrl){
                     throw new Error('MicroServiceConfig url must be https, or allowNonSecureUrl must be set.' );
@@ -212,14 +204,11 @@ export class CrudService<T extends CrudEntity> {
             await this.checkItemDbCount(em, ctx);
         }
 
-
-
         const opts = this.getReadOptions(ctx);
         newEntity.createdAt = new Date();
         newEntity.updatedAt = newEntity.createdAt;
 
         const entity = em.create(this.entity, newEntity, opts as any);
-        //const entity = new (this.entity as any)();
         wrap(entity).assign(newEntity as any, { em, mergeObjectProperties: true, onlyProperties: true });
         entity[this.crudConfig.id_field] = this.dbAdapter.createNewId();
 
@@ -340,7 +329,7 @@ export class CrudService<T extends CrudEntity> {
     async $unsecure_incPatch(args: { query: Partial<T>, increments: { [key: string]: number }, addPatch?: any }, ctx: CrudContext, inheritance: any = {}) {
         this.checkObjectForIds(args.query);
         const em = ctx?.em || this.entityManager.fork();
-        const update = await this.dbAdapter.getIncrementUpdate(args.increments, ctx);
+        const update = await this.dbAdapter.getIncrementUpdate(args.increments, this.entity, ctx);
         await em.nativeUpdate(this.entity, args.query, update as any);
         ctx.em = em;
         let res;

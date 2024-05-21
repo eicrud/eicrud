@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpException, HttpStatus, Inject, Patch, Post, Put, Query, UnauthorizedException, ValidationPipe, forwardRef } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpException, HttpStatus, Inject, Patch, Post, Put, Query, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
 import { CrudContext } from './model/CrudContext';
@@ -137,7 +137,7 @@ export class CrudController {
     }
 
     @Post('batch')
-    async _batchCreate(@Query(new ValidationPipe({ transform: true, expectedType: CrudQuery })) query: CrudQuery, @Body() newEntities: any[], @Context() ctx: CrudContext) {
+    async _batchCreate(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() newEntities: any[], @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('POST', query, null, newEntities, 'crud', ctx);
         ctx.isBatch = true;
         try {

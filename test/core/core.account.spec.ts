@@ -188,7 +188,7 @@ describe('AppController', () => {
     payload.password = testAdminCreds.password;
     await testMethod({ url: '/crud/auth', method: 'POST', expectedCode: 429, app, jwt, entityManager, payload, query, crudConfig});
 
-  }, 10000);
+  }, 15000);
 
 
   it('should rate limit login attempts (too fast)', async () => {

@@ -201,7 +201,15 @@ export class CrudAuthGuard implements CanActivate {
 
     }
 
-    user.crudUserCountMap = user.crudUserCountMap || {} as any;
+    function parseIfString(obj){
+      if(typeof obj == 'string'){
+        return JSON.parse(obj);
+      }
+      return obj;
+    }
+
+    user.crudUserCountMap = parseIfString(user.crudUserCountMap) || {} as any;
+    user.cmdUserCountMap = parseIfString(user.cmdUserCountMap) || {} as any;
     crudContext.user = user as any;
     crudContext.userId = userId;
     if(!token){

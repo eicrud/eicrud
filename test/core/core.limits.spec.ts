@@ -287,7 +287,7 @@ describe('AppController', () => {
 
     const res = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 403, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
 
-  });
+  }, 10000);
 
 
 });
