@@ -433,9 +433,10 @@ export class CrudController {
         if (!currentService) {
             throw new BadRequestException("Service not found: " + query.service);
         }
+        const dataMap = _utils.parseIfString(ctx.user?.crudUserCountMap || {});
         const ret: ICrudRightsInfo = {
             maxItemsPerUser: await this.crudAuthorization.computeMaxItemsPerUser(ctx, currentService.security),
-            userItemsInDb: ctx.user?.crudUserCountMap?.[ctx.serviceName] || 0,
+            userItemsInDb: dataMap?.[ctx.serviceName] || 0,
             fields: {},
             userCmdCount: {}
         }
@@ -444,9 +445,10 @@ export class CrudController {
         
         for(const cmd in currentService.security.cmdSecurityMap){
             const cmdSecurity = currentService.security.cmdSecurityMap[cmd];
+            const cmdMap = _utils.parseIfString(ctx.user?.cmdUserCountMap || {});
             ret.userCmdCount[cmd] = {
                 max: await this.crudAuthorization.computeMaxUsesPerUser(ctx, cmdSecurity),
-                performed: ctx.user?.cmdUserCountMap?.[ctx.serviceName + '_' + cmd] || 0
+                performed: cmdMap?.[ctx.serviceName + '_' + cmd] || 0
             }
         }
 
@@ -548,12 +550,6 @@ export class CrudController {
             const query = { [this.crudConfig.id_field]: ctx.user[this.crudConfig.id_field] };
             this.crudConfig.userService.$unsecure_incPatch({ query, increments }, ctx);
 
-            // if (!ctx.noFlush) {
-            //     ctx.user.crudUserCountMap[ctx.serviceName] = ctx?.user.crudUserCountMap[ctx.serviceName] || {} as any;
-            //     const count = ctx.user.crudUserCountMap[ctx.serviceName].itemsCreated || 0;
-            //     ctx.user.crudUserCountMap[ctx.serviceName].itemsCreated = count + ct;
-            //     this.crudConfig.userService.$setCached(ctx.user, ctx);
-            // }
         }
     }
 

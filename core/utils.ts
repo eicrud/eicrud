@@ -13,6 +13,13 @@ export class _utils {
         return result;
     }
 
+    static parseIfString(obj){
+        if(typeof obj == 'string'){
+          return JSON.parse(obj);
+        }
+        return obj;
+      }
+
     static diffBetweenDatesMs(date1: Date, date2: Date) {
         const res = date1.getTime() - date2.getTime();
         return res;

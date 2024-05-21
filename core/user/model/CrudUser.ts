@@ -33,8 +33,8 @@ export interface CrudUser extends CrudEntity{
     passwordResetToken: string;
     passwordResetAttempCount: number;
 
-    crudUserCountMap: Record<string, number>
-    cmdUserCountMap: Record<string, number>
+    crudUserCountMap?: Record<string, number> | string;
+    cmdUserCountMap?: Record<string, number> | string;
 
     errorCount: number;
     incidentCount: number;
