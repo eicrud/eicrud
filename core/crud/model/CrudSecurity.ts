@@ -33,6 +33,23 @@ export interface CmdSecurity {
      * - Can use `class-validator` & `eicrud` decorators.
      */
     dto: { new(): any };
+
+
+    /**
+     * Max find limit for non admin users
+     * @usageNotes
+     * Useful for search cmds that returns limited results (ex: search cmd).
+     * @type {number}
+     */
+    NON_ADMIN_LIMIT_QUERY?: number;
+
+    /**
+     * Max find limit for admin users
+     * @usageNotes
+     * Useful for search cmds that returns limited results (ex: search cmd).
+     * @type {number}
+     */
+    ADMIN_LIMIT_QUERY?: number;
 }
 
 /**
