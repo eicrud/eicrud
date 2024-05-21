@@ -35,14 +35,14 @@ export class UserProfile implements CrudEntity {
     id: string;
 
     @OneToOne(() => MyUser, user => user.profile, { owner: true })
-    @IsMongoId()
+    @IsString()
     user: MyUser | string;
 
     @OneToMany(() => Picture, mel => mel.profile)
     pictures = new Collection<Picture>(this);
 
-    @Property()
     @Unique()
+    @Property()
     @IsString()
     @MaxLength(30)
     userName: string;

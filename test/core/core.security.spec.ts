@@ -859,7 +859,8 @@ describe('AppController', () => {
     const res = await testMethod({ url: '/crud/batch', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
     expect(res?.length).toEqual(profilesToPatchBatch.length);
     for (const profileId of profilesToPatchBatch) {
-      const resDB = await profileService.$findOne({ id: userService.dbAdapter.createNewId(profileId) as any }, null);
+      const newId = userService.dbAdapter.createNewId(profileId.id);
+      const resDB = await profileService.$findOne({ id: newId as any }, null);
       expect(resDB.chineseSign).toEqual('Rat');
     }
 

@@ -46,7 +46,6 @@ export class MicroServicesOptions {
     microServices: Record<string, MicroServiceConfig> = {};
     username: string;
     password: string;
-    fake_delay_ms: number = 40;
 
     findCurrentServiceMatches(service: CrudService<any>){
         let matches = [];
@@ -171,7 +170,7 @@ export class CrudConfigService {
     }
 
     async onModuleInit() {
-        await this.orm.schema.ensureIndexes();
+        await this.dbAdapter.onModuleInit(this.orm);
     }
 
     async afterCrudHook(res: any, ctx: CrudContext) {

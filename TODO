@@ -7,11 +7,9 @@
 [x] batch wait for flush 
 [x] add inheritance argument 
 [x] VALIDATION
-[ ] test that put does not merge
 [x] Check CMD method, get non cached user for cmd
-[ ] crudQuery Validation
+[x] crudQuery Validation
 [ ] test QueryPatch (or queryPut behavior)
-[ ] remove put, patch & delete can only take data (no query) /client maybe
 
 [ ] security test with null query, null data etc..
 
@@ -36,3 +34,5 @@
 [x] replace all entityManager calls in test for ms testing (.fork())
 
 [ ] test cmd forward to other ms
+
+[ ] test maxItemsInDb

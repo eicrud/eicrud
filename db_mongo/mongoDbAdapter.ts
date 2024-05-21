@@ -1,11 +1,17 @@
-import { ObjectId } from "@mikro-orm/mongodb";
+import { Connection, IDatabaseDriver, ObjectId } from "@mikro-orm/mongodb";
 import { CrudConfigService } from "../core/crud/crud.config.service";
 import { CrudDbAdapter } from "../core/crud/dbAdapter/crudDbAdapter";
 import { CrudContext } from "../core/crud/model/CrudContext";
+import { MikroORM, EntityManager, EntityClass } from "@mikro-orm/core";
 
 export class MongoDbAdapter extends CrudDbAdapter {
     
-    getIncrementUpdate(increments: { [key: string]: number; }, ctx: CrudContext) {
+    
+    async onModuleInit(orm: MikroORM<IDatabaseDriver<Connection>, EntityManager<IDatabaseDriver<Connection>>>) {
+        await orm.schema.ensureIndexes();
+    }
+    
+    getIncrementUpdate(increments: { [key: string]: number; }, entity: EntityClass<any>, ctx: CrudContext) {
         let updateMongo = { $inc: {} };
         for (let key in increments) {
             updateMongo.$inc[key] = increments[key];

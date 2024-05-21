@@ -15,6 +15,7 @@ import { UserProfile } from "./entities/UserProfile";
 import { Picture } from "./entities/Picture";
 import { Melon } from "./entities/Melon";
 import { FakeEmail } from "./entities/FakeEmail";
+import { PostgreDbAdapter } from "../db_postgre/postgreDbAdapter";
 
 
 const roles: CrudRole[] = [
@@ -104,8 +105,8 @@ export class MyConfigService extends CrudConfigService {
             watchTrafficOptions: {
                 ddosProtection: true,
             },
-            dbAdapter: new MongoDbAdapter(),
-            microServicesOptions: process.env.CRUD_CURRENT_MS ? msOptions : null,
+            dbAdapter: process.env.TEST_CRUD_DB == 'postgre' ? new PostgreDbAdapter() : new MongoDbAdapter(),
+            microServicesOptions: msOptions,
         });
 
         this.addRoles(roles);

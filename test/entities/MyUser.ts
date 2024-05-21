@@ -70,7 +70,7 @@ export class MyUser implements CrudUser {
     @Property({ nullable: true })
     crudUserCountMap: Record<string, number>;
 
-    @Property({ nullable: true })
+    @Property({ type: 'json', nullable: true })
     cmdUserCountMap: Record<string, number>
 
     @Property({ nullable: true })
