@@ -208,8 +208,8 @@ export class CrudService<T extends CrudEntity> {
         newEntity.createdAt = new Date();
         newEntity.updatedAt = newEntity.createdAt;
 
-        const entity = em.create(this.entity, newEntity, opts as any);
-        wrap(entity).assign(newEntity as any, { em, mergeObjectProperties: true, onlyProperties: true });
+        const entity = em.create(this.entity, {}, opts as any);
+        wrap(entity).assign(newEntity as any, { em, mergeObjectProperties: true, onlyProperties: true, onlyOwnProperties: true });
         entity[this.crudConfig.id_field] = this.dbAdapter.createNewId();
 
         await em.persist(entity);
@@ -375,7 +375,7 @@ export class CrudService<T extends CrudEntity> {
         const opts = this.getReadOptions(ctx);
         let ormEntity = {};
         Object.setPrototypeOf(ormEntity, this.entity.prototype);
-        wrap(ormEntity).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true });
+        wrap(ormEntity).assign(newEntity as any, { em: em.fork(), mergeObjectProperties: true, onlyProperties: true, onlyOwnProperties: true});
         ormEntity = (ormEntity as any).toJSON();
         return em.nativeUpdate(this.entity, query, ormEntity, opts);
     }
@@ -396,7 +396,7 @@ export class CrudService<T extends CrudEntity> {
         const id = this.dbAdapter.checkId(result[this.crudConfig.id_field]);
 
         let res = em.getReference(this.entity, id);
-        wrap(res).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true });
+        wrap(res).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true, onlyOwnProperties: true });
         return res;
     }
 

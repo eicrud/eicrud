@@ -9,15 +9,20 @@ export class PostgreDbAdapter extends CrudDbAdapter {
     
     async onModuleInit(orm: MikroORM<IDatabaseDriver<Connection>, EntityManager<IDatabaseDriver<Connection>>>) {
     }
+
+    convertColumnName(str){
+        return str.split(/(?=[A-Z])/).join('_').toLowerCase()
+    }
     
     getIncrementUpdate(increments: { [key: string]: number; }, entity: EntityClass<any>, ctx: CrudContext) {
         let updateSql = {};
         for (let key in increments) {
             if(key.includes('.')){
                 const [root, rest] = key.split(/\.(.*)/s);
-                updateSql[root] = raw(`jsonb_set(COALESCE("${root}"::jsonb, '{}'::jsonb), '{${rest}}', (COALESCE("${root}"::text::jsonb->>'${rest}','0')::int + ${increments[key]})::text::jsonb)`)
+                const columnName = this.convertColumnName(root);
+                updateSql[root] = raw(`jsonb_set(COALESCE("${columnName}"::jsonb, '{}'::jsonb), '{${rest}}', (COALESCE("${columnName}"::text::jsonb->>'${rest}','0')::int + ${increments[key]})::text::jsonb)`)
             }else{
-                updateSql[key] = raw(`COALESCE("${key}",0) + ${increments[key]}`)
+                updateSql[key] = raw(`COALESCE("${this.convertColumnName(key)}",0) + ${increments[key]}`)
             }
         }
         return updateSql;

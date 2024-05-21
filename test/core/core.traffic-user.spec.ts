@@ -94,11 +94,11 @@ describe('AppController', () => {
       
       for(let i = 0; i <= (crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD); i++){
         const prom = testMethod({ url: '/crud/many', method: 'GET', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 200, crudConfig })
-        .catch(e => {
-          console.log(u, i);
-          console.log(e);
-          throw e;
-        });
+        // .catch(e => {
+        //   console.log(u, i);
+        //   console.log(e);
+        //   throw e;
+        // });
 
         promises.push(prom);
       }
@@ -122,7 +122,7 @@ describe('AppController', () => {
     }
 
     //50ms delay
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 100));
 
     await testMethod({ url: '/crud/many', method: 'GET', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 401, crudConfig });
 

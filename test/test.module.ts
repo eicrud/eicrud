@@ -17,6 +17,7 @@ import { Picture } from "./entities/Picture";
 import { NestFastifyApplication, FastifyAdapter } from "@nestjs/platform-fastify";
 import { EntityCaseNamingStrategy, EntityManager, MikroORM } from "@mikro-orm/core";
 import { get } from "http";
+import { MyPictureService } from "./picture.service";
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, './.env') });
 
@@ -71,12 +72,11 @@ export const getModule = (dbName) => {
                 dbName,
                 password: process.env.TEST_CRUD_DB == 'postgre' ? 'admin' : undefined,
                 user: process.env.TEST_CRUD_DB == 'postgre' ? 'postgres' : undefined,
-                namingStrategy: EntityCaseNamingStrategy
             }),
             OCRUDModule.forRoot(),
         ],
         controllers: [],
-        providers: [MyEmailService, MyUserService, MelonService, MyProfileService,
+        providers: [MyEmailService, MyUserService, MelonService, MyProfileService, MyPictureService,
             {
                 provide: CRUD_CONFIG_KEY,
                 useClass: MyConfigService,
