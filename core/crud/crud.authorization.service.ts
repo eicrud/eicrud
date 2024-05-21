@@ -8,6 +8,7 @@ import { CrudUserService } from "../user/crud-user.service";
 import { CRUD_CONFIG_KEY, CrudConfigService } from "./crud.config.service";
 import { CrudUser } from "../user/model/CrudUser";
 import { ModuleRef } from "@nestjs/core";
+import { _utils } from "../utils";
 
 
 const SKIPPABLE_OPTIONS = ['limit', 'skip', 'sort', 'fields'];
@@ -102,8 +103,8 @@ export class CrudAuthorizationService {
     async checkmaxItemsPerUser(ctx: CrudContext, security: CrudSecurity,  addCount: number = 0) {
         if (ctx.origin == 'crud' && this.crudConfig.userService.notGuest(ctx.user) &&
             ctx.method == 'POST') {
-
-            const count = (ctx.user?.crudUserCountMap?.[ctx.serviceName] || 0) + addCount;
+            const dataMap = _utils.parseIfString(ctx.user?.crudUserCountMap || {});
+            const count = (dataMap?.[ctx.serviceName] || 0) + addCount;
             const max = await this.computeMaxItemsPerUser(ctx, security, addCount);
             if (count >= max) {
                 throw new ForbiddenException(`You have reached the maximum number of items for this resource (${security.maxItemsPerUser})`);
@@ -131,7 +132,8 @@ export class CrudAuthorizationService {
             }
             if(hasMaxUses) {
                 let max = await this.computeMaxUsesPerUser(ctx, cmdSec);
-                const count = ctx.user?.cmdUserCountMap?.[ctx.serviceName+'_'+ctx.cmdName] || 0;
+                const cmdMap = _utils.parseIfString(ctx.user?.cmdUserCountMap || {});
+                const count = cmdMap?.[ctx.serviceName+'_'+ctx.cmdName] || 0;
                 if (count >= max) {
                     throw new ForbiddenException(`You have reached the maximum uses for this command (${max})`);
                 }

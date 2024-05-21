@@ -67,11 +67,11 @@ export class MyUser implements CrudUser {
     @Property({ nullable: true })
     passwordResetAttempCount: number;
 
-    @Property({ nullable: true })
-    crudUserCountMap: Record<string, number>;
+    @Property({ type: 'json', nullable: true })
+    crudUserCountMap: Record<string, number> | string;
 
     @Property({ type: 'json', nullable: true })
-    cmdUserCountMap: Record<string, number>
+    cmdUserCountMap: Record<string, number> | string;
 
     @Property({ nullable: true })
     errorCount: number;
