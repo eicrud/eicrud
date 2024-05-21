@@ -4,6 +4,7 @@ import { CrudQuery } from "../shared/CrudQuery";
 import { Cookies } from "js-cookie"
 import { FindResponseDto } from "../shared/FindResponseDto";
 import axios from "axios";
+import { CrudErrors } from "../shared/CrudErrors";
 
 export interface ClientStorage {
 
@@ -50,7 +51,7 @@ export class CrudClient<T> {
 
   id_field: string;
 
-  constructor(args: { serviceName: string, url: string, storage?: ClientStorage, id_field?: string}) {
+  constructor(args: { serviceName: string, url: string, storage?: ClientStorage, id_field?: string }) {
     this.serviceName = args.serviceName;
     this.url = args.url;
     this.id_field = args.id_field || "id";
@@ -155,7 +156,7 @@ export class CrudClient<T> {
 
     return await this._doLimitQuery(fetchFunc, crudQuery);
   }
-  
+
   async findIds(query: any, options: CrudOptions = undefined): Promise<FindResponseDto<string>> {
     const crudQuery: CrudQuery = {
       service: this.serviceName,
@@ -181,35 +182,35 @@ export class CrudClient<T> {
 
     const method = secure ? axios.post : axios.get;
 
-    if(limited) {
+    if (limited) {
 
       async function fetchFunc(crdQuery: CrudQuery) {
         return await this._tryOrDisconnect(method, 2, url, dto, { params: crdQuery, headers: this._getHeaders() });
       }
-  
+
       return await this._doLimitQuery(fetchFunc, crudQuery);
-    
+
     }
 
-    const res = await this._tryOrDisconnect(secure ? axios.post: axios.patch, 2, url, dto, { params: crudQuery, headers: this._getHeaders() });
+    const res = await this._tryOrDisconnect(secure ? axios.post : axios.patch, 2, url, dto, { params: crudQuery, headers: this._getHeaders() });
 
     return res;
   }
 
   async patchOne(q: object | string[], data: any, options: CrudOptions = undefined): Promise<T> {
     let query = {};
-    if(Array.isArray(q)) {
+    if (Array.isArray(q)) {
       const limitingFields = q;
-      if(!limitingFields.includes(this.id_field)) { 
+      if (!limitingFields.includes(this.id_field)) {
         limitingFields.push(this.id_field)
       }
       limitingFields.forEach(f => {
-        if(data[f] !== undefined) {
+        if (data[f] !== undefined) {
           query[f] = data[f]
           delete data[f];
         }
       });
-    }else{
+    } else {
       query = q;
     }
 
@@ -227,34 +228,147 @@ export class CrudClient<T> {
 
   }
 
+  async patchMany(query: object, data: any, options: CrudOptions = undefined): Promise<FindResponseDto<T>> {
+    const crudQuery: CrudQuery = {
+      service: this.serviceName,
+      options: options,
+      query: JSON.stringify(query)
+    }
+    const url = this.url + "/crud/many";
 
-  
+    const res = await this._tryOrDisconnect(axios.patch, 2, url, data, { params: crudQuery, headers: this._getHeaders() });
+
+    return res;
+  }
+
+  async patchIn(ids: any[], data: any, options: CrudOptions = undefined): Promise<FindResponseDto<T>> {
+    const crudQuery: CrudQuery = {
+      service: this.serviceName,
+      options: options,
+      query: JSON.stringify({ [this.id_field]: ids })
+    }
+    const url = this.url + "/crud/in";
+
+    const res = await this._tryOrDisconnect(axios.patch, 2, url, data, { params: crudQuery, headers: this._getHeaders() });
+
+    return res;
+  }
+
+  async patchBatch(limitingFields: string[], objects: any[], batchSize = 0, options: CrudOptions = undefined): Promise<T[]> {
+    if (!limitingFields.includes(this.id_field)) {
+      limitingFields.push(this.id_field)
+    }
+    const datas = objects.map(o => {
+      const query = {};
+      limitingFields.forEach(f => {
+        if (o[f] !== undefined) {
+          query[f] = o[f]
+          delete o[f];
+        }
+      });
+      return { query, data: o };
+    });
+
+    return await this._patchBatch(datas, batchSize, options);
+
+  }
+
+  private _splitArrayIntoChunks(arr: any[], chunkSize: number): any[] {
+    const chunks = [];
+    for (let i = 0; i < arr.length; i += chunkSize) {
+      chunks.push(arr.slice(i, i + chunkSize));
+    }
+    return chunks;
+  }
+
+  async _patchBatch(datas: { query: any, data: any }[], batchSize = 0, options: CrudOptions = undefined): Promise<T[]> {
+    const url = this.url + "/crud/batch";
+
+    const crudQuery: CrudQuery = {
+      service: this.serviceName,
+      options: options,
+    }
+
+    function batchFunc(chunk){
+      this._tryOrDisconnect(axios.patch, 2, url, chunk, { params: crudQuery, headers: this._getHeaders() })
+    }
+
+    return await this._doBatch(batchFunc, datas, batchSize);
+  }
+
+
+  private async _doBatch(batchFunc: (datas) => any, datas, batchSize = 0){
+    let res;
+
+    let chunks = [datas];
+    if (batchSize > 0) {
+      chunks = this._splitArrayIntoChunks(datas, batchSize);
+    }
+
+    try {
+      const res = [];
+      for (const chunk of chunks) {
+        const r = await batchFunc(chunk);
+        res.push(...r);
+      }
+    } catch (e) {
+      if (e.response && e.response.status === 401) {
+        const parsedMessage = JSON.parse(e.response.data);
+        if (parsedMessage.code == CrudErrors.MAX_BATCH_SIZE_EXCEEDED.code) {
+          const maxBatchSize = parsedMessage.data.maxBatchSize;
+          if (maxBatchSize < batchSize) {
+            return await this._doBatch(batchFunc, datas, maxBatchSize);
+          }
+        }
+      }
+      throw e;
+    }
+
+    return res;
+  }
+
+  async postBatch(objects: any[], batchSize = 0, options: CrudOptions = undefined): Promise<T[]> {
+    const url = this.url + "/crud/batch";
+
+    const crudQuery: CrudQuery = {
+      service: this.serviceName,
+      options: options,
+    }
+
+    function batchFunc(chunk){
+      this._tryOrDisconnect(axios.post, 2, url, chunk, { params: crudQuery, headers: this._getHeaders() })
+    }
+
+    return await this._doBatch(batchFunc, objects, batchSize);  
+  }
+
+  async postOne(data: any, options: CrudOptions = undefined): Promise<T> {
+    const crudQuery: CrudQuery = {
+      service: this.serviceName,
+      options: options,
+    }
+    const url = this.url + "/crud/one";
+
+    const res = await this._tryOrDisconnect(axios.post, 2, url, data, { params: crudQuery, headers: this._getHeaders() });
+
+    return res;
+  }
+
   async cmd(cmdName: string, dto: any, options: CrudOptions = undefined): Promise<any> {
     return await this._doCmd(cmdName, dto, options, false, false);
   }
 
-  async cmdLimited(cmdName: string, dto: any, options: CrudOptions = undefined): Promise<any> {
+  async cmdL(cmdName: string, dto: any, options: CrudOptions = undefined): Promise<any> {
     return await this._doCmd(cmdName, dto, options, false, true);
   }
 
-  async cmdL(cmdName: string, dto: any, options: CrudOptions = undefined){
-    return await this.cmdLimited(cmdName, dto, options);
-  }
-
-  async cmdSecure(cmdName: string, dto: any, options: CrudOptions = undefined): Promise<any> {
+  async cmdS(cmdName: string, dto: any, options: CrudOptions = undefined): Promise<any> {
     return await this._doCmd(cmdName, dto, options, true, false);
   }
 
-  async cmdSecureLimited(cmdName: string, dto: any, options: CrudOptions = undefined): Promise<any> {
+  async cmdSL(cmdName: string, dto: any, options: CrudOptions = undefined): Promise<any> {
     return await this._doCmd(cmdName, dto, options, true, true);
   }
 
-  async cmdS(cmdName: string, dto: any, options: CrudOptions = undefined){
-    return await this.cmdSecure(cmdName, dto, options);
-  }
-
-  async cmdSL(cmdName: string, dto: any, options: CrudOptions = undefined){
-    return await this.cmdSecureLimited(cmdName, dto, options);
-  }
 
 }

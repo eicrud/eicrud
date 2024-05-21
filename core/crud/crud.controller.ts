@@ -166,32 +166,28 @@ export class CrudController {
 
     @Post('cmd')
     async _secureCMD(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
-        const currentService = await this.assignContext('POST', query, data, data, 'cmd', ctx);
-        try {
-            this.limitQuery(ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
-            await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.$cmdHandler(query.cmd, ctx);
-            this.addCountToCmdMap(ctx, 1);
-            await this.afterHooks(currentService, res, ctx);
-            return res;
-        } catch (e) {
-            await this.errorHooks(currentService, e, ctx);
-        }
+        return this.subCMD(query, data, ctx, 'POST');
     }
 
     @Patch('cmd')
     async _unsecureCMD(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
-        const currentService = await this.assignContext('PATCH', query, data, data, 'cmd', ctx);
-        try {
-            this.limitQuery(ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
-            await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.$cmdHandler(query.cmd, ctx);
-            this.addCountToCmdMap(ctx, 1);
-            await this.afterHooks(currentService, res, ctx);
-            return res;
-        } catch (e) {
-            await this.errorHooks(currentService, e, ctx);
-        }
+        return this.subCMD(query, data, ctx, 'PATCH');
+    }
+
+
+    async subCMD(query: CrudQuery,data, ctx: CrudContext, METHOD: string) {
+            const currentService = await this.assignContext(METHOD, query, data, data, 'cmd', ctx);
+            try {
+                const cmdSecurity: CmdSecurity = currentService.security?.cmdSecurityMap?.[ctx.cmdName];
+                this.limitQuery(ctx, cmdSecurity?.NON_ADMIN_LIMIT_QUERY || this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, cmdSecurity?.ADMIN_LIMIT_QUERY || this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
+                await this.performValidationAuthorizationAndHooks(ctx, currentService);
+                const res = await currentService.$cmdHandler(query.cmd, ctx);
+                this.addCountToCmdMap(ctx, 1);
+                await this.afterHooks(currentService, res, ctx);
+                return res;
+            } catch (e) {
+                await this.errorHooks(currentService, e, ctx);
+            }
     }
 
     @Get('many')

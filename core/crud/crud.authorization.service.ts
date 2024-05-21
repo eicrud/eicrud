@@ -9,6 +9,7 @@ import { CRUD_CONFIG_KEY, CrudConfigService } from "./crud.config.service";
 import { CrudUser } from "../user/model/CrudUser";
 import { ModuleRef } from "@nestjs/core";
 import { _utils } from "../utils";
+import { CrudErrors } from "../../shared/CrudErrors";
 
 
 const SKIPPABLE_OPTIONS = ['limit', 'skip', 'sort', 'fields'];
@@ -71,7 +72,7 @@ export class CrudAuthorizationService {
         const maxBatchSize = Math.max(adminBatch, this.getMatchBatchSizeFromCrudRoleAndParents(ctx, userRole, security));
         
         if (batchSize > maxBatchSize) {
-            throw new ForbiddenException(`Maxbatchsize (${maxBatchSize}) exceeded (${batchSize}).`);
+            throw new ForbiddenException(CrudErrors.MAX_BATCH_SIZE_EXCEEDED.str({maxBatchSize, batchSize}));
         }
 
         this.checkmaxItemsPerUser(ctx, security, batchSize);        
