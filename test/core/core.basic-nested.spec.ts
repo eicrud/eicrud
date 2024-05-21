@@ -8,7 +8,7 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { wrap } from '@mikro-orm/core';
 import { UserProfile } from '../entities/UserProfile';
-import { CrudQuery } from '../../core/crud/model/CrudQuery';
+import { CrudQuery } from '../../shared/CrudQuery';
 import { createAccountsAndProfiles, createNewProfileTest, testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/crud/crud.config.service';
@@ -296,9 +296,9 @@ describe('AppController', () => {
 
     const res = await createNewProfileTest(app, jwt, entityManager, payload, query, crudConfig);
 
-    const picture = await pictureService.$findOne({ profile: crudConfig.dbAdapter.formatId(res.id, crudConfig) }, null);
+    const pictures = await pictureService.$find({}, null);
 
-    expect(picture).toBeNull();
+    expect(pictures.data.length).toBe(0);
 
   });
 
@@ -334,9 +334,9 @@ describe('AppController', () => {
     let res = await testMethod({ url: '/crud/one', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity, expectedObject, crudConfig });
 
 
-    const picture = await pictureService.$findOne({ profile: crudConfig.dbAdapter.formatId(res.id, crudConfig) }, null);
+    const pictures = await pictureService.$find({}, null);
 
-    expect(picture).toBeNull();
+    expect(pictures.data.length).toBe(0);
   });
 
   it('should not expose nested picture when query patching profile', async () => {
@@ -370,9 +370,9 @@ describe('AppController', () => {
 
     let res = await testMethod({ url: '/crud/many', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity, expectedObject, crudConfig });
 
-    const picture = await pictureService.$findOne({ profile: crudConfig.dbAdapter.formatId(res.id, crudConfig) }, null);
+    const pictures = await pictureService.$find({}, null);
 
-    expect(picture).toBeNull();
+    expect(pictures.data.length).toBe(0);
   });
 
 

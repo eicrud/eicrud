@@ -3,14 +3,14 @@ import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
 import { CrudContext } from './model/CrudContext';
 import { Context } from '../authentification/auth.utils';
-import { BackdoorQuery, CrudQuery } from './model/CrudQuery';
+import { BackdoorQuery, CrudQuery } from '../../shared/CrudQuery';
 import { CrudAuthorizationService } from './crud.authorization.service';
 
 import { CRUD_CONFIG_KEY, CrudConfigService, MicroServicesOptions } from './crud.config.service';
 import { CmdSecurity } from './model/CrudSecurity';
-import { CrudErrors } from './model/CrudErrors';
+import { CrudErrors } from '../../shared/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
-import { CrudOptions } from './model/CrudOptions';
+import { CrudOptions } from '../../shared/CrudOptions';
 import { ModuleRef } from '@nestjs/core';
 import { ICrudRightsFieldInfo, ICrudRightsInfo, LoginDto, LoginResponseDto } from './model/dtos';
 import { ObjectId } from '@mikro-orm/mongodb';
@@ -18,6 +18,7 @@ import { LRUCache } from 'mnemonist';
 import { _utils } from '../utils';
 import { CrudTransformer, IFieldMetadata } from './transform/CrudTransformer';
 import { CrudValidationPipe } from './transform/CrudValidationPipe';
+import { FindResponseDto } from '../../shared/FindResponseDto';
 
 export class LimitOptions {
     NON_ADMIN_LIMIT_QUERY = 40;
@@ -167,6 +168,7 @@ export class CrudController {
     async _secureCMD(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('POST', query, data, data, 'cmd', ctx);
         try {
+            this.limitQuery(ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
             const res = await currentService.$cmdHandler(query.cmd, ctx);
             this.addCountToCmdMap(ctx, 1);
@@ -181,6 +183,7 @@ export class CrudController {
     async _unsecureCMD(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, data, data, 'cmd', ctx);
         try {
+            this.limitQuery(ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
             const res = await currentService.$cmdHandler(query.cmd, ctx);
             this.addCountToCmdMap(ctx, 1);
@@ -207,7 +210,9 @@ export class CrudController {
         query.options.fields = [this.crudConfig.id_field as any];
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
-            return await this.subFind(query, ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY_IDS, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY_IDS);
+            const res: FindResponseDto<any> = await this.subFind(query, ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY_IDS, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY_IDS);
+            res.data = res.data.map(d => d[this.crudConfig.id_field]);
+            return res;
         } catch (e) {
             await this.errorHooks(currentService, e, ctx);
         }
@@ -289,7 +294,6 @@ export class CrudController {
     async _deleteIn(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
-            this.limitQuery(ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
             const ids = ctx.query?.[this.crudConfig.id_field];
             if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.MAX_GET_IN) {
                 throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.crudConfig.limitOptions.MAX_GET_IN));
@@ -326,7 +330,6 @@ export class CrudController {
     async _patchIn(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
         try {
-            this.limitQuery(ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
             const ids = ctx.query?.[this.crudConfig.id_field];
             if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.MAX_GET_IN) {
                 throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.crudConfig.limitOptions.MAX_GET_IN));

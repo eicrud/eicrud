@@ -7,7 +7,7 @@ import { CrudContext } from '../crud/model/CrudContext';
 import { CrudConfigService } from '../crud/crud.config.service';
 import { CrudAuthorizationService } from '../crud/crud.authorization.service';
 import { Loaded, Type } from '@mikro-orm/core';
-import { CrudErrors } from '../crud/model/CrudErrors';
+import { CrudErrors } from '../../shared/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
 import { IsString, MaxLength, MinLength } from 'class-validator';
 import { ModuleRef } from '@nestjs/core';

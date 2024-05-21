@@ -1,6 +1,6 @@
 import { FindOptions } from "@mikro-orm/core";
 import { IsInt, IsOptional, IsString } from "class-validator";
-import { $MaxSize } from "../transform/decorators";
+import { $MaxSize } from "../core/crud/transform/decorators";
 
 export class CrudOptions  {
 

@@ -14,13 +14,9 @@
 [ ] security test with null query, null data etc..
 
 [ ] security test default fields option
-
-[ ] rename crudService methods to $
-
+[x] rename crudService methods to $
 [x] test nested validation & transform
-
 [x] replace maxSize with per field decorator value
-
 [x] patch many
 
 [ ] log service
@@ -36,3 +32,5 @@
 [ ] test cmd forward to other ms
 
 [ ] test maxItemsInDb
+
+[ ] test account & emails
