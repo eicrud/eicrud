@@ -5,7 +5,7 @@ import { CrudController } from '../../core/crud/crud.controller';
 import { MyUserService } from '../myuser.service';
 import { CrudAuthService } from '../../core/authentification/auth.service';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { EntityManager, ObjectId} from '@mikro-orm/mongodb';
+import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { wrap } from '@mikro-orm/core';
 import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
@@ -15,6 +15,7 @@ import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/crud/crud.config.
 import { TestUser } from '../test.utils';
 import { Picture } from '../entities/Picture';
 import { Melon } from '../entities/Melon';
+import { MyPictureService } from '../picture.service';
 
 const testAdminCreds = {
   email: "admin@testmail.com",
@@ -26,6 +27,7 @@ describe('AppController', () => {
   let userService: MyUserService;
   let authService: CrudAuthService;
   let profileService: MyProfileService;
+  let pictureService: MyPictureService;
   let jwt: string;
   let app: NestFastifyApplication;
   let userId: string;
@@ -51,6 +53,18 @@ describe('AppController', () => {
       email: "sarah.doe@test.com",
       role: "super_admin",
       bio: 'BIO_FIND_KEY',
+      store: profiles,
+    },
+    "Sarah Blake": {
+      email: "sarah.Blake@test.com",
+      role: "super_admin",
+      bio: 'My bio',
+      store: profiles,
+    },
+    "Sarah Make": {
+      email: "sarah.make@test.com",
+      role: "super_admin",
+      bio: 'BIO_SARAH_MAKE_KEY',
       store: profiles,
     },
     "Jordan Doe": {
@@ -132,6 +146,7 @@ describe('AppController', () => {
     userService = app.get<MyUserService>(MyUserService);
     authService = app.get<CrudAuthService>(CrudAuthService);
     profileService = app.get<MyProfileService>(MyProfileService);
+    pictureService = app.get<MyPictureService>(MyPictureService);
     entityManager = app.get<EntityManager>(EntityManager);
 
     await createAccountsAndProfiles(users, userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
@@ -143,110 +158,108 @@ describe('AppController', () => {
 
   }, 10000);
 
-
-
-    it('should merge embedded object when patching', async () => {
-        const user = users["Michael Doe"];
-        const payload: Partial<Melon> = {
-          name: "MyMelon",
-          price: 1,
-          owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
-          ownerEmail: user.email,
-          firstSlice: {
-            name: "M",
-            size: 1,
-          }
-        } as any;
-  
-        
-        const query: CrudQuery = {
-          service: 'melon'
-        }
-  
-        const created = await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
-
-        query.query = JSON.stringify({ id: created.id});
-        payload.firstSlice = {
-          name: "Replaced",
-        }
-
-        const expectedObject = {
-          firstSlice: {
-            size: 1,
-            ...payload.firstSlice,
-          },
-        }
-
-        const fetchEntity = { entity: Melon, id: created.id };
-
-        const res = await testMethod({ url: '/crud/one', expectedObject, fetchEntity, method: 'PATCH', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
-
-
-     });
-
-     it('should replace embedded array when patching', async () => {
-      const user = users["Michael Doe"];
-      const payload: Partial<Melon> = {
-        name: "MyMelon",
-        price: 1,
-        owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
-        ownerEmail: user.email,
-        seeds: [
-          {
-            name: "seed1",
-            size: 1,
-          },
-          {
-            name: "seed2",
-            size: 1,
-          }
-        ]
-      } as any;
-
-      
-      const query: CrudQuery = {
-        service: 'melon'
-      }
-
-      const created = await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
-
-      query.query = JSON.stringify({ id: created.id});
-      payload.seeds = [
-        {
-          size: 1,
-          name: "seed3",
-        }
-      ]
-
-      const expectedObject = {
-        seeds: payload.seeds,
-      }
-
-      const fetchEntity = { entity: Melon, id: created.id };
-
-      const res = await testMethod({ url: '/crud/one', expectedObject, fetchEntity, method: 'PATCH', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
-
-
-   });
-
-   it('should replace basic array when patching', async () => {
+  it('should merge embedded object when patching', async () => {
     const user = users["Michael Doe"];
     const payload: Partial<Melon> = {
       name: "MyMelon",
       price: 1,
       owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
       ownerEmail: user.email,
-      stringSeeds: ["seed1","seed2"],
+      firstSlice: {
+        name: "M",
+        size: 1,
+      }
     } as any;
 
-    
+
     const query: CrudQuery = {
       service: 'melon'
     }
 
-    const created = await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+    const created = await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig });
 
-    query.query = JSON.stringify({ id: created.id});
+    query.query = JSON.stringify({ id: created.id });
+    payload.firstSlice = {
+      name: "Replaced",
+    }
+
+    const expectedObject = {
+      firstSlice: {
+        size: 1,
+        ...payload.firstSlice,
+      },
+    }
+
+    const fetchEntity = { entity: Melon, id: created.id };
+
+    const res = await testMethod({ url: '/crud/one', expectedObject, fetchEntity, method: 'PATCH', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig });
+
+
+  });
+
+  it('should replace embedded array when patching', async () => {
+    const user = users["Michael Doe"];
+    const payload: Partial<Melon> = {
+      name: "MyMelon",
+      price: 1,
+      owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
+      ownerEmail: user.email,
+      seeds: [
+        {
+          name: "seed1",
+          size: 1,
+        },
+        {
+          name: "seed2",
+          size: 1,
+        }
+      ]
+    } as any;
+
+
+    const query: CrudQuery = {
+      service: 'melon'
+    }
+
+    const created = await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig });
+
+    query.query = JSON.stringify({ id: created.id });
+    payload.seeds = [
+      {
+        size: 1,
+        name: "seed3",
+      }
+    ]
+
+    const expectedObject = {
+      seeds: payload.seeds,
+    }
+
+    const fetchEntity = { entity: Melon, id: created.id };
+
+    const res = await testMethod({ url: '/crud/one', expectedObject, fetchEntity, method: 'PATCH', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig });
+
+
+  });
+
+  it('should replace basic array when patching', async () => {
+    const user = users["Michael Doe"];
+    const payload: Partial<Melon> = {
+      name: "MyMelon",
+      price: 1,
+      owner: crudConfig.dbAdapter.formatId(user.id, crudConfig),
+      ownerEmail: user.email,
+      stringSeeds: ["seed1", "seed2"],
+    } as any;
+
+
+    const query: CrudQuery = {
+      service: 'melon'
+    }
+
+    const created = await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig });
+
+    query.query = JSON.stringify({ id: created.id });
     payload.stringSeeds = ['seed3'];
 
     const expectedObject = {
@@ -255,76 +268,112 @@ describe('AppController', () => {
 
     const fetchEntity = { entity: Melon, id: created.id };
 
-    const res = await testMethod({ url: '/crud/one', expectedObject, fetchEntity, method: 'PATCH', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+    const res = await testMethod({ url: '/crud/one', expectedObject, fetchEntity, method: 'PATCH', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig });
 
 
-    });
+  });
+
+  it('should not expose nested pictures when creating profile', async () => {
+    const sarahDoe = users["Sarah Doe"];
+    const payload: Partial<UserProfile> = {
+      userName: "John Doe",
+      user: userId,
+      bio: 'I am a cool guy.',
+      pictures: [{
+        profile: sarahDoe.profileId,
+        id: "5f5e3e3e3e3e3e3e3e3e3e3e",
+        src: "src",
+        width: 200,
+        height: 200,
+        alt: "A",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      } as Partial<Picture>]
+    } as any;
+    const query: CrudQuery = {
+      service: 'user-profile'
+    }
+
+    const res = await createNewProfileTest(app, jwt, entityManager, payload, query, crudConfig);
+
+    const picture = await pictureService.$findOne({ profile: crudConfig.dbAdapter.formatId(res.id, crudConfig) }, null);
+
+    expect(picture).toBeNull();
+
+  });
+
+  it('should not expose nested picture when patching profile', async () => {
+    const sarahBlake = users["Sarah Blake"];
+    const payload: Partial<UserProfile> = {
+      userName: 'Sarah Take',
+      user: crudConfig.dbAdapter.formatId((sarahBlake.id as any), crudConfig),
+      pictures: [{
+        profile: sarahBlake.profileId,
+        id: "6f6e3e3e3e3e3e3e3e3e3e3e",
+        src: "src",
+        width: 200,
+        height: 200,
+        alt: "A",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      } as Partial<Picture>]
+    } as any;
+    const formatedId = crudConfig.dbAdapter.formatId(sarahBlake.profileId, crudConfig);
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ id: formatedId })
+    }
+
+    const expectedObject = {
+      ...payload,
+    }
+    delete expectedObject.pictures;
+
+    const fetchEntity = { entity: UserProfile, id: sarahBlake.profileId };
+
+    let res = await testMethod({ url: '/crud/one', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity, expectedObject, crudConfig });
 
 
+    const picture = await pictureService.$findOne({ profile: crudConfig.dbAdapter.formatId(res.id, crudConfig) }, null);
 
+    expect(picture).toBeNull();
+  });
 
-  ////@Post('/crud/one')
-  // it('should create a new profile with pictures', async () => {
-  //   const sarahDoe = users["Sarah Doe"];
-  //   const payload: Partial<UserProfile> = {
-  //     userName: "John Doe",
-  //     user: userId,
-  //     bio: 'I am a cool guy.',
-  //     pictures: [ { 
-  //       profile: sarahDoe.profileId,
-  //       id: "5f5e3e3e3e3e3e3e3e3e3e3e",
-  //       src: "https://www.google.com",
-  //       width: 200,
-  //       height: 200,
-  //       alt: "A cool picture",
-  //       createdAt: new Date(),
-  //       updatedAt: new Date()
-  //     } as Partial<Picture> ]
-  //   } as any;
-  //   const query: CrudQuery = {
-  //     service: 'user-profile'
-  //   }
+  it('should not expose nested picture when query patching profile', async () => {
+    const sarahBlake = users["Sarah Make"];
+    const payload: Partial<UserProfile> = {
+      userName: 'Sarah Fake',
+      user: crudConfig.dbAdapter.formatId((sarahBlake.id as any), crudConfig),
+      pictures: [{
+        profile: sarahBlake.profileId,
+        id: "7f7e3e3e3e3e3e3e3e3e3e3e",
+        src: "src",
+        width: 200,
+        height: 200,
+        alt: "A",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      } as Partial<Picture>]
+    } as any;
 
-  //   await createNewProfileTest(app, jwt, entityManager, payload, query, crudConfig);
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ bio: 'BIO_SARAH_MAKE_KEY' })
+    }
 
-  // });  
+    const expectedObject = {
+      ...payload,
+    }
+    delete expectedObject.pictures;
 
-    // //@Patch('/crud/one')
-    // it('should patch a profile', async () => {
-    //   const sarahDoeProfile = profiles["Sarah Doe"];
-    //   const payload: Partial<UserProfile> = {
-    //     userName: 'Sarah Jane',
-    //     user: crudConfig.dbAdapter.formatId((sarahDoeProfile.user as any).id, crudConfig),
-    //     fakeField: 'fake',
-    //     pictures: [ { 
-    //     id: newPicture.id ,
-    //     profile: users["Michael Doe"].profileId,
-    //     src: "https://www.google.com",
-    //     width: 777,
-    //     height: 200,
-    //     alt: "A cool picture",
-    //     createdAt: new Date(),
-    //     updatedAt: new Date()
-    //   } as Partial<Picture> ]
-    //   } as any;
-    //   const formatedId = crudConfig.dbAdapter.formatId(sarahDoeProfile.id, crudConfig);
-    //   const query: CrudQuery = {
-    //     service: 'user-profile',
-    //     query: JSON.stringify({ id: formatedId })
-    //   }
-  
-    //   const expectedObject = {
-    //     ...payload,
-    //     bio: sarahDoeProfile.bio,
-    //   }
-    //   delete (expectedObject as any).fakeField;
-  
-    //   const fetchEntity = { entity: UserProfile, id: sarahDoeProfile.id };
-  
-    //   let res = await testMethod({ url: '/crud/one', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity, expectedObject, crudConfig });
-    //   expect(res.userName).toBeDefined();
-    //   expect(res.fakeField).toBeUndefined();
-    // });
-  
+    const fetchEntity = { entity: UserProfile, id: sarahBlake.profileId };
+
+    let res = await testMethod({ url: '/crud/many', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity, expectedObject, crudConfig });
+
+    const picture = await pictureService.$findOne({ profile: crudConfig.dbAdapter.formatId(res.id, crudConfig) }, null);
+
+    expect(picture).toBeNull();
+  });
+
 
 });

@@ -2,7 +2,7 @@ import { Property, PrimaryKey, OneToOne, Entity, Embeddable, Embedded, Unique, C
 import { CrudEntity } from "../../core/crud/model/CrudEntity";
 import { Equals, IsMongoId, IsNumber, IsOptional, IsString,MaxLength, ValidateNested, } from "class-validator";
 import { MyUser } from "./MyUser";
-import { $ToLowerCase, $Trim, $Transform, $Type, $Delete } from "../../core/crud/transform/decorators";
+import { $ToLowerCase, $Trim, $Transform, $Type, $Delete, $MaxSize } from "../../core/crud/transform/decorators";
 import { Picture } from "./Picture";
 
 @Embeddable()
@@ -39,6 +39,7 @@ export class UserProfile implements CrudEntity {
     user: MyUser | string;
 
     @OneToMany(() => Picture, mel => mel.profile)
+    @$MaxSize(200)
     pictures = new Collection<Picture>(this);
 
     @Unique()
