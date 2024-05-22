@@ -21,10 +21,12 @@ export class CrudValidationPipe implements PipeTransform<any> {
         const dataClass = metadata.metatype;
         if (dataClass) {
             value = await crudTransformer.transform(value, dataClass);
-            const newObj = { ...value };
-            await crudTransformer.transformTypes(newObj, dataClass);
-            Object.setPrototypeOf(newObj, dataClass.prototype);
-            await crudTransformer.validateOrReject(newObj, !this.transformConfig.checkMissingProperties, 'Data:');
+            if(!this.transformConfig.skipValidation){
+                const newObj = { ...value };
+                await crudTransformer.transformTypes(newObj, dataClass);
+                Object.setPrototypeOf(newObj, dataClass.prototype);
+                await crudTransformer.validateOrReject(newObj, !this.transformConfig.checkMissingProperties, 'Data:');
+            }
         }
         return value;
     }

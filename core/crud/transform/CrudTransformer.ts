@@ -18,9 +18,10 @@ export interface IFieldMetadata {
 
 export interface CrudTransformerConfig {
 
-    DEFAULT_MAX_LENGTH: number,
-    DEFAULT_MAX_SIZE: number,
-    checkMissingProperties?: boolean
+    DEFAULT_MAX_LENGTH?: number,
+    DEFAULT_MAX_SIZE?: number,
+    checkMissingProperties?: boolean,
+    skipValidation?: boolean
 
 }
 

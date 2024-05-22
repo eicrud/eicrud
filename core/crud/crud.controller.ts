@@ -231,7 +231,7 @@ export class CrudController {
             this.limitQuery(ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
             const ids = ctx.query?.[this.crudConfig.id_field];
             if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.MAX_GET_IN) {
-                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.crudConfig.limitOptions.MAX_GET_IN));
+                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str({ maxBatchSize: this.crudConfig.limitOptions.MAX_GET_IN, idsLength: ids.length}));
             }
             ctx.ids = ids;
             delete ctx.query[this.crudConfig.id_field];
@@ -292,7 +292,8 @@ export class CrudController {
         try {
             const ids = ctx.query?.[this.crudConfig.id_field];
             if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.MAX_GET_IN) {
-                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.crudConfig.limitOptions.MAX_GET_IN));
+                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str({ maxBatchSize: this.crudConfig.limitOptions.MAX_GET_IN, idsLength: ids.length}));
+
             }
             ctx.ids = ids;
             delete ctx.query[this.crudConfig.id_field];
@@ -328,7 +329,7 @@ export class CrudController {
         try {
             const ids = ctx.query?.[this.crudConfig.id_field];
             if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.MAX_GET_IN) {
-                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str(this.crudConfig.limitOptions.MAX_GET_IN));
+                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str({ maxBatchSize: this.crudConfig.limitOptions.MAX_GET_IN, idsLength: ids.length}));
             }
             ctx.ids = ids;
             delete ctx.query[this.crudConfig.id_field];
@@ -563,7 +564,7 @@ export class CrudController {
     }
 
     @Patch('backdoor')
-    async backdoor(@Query(new CrudValidationPipe()) query: BackdoorQuery, @Body() data, @Context() backdoorCtx: CrudContext) {
+    async backdoor(@Query(new CrudValidationPipe({skipValidation: true})) query: BackdoorQuery, @Body() data, @Context() backdoorCtx: CrudContext) {
         if(!backdoorCtx.backdoorGuarded){
             throw new UnauthorizedException("Backdoor not guarded : (something is wrong with your auth guard.)");
         }
