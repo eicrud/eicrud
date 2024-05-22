@@ -382,7 +382,11 @@ export class CrudController {
 
     @Get('auth')
     async getConnectedUser(@Context() ctx: CrudContext) {
-        const ret: LoginResponseDto = { userId: ctx.user[this.crudConfig.id_field] };
+        const userId = ctx.user[this.crudConfig.id_field];
+        if(!userId){
+            throw new UnauthorizedException("User not found.");
+        }
+        const ret: LoginResponseDto = { userId };
         if(this.crudConfig.authenticationOptions.renewJwt && !ctx.user.noTokenRefresh){
             const totalSec = (ctx.jwtPayload.exp - ctx.jwtPayload.iat);
             const elapsedMs = new Date().getTime() - (ctx.jwtPayload.iat * 1000);
