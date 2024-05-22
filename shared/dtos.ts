@@ -1,6 +1,11 @@
 import { IsString, IsOptional } from "class-validator";
 import { $Transform } from "../core/crud/transform/decorators";
 
+
+export class UserIdDto {
+    @IsString()
+    userId: string;
+}
 export class LoginDto {
     @IsString()
     @$Transform((value) => {

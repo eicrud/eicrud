@@ -94,14 +94,11 @@ export class MyProfileService extends CrudService<UserProfile> {
         super(moduleRef, UserProfile, myProfileSecurity(serviceName));
     }
 
-    override $cmdHandler(cmdName: string, ctx: CrudContext, inheritance?: any): Promise<any> {
-        if (cmdName === 'testCmd') {
-            const dto = ctx?.data as TestCmdDto;
-            let res = dto?.sub?.subfield || dto.returnMessage;
- 
-            return Promise.resolve(res);
-        }
-        return super.$cmdHandler(cmdName, ctx, inheritance);
+    $testCmd(dto: TestCmdDto, ctx: CrudContext, inheritance?: any ): Promise<string> {
+        let res = dto?.sub?.subfield || dto.returnMessage;
+        return Promise.resolve(res);
     }
+
+
     
 }

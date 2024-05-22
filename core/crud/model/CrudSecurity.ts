@@ -34,7 +34,6 @@ export interface CmdSecurity {
      */
     dto: { new(): any };
 
-
     /**
      * Max find limit for non admin users
      * @usageNotes

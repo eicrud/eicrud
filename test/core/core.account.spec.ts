@@ -103,6 +103,7 @@ describe('AppController', () => {
     const payload: CreateAccountDto = {
       email: "newguy@mail.com",
       password: "p4ssw0rd",
+      role: "user"
     };
     const query: CrudQuery = {
       service: 'my-user',
@@ -127,6 +128,7 @@ describe('AppController', () => {
     const payload: CreateAccountDto = {
       email: "newguy@mail.com",
       password: "p4ssw0rd",
+      role: "user"
     };
     const query: CrudQuery = {
       service: 'my-user',
@@ -230,6 +232,7 @@ describe('AppController', () => {
     const payload: CreateAccountDto = {
       email: " nonTriMMed@mail.com ",
       password: testAdminCreds.password,
+      role: "user"
     };
     const query: CrudQuery = {
       service: 'my-user',

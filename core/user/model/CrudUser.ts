@@ -12,7 +12,7 @@ export interface CrudUser extends CrudEntity{
     saltRounds: number;
   
     email: string;
-    password: string;
+    password: string; 
 
     lastLoginAttempt: Date;
     failedLoginCount: number;
