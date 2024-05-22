@@ -15,7 +15,7 @@ import { TestUser } from '../test.utils';
 import { CreateAccountDto } from '../../core/user/crud-user.service';
 import { MyUser } from '../entities/MyUser';
 import exp from 'constants';
-import { LoginDto, LoginResponseDto } from '../../core/crud/model/dtos';
+import { LoginDto, LoginResponseDto } from '../../shared/dtos';
 
 const testAdminCreds = {
   email: "admin@testmail.com",

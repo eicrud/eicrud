@@ -1,5 +1,5 @@
 import { IsString, IsOptional } from "class-validator";
-import { $Transform } from "../transform/decorators";
+import { $Transform } from "../core/crud/transform/decorators";
 
 export class LoginDto {
     @IsString()
@@ -23,6 +23,7 @@ export class LoginDto {
 export class LoginResponseDto {
     userId: string;
     accessToken?: string;
+    refreshTokenSec?: number;
 }
 
 export interface ICrudRightsFieldInfo {

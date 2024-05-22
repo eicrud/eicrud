@@ -12,7 +12,7 @@ import { CrudErrors } from '../../shared/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
 import { CrudOptions } from '../../shared/CrudOptions';
 import { ModuleRef } from '@nestjs/core';
-import { ICrudRightsFieldInfo, ICrudRightsInfo, LoginDto, LoginResponseDto } from './model/dtos';
+import { ICrudRightsFieldInfo, ICrudRightsInfo, LoginDto, LoginResponseDto } from '../../shared/dtos';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { LRUCache } from 'mnemonist';
 import { _utils } from '../utils';
@@ -381,14 +381,15 @@ export class CrudController {
 
     @Get('auth')
     async getConnectedUser(@Context() ctx: CrudContext) {
-        const ret: any = { userId: ctx.user[this.crudConfig.id_field] };
-        if(this.crudConfig.authenticationOptions.renewJwt){
+        const ret: LoginResponseDto = { userId: ctx.user[this.crudConfig.id_field] };
+        if(this.crudConfig.authenticationOptions.renewJwt && !ctx.user.noTokenRefresh){
             const totalSec = (ctx.jwtPayload.exp - ctx.jwtPayload.iat);
             const elapsedMs = new Date().getTime() - (ctx.jwtPayload.iat * 1000);
             const thresholdMs = (totalSec * 1000 * this.reciprocal20percent); // 20% of total time
             if(elapsedMs >= thresholdMs){
                 const newToken = await this.crudAuthService.signTokenForUser(ctx.user, totalSec);
                 ret.accessToken = newToken;
+                ret.refreshTokenSec = totalSec;
             }
         }
         return ret as LoginResponseDto;
@@ -419,7 +420,7 @@ export class CrudController {
             throw new UnauthorizedException(CrudErrors.PASSWORD_TOO_LONG.str());
         }
 
-        return this.crudAuthService.signIn(ctx, data.email, data.password, data.expiresIn, data.twoFA_code);
+        return this.crudConfig.userService.$signIn(ctx, data.email, data.password, data.expiresIn, data.twoFA_code);
     }
 
     @Get('rights')
