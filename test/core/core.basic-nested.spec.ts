@@ -151,7 +151,12 @@ describe('AppController', () => {
 
     await createAccountsAndProfiles(users, userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
 
-    const accRes = await userService.$createAccount(testAdminCreds.email, testAdminCreds.password, null, "super_admin");
+    const createAccountDto = {
+      email: testAdminCreds.email,
+      password: testAdminCreds.password,
+      role: "super_admin",
+    }
+    const accRes = await userService.$createAccount(createAccountDto, null);
     jwt = accRes.accessToken;
     userId = crudConfig.dbAdapter.formatId(accRes.userId, crudConfig);
 

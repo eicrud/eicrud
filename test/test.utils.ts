@@ -143,7 +143,12 @@ export async function createAccountsAndProfiles(users: Record<string, TestUser>,
   const promises = [];
   for(const key in users){
     const user = users[key];
-    const prom = userService.$createAccount(user.email, user.password || config.testAdminCreds.password, null, user.role ).then(
+    const createAccountDto = {
+      email: user.email,
+      password: user.password || config.testAdminCreds.password,
+      role: user.role,
+    }
+    const prom = userService.$createAccount(createAccountDto, null ).then(
       async (accRes) => {
         users[key][crudConfig.id_field] = userService.dbAdapter.createNewId(accRes.userId);
         users[key].jwt = accRes.accessToken;

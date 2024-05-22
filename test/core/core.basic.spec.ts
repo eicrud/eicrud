@@ -13,6 +13,7 @@ import { MyProfileService } from '../profile.service';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/crud/crud.config.service';
 import { TestUser } from '../test.utils';
 import exp from 'constants';
+import { CreateAccountDto } from '../../core/user/crud-user.service';
 
 const testAdminCreds = {
   email: "admin@testmail.com",
@@ -134,8 +135,12 @@ describe('AppController', () => {
 
 
     await createAccountsAndProfiles(users,  userService, crudConfig, { usersWithoutProfiles, testAdminCreds });
-
-    const accRes = await userService.$createAccount(testAdminCreds.email, testAdminCreds.password, null, "super_admin");
+    const dto: CreateAccountDto = {
+      email: testAdminCreds.email,
+      password: testAdminCreds.password,
+      role: "super_admin"
+    }
+    const accRes = await userService.$createAccount(dto, null);
     jwt = accRes.accessToken;
     userId = crudConfig.dbAdapter.formatId(accRes.userId, crudConfig);
 

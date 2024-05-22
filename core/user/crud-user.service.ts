@@ -9,10 +9,10 @@ import { CrudAuthorizationService } from '../crud/crud.authorization.service';
 import { Loaded, Type } from '@mikro-orm/core';
 import { CrudErrors } from '../../shared/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { ModuleRef } from '@nestjs/core';
 import { $Transform } from '../crud/transform/decorators';
-import { LoginResponseDto } from '../../shared/dtos';
+import { LoginResponseDto, UserIdDto } from '../../shared/dtos';
 import * as bcrypt from 'bcrypt';
 
 
@@ -25,6 +25,9 @@ export class CreateAccountDto {
 
   @IsString()
   password: string;
+
+  @IsString()
+  role: string;
 }
 
 export const baseCmds = {
@@ -43,6 +46,10 @@ export const baseCmds = {
   createAccount: {
     name: 'createAccount',
     dto: CreateAccountDto
+  },
+  logoutEverywhere: {
+    name: 'logoutEverywhere',
+    dto: UserIdDto
   }
 
 }
@@ -278,7 +285,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return new BadRequestException(CrudErrors.TOKEN_EXPIRED.str());
   }
 
-  async $sendVerificationEmail(ctx: CrudContext){
+  async sendVerificationEmail(ctx: CrudContext){
     //Doing this for type checking
     const user: Partial<CrudUser> = { lastEmailVerificationSent: null, emailVerificationToken: null, verifiedEmailAttempCount: 0} 
     const keys = Object.keys(user); 
@@ -310,7 +317,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return { res, accessToken: await this.authService.signTokenForUser(ctx.user)}
   }
 
-  async sendTwoFACode(userId: string, user: CrudUser, ctx: CrudContext){
+  async $sendTwoFACode(userId: string, user: CrudUser, ctx: CrudContext){
     const lastTwoFACodeSent = new Date(user.lastTwoFACodeSent);
     if(lastTwoFACodeSent && (lastTwoFACodeSent.getTime() + (this.crudConfig.authenticationOptions.TWOFA_EMAIL_TIMEOUT_MIN * 60 * 1000)) > Date.now()){
       return new UnauthorizedException(CrudErrors.EMAIL_ALREADY_SENT.str());
@@ -318,12 +325,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const code = _utils.generateRandomString(6).toUpperCase();
     const twoFACodeCount = user.twoFACodeCount || 0;
     const patch: Partial<CrudUser> = {lastTwoFACode: code, lastTwoFACodeSent: new Date(), twoFACodeCount: twoFACodeCount+1};
-    await this.crudConfig.emailService.sendTwoFactorEmail(user.email, code);
-    await this.$unsecure_fastPatchOne(userId, patch as any, ctx);
+    const proms = [];
+    proms.push(this.crudConfig.emailService.sendTwoFactorEmail(user.email, code));
+    proms.push(this.$unsecure_fastPatchOne(userId, patch as any, ctx));
+    await Promise.all(proms);
     return true;
   }
 
-  async $sendPasswordResetEmail(ctx: CrudContext){
+  async sendPasswordResetEmail(ctx: CrudContext){
         //Doing this for type checking
         const user: Partial<CrudUser> = { lastPasswordResetSent: null, passwordResetToken: null, passwordResetAttempCount: 0} 
         const keys = Object.keys(user); 
@@ -351,14 +360,15 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return { res, accessToken: await this.authService.signTokenForUser(ctx.user)}
   }
 
-  async $createAccount(email: string, password: string, ctx: CrudContext, role?: string){
+  async $createAccount(dto: CreateAccountDto, ctx: CrudContext, inheritance: any = {}){
+      const { email, password, role } = dto;
       if(password?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH){
         throw new BadRequestException(CrudErrors.PASSWORD_TOO_LONG.str());
       }
       const user = new this.userEntityClass();
       user.email = email.toLowerCase().trim();
       user.password = password;
-      user.role = role || this.crudConfig.guest_role;
+      user.role = role;
 
       const res = await this.$create(user, ctx);
 
@@ -392,7 +402,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
     if(user.twoFA && this.crudConfig.emailService){
       if(!twoFA_code){
-        await this.crudConfig.userService.sendTwoFACode(user[this.crudConfig.id_field], user as CrudUser, ctx);
+        await this.$sendTwoFACode(user[this.crudConfig.id_field], user as CrudUser, ctx);
         throw new UnauthorizedException(CrudErrors.TWOFA_REQUIRED.str());
       }
       await this.crudConfig.userService.verifyTwoFA(user, twoFA_code);
@@ -429,44 +439,18 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     } as LoginResponseDto;
   }
 
-  override async $cmdHandler(cmdName: string, ctx: CrudContext, inheritance?: any) {
-
-    switch (cmdName) {
-      case baseCmds.sendVerificationEmail.name:
-          return await this.$sendVerificationEmail(ctx);
-      break;
-
-      case baseCmds.verifyEmail.name:
-          return await this.$verifyEmail(ctx);
-      break;
-
-      case baseCmds.sendPasswordResetEmail.name:
-          return await this.$sendPasswordResetEmail(ctx);
-          break;
-
-      case baseCmds.resetPassword.name:
-          return await this.$resetPassword(ctx);
-          break;
-
-      case baseCmds.createAccount.name:
-          return await this.$createAccount(ctx.data.email, ctx.data.password, ctx);
-          break;
-
-      default:
-        return super.$cmdHandler(cmdName, ctx, inheritance);
-
-  }
+  async $logoutEverywhere(dto: UserIdDto, ctx: CrudContext, inheritance: any = {}){
+    const query: any = { [this.crudConfig.id_field]: dto.userId };
+    const user = (ctx.user?.[this.crudConfig.id_field] == dto.userId) ? ctx.user : await this.$findOne(query, ctx);
+    user.revokedCount = user.revokedCount || 0;
+    user.revokedCount++;
+    const patch: any = { revokedCount: user.revokedCount};
     
+    await Promise.all([
+      this.$unsecure_fastPatch(query, patch, ctx),
+      this.$setCached(user as any, ctx)
+    ]);
   }
 
-  // override async putOne(newEntity: T, ctx: CrudContext) {
-  //   await this.checkUserBeforePatch(newEntity)
-  //   return super.putOne(newEntity, ctx);
-  // }
-
-  // override async unsecure_fastPutOne(newEntity: T, ctx: CrudContext) {
-  //   await this.checkUserBeforePatch(newEntity)
-  //   return super.unsecure_fastPutOne(newEntity, ctx);
-  // }
 
 }

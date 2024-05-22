@@ -448,8 +448,13 @@ export class CrudService<T extends CrudEntity> {
     }
 
     async $cmdHandler(cmdName: string, ctx: CrudContext, inheritance: any = {}): Promise<any> {
+        const cmdSecurity: any = this.security.cmdSecurityMap[cmdName];
 
-        throw new BadRequestException('Command not found');
+        if(!cmdSecurity){
+            throw new BadRequestException('Command not found');
+        }
+
+        return await this['$'+cmdName](ctx.data, ctx, inheritance);
     }
 
     async addToComputedTrust(user: CrudUser, trust: number, ctx: CrudContext) {
