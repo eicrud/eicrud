@@ -48,7 +48,8 @@
     "mnemonist": "^0.39.8",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
-    "wait-on": "^7.2.0"
+    "wait-on": "^7.2.0",
+    "wildcard": "^2.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.3.2",

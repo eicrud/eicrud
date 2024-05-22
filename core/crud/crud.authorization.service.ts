@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable, forwardRef } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { AuthUtils } from "../authentification/auth.utils";
 import { CrudContext } from "./model/CrudContext";
 import { CrudRole } from "./model/CrudRole";
@@ -63,7 +63,7 @@ export class CrudAuthorizationService {
     authorizeBatch(ctx: CrudContext, batchSize: number, security: CrudSecurity) {
 
         if((batchSize || 0) < 1){
-            throw new ForbiddenException(`Batchsize must be at least 1`);
+            throw new BadRequestException(`Batchsize must be at least 1`);
         }
         
         const userRole: CrudRole = this.getCtxUserRole(ctx);
@@ -72,7 +72,7 @@ export class CrudAuthorizationService {
         const maxBatchSize = Math.max(adminBatch, this.getMatchBatchSizeFromCrudRoleAndParents(ctx, userRole, security));
         
         if (batchSize > maxBatchSize) {
-            throw new ForbiddenException(CrudErrors.MAX_BATCH_SIZE_EXCEEDED.str({maxBatchSize, batchSize}));
+            throw new BadRequestException(CrudErrors.MAX_BATCH_SIZE_EXCEEDED.str({maxBatchSize, batchSize}));
         }
 
         this.checkmaxItemsPerUser(ctx, security, batchSize);        
