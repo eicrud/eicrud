@@ -43,6 +43,9 @@ export class MemoryStorage implements ClientStorage {
   }
 }
 
+
+export interface ClientOptions { serviceName: string, url: string, storage?: ClientStorage, id_field?: string };
+
 export class CrudClient<T> {
 
   JWT_COOKIE_KEY = "crud-client";
@@ -55,11 +58,11 @@ export class CrudClient<T> {
 
   limitingFields: string[] = [];
 
-  constructor(args: { serviceName: string, url: string, storage?: ClientStorage, id_field?: string }) {
+  constructor(args: ClientOptions) {
     this.serviceName = args.serviceName;
     this.url = args.url;
     this.id_field = args.id_field || "id";
-    this.storage = args.storage || document ? new CookieStorage() : new MemoryStorage();
+    this.storage = args.storage || (document ? new CookieStorage() : new MemoryStorage());
   }
 
   private _getHeaders() {
@@ -97,7 +100,8 @@ export class CrudClient<T> {
 
   async login(dto: LoginDto): Promise<LoginResponseDto> {
     const url = this.url + "/crud/auth";
-    const res: LoginResponseDto = await axios.post(url, dto);
+
+    let res: LoginResponseDto = (await axios.post(url, dto)).data;
     let days = 1;
     if(dto.expiresIn?.includes('d')){
       const dayStr = dto.expiresIn.replace('d', '');
@@ -106,7 +110,7 @@ export class CrudClient<T> {
         days = dayNum;
       }
     }
-    this.storage.set(this.JWT_COOKIE_KEY, res.accessToken, 1, false);
+    this.storage.set(this.JWT_COOKIE_KEY, res.accessToken, days, false);
     return res;
   }
 
@@ -114,6 +118,7 @@ export class CrudClient<T> {
     let res;
     try {
       res = await method(...args);
+      res = res.data;
     } catch (e) {
       if (e.response && e.response.status === 401) {
         this.logout();
