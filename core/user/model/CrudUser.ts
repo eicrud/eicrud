@@ -61,4 +61,5 @@ export interface CrudUser extends CrudEntity{
 
     allowedTrafficMultiplier?: number;
 
+    noTokenRefresh?: boolean;
   };

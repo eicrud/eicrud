@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { CrudService } from '../crud/crud.service';
 import { CmdSecurity, CrudSecurity } from '../crud/model/CrudSecurity';
 import { _utils } from '../utils';
@@ -12,6 +12,8 @@ import { CrudAuthService } from '../authentification/auth.service';
 import { IsString, MaxLength, MinLength } from 'class-validator';
 import { ModuleRef } from '@nestjs/core';
 import { $Transform } from '../crud/transform/decorators';
+import { LoginResponseDto } from '../../shared/dtos';
+import * as bcrypt from 'bcrypt';
 
 
 export class CreateAccountDto {
@@ -47,11 +49,13 @@ export const baseCmds = {
 @Injectable()
 export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
- 
+  protected USERNAME_FIELD = 'email';
 
   protected crudConfig: CrudConfigService;
   protected authorizationService: CrudAuthorizationService;
   protected authService: CrudAuthService;
+
+  rateLimitCount = 6;
   
   constructor(
   protected moduleRef: ModuleRef,
@@ -74,8 +78,11 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
   onModuleInit() {
     this.authorizationService = this.moduleRef.get(CrudAuthorizationService, { strict: false });
-    this.authService = this.moduleRef.get(CrudAuthService, { strict: false });  
+    this.authService = this.moduleRef.get(CrudAuthService, { strict: false });
+    
     super.onModuleInit();
+
+    this.USERNAME_FIELD = this.crudConfig.authenticationOptions.USERNAME_FIELD;  
   }
 
   override async $create(newEntity: T, ctx: CrudContext): Promise<any> {
@@ -358,6 +365,69 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       return { userId: res[this.crudConfig.id_field], accessToken: await this.authService.signTokenForUser(res)}
   }
 
+  async $signIn(ctx: CrudContext, email, pass, expiresIn = '30m', twoFA_code?): Promise<LoginResponseDto> {
+    email = email.toLowerCase().trim();
+    const entity = {};
+    entity[this.USERNAME_FIELD] = email;
+    const user: CrudUser = await this.crudConfig.userService.$findOne(entity, ctx);
+    if(!user){
+      throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
+    }
+
+    if(user?.timeout && new Date(user.timeout) > new Date()){
+      throw new UnauthorizedException(CrudErrors.TIMED_OUT.str(new Date(user.timeout).toISOString()));
+    }
+
+    if(user.failedLoginCount >= this.rateLimitCount){
+      const timeoutMS = Math.min(user.failedLoginCount*user.failedLoginCount*1000, 60000 * 5);
+      const diffMs = _utils.diffBetweenDatesMs(new Date(), new Date(user.lastLoginAttempt));
+      if(diffMs < timeoutMS){ 
+          throw new HttpException({
+            statusCode: HttpStatus.TOO_MANY_REQUESTS,
+            error: 'Too Many Requests',
+            message: CrudErrors.TOO_MANY_LOGIN_ATTEMPTS.str(Math.round((timeoutMS-diffMs)/1000) + " seconds"),
+        }, 429);
+      }
+    }
+
+    if(user.twoFA && this.crudConfig.emailService){
+      if(!twoFA_code){
+        await this.crudConfig.userService.sendTwoFACode(user[this.crudConfig.id_field], user as CrudUser, ctx);
+        throw new UnauthorizedException(CrudErrors.TWOFA_REQUIRED.str());
+      }
+      await this.crudConfig.userService.verifyTwoFA(user, twoFA_code);
+    }
+    
+    user.lastLoginAttempt = new Date();
+
+    const match = await bcrypt.compare(pass, user?.password);
+    if (!match) {
+      const addPatch: Partial<CrudUser> =  { lastLoginAttempt: user.lastLoginAttempt};
+      const query = { [this.crudConfig.id_field]: user[this.crudConfig.id_field] };
+      const increments = {failedLoginCount: 1}
+      this.crudConfig.userService.$unsecure_incPatch({ query, increments, addPatch }, ctx);
+
+      throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
+    }
+
+    let updatePass = null;
+    if(user.saltRounds != this.crudConfig.getSaltRounds(user)){
+      console.log("Updating password hash for user: ", user[this.crudConfig.id_field]);
+      updatePass = pass;
+    }
+
+    user.failedLoginCount = 0;
+    const patch = { failedLoginCount: 0, lastLoginAttempt: user.lastLoginAttempt} as Partial<CrudUser>;
+    if(updatePass){
+      patch.password = updatePass;
+    }
+    await this.$unsecure_fastPatchOne(user[this.crudConfig.id_field], patch as any, ctx);
+
+    return {
+      accessToken: await this.authService.signTokenForUser(user, expiresIn),
+      userId: user[this.crudConfig.id_field],
+    } as LoginResponseDto;
+  }
 
   override async $cmdHandler(cmdName: string, ctx: CrudContext, inheritance?: any) {
 

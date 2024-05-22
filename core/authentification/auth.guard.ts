@@ -72,7 +72,7 @@ export class CrudAuthGuard implements CanActivate {
     protected moduleRef: ModuleRef,
     protected authService: CrudAuthService
     ) {
-      authService.authGuard = this;
+      this.authService._authGuard = this;
     }
 
     onModuleInit() {

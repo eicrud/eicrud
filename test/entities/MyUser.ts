@@ -121,4 +121,7 @@ export class MyUser implements CrudUser {
     @Property({ nullable: true })
     updatedAt: Date;
 
+    @Property({ nullable: true })
+    noTokenRefresh: boolean;
+
 }
