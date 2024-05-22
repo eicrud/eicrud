@@ -13,7 +13,6 @@ import { $MaxSize, $ToLowerCase, $Transform, $Type } from "../core/crud/transfor
 
 
 class subTestCmdDto {
-
     @IsString()
     @$MaxSize(100)
     @$ToLowerCase()
@@ -99,6 +98,4 @@ export class MyProfileService extends CrudService<UserProfile> {
         return Promise.resolve(res);
     }
 
-
-    
 }

@@ -37,4 +37,7 @@ export class BackdoorQuery {
 
     inheritancePos?: number;
 
+    @$Transform((value) => JSON.parse(value))
+    undefinedArgs?: string | number[];
+
 }

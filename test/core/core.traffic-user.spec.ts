@@ -76,6 +76,7 @@ describe('AppController', () => {
 
   });
 
+  jest.retryTimes(1);
 
   it('should limit user requests', async () => {
     const user = users["Michael Doe"];

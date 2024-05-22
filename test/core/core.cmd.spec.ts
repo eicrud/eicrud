@@ -117,6 +117,25 @@ describe('AppController', () => {
 
     expect(res).toEqual(payload.returnMessage?.toUpperCase());
 
+  });  
+  
+  
+  it('should perform cmd who calls cmd from another service (other ms)' , async () => {
+    const user = users["Jon Doe"];
+
+    const payload: TestCmdDto = {
+      returnMessage: "Hello World"
+    }
+
+    const query: CrudQuery = {
+      service: "my-user",
+      cmd: "callTestCmd",
+    }
+
+    const res = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+    expect(res).toEqual(payload.returnMessage);
+
   });
 
   it('should validate cmd dto', async () => {
@@ -164,7 +183,6 @@ describe('AppController', () => {
 
 
   });
-
 
   it('should apply security to cmd', async () => {
  

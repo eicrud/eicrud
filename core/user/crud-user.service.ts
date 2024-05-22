@@ -49,7 +49,7 @@ export const baseCmds = {
   },
   logoutEverywhere: {
     name: 'logoutEverywhere',
-    dto: UserIdDto
+    dto: UserIdDto,
   }
 
 }
@@ -451,6 +451,5 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       this.$setCached(user as any, ctx)
     ]);
   }
-
 
 }
