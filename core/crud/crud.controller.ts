@@ -400,7 +400,7 @@ export class CrudController {
         return ret as LoginResponseDto;
     }
 
-    ALLOWED_EXPIRES_IN = ['15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '4d', '5d', '6d', '7d', '14d', '30d'];
+    ALLOWED_EXPIRES_IN = ['1s', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '4d', '5d', '6d', '7d', '14d', '30d'];
 
     @Post('auth')
     async login(@Body(new CrudValidationPipe()) data: LoginDto, @Context() ctx: CrudContext) {

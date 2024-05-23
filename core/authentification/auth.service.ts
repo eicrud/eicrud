@@ -72,7 +72,7 @@ export class CrudAuthService {
       );
       return res;
     } catch (e) {
-      throw new UnauthorizedException(e);
+      throw new UnauthorizedException(e.message);
     }
   }
 }
