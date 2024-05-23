@@ -54,7 +54,7 @@ export class AuthUtils {
 
   //returns the fields of an object
   static getObjectFields(data: Object, head = null) {
-    let fields = [undefined];
+    let fields = ['all'];
     if (!data) return fields;
     fields = Object.keys(data).reduce((acc, key) => {
       const newField = head ? `${head}.${key}` : key;

@@ -53,6 +53,15 @@ const myProfileSecurity = (USER_PROFILE) => { return {
             defineCRUDAbility(can, cannot, ctx: CrudContext) {
                 can('crud', USER_PROFILE, { type: 'basic' });
             },
+
+            defineOPTAbility(can, cannot, ctx) {
+                
+                const populateWhiteList = ['pictures'];
+                if(ctx.options?.populate?.every(p => populateWhiteList.includes(p))) {
+                    can('populate', USER_PROFILE);
+                }
+
+            },
         },
         moderator: {
             defineCRUDAbility(can, cannot, ctx: CrudContext) {

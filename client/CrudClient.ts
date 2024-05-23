@@ -186,7 +186,7 @@ export class CrudClient<T> {
 
   }
 
-  async findIn(ids: any[], options: CrudOptions = undefined, {batchSize = 0}): Promise<FindResponseDto<T>> {
+  async findIn(ids: any[], options: CrudOptions = undefined, {batchSize = 200} = {}): Promise<FindResponseDto<T>> {
     const crudQuery: CrudQuery = {
       service: this.serviceName,
       options: options,
@@ -205,7 +205,7 @@ export class CrudClient<T> {
       return await this._doLimitQuery(fetchFunc, newCrudQuery);
     }
 
-    return await this._doBatch(batchFunc, ids, batchSize);
+    return await this._doBatch(batchFunc, ids, batchSize, true);
 
   }
 
@@ -378,7 +378,7 @@ export class CrudClient<T> {
     return await this._doBatch(batchFunc, datas, batchSize);
   }
 
-  private async _doBatch(batchFunc: (datas) => any, datas, batchSize = 0){
+  private async _doBatch(batchFunc: (datas) => any, datas, batchSize = 0, limited = false){
     let res;
 
     let chunks = [datas];
@@ -387,10 +387,16 @@ export class CrudClient<T> {
     }
 
     try {
-      const res = [];
       for (const chunk of chunks) {
         const r = await batchFunc(chunk);
-        res.push(...r);
+        if(!res){
+          res = r;
+        }else if(limited){
+          res.data.push(...r.data);
+        }else{
+          res.push(...r);
+        }
+        
       }
     } catch (e) {
       if (e.response && e.response.status == 400) {
