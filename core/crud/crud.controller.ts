@@ -19,6 +19,7 @@ import { _utils } from '../utils';
 import { CrudTransformer, IFieldMetadata } from './transform/CrudTransformer';
 import { CrudValidationPipe } from './transform/CrudValidationPipe';
 import { FindResponseDto } from '../../shared/FindResponseDto';
+import { CrudRole } from './model/CrudRole';
 
 export class LimitOptions {
     NON_ADMIN_LIMIT_QUERY = 40;
@@ -38,7 +39,7 @@ export class CrudController {
 
     userLastLoginAttemptMap: LRUCache<string, Date>;
 
-    protected crudConfig: CrudConfigService;
+    public crudConfig: CrudConfigService;
     constructor(
         private crudAuthService: CrudAuthService,
         public crudAuthorization: CrudAuthorizationService,
@@ -293,7 +294,6 @@ export class CrudController {
             const ids = ctx.query?.[this.crudConfig.id_field];
             if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.MAX_GET_IN) {
                 throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str({ maxBatchSize: this.crudConfig.limitOptions.MAX_GET_IN, idsLength: ids.length}));
-
             }
             ctx.ids = ids;
             delete ctx.query[this.crudConfig.id_field];
@@ -428,68 +428,6 @@ export class CrudController {
         return this.crudConfig.userService.$signIn(ctx, data.email, data.password, data.expiresIn, data.twoFA_code);
     }
 
-    @Get('rights')
-    async getRights(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
-        const currentService = await this.assignContext('GET', query, null, null, 'crud', ctx);
-        let trust = await this.crudConfig.userService.$getOrComputeTrust(ctx.user, ctx);
-        if (trust < 0) {
-            trust = 0;
-        }
-        if (!currentService) {
-            throw new BadRequestException("Service not found: " + query.service);
-        }
-        const dataMap = _utils.parseIfString(ctx.user?.crudUserCountMap || {});
-        const ret: ICrudRightsInfo = {
-            maxItemsPerUser: await this.crudAuthorization.computeMaxItemsPerUser(ctx, currentService.security),
-            userItemsInDb: dataMap?.[ctx.serviceName] || 0,
-            fields: {},
-            userCmdCount: {}
-        }
-        const cls = currentService.entity;
-        ret.fields = await this.recursiveGetRightsType(cls, {}, trust);
-        
-        for(const cmd in currentService.security.cmdSecurityMap){
-            const cmdSecurity = currentService.security.cmdSecurityMap[cmd];
-            const cmdMap = _utils.parseIfString(ctx.user?.cmdUserCountMap || {});
-            ret.userCmdCount[cmd] = {
-                max: await this.crudAuthorization.computeMaxUsesPerUser(ctx, cmdSecurity),
-                performed: cmdMap?.[ctx.serviceName + '_' + cmd] || 0
-            }
-        }
-
-        return ret;
-    }
-
-    async recursiveGetRightsType(cls: any, ret: Record<string, ICrudRightsFieldInfo>, trust: number) {
-        const classKey = CrudTransformer.subGetClassKey(cls);
-        const metadata = CrudTransformer.getCrudMetadataMap()[classKey];
-        if (!metadata) return ret;
-
-        for (const key in metadata) {
-            const field_metadata = metadata[key];
-            const subRet: ICrudRightsFieldInfo = {};
-            const subType = field_metadata?.type;
-            if (subType) {
-                if (Array.isArray(subType)) {
-                    subRet.maxLength = field_metadata?.maxLength || this.crudConfig.validationOptions.DEFAULT_MAX_LENGTH;
-                    if (field_metadata?.addMaxLengthPerTrustPoint) {
-                        subRet.maxLength += trust * field_metadata.addMaxLengthPerTrustPoint;
-                    }
-                }
-                const subCls = subType.class;
-                subRet.type = await this.recursiveGetRightsType(subCls, {}, trust);
-            }else{
-                subRet.maxSize = field_metadata?.maxSize || this.crudConfig.validationOptions.DEFAULT_MAX_SIZE;
-                if (field_metadata?.addMaxSizePerTrustPoint) {
-                    subRet.maxSize += trust * field_metadata.addMaxSizePerTrustPoint;
-                }
-            }
-            ret[key] = subRet;
-        }
-
-        return ret;
-    }
-
     async performValidationAuthorizationAndHooks(ctx: CrudContext, currentService: CrudService<any>, skipBeforeHooks = false) {
         await this.validate(ctx, currentService);
         await this.crudAuthorization.authorize(ctx, currentService.security);
@@ -520,7 +458,7 @@ export class CrudController {
             }
             dataClass = cmdSecurity.dto;
         }
-        const crudTransformer = new CrudTransformer(this.crudConfig, ctx);
+        const crudTransformer = new CrudTransformer(this, ctx);
         if (queryClass) {
             await crudTransformer.transform(ctx.query, queryClass);
             const newObj = { ...ctx.query };

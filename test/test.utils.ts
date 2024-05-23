@@ -36,6 +36,7 @@ export function testMethod(arg: { app: NestFastifyApplication,
     fetchEntity?: { entity: any, id: string },
     fetchEntities?: { entity: any, query: any },
     expectedObject?: any,
+    expectedCrudCode?: number,
     crudConfig: CrudConfigService,
     returnLimitAndTotal?: boolean,
     basicAuth?: { username: string, password: string }
@@ -75,6 +76,11 @@ export function testMethod(arg: { app: NestFastifyApplication,
           }catch(e){
             res = result.payload;
           }
+        }
+
+        if(arg.expectedCrudCode){
+          const er = JSON.parse(res.message);
+          expect(er.code).toEqual(arg.expectedCrudCode);
         }
 
         if(arg.method === 'GET' && (arg.url.includes('many') || arg.url.includes('in') || arg.url.includes('ids'))){

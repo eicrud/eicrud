@@ -396,7 +396,7 @@ export class CrudClient<T> {
         const parsedMessage = JSON.parse(e.response.data);
         if ([CrudErrors.MAX_BATCH_SIZE_EXCEEDED.code, CrudErrors.IN_REQUIRED_LENGTH.code].includes(parsedMessage.code)) {
           const maxBatchSize = parsedMessage.data.maxBatchSize;
-          if (maxBatchSize < batchSize) {
+          if (maxBatchSize && (maxBatchSize < batchSize)) {
             return await this._doBatch(batchFunc, datas, maxBatchSize);
           }
         }

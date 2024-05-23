@@ -18,6 +18,7 @@ import { format } from 'path';
 import exp from 'constants';
 import { MelonService } from '../melon.service';
 import axios from 'axios';
+import { CrudErrors } from '../../shared/CrudErrors';
 
 const testAdminCreds = {
   email: "admin@testmail.com",
@@ -330,7 +331,7 @@ describe('AppController', () => {
     }
     const NB_MELONS = 6;
     const payload: any = createMelons(NB_MELONS, user, crudConfig);
-    const res = await testMethod({ crudConfig, url: '/crud/batch', method: 'POST', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 403 });
+    const res = await testMethod({ crudConfig, url: '/crud/batch', method: 'POST', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 400, expectedCrudCode: CrudErrors.MAX_BATCH_SIZE_EXCEEDED.code });
   });
 
   it('should forbid batch create when no maxBatchSize in rights', async () => {
@@ -341,7 +342,7 @@ describe('AppController', () => {
     }
     const NB_MELONS = 5;
     const payload: any = createMelons(NB_MELONS, user, crudConfig);
-    const res = await testMethod({ crudConfig, url: '/crud/batch', method: 'POST', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 403 });
+    const res = await testMethod({ crudConfig, url: '/crud/batch', method: 'POST', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 400, expectedCrudCode: CrudErrors.MAX_BATCH_SIZE_EXCEEDED.code });
   });
 
 
@@ -925,7 +926,7 @@ describe('AppController', () => {
 
     const expectedObject = null;
 
-    const res = await testMethod({ url: '/crud/batch', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 403, expectedObject, crudConfig });
+    const res = await testMethod({ url: '/crud/batch', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 400, expectedCrudCode: CrudErrors.MAX_BATCH_SIZE_EXCEEDED.code, expectedObject, crudConfig });
 
   });
 

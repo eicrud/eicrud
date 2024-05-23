@@ -15,6 +15,10 @@ import { BackdoorQuery } from '../../shared/CrudQuery';
 import axios from 'axios';
 import { CrudDbAdapter } from './dbAdapter/crudDbAdapter';
 import { FindResponseDto } from '../../shared/FindResponseDto';
+import { CrudAuthorizationService } from './crud.authorization.service';
+import { _utils } from '../utils';
+import { CrudRole } from './model/CrudRole';
+import { ICrudRightsFieldInfo, ICrudRightsInfo } from '../../shared/dtos';
 
 const NAMES_REGEX = /([^\s,]+)/g;
 const COMMENTS_REGEX = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
@@ -58,6 +62,7 @@ export class CrudService<T extends CrudEntity> {
     public serviceName: string;
     protected crudConfig: CrudConfigService;
     public dbAdapter: CrudDbAdapter;
+    protected crudAuthorization: CrudAuthorizationService;
 
     constructor(
         protected moduleRef: ModuleRef,
@@ -74,6 +79,7 @@ export class CrudService<T extends CrudEntity> {
 
     onModuleInit() {
         this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY, { strict: false });
+        this.crudAuthorization = this.moduleRef.get(CrudAuthorizationService, { strict: false });
         this.entityManager = this.config?.entityManager || this.crudConfig.entityManager;
         this.CACHE_TTL = this.config?.cacheOptions?.TTL || this.crudConfig.defaultCacheOptions.TTL;
         this.dbAdapter = this.config?.dbAdapter || this.crudConfig.dbAdapter;
@@ -287,7 +293,7 @@ export class CrudService<T extends CrudEntity> {
 
     getReadOptions(ctx: CrudContext) {
         const opts = ctx?.options || {};
-        return opts as any;
+        return {...opts} as any;
     }
 
     getCacheKey(entity: Partial<T>) {
@@ -496,5 +502,70 @@ export class CrudService<T extends CrudEntity> {
         };
         return id;
     }
+
+    async $getRights(dto: any, ctx: CrudContext) {
+        const currentService = this;
+        let trust = await this.crudAuthorization.getOrComputeTrust(ctx.user, ctx);
+        if (trust < 0) {
+            trust = 0;
+        }
+        const dataMap = _utils.parseIfString(ctx.user?.crudUserCountMap || {});
+
+        const userRole: CrudRole = this.crudAuthorization.getCtxUserRole(ctx);
+        const adminBatch = userRole.isAdminRole ? 100 : 0;
+        const maxBatchSize = Math.max(adminBatch, this.crudAuthorization.getMatchBatchSizeFromCrudRoleAndParents(ctx, userRole, currentService.security));
+        
+        const ret: ICrudRightsInfo = {
+            maxItemsPerUser: await this.crudAuthorization.computeMaxItemsPerUser(ctx, currentService.security),
+            userItemsInDb: dataMap?.[ctx.serviceName] || 0,
+            fields: {},
+            userCmdCount: {},
+            maxBatchSize
+        }
+        const cls = currentService.entity;
+        ret.fields = await this._recursiveGetRightsType(cls, {}, trust);
+        
+        for(const cmd in currentService.security.cmdSecurityMap){
+            const cmdSecurity = currentService.security.cmdSecurityMap[cmd];
+            const cmdMap = _utils.parseIfString(ctx.user?.cmdUserCountMap || {});
+            ret.userCmdCount[cmd] = {
+                max: await this.crudAuthorization.computeMaxUsesPerUser(ctx, cmdSecurity),
+                performed: cmdMap?.[ctx.serviceName + '_' + cmd] || 0
+            }
+        }
+
+        return ret;
+    }
+
+    private async _recursiveGetRightsType(cls: any, ret: Record<string, ICrudRightsFieldInfo>, trust: number) {
+        const classKey = CrudTransformer.subGetClassKey(cls);
+        const metadata = CrudTransformer.getCrudMetadataMap()[classKey];
+        if (!metadata) return ret;
+
+        for (const key in metadata) {
+            const field_metadata = metadata[key];
+            const subRet: ICrudRightsFieldInfo = {};
+            const subType = field_metadata?.type;
+            if (subType) {
+                if (Array.isArray(subType)) {
+                    subRet.maxLength = field_metadata?.maxLength || this.crudConfig.validationOptions.DEFAULT_MAX_LENGTH;
+                    if (field_metadata?.addMaxLengthPerTrustPoint) {
+                        subRet.maxLength += trust * field_metadata.addMaxLengthPerTrustPoint;
+                    }
+                }
+                const subCls = subType.class;
+                subRet.type = await this._recursiveGetRightsType(subCls, {}, trust);
+            }else{
+                subRet.maxSize = field_metadata?.maxSize || this.crudConfig.validationOptions.DEFAULT_MAX_SIZE;
+                if (field_metadata?.addMaxSizePerTrustPoint) {
+                    subRet.maxSize += trust * field_metadata.addMaxSizePerTrustPoint;
+                }
+            }
+            ret[key] = subRet;
+        }
+
+        return ret;
+    }
+
 
 }

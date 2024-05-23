@@ -110,7 +110,7 @@ describe('AppController', () => {
 
   });
 
-  it.skip('should get profile', async () => {
+  it('should get profile', async () => {
     const user = users["Michael Doe"];
     const dto: LoginDto = {
       email: user.email,

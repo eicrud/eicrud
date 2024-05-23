@@ -3,6 +3,8 @@ import { CrudConfigService } from "../crud.config.service";
 import { ICrudTransformOptions } from "./decorators";
 import { CrudContext } from "../model/CrudContext";
 import { IsEmail, IsOptional, IsString, MaxLength, validateOrReject } from 'class-validator';
+import { CrudController } from "../crud.controller";
+import { CrudAuthorizationService } from "../crud.authorization.service";
 
 export const crudClassMetadataMap: Record<string, Record<string, IFieldMetadata>> = {};
 
@@ -27,8 +29,11 @@ export interface CrudTransformerConfig {
 
 export class CrudTransformer {
 
-
-    constructor(private readonly crudConfig?: CrudConfigService, private ctx?: CrudContext, protected config?: CrudTransformerConfig) {
+    private readonly crudConfig?: CrudConfigService;
+    private readonly crudAuthorization?: CrudAuthorizationService;
+    constructor(private readonly crudController?: CrudController, private ctx?: CrudContext, protected config?: CrudTransformerConfig) {
+        this.crudConfig = crudController?.crudConfig;
+        this.crudAuthorization = crudController?.crudAuthorization;
     }
     
     async validateOrReject(obj, skipMissingProperties, label) {
@@ -76,7 +81,7 @@ export class CrudTransformer {
                         let maxLength = field_metadata.maxLength || this.crudConfig?.validationOptions.DEFAULT_MAX_LENGTH || this.config.DEFAULT_MAX_LENGTH;
                         let add = field_metadata.addMaxLengthPerTrustPoint || 0;
                         if (add && this.ctx && this.crudConfig) {
-                            const trust = (await this.crudConfig.userService.$getOrComputeTrust(this.ctx.user, this.ctx));
+                            const trust = (await this.crudAuthorization.getOrComputeTrust(this.ctx.user, this.ctx));
                             if(trust >= 1){
                                 maxLength += add * trust;
                             }
@@ -105,7 +110,7 @@ export class CrudTransformer {
                     if(maxSize > 0){
                         let add = field_metadata.addMaxSizePerTrustPoint || 0;
                         if (add && this.ctx && this.crudConfig) {
-                            const trust = (await this.crudConfig.userService.$getOrComputeTrust(this.ctx.user, this.ctx));
+                            const trust = (await this.crudAuthorization.getOrComputeTrust(this.ctx.user, this.ctx));
                             add = add * trust;
                             maxSize += Math.max(add, 0);;
                         }
