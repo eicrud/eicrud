@@ -207,7 +207,7 @@ export class CrudController {
         query.options.fields = [this.crudConfig.id_field as any];
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
-            const res: FindResponseDto<any> = await this.subFind(query, ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY_IDS, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY_IDS);
+            const res: FindResponseDto<any> = await this.subFind(query, ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY_IDS, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY_IDS, currentService);
             res.data = res.data.map(d => d[this.crudConfig.id_field]);
             return res;
         } catch (e) {

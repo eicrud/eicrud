@@ -16,7 +16,6 @@ import { MyProfileService } from "./profile.service";
 import { Picture } from "./entities/Picture";
 import { NestFastifyApplication, FastifyAdapter } from "@nestjs/platform-fastify";
 import { EntityCaseNamingStrategy, EntityManager, MikroORM } from "@mikro-orm/core";
-import { get } from "http";
 import { MyPictureService } from "./picture.service";
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, './.env') });
