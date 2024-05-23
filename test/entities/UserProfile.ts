@@ -56,7 +56,7 @@ export class UserProfile implements CrudEntity {
     @Property({ nullable: true })
     @IsString()
     @IsOptional()
-    @MaxLength(300)
+    @$MaxSize(300)
     bio: string;
 
     @Property({ nullable: true})

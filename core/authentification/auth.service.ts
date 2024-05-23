@@ -26,6 +26,7 @@ export class AuthenticationOptions {
   USERNAME_FIELD = 'email';
   renewJwt = true;
   minTimeBetweenLoginAttempsMs: number = 600;
+  ALLOWED_JWT_EXPIRES_IN = ['1s', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '4d', '5d', '6d', '7d', '14d', '30d'];
 }
 
 @Injectable()
@@ -48,6 +49,9 @@ export class CrudAuthService {
     this.JWT_SECRET = this.crudConfig.authenticationOptions.JWT_SECRET;
     this.FIELDS_IN_PAYLOAD = this.crudConfig.authenticationOptions.JWT_FIELD_IN_PAYLOAD;
     this.FIELDS_IN_PAYLOAD.push(this.crudConfig.id_field);
+    if(!this.FIELDS_IN_PAYLOAD.includes('revokedCount')){
+      this.FIELDS_IN_PAYLOAD.push('revokedCount');
+    }
     this.USERNAME_FIELD = this.crudConfig.authenticationOptions.USERNAME_FIELD;
   }
 

@@ -387,7 +387,8 @@ export class CrudController {
             throw new UnauthorizedException("User not found.");
         }
         const ret: LoginResponseDto = { userId };
-        if(this.crudConfig.authenticationOptions.renewJwt && !ctx.user.noTokenRefresh){
+        const userRole = this.crudAuthorization.getUserRole(ctx.user);
+        if(this.crudConfig.authenticationOptions.renewJwt && !userRole.noTokenRefresh && !ctx?.user?.noTokenRefresh){
             const totalSec = (ctx.jwtPayload.exp - ctx.jwtPayload.iat);
             const elapsedMs = new Date().getTime() - (ctx.jwtPayload.iat * 1000);
             const thresholdMs = (totalSec * 1000 * this.reciprocal20percent); // 20% of total time
@@ -400,7 +401,6 @@ export class CrudController {
         return ret as LoginResponseDto;
     }
 
-    ALLOWED_EXPIRES_IN = ['1s', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '4d', '5d', '6d', '7d', '14d', '30d'];
 
     @Post('auth')
     async login(@Body(new CrudValidationPipe()) data: LoginDto, @Context() ctx: CrudContext) {
@@ -417,8 +417,8 @@ export class CrudController {
 
         this.userLastLoginAttemptMap.set(data.email, now);
 
-        if (data.expiresIn && !this.ALLOWED_EXPIRES_IN.includes(data.expiresIn)) {
-            throw new BadRequestException("Invalid expiresIn: " + data.expiresIn + " allowed: " + this.ALLOWED_EXPIRES_IN.join(', '));
+        if (data.expiresIn && !this.crudConfig.authenticationOptions.ALLOWED_JWT_EXPIRES_IN.includes(data.expiresIn)) {
+            throw new BadRequestException("Invalid expiresIn: " + data.expiresIn + " allowed: " + this.ALLOWED_JWT_EXPIRES_IN.join(', '));
         }
 
         if (data.password?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH) {
