@@ -18,7 +18,8 @@ import { FindResponseDto } from '../../shared/FindResponseDto';
 import { CrudAuthorizationService } from './crud.authorization.service';
 import { _utils } from '../utils';
 import { CrudRole } from './model/CrudRole';
-import { ICrudRightsFieldInfo, ICrudRightsInfo } from '../../shared/dtos';
+import { GetRightDto, ICrudRightsFieldInfo, ICrudRightsInfo } from '../../shared/dtos';
+import { IsBoolean, IsOptional } from 'class-validator';
 
 const NAMES_REGEX = /([^\s,]+)/g;
 const COMMENTS_REGEX = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
@@ -52,9 +53,6 @@ function getAllMethodNames(obj) {
     return methodNames;
 }
 
-
-
-
 export class CrudService<T extends CrudEntity> {
 
     CACHE_TTL = 60 * 10 * 1000; // 10 minutes
@@ -85,6 +83,10 @@ export class CrudService<T extends CrudEntity> {
         this.dbAdapter = this.config?.dbAdapter || this.crudConfig.dbAdapter;
         this.dbAdapter.setConfigService(this.crudConfig);
         this.crudConfig.addService(this);
+
+        this.security.cmdSecurityMap = this.security.cmdSecurityMap || {} as any;
+        this.security.cmdSecurityMap['getRights'] = this.security.cmdSecurityMap['getRights'] || {} as any;
+        this.security.cmdSecurityMap['getRights'].dto = GetRightDto;
     }
 
 
@@ -503,37 +505,46 @@ export class CrudService<T extends CrudEntity> {
         return id;
     }
 
-    async $getRights(dto: any, ctx: CrudContext) {
-        const currentService = this;
-        let trust = await this.crudAuthorization.getOrComputeTrust(ctx.user, ctx);
-        if (trust < 0) {
-            trust = 0;
-        }
-        const dataMap = _utils.parseIfString(ctx.user?.crudUserCountMap || {});
+    async $getRights(dto: GetRightDto, ctx: CrudContext) {
 
-        const userRole: CrudRole = this.crudAuthorization.getCtxUserRole(ctx);
-        const adminBatch = userRole.isAdminRole ? 100 : 0;
-        const maxBatchSize = Math.max(adminBatch, this.crudAuthorization.getMatchBatchSizeFromCrudRoleAndParents(ctx, userRole, currentService.security));
-        
-        const ret: ICrudRightsInfo = {
-            maxItemsPerUser: await this.crudAuthorization.computeMaxItemsPerUser(ctx, currentService.security),
-            userItemsInDb: dataMap?.[ctx.serviceName] || 0,
-            fields: {},
-            userCmdCount: {},
-            maxBatchSize
+        const ret: ICrudRightsInfo = {}
+
+        if(dto.userItemsInDb){
+            const dataMap = _utils.parseIfString(ctx.user?.crudUserCountMap || {});
+            ret.userItemsInDb = dataMap?.[ctx.serviceName] || 0;
         }
-        const cls = currentService.entity;
-        ret.fields = await this._recursiveGetRightsType(cls, {}, trust);
-        
-        for(const cmd in currentService.security.cmdSecurityMap){
-            const cmdSecurity = currentService.security.cmdSecurityMap[cmd];
-            const cmdMap = _utils.parseIfString(ctx.user?.cmdUserCountMap || {});
-            ret.userCmdCount[cmd] = {
-                max: await this.crudAuthorization.computeMaxUsesPerUser(ctx, cmdSecurity),
-                performed: cmdMap?.[ctx.serviceName + '_' + cmd] || 0
+
+        if(dto.maxBatchSize){
+            const userRole: CrudRole = this.crudAuthorization.getCtxUserRole(ctx);
+            const adminBatch = userRole.isAdminRole ? 100 : 0;
+            const maxBatchSize = Math.max(adminBatch, this.crudAuthorization.getMatchBatchSizeFromCrudRoleAndParents(ctx, userRole, this.security));
+            ret.maxBatchSize = maxBatchSize;
+        }
+
+        if(dto.maxItemsPerUser){
+            ret.maxItemsPerUser = await this.crudAuthorization.computeMaxItemsPerUser(ctx, this.security)
+        }
+
+        if(dto.fields){
+            const cls = this.entity;
+            let trust = await this.crudAuthorization.getOrComputeTrust(ctx.user, ctx);
+            if (trust < 0) {
+                trust = 0;
+            }
+            ret.fields = await this._recursiveGetRightsType(cls, {}, trust);
+        }
+
+        if(dto.userCmdCount){
+            for(const cmd in this.security.cmdSecurityMap){
+                const cmdSecurity = this.security.cmdSecurityMap[cmd];
+                const cmdMap = _utils.parseIfString(ctx.user?.cmdUserCountMap || {});
+                ret.userCmdCount[cmd] = {
+                    max: await this.crudAuthorization.computeMaxUsesPerUser(ctx, cmdSecurity),
+                    performed: cmdMap?.[ctx.serviceName + '_' + cmd] || 0
+                }
             }
         }
-
+ 
         return ret;
     }
 

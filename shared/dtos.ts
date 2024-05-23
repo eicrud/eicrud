@@ -1,4 +1,4 @@
-import { IsString, IsOptional } from "class-validator";
+import { IsString, IsOptional, IsBoolean } from "class-validator";
 import { $Transform } from "../core/crud/transform/decorators";
 
 
@@ -42,5 +42,28 @@ export interface ICrudRightsInfo {
     userCmdCount?: Record<string, {max: number, performed: number}>;
     fields?: Record<string, ICrudRightsFieldInfo>;
     maxBatchSize?: number;
+}
+
+export class GetRightDto {
+    
+    @IsOptional()
+    @IsBoolean()
+    maxItemsPerUser?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    userItemsInDb?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    fields?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    userCmdCount?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    maxBatchSize?: boolean;
 }
 

@@ -12,7 +12,7 @@ import { _utils } from "../utils";
 import { CrudErrors } from "../../shared/CrudErrors";
 
 
-const SKIPPABLE_OPTIONS = ['limit', 'skip', 'sort', 'fields'];
+const SKIPPABLE_OPTIONS = ['limit', 'offset', 'sort', 'fields'];
 
 @Injectable()
 export class CrudAuthorizationService {

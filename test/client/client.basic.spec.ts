@@ -116,7 +116,7 @@ describe('AppController', () => {
       email: user.email,
       password: testAdminCreds.password
     }
-    const res: LoginResponseDto = await profileClient.login(dto);
+    await profileClient.login(dto);
 
     const profile: UserProfile = await profileClient.findOne({ id: user.profileId, user: user.id });
 
@@ -145,6 +145,38 @@ describe('AppController', () => {
     expect(melonClient.storage.get(melonClient.JWT_COOKIE_KEY)).toBeFalsy();
 
 
+  }, 10000);
+
+
+  it('should detect limit when fetching melon ids', async () => {
+
+    const user = users["Michael Doe"];
+    const dto: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password
+    }
+    await melonClient.login(dto);
+
+    const melons: string[] = (await melonClient.findIds({ owner: user.id })).data;
+
+    expect(melons.length).toBe(10000);
+  }, 10000);
+
+
+  it('should apply limits when fetching melon Id', async () => {
+
+    const account = users["Jon Doe"];
+    const user = users["Michael Doe"];
+    const dto: LoginDto = {
+      email: account.email,
+      password: testAdminCreds.password
+    }
+    await melonClient.login(dto);
+
+    const melons: any = (await melonClient.findIds({ owner: user.id }, { limit: 500 }));
+
+    expect(melons.data.length).toBe(500);
+    expect(melons.total).toBe(10000);
   }, 10000);
 
 
