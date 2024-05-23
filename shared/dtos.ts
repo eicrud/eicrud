@@ -37,9 +37,10 @@ export interface ICrudRightsFieldInfo {
     type?: Record<string, ICrudRightsFieldInfo>;
 }
 export interface ICrudRightsInfo {
-    maxItemsPerUser: number;
-    userItemsInDb: number;
-    userCmdCount: Record<string, {max: number, performed: number}>;
-    fields: Record<string, ICrudRightsFieldInfo>;
+    maxItemsPerUser?: number;
+    userItemsInDb?: number;
+    userCmdCount?: Record<string, {max: number, performed: number}>;
+    fields?: Record<string, ICrudRightsFieldInfo>;
+    maxBatchSize?: number;
 }
 

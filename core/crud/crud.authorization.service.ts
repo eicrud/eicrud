@@ -79,11 +79,23 @@ export class CrudAuthorizationService {
 
     }
 
+    async getOrComputeTrust(user: CrudUser, ctx: CrudContext){
+        const TRUST_COMPUTE_INTERVAL = 1000 * 60 * 60 * 24;
+        if(ctx.userTrust){
+          return ctx.userTrust;
+        }
+        if(user.lastComputedTrust && (new Date(user.lastComputedTrust).getTime() + TRUST_COMPUTE_INTERVAL) > Date.now()){
+          ctx.userTrust = user.trust;
+          return user.trust || 0;
+        }
+        return await this.crudConfig.userService.$computeTrust(user, ctx);
+      }
+
     async computeMaxUsesPerUser(ctx: CrudContext, cmdSec: CmdSecurity){
         let max = cmdSec.maxUsesPerUser;
         let add = cmdSec.additionalUsesPerTrustPoint;
         if(add){
-           add = add*(await this.crudConfig.userService.$getOrComputeTrust(ctx.user, ctx));
+           add = add*(await this.getOrComputeTrust(ctx.user, ctx));
            max+=Math.max(add,0);
         }
         return max;
@@ -93,7 +105,7 @@ export class CrudAuthorizationService {
         let max = security.maxItemsPerUser || this.crudConfig.validationOptions.DEFAULT_MAX_ITEMS_PER_USER; ;
         let add = security.additionalItemsInDbPerTrustPoints;
         if(add){
-           const trust = (await this.crudConfig.userService.$getOrComputeTrust(ctx.user, ctx));
+           const trust = (await this.getOrComputeTrust(ctx.user, ctx));
            if(trust >= 1){
             max+= add*trust;
            }

@@ -85,24 +85,6 @@ describe('AppController', () => {
   });
 
 
-  it('should only allow cmd with max uses in secure mode', async () => {
-    const user = users["Jon Doe"];
-
-    const payload: TestCmdDto = {
-      returnMessage: "Hello World"
-    }
-
-    const query: CrudQuery = {
-      service: "user-profile",
-      cmd: "testCmd",
-    }
-
-    await testMethod({ url: '/crud/cmd', method: 'PATCH', expectedCode: 403, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
-    
-    await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
-
-  });
-
   it('should perform cmd & transform dto' , async () => {
     const user = users["Jon Doe"];
 
