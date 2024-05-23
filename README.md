@@ -1,36 +1,107 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Eicrud-nest (beta)
 
-## Description
+**Eicrud** is CRUD/Authorization framework meant to extend a [Nestjs](https://github.com/nestjs/nest) application. It is works with [MikroOrm](https://mikro-orm.io/) entities  guarded with [CASL](https://casl.js.org) and [class-validator](https://github.com/typestack/class-validator).
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-## Installation
+## How it works
 
-```bash
-$ npm install
+First define your entity with validations and transforms (what the data can be) :
+
+```typescript
+@Entity()
+export class Profile {
+    @PrimaryKey()
+    @IsString()
+    @IsOptional()
+    id: string;
+
+    @OneToOne(() => MyUser, user => user.profile)
+    @IsString()
+    owner: MyUser | string;
+
+    @Property()
+    @$Transform((val) => val.toLowerCase())
+    @MaxLength(30)
+    userName: string;
+}
+````
+
+Then define your security (who can access the data) :
+
+```typescript
+const security: CrudSecurity = {
+  user: {
+    defineCRUDAbility(can, cannot, ctx) {
+      const id = ctx.userId;
+      // users can crud their own profile  
+      can('crud', 'profile', { owner: id });
+    }
+  },
+  guest: {
+    defineCRUDAbility(can, cannot, ctx) {
+      // guests can read all profiles
+      can('read', 'profile')
+    }
+  }
+}
 ```
+
+Finally register your [Nestjs](https://github.com/nestjs/nest) service :
+
+```typescript
+@Injectable()
+export class ProfileService extends CrudService<Profile> {
+    constructor(protected moduleRef: ModuleRef) {
+        super(moduleRef, Profile, security);
+    }
+}
+```
+
+And **that's it**, `profile` is now a fully operational CRUD service than you can query with the [client](#client) :
+```typescript
+const client = new CrudClient({serviceName: 'profile'})
+
+const res = await client.findOne({ userName: 'jon doe' })
+```
+
+You can extends it using [commands](#commands) (for complex operations).
+
+## Features
+- Out of the box CRUD Services
+  - No need to write controllers
+  - Extensible using CMDs
+- Authorization
+  - Secure by default (all operations are forbidden until allowed)
+  - Based on roles with inheritance
+- Authentification
+  - JWT based
+  - Bruteforce protection
+  - Password hashing
+  - Timeout system (ban)
+  - Session kick
+  - Extensible for 3rd party auth
+- Validation/Transform
+  - Entities are DTOs
+  - CMDs have their own DTOs
+  - Custom $Transform decorators
+- Database Control
+  - Max entities per user
+  - Max entities in db
+  - Object size is always validated
+- Easy to use Client
+  - Handle login and session
+  - Handle expired jwt (disconnect)
+  - Handle limited results (auto-fetching)
+- Monolitic/Microservices structure
+  - Simple (dynamic) configuration
+  - Group your CRUD services into microservices
+  - Application can be both monolitic and distributed
+- And more!
+  - Rate limiting
+  - DDOS protection
+  - ...
 
 ## Running the app
 

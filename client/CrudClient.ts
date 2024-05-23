@@ -191,17 +191,26 @@ export class CrudClient<T> {
 
   }
 
-  async findIn(ids: any[], options: CrudOptions = undefined, copts: ClientOptions = {}): Promise<FindResponseDto<T>> {
+  async findIn(q: any[] | object, options: CrudOptions = undefined, copts: ClientOptions = {}): Promise<FindResponseDto<T>> {
     const crudQuery: CrudQuery = {
       service: this.serviceName,
       options: options,
     }
+    let ids = [];
+    let addToQuery = {}
+    if(Array.isArray(q)){
+      ids = q;
+    }else{
+      ids = q[this.id_field];
+      addToQuery = q;
+    }
+
     const url = this.url + "/crud/in";
 
     const batchFunc = async (chunk: any[]) => {
       const newCrudQuery: CrudQuery = {
         ...crudQuery,
-        query: JSON.stringify({ [this.id_field]: chunk })
+        query: JSON.stringify({...addToQuery, [this.id_field]: chunk })
       }
       const fetchFunc = async (crdQ: CrudQuery) => {
         return await this._tryOrLogout(axios.get, 1, url, { params: crdQ, headers: this._getHeaders() });
