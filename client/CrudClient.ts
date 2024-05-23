@@ -7,6 +7,7 @@ import axios from "axios";
 import { CrudErrors } from "../shared/CrudErrors";
 import { LoginDto, LoginResponseDto } from "../shared/dtos";
 import wildcard from "wildcard";
+import { _utils } from "../core/utils";
 
 export interface ClientStorage {
 
@@ -44,7 +45,11 @@ export class MemoryStorage implements ClientStorage {
 }
 
 
-export interface ClientOptions { serviceName: string, url: string, storage?: ClientStorage, id_field?: string };
+export interface ClientConfig { serviceName: string, url: string, storage?: ClientStorage, id_field?: string };
+
+export interface ClientOptions {
+  batchSize?: number;
+}
 
 export class CrudClient<T> {
 
@@ -58,7 +63,7 @@ export class CrudClient<T> {
 
   limitingFields: string[] = [];
 
-  constructor(args: ClientOptions) {
+  constructor(args: ClientConfig) {
     this.serviceName = args.serviceName;
     this.url = args.url;
     this.id_field = args.id_field || "id";
@@ -186,7 +191,7 @@ export class CrudClient<T> {
 
   }
 
-  async findIn(ids: any[], options: CrudOptions = undefined, {batchSize = 200} = {}): Promise<FindResponseDto<T>> {
+  async findIn(ids: any[], options: CrudOptions = undefined, copts: ClientOptions = {}): Promise<FindResponseDto<T>> {
     const crudQuery: CrudQuery = {
       service: this.serviceName,
       options: options,
@@ -205,7 +210,7 @@ export class CrudClient<T> {
       return await this._doLimitQuery(fetchFunc, newCrudQuery);
     }
 
-    return await this._doBatch(batchFunc, ids, batchSize, true);
+    return await this._doBatch(batchFunc, ids, copts.batchSize, true);
 
   }
 
@@ -318,9 +323,18 @@ export class CrudClient<T> {
     return res;
   }
 
-  async patchIn(ids: any[], data: any, options: CrudOptions = undefined, { batchSize = 0 }): Promise<FindResponseDto<T>> {
+  async patchIn(q: any[] | object, data: any, options: CrudOptions = undefined, copts: ClientOptions = {}): Promise<FindResponseDto<T>> {
     const url = this.url + "/crud/in";
-    
+    let ids = [];
+    let addToQuery = {}
+    if(Array.isArray(q)){
+      ids = q;
+    }else{
+      ids = q[this.id_field];
+      addToQuery = q;
+    }
+
+
     const crudQuery: CrudQuery = {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
@@ -329,17 +343,17 @@ export class CrudClient<T> {
     const batchFunc = async (chunk: any[]) => {
       const newCrudQuery: CrudQuery = {
         ...crudQuery,
-        query: JSON.stringify({ [this.id_field]: chunk })
+        query: JSON.stringify({...addToQuery, [this.id_field]: chunk })
       }
       return await this._tryOrLogout(axios.patch, 2, url, data, { params: newCrudQuery, headers: this._getHeaders() });
     }
 
-    const res = await this._doBatch(batchFunc, ids, batchSize);
+    const res = await this._doBatch(batchFunc, ids, copts.batchSize);
 
     return res;
   }
 
-  async patchBatch(limitingFields: string[], objects: any[], options: CrudOptions = undefined, { batchSize = 0 }): Promise<T[]> {
+  async patchBatch(limitingFields: string[], objects: any[], options: CrudOptions = undefined, copts: ClientOptions = {}): Promise<T[]> {
 
     const datas = objects.map(o => {
       let query, data;
@@ -351,7 +365,7 @@ export class CrudClient<T> {
       return { query, data };
     });
 
-    return await this._patchBatch(datas, batchSize, options);
+    return await this._patchBatch(datas, copts.batchSize, options);
 
   }
 
@@ -363,7 +377,7 @@ export class CrudClient<T> {
     return chunks;
   }
 
-  async _patchBatch(datas: { query: any, data: any }[], batchSize = 0, options: CrudOptions = undefined): Promise<T[]> {
+  async _patchBatch(datas: { query: any, data: any }[], batchSize = 5000, options: CrudOptions = undefined): Promise<T[]> {
     const url = this.url + "/crud/batch";
 
     const crudQuery: CrudQuery = {
@@ -378,7 +392,7 @@ export class CrudClient<T> {
     return await this._doBatch(batchFunc, datas, batchSize);
   }
 
-  private async _doBatch(batchFunc: (datas) => any, datas, batchSize = 0, limited = false){
+  private async _doBatch(batchFunc: (datas) => any, datas, batchSize = 200, limited?){
     let res;
 
     let chunks = [datas];
@@ -390,13 +404,12 @@ export class CrudClient<T> {
       for (const chunk of chunks) {
         const r = await batchFunc(chunk);
         if(!res){
-          res = r;
+          res = limited ? r : _utils.makeArray(r);
         }else if(limited){
-          res.data.push(...r.data);
+          res.data.push(..._utils.makeArray(r.data));
         }else{
-          res.push(...r);
+          res.push(..._utils.makeArray(r));
         }
-        
       }
     } catch (e) {
       if (e.response && e.response.status == 400) {
@@ -414,7 +427,7 @@ export class CrudClient<T> {
     return res;
   }
 
-  async postBatch(objects: object[], options: CrudOptions = undefined, { batchSize = 0 }): Promise<T[]> {
+  async postBatch(objects: object[], options: CrudOptions = undefined, copts: ClientOptions = {}): Promise<T[]> {
     const url = this.url + "/crud/batch";
 
     const crudQuery: CrudQuery = {
@@ -426,7 +439,7 @@ export class CrudClient<T> {
       this._tryOrLogout(axios.post, 2, url, chunk, { params: crudQuery, headers: this._getHeaders() })
     }
 
-    return await this._doBatch(batchFunc, objects, batchSize);  
+    return await this._doBatch(batchFunc, objects, copts.batchSize);  
   }
 
   async postOne(data: object, options: CrudOptions = undefined): Promise<T> {
@@ -468,7 +481,7 @@ export class CrudClient<T> {
     return res;
   }
 
-  async deleteIn(ids: any[], options: CrudOptions = undefined, { batchSize = 0 }): Promise<number> {
+  async deleteIn(ids: any[], options: CrudOptions = undefined, copts: ClientOptions = {}): Promise<number> {
     const crudQuery: CrudQuery = {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
@@ -483,7 +496,7 @@ export class CrudClient<T> {
       return await this._tryOrLogout(axios.delete, 1, url, { params: newCrudQuery, headers: this._getHeaders() });
     }
 
-    const res = await this._doBatch(batchFunc, ids, batchSize);
+    const res = await this._doBatch(batchFunc, ids, copts.batchSize);
 
     return res?.reduce((acc, val) => acc + val, 0);
   }

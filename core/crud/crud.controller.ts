@@ -407,7 +407,7 @@ export class CrudController {
 
         const lastLogingAttempt: Date = this.userLastLoginAttemptMap.get(data.email);
         const now = new Date();
-        if (lastLogingAttempt && _utils.diffBetweenDatesMs(now, lastLogingAttempt) < 600) {
+        if (lastLogingAttempt && _utils.diffBetweenDatesMs(now, lastLogingAttempt) < this.crudConfig.authenticationOptions.minTimeBetweenLoginAttempsMs) {
             throw new HttpException({
                 statusCode: 425,
                 error: 'Too early',

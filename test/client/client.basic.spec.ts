@@ -18,7 +18,7 @@ import { format } from 'path';
 import exp from 'constants';
 import { CrudAuthGuard } from '../../core/authentification/auth.guard';
 import { APP_GUARD, NestFactory } from '@nestjs/core';
-import { ClientOptions, CrudClient, MemoryStorage } from '../../client/CrudClient';
+import { ClientConfig, ClientOptions, CrudClient, MemoryStorage } from '../../client/CrudClient';
 import { LoginDto, LoginResponseDto } from '../../shared/dtos';
 import { Module } from '@nestjs/common';
 
@@ -55,6 +55,7 @@ const users: Record<string, TestUser> = {
     melons: 7
   },
 
+
 }
 
 describe('AppController', () => {
@@ -73,14 +74,16 @@ describe('AppController', () => {
   const globalPrefix = baseName.replace('.spec.ts', '').replaceAll('.', '-');
 
 
-  const clientConfig: ClientOptions = {
-    url: 'http://127.0.0.1:3002/' + globalPrefix,
-    serviceName: 'user-profile',
-    storage: new MemoryStorage()
+  const clientConfig = () : ClientConfig => {
+    return {
+      url: 'http://127.0.0.1:3002/' + globalPrefix,
+      serviceName: 'user-profile',
+      storage: new MemoryStorage()
+    }
   }
 
-  const profileClient: CrudClient<UserProfile> = new CrudClient(clientConfig);
-  const melonClient: CrudClient<Melon> = new CrudClient({...clientConfig, serviceName: 'melon'});
+  const getProfileClient = () : CrudClient<UserProfile>  => new CrudClient({...clientConfig(), serviceName: 'user-profile'})
+  const getMelonClient = () : CrudClient<Melon>  => new CrudClient({...clientConfig(), serviceName: 'melon'})
 
   beforeAll(async () => {
     const module = getModule(baseName);
@@ -104,6 +107,8 @@ describe('AppController', () => {
     entityManager = app.get<EntityManager>(EntityManager);
     crudConfig = app.get<CrudConfigService>(CRUD_CONFIG_KEY, { strict: false });
 
+    crudConfig.authenticationOptions.minTimeBetweenLoginAttempsMs = 0;
+
     await createAccountsAndProfiles(users, userService, crudConfig, { testAdminCreds });
 
     // @Module(module)
@@ -116,60 +121,65 @@ describe('AppController', () => {
 
   });
 
-  it.skip('should find one profile', async () => {
+  it('should find one profile', async () => {
     const user = users["Michael Doe"];
     const dto: LoginDto = {
       email: user.email,
       password: testAdminCreds.password
     }
-    await profileClient.login(dto);
+    const myClient = getProfileClient();
 
-    const profile: UserProfile = await profileClient.findOne({ id: user.profileId, user: user.id });
+    await myClient.login(dto);
+
+    const profile: UserProfile = await myClient.findOne({ id: user.profileId, user: user.id });
 
     expect(profile.bio).toBe(user.bio);
 
-  }, 10000);
+  });
 
 
-  it.skip('should disconnect when invalid jwt when getting melon', async () => {
+  it('should disconnect when invalid jwt when getting melon', async () => {
     const user = users["Jon Doe"];
     const dto: LoginDto = {
       email: user.email,
       password: testAdminCreds.password,
       expiresIn: '1s'
     }
-    
-    await melonClient.login(dto);
+    const myClient = getMelonClient();
 
-    expect(melonClient.storage.get(melonClient.JWT_COOKIE_KEY)).toBeTruthy();
+    await myClient.login(dto);
+
+    expect(myClient.storage.get(myClient.JWT_COOKIE_KEY)).toBeTruthy();
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const melon: Melon =await melonClient.findOne({ owner: user.id });
+    const melon: Melon =await myClient.findOne({ owner: user.id });
 
     expect(melon.ownerEmail).toBe(user.email);
-    expect(melonClient.storage.get(melonClient.JWT_COOKIE_KEY)).toBeFalsy();
+    expect(myClient.storage.get(myClient.JWT_COOKIE_KEY)).toBeFalsy();
 
 
   }, 10000);
 
 
-  it.skip('should detect limit when fetching melon ids', async () => {
+  it('should detect limit when fetching melon ids', async () => {
 
     const user = users["Michael Doe"];
     const dto: LoginDto = {
       email: user.email,
       password: testAdminCreds.password
     }
-    await melonClient.login(dto);
+    const myClient = getMelonClient();
 
-    const melons: string[] = (await melonClient.findIds({ owner: user.id })).data;
+    await myClient.login(dto);
+
+    const melons: string[] = (await myClient.findIds({ owner: user.id })).data;
 
     expect(melons.length).toBe(10000);
   }, 10000);
 
 
-  it.skip('should apply limits when fetching melon Id', async () => {
+  it('should apply limits when fetching melon Id', async () => {
 
     const account = users["Jon Doe"];
     const user = users["Michael Doe"];
@@ -177,56 +187,78 @@ describe('AppController', () => {
       email: account.email,
       password: testAdminCreds.password
     }
-    await melonClient.login(dto);
+    const myClient = getMelonClient();
 
-    const melons: any = (await melonClient.findIds({ owner: user.id }, { limit: 500 }));
+    await myClient.login(dto);
+
+    const melons: any = (await myClient.findIds({ owner: user.id }, { limit: 500 }));
 
     expect(melons.data.length).toBe(500);
     expect(melons.total).toBe(10000);
   }, 10000);
 
 
-  it.skip('should find melons in ids', async () => {
+  it('should findIds & patchIn & findIn melons', async () => {
 
     const user = users["Michael Doe"];
     const dto: LoginDto = {
       email: user.email,
       password: testAdminCreds.password
     }
-    await melonClient.login(dto);
+    const myClient = getMelonClient();
 
-    const ids: string[] = (await melonClient.findIds({ owner: user.id })).data;
+    await myClient.login(dto);
 
-    const melons: Melon[] = (await melonClient.findIn(ids)).data;
+    const ids: string[] = (await myClient.findIds({ owner: user.id })).data;
+
+    const melons: Melon[] = (await myClient.findIn(ids)).data;
 
     expect(melons.length).toBe(10000);
-    let prev = "";
     for(let i = 0; i < melons.length; i++) {
       expect(melons[i].owner).toBe(user.id?.toString());
-      expect(melons[i].name).not.toBe(prev);
-      prev = melons[i].name;
+      expect(melons[i].price).toBe(i);
+    }
+
+    const patch: Partial<Melon> = {
+      price: 982,
+    }
+
+    const q = {
+      [myClient.id_field]: ids,
+      owner: user.id
+    }
+
+    await myClient.patchIn(q, patch);
+
+    const updatedMelons: Melon[] = (await myClient.findIn(ids)).data;
+
+    expect(updatedMelons.length).toBe(10000);
+    for(let i = 0; i < updatedMelons.length; i++) {
+      expect(updatedMelons[i].price).toBe(patch.price);
     }
 
 
-  },7000);
+  }, 8000);
 
 
   //@Patch('one')
-  it.skip('should patch one profile', async () => {
+  it('should patch one profile', async () => {
     const user = users["Jon Doe"];
     const dto: LoginDto = {
       email: user.email,
       password: testAdminCreds.password
     }
-    await profileClient.login(dto);
+    const myClient = getProfileClient();
+
+    await myClient.login(dto);
 
     const patch: Partial<UserProfile> = {
       astroSign: "Aries"
     }
 
-    await profileClient.patchOne({ id: user.profileId, user: user.id }, patch);
+    await myClient.patchOne({ id: user.profileId, user: user.id }, patch);
 
-    const profile: UserProfile = await profileClient.findOne({ id: user.profileId, user: user.id });
+    const profile: UserProfile = await myClient.findOne({ id: user.profileId, user: user.id });
 
     expect(profile.astroSign).toBe(patch.astroSign);
 
@@ -239,25 +271,27 @@ describe('AppController', () => {
       email: user.email,
       password: testAdminCreds.password
     }
-    await profileClient.login(dto);
+    const myClient = getMelonClient();
 
-    const melons: Melon[] = (await melonClient.find({ owner: user.id })).data;
+    await myClient.login(dto);
+
+    const melons: Melon[] = (await myClient.find({ owner: user.id })).data;
 
     expect(melons.length).toBe(user.melons);
 
-    expect(melons[0].size).toBe(1);
+    expect(melons[0].price).toBe(0);
 
     const patch: Partial<Melon> = {
-      size: 136,
+      price: 136,
     }
 
-    await melonClient.patchMany({ owner: user.id }, patch);
+    await myClient.patchMany({ owner: user.id }, patch);
 
-    const updatedMelons: Melon[] = (await melonClient.find({ owner: user.id })).data;
+    const updatedMelons: Melon[] = (await myClient.find({ owner: user.id })).data;
 
     expect(updatedMelons.length).toBe(user.melons);
     for(let mel of updatedMelons) {
-      expect(mel.size).toBe(patch.size);
+      expect(mel.price).toBe(patch.price);
     }
 
   });
