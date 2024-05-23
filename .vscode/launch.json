@@ -14,6 +14,13 @@
             "name": "npm run test client",
             "command": "npm run test client.",
         },   
+
+        {
+            "type": "node-terminal",
+            "request": "launch",
+            "name": "npm run test populate",
+            "command": "npm run test populate",
+        },  
         {
             "type": "node-terminal",
             "request": "launch",

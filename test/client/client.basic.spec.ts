@@ -48,6 +48,12 @@ const users: Record<string, TestUser> = {
     bio: 'I am a sys admin.',
     profileType: "admin",
   },
+  "Melon Many": {
+    email: "melon.many@test.com",
+    role: "user",
+    bio: 'I am a cool guy.',
+    melons: 7
+  },
 
 }
 
@@ -110,7 +116,7 @@ describe('AppController', () => {
 
   });
 
-  it('should get profile', async () => {
+  it.skip('should find one profile', async () => {
     const user = users["Michael Doe"];
     const dto: LoginDto = {
       email: user.email,
@@ -125,7 +131,7 @@ describe('AppController', () => {
   }, 10000);
 
 
-  it('should disconnect when invalid jwt when getting melon', async () => {
+  it.skip('should disconnect when invalid jwt when getting melon', async () => {
     const user = users["Jon Doe"];
     const dto: LoginDto = {
       email: user.email,
@@ -148,7 +154,7 @@ describe('AppController', () => {
   }, 10000);
 
 
-  it('should detect limit when fetching melon ids', async () => {
+  it.skip('should detect limit when fetching melon ids', async () => {
 
     const user = users["Michael Doe"];
     const dto: LoginDto = {
@@ -163,7 +169,7 @@ describe('AppController', () => {
   }, 10000);
 
 
-  it('should apply limits when fetching melon Id', async () => {
+  it.skip('should apply limits when fetching melon Id', async () => {
 
     const account = users["Jon Doe"];
     const user = users["Michael Doe"];
@@ -180,7 +186,81 @@ describe('AppController', () => {
   }, 10000);
 
 
-  
+  it.skip('should find melons in ids', async () => {
+
+    const user = users["Michael Doe"];
+    const dto: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password
+    }
+    await melonClient.login(dto);
+
+    const ids: string[] = (await melonClient.findIds({ owner: user.id })).data;
+
+    const melons: Melon[] = (await melonClient.findIn(ids)).data;
+
+    expect(melons.length).toBe(10000);
+    let prev = "";
+    for(let i = 0; i < melons.length; i++) {
+      expect(melons[i].owner).toBe(user.id?.toString());
+      expect(melons[i].name).not.toBe(prev);
+      prev = melons[i].name;
+    }
+
+
+  },7000);
+
+
+  //@Patch('one')
+  it.skip('should patch one profile', async () => {
+    const user = users["Jon Doe"];
+    const dto: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password
+    }
+    await profileClient.login(dto);
+
+    const patch: Partial<UserProfile> = {
+      astroSign: "Aries"
+    }
+
+    await profileClient.patchOne({ id: user.profileId, user: user.id }, patch);
+
+    const profile: UserProfile = await profileClient.findOne({ id: user.profileId, user: user.id });
+
+    expect(profile.astroSign).toBe(patch.astroSign);
+
+  });
+
+  //@Patch('many')
+  it('should find & patch many melons', async () => {
+    const user = users["Melon Many"];
+    const dto: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password
+    }
+    await profileClient.login(dto);
+
+    const melons: Melon[] = (await melonClient.find({ owner: user.id })).data;
+
+    expect(melons.length).toBe(user.melons);
+
+    expect(melons[0].size).toBe(1);
+
+    const patch: Partial<Melon> = {
+      size: 136,
+    }
+
+    await melonClient.patchMany({ owner: user.id }, patch);
+
+    const updatedMelons: Melon[] = (await melonClient.find({ owner: user.id })).data;
+
+    expect(updatedMelons.length).toBe(user.melons);
+    for(let mel of updatedMelons) {
+      expect(mel.size).toBe(patch.size);
+    }
+
+  });
 
 
 

@@ -1,10 +1,11 @@
 import { FindOptions } from "@mikro-orm/core";
-import { IsInt, IsOptional, IsString } from "class-validator";
+import { IsArray, IsInt, IsOptional, IsString } from "class-validator";
 import { $MaxSize } from "../core/crud/transform/decorators";
 
 export class CrudOptions  {
 
     @IsOptional()
+    @IsArray()
     @IsString({each: true})
     @$MaxSize(300)
     populate?: string[];
@@ -14,6 +15,7 @@ export class CrudOptions  {
     mockRole?: string;
 
     @IsOptional()
+    @IsArray()
     @IsString({each: true})
     @$MaxSize(300)
     fields?: string[];
