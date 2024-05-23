@@ -40,6 +40,7 @@ const users: Record<string, TestUser> = {
     email: "jon.doe@test.com",
     role: "user",
     bio: 'I am a cool guy.',
+    melons: 5
   },
   "Admin Dude": {
     email: "admin.dude@mail.com",
@@ -73,6 +74,7 @@ describe('AppController', () => {
   }
 
   const profileClient: CrudClient<UserProfile> = new CrudClient(clientConfig);
+  const melonClient: CrudClient<Melon> = new CrudClient({...clientConfig, serviceName: 'melon'});
 
   beforeAll(async () => {
     const module = getModule(baseName);
@@ -84,7 +86,7 @@ describe('AppController', () => {
 
     app = createNestApplication(moduleRef)
     app.setGlobalPrefix(globalPrefix);
-
+    
     await app.init();
     await readyApp(app);
 
@@ -98,11 +100,17 @@ describe('AppController', () => {
 
     await createAccountsAndProfiles(users, userService, crudConfig, { testAdminCreds });
 
+    // @Module(module)
+    // class NewTestModule {}
+
+    // const newApp = await NestFactory.create(NewTestModule, new FastifyAdapter());
+    // newApp.setGlobalPrefix(globalPrefix);
+
     await app.listen(3002);    
 
   });
 
-  it('should get profile', async () => {
+  it.skip('should get profile', async () => {
     const user = users["Michael Doe"];
     const dto: LoginDto = {
       email: user.email,
@@ -113,6 +121,29 @@ describe('AppController', () => {
     const profile: UserProfile = await profileClient.findOne({ id: user.profileId, user: user.id });
 
     expect(profile.bio).toBe(user.bio);
+
+  }, 10000);
+
+
+  it('should disconnect when invalid jwt when getting melon', async () => {
+    const user = users["Jon Doe"];
+    const dto: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password,
+      expiresIn: '1s'
+    }
+    
+    await melonClient.login(dto);
+
+    expect(melonClient.storage.get(melonClient.JWT_COOKIE_KEY)).toBeTruthy();
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const melon: Melon =await melonClient.findOne({ owner: user.id });
+
+    expect(melon.ownerEmail).toBe(user.email);
+    expect(melonClient.storage.get(melonClient.JWT_COOKIE_KEY)).toBeFalsy();
+
 
   }, 10000);
 

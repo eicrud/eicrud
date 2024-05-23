@@ -118,7 +118,6 @@ export class CrudClient<T> {
     let res;
     try {
       res = await method(...args);
-      res = res.data;
     } catch (e) {
       if (e.response && e.response.status === 401) {
         this.logout();
@@ -130,8 +129,9 @@ export class CrudClient<T> {
         headers: this._getHeaders()
       };
       res = await method(...args);
+
     }
-    return res;
+    return res.data;
   }
 
   private async _doLimitQuery(fetchFunc: (q: CrudQuery) => Promise<FindResponseDto<any>>, crudQuery: CrudQuery) {
