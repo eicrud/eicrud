@@ -184,7 +184,7 @@ export class CrudAuthGuard implements CanActivate {
           throw new UnauthorizedException(CrudErrors.CAPTCHA_REQUIRED.str());
         }  
 
-        userId = user?.[this.crudConfig.id_field];
+        userId = user?.[this.crudConfig.id_field]?.toString();
 
         if(options.mockRole && typeof options.mockRole == 'string' && role){
           const parents = this.crudConfig.getParentRolesRecurs(role).map(role => role.name);

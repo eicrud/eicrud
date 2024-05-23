@@ -25,6 +25,7 @@ export class AuthenticationOptions {
   JWT_FIELD_IN_PAYLOAD = ['revokedCount'];
   USERNAME_FIELD = 'email';
   renewJwt = true;
+  minTimeBetweenLoginAttempsMs: number = 600;
 }
 
 @Injectable()

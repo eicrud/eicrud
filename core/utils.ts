@@ -13,6 +13,10 @@ export class _utils {
         return result;
     }
 
+    static makeArray(obj) {
+        return Array.isArray(obj) ? obj : [obj];
+    }
+
     static parseIfString(obj){
         if(typeof obj == 'string'){
           return JSON.parse(obj);

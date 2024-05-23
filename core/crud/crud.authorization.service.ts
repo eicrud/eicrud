@@ -180,9 +180,8 @@ export class CrudAuthorizationService {
         return problemField;
     }
 
-    recursCheckRolesAndParents(role: CrudRole, ctx: CrudContext, fields: string[], security: CrudSecurity): SecurityResult {
+    recursCheckRolesAndParents(role: CrudRole, ctx: CrudContext, fields: string[], security: CrudSecurity, result: SecurityResult = { checkedRoles: [], authorized: false }): SecurityResult {
         const roleRights = security.rolesRights[role.name];
-        const result: SecurityResult = { checkedRoles: [], authorized: false };
         let currentResult: RoleResult = null;
         if (!roleRights) {
             currentResult = { roleName: role.name, problemField: 'all' };
@@ -200,9 +199,9 @@ export class CrudAuthorizationService {
                 }
             }, { resolveAction: httpAliasResolver });
             const methodToCheck = ctx.origin == "crud" ? ctx.method : ctx.cmdName;
-            const problemField = this.loopFieldAndCheckCannot( methodToCheck, ctx.query, fields, userAbilities, ctx);
-            if (problemField) {
-                currentResult = { roleName: role.name, problemField };
+            const pbField = this.loopFieldAndCheckCannot( methodToCheck, ctx.query, fields, userAbilities, ctx);
+            if (pbField) {
+                currentResult = { roleName: role.name, problemField: pbField };
             }
         }
        
@@ -216,7 +215,7 @@ export class CrudAuthorizationService {
                 if (SKIPPABLE_OPTIONS.includes(key)) {
                     continue;
                 }
-                const pbField = this.loopFieldAndCheckCannot(key, ctx.options, fields, userOptionsAbilities, ctx);
+                const pbField = this.loopFieldAndCheckCannot(key, ctx.options, ['all'], userOptionsAbilities, ctx);
                 if (pbField) {
                     currentResult = { roleName: role.name, problemField: key };
                     break;
@@ -233,10 +232,8 @@ export class CrudAuthorizationService {
         if (role.inherits?.length) {
             for (const parent of role.inherits) {
                 const parentRole = this.rolesMap[parent];
-                const checkRes: SecurityResult = this.recursCheckRolesAndParents(parentRole, ctx, fields, security)
-                result.checkedRoles.push(...checkRes.checkedRoles);
-                if (checkRes.authorized) {
-                    result.authorized = true;
+                this.recursCheckRolesAndParents(parentRole, ctx, fields, security, result)
+                if (result.authorized) {
                     break;
                 }
             }
