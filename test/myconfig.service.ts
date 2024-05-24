@@ -5,10 +5,8 @@ import { EntityManager } from "@mikro-orm/mongodb";
 import { MikroORM } from '@mikro-orm/core';
 
 import { MyEmailService } from "./myemail.service";
-import { MelonService } from "./melon.service";
 import { CrudRole } from "../core/crud/model/CrudRole";
 import { BasicMemoryCache } from "../core/authentification/auth.utils";
-import { MyProfileService } from "./profile.service";
 import { MongoDbAdapter } from "../db_mongo/mongoDbAdapter";
 import { MyUser } from "./entities/MyUser";
 import { UserProfile } from "./entities/UserProfile";
@@ -82,7 +80,6 @@ msOptions.microServices = {
         allowNonSecureUrl: true
     }
 }
-
 
 @Injectable()
 export class MyConfigService extends CrudConfigService {

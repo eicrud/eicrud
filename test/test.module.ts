@@ -9,7 +9,7 @@ import { MyUser } from "./entities/MyUser";
 import { UserProfile } from "./entities/UserProfile";
 import { FakeEmail } from "./entities/FakeEmail";
 import { Melon } from "./entities/Melon";
-import { OCRUDModule } from "../core/ocrud.module";
+import { EICRUDModule } from "../core/eicrud.module";
 import { MelonService } from "./melon.service";
 import { CRUD_CONFIG_KEY } from "../core/crud/crud.config.service";
 import { MyProfileService } from "./profile.service";
@@ -55,8 +55,6 @@ export async function readyApp(app){
 
 export const getModule = (dbName) => { 
 
-
-
     dbName = "test-" + dbName.replace('.spec.ts', '').replaceAll('.', '-')
 
     if(process.env.CRUD_CURRENT_MS){
@@ -72,7 +70,7 @@ export const getModule = (dbName) => {
                 password: process.env.TEST_CRUD_DB == 'postgre' ? 'admin' : undefined,
                 user: process.env.TEST_CRUD_DB == 'postgre' ? 'postgres' : undefined,
             }),
-            OCRUDModule.forRoot(),
+            EICRUDModule.forRoot(),
         ],
         controllers: [],
         providers: [MyEmailService, MyUserService, MelonService, MyProfileService, MyPictureService,

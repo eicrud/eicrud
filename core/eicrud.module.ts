@@ -9,11 +9,11 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 
 @Module({})
-export class OCRUDModule {
+export class EICRUDModule {
   static forRoot(): DynamicModule {
     
     return {
-      module: OCRUDModule,
+      module: EICRUDModule,
       imports: [],
       providers: [
         JwtService,
