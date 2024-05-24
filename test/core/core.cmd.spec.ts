@@ -158,17 +158,22 @@ describe('AppController', () => {
 
     const user = users["Jon Doe"];
 
-    const payload: TestCmdDto = {
+    const payload: Partial<TestCmdDto> = {
       returnMessage: "Hello World",
       sub: {
         subfield: "HELLO WORLD"
-      }
-    }
+      },
+      unknownField: "I should be removed"
+    } as any;
 
     const query: CrudQuery = {
       service: "user-profile",
       cmd: "testCmd",
     }
+
+    await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 400, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+    delete (payload as any).unknownField;
 
     const res = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
 

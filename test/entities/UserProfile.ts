@@ -1,6 +1,6 @@
 import { Property, PrimaryKey, OneToOne, Entity, Embeddable, Embedded, Unique, Collection, OneToMany } from "@mikro-orm/core";
 import { CrudEntity } from "../../core/crud/model/CrudEntity";
-import { Equals, IsMongoId, IsNumber, IsOptional, IsString,MaxLength, ValidateNested, } from "class-validator";
+import { Allow, Equals, IsMongoId, IsNumber, IsOptional, IsString,MaxLength, ValidateNested, } from "class-validator";
 import { MyUser } from "./MyUser";
 import { $ToLowerCase, $Trim, $Transform, $Type, $Delete, $MaxSize } from "../../core/crud/transform/decorators";
 import { Picture } from "./Picture";
@@ -40,6 +40,7 @@ export class UserProfile implements CrudEntity {
 
     @OneToMany(() => Picture, mel => mel.profile)
     @$MaxSize(200)
+    @Allow()
     pictures = new Collection<Picture>(this);
 
     @Unique()

@@ -152,10 +152,6 @@ describe('AppController', () => {
       userName: "John Doe",
       user: userId,
       bio: 'I am a cool guy.',
-      address: { // This should be removed
-        street: '1234 Elm St.',
-        city: 'Springfield'
-      }
     } as any;
     const query: CrudQuery = {
       service: 'user-profile'
@@ -268,7 +264,6 @@ describe('AppController', () => {
     const payload: Partial<UserProfile> = {
       userName: 'Sarah Jane',
       user: crudConfig.dbAdapter.formatId((sarahDoeProfile.user as any).id, crudConfig),
-      fakeField: 'fake',
     } as any;
     const formatedId = crudConfig.dbAdapter.formatId(sarahDoeProfile.id, crudConfig);
     const query: CrudQuery = {
@@ -280,13 +275,11 @@ describe('AppController', () => {
       ...payload,
       bio: sarahDoeProfile.bio,
     }
-    delete (expectedObject as any).fakeField;
 
     const fetchEntity = { entity: UserProfile, id: sarahDoeProfile.id };
 
     let res = await testMethod({ url: '/crud/one', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity, expectedObject, crudConfig });
     expect(res.userName).toBeDefined();
-    expect(res.fakeField).toBeUndefined();
   });
 
   //@Patch('/crud/in')
@@ -307,14 +300,16 @@ describe('AppController', () => {
 
     const expectedObject = null;
 
+    await testMethod({ url: '/crud/in', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 400, expectedObject, crudConfig });
+    
+    delete payload.fakeProp;
+
     const res = await testMethod({ url: '/crud/in', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
 
     expect(res).toEqual(ids.length);
     for (const profile in profiles) {
       const resDB: any = await profileService.$findOne({ id: profiles[profile].id }, null);
       expect(resDB.astroSign).toEqual('Aries');
-      expect(resDB.fakeProp).toBeUndefined();
-
     }
 
   });
@@ -338,14 +333,17 @@ describe('AppController', () => {
     const payload: any = payloadArray;
 
     const expectedObject = null;
-
+    
+    await testMethod({ url: '/crud/batch', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 400, expectedObject, crudConfig });
+    
+    payloadArray.forEach((p: any) => delete p.data.fakeProp);
+    
     const res = await testMethod({ url: '/crud/batch', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
 
     expect(res?.length).toEqual(2);
     for (const profile in profilesToPatchBatch) {
       const resDB: any = await profileService.$findOne({ id: profilesToPatchBatch[profile].id }, null);
       expect(resDB.astroSign).toEqual('Taurus');
-      expect(resDB.fakeProp).toBeUndefined();
     }
 
   });
@@ -363,13 +361,16 @@ describe('AppController', () => {
 
     const expectedObject = null;
 
+    await testMethod({ url: '/crud/many', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 400, expectedObject, crudConfig });
+
+    delete payload.fakeProp;
+
     const res = await testMethod({ url: '/crud/many', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, expectedObject, crudConfig });
 
     expect(res).toEqual(3);
     for (const profile in profiles) {
       const resDB: any = await profileService.$findOne({ id: profiles[profile].id }, null);
       expect(resDB.chineseSign).toEqual('Pig');
-      expect(resDB.fakeProp).toBeUndefined();
     }
 
   });
