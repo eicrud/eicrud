@@ -31,13 +31,13 @@ export class Generate {
             tk_entity_uname: name.toUpperCase()
         }
 
-        const dir = `./src/services/${name}`;
+        const dir = `./src/services/${keys.tk_entity_lname}`;
         if (!fs.existsSync(dir)){
             fs.mkdirSync(dir, { recursive: true });
         }
 
         const template_folder = 'cli/templates/service';
-        const files = ['tk_entity_name.ts', 'tk_entity_lname.security.ts', 'tk_entity_lname.service.ts'];
+        const files = ['tk_entity_lname.entity.ts', 'tk_entity_lname.security.ts', 'tk_entity_lname.service.ts'];
 
         files.forEach(file => {
             const sourcePath = `${template_folder}/${file}`;
@@ -71,7 +71,7 @@ export class Generate {
         const serviceName = `${name}Service`;
         const importLines = [
             `import { ${serviceName} } from './${keys.tk_entity_lname}/${keys.tk_entity_lname}.service';`,
-            `import { ${name} } from './${keys.tk_entity_lname}/${name}';`,
+            `import ${name} from './${keys.tk_entity_lname}/${keys.tk_entity_lname}.entity';`,
         ];
 
         //update index file
@@ -120,7 +120,7 @@ export class Generate {
         content = fs.readFileSync(providersFile, 'utf8');
         const contentlength = content.length;
 
-        const importServicesLine = `import { CRUDServices } from './services';`;
+        const importServicesLine = `import { CRUDServices } from './services/index';`;
 
         //add import line at beginning of file if not already there
         if (!content.includes(importServicesLine)) {

@@ -1,12 +1,12 @@
 import { CrudSecurity } from "../../../core/crud/model/CrudSecurity";
 
-export function getSecurity(tk_entity_uname: string) { 
+export function getSecurity(tk_entity_uname: string): CrudSecurity  { 
     return {
         rolesRights: {
             guest: {
-                defineCRUDAbility(can, cannot, ctx) {
+                async defineCRUDAbility(can, cannot, ctx) {
                 }
             }
         },
-    } as CrudSecurity
+    }
 }

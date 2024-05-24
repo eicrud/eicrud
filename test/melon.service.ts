@@ -16,7 +16,7 @@ const melonSecurity = (MELON) => { return {
     rolesRights: {
         super_admin: {
 
-            defineCRUDAbility(can, cannot, ctx) {
+            async defineCRUDAbility(can, cannot, ctx) {
                 can('crud', MELON);
             },
 
@@ -28,7 +28,7 @@ const melonSecurity = (MELON) => { return {
         },
         user: {
   
-            defineCRUDAbility(can, cannot, ctx) {
+            async defineCRUDAbility(can, cannot, ctx) {
                 const user: CrudUser = ctx.user;
                 const userId = ctx.userId;
                 can('cud', MELON, { owner: userId });
@@ -36,11 +36,11 @@ const melonSecurity = (MELON) => { return {
                 can('read', MELON);
             },
 
-            defineCMDAbility(can, cannot, ctx) {
+            async defineCMDAbility(can, cannot, ctx) {
             },
         },
         guest: {
-            defineCRUDAbility(can, cannot, ctx) {
+            async defineCRUDAbility(can, cannot, ctx) {
                 can('read', MELON);
             }
         }

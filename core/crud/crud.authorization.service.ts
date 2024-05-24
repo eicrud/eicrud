@@ -155,7 +155,7 @@ export class CrudAuthorizationService {
 
         const crudRole: CrudRole = this.getCtxUserRole(ctx);
 
-        const checkRes: SecurityResult = this.recursCheckRolesAndParents(crudRole, ctx, fields, security);
+        const checkRes: SecurityResult = await this.recursCheckRolesAndParents(crudRole, ctx, fields, security);
 
         if (!checkRes.authorized) {
             let msg = `Role ${ctx.user.role} is not allowed to ${ctx.method} ${ctx.serviceName} ${ctx.cmdName || ''}`;
@@ -180,18 +180,18 @@ export class CrudAuthorizationService {
         return problemField;
     }
 
-    recursCheckRolesAndParents(role: CrudRole, ctx: CrudContext, fields: string[], security: CrudSecurity, result: SecurityResult = { checkedRoles: [], authorized: false }): SecurityResult {
+    async recursCheckRolesAndParents(role: CrudRole, ctx: CrudContext, fields: string[], security: CrudSecurity, result: SecurityResult = { checkedRoles: [], authorized: false }): SecurityResult {
         const roleRights = security.rolesRights[role.name];
         let currentResult: RoleResult = null;
         if (!roleRights) {
             currentResult = { roleName: role.name, problemField: 'all' };
         }else{
-            const userAbilities = defineAbility((can, cannot) => {
+            const userAbilities = defineAbility(async (can, cannot) => {
 
                 if (ctx.origin == "crud") {
-                    roleRights.defineCRUDAbility?.(can, cannot, ctx);
+                    await roleRights.defineCRUDAbility?.(can, cannot, ctx);
                 } else {
-                    roleRights.defineCMDAbility?.(can, cannot, ctx);
+                    await roleRights.defineCMDAbility?.(can, cannot, ctx);
                 }
     
                 if (roleRights.fields && ctx.method == 'GET') {
@@ -207,8 +207,8 @@ export class CrudAuthorizationService {
        
 
         if (!currentResult && ctx.options) {
-            const userOptionsAbilities = defineAbility((can, cannot) => {
-                roleRights.defineOPTAbility?.(can, cannot, ctx);
+            const userOptionsAbilities = defineAbility(async (can, cannot) => {
+                await roleRights.defineOPTAbility?.(can, cannot, ctx);
             }, {});
 
             for (const key of Object.keys(ctx.options)) {
@@ -232,7 +232,7 @@ export class CrudAuthorizationService {
         if (role.inherits?.length) {
             for (const parent of role.inherits) {
                 const parentRole = this.rolesMap[parent];
-                this.recursCheckRolesAndParents(parentRole, ctx, fields, security, result)
+                await this.recursCheckRolesAndParents(parentRole, ctx, fields, security, result)
                 if (result.authorized) {
                     break;
                 }

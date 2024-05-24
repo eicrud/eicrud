@@ -43,14 +43,14 @@ const myProfileSecurity = (USER_PROFILE) => { return {
     rolesRights: {
         super_admin: {
 
-            defineCRUDAbility(can, cannot, ctx) {
+            async defineCRUDAbility(can, cannot, ctx) {
                 can('crud', USER_PROFILE);
             },
 
        
         },
         admin: {
-            defineCRUDAbility(can, cannot, ctx: CrudContext) {
+            async defineCRUDAbility(can, cannot, ctx: CrudContext) {
                 can('crud', USER_PROFILE, { type: 'basic' });
             },
 
@@ -64,13 +64,13 @@ const myProfileSecurity = (USER_PROFILE) => { return {
             },
         },
         moderator: {
-            defineCRUDAbility(can, cannot, ctx: CrudContext) {
+            async defineCRUDAbility(can, cannot, ctx: CrudContext) {
                 can('read', USER_PROFILE, { type: 'basic' });
             },
         },
         user: {
   
-            defineCRUDAbility(can, cannot, ctx) {
+            async defineCRUDAbility(can, cannot, ctx) {
                 const user: CrudUser = ctx.user;
                 const userId = ctx.userId;
                 can('crud', USER_PROFILE, { user: userId });
@@ -78,13 +78,13 @@ const myProfileSecurity = (USER_PROFILE) => { return {
                 cannot('update', USER_PROFILE, ['type', 'user']);
             },
 
-            defineCMDAbility(can, cannot, ctx) {
+            async defineCMDAbility(can, cannot, ctx) {
                 can('testCmd', USER_PROFILE);
             },
         },
 
         guest: {
-            defineCMDAbility(can, cannot, ctx) {
+            async defineCMDAbility(can, cannot, ctx) {
                 can('testCmd', USER_PROFILE, { returnMessage: "I'M A GUEST!" });
             },
         }
