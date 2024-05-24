@@ -31,14 +31,14 @@ Then define your security (who can access the data) :
 ```typescript
 const security: CrudSecurity = {
   user: {
-    defineCRUDAbility(can, cannot, ctx) {
+    async defineCRUDAbility(can, cannot, ctx) {
       const id = ctx.userId;
       // users can crud their own profile  
       can('crud', 'profile', { owner: id });
     }
   },
   guest: {
-    defineCRUDAbility(can, cannot, ctx) {
+    async defineCRUDAbility(can, cannot, ctx) {
       // guests can read all profiles
       can('read', 'profile')
     }

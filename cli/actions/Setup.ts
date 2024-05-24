@@ -16,7 +16,7 @@ export class Setup {
         const moduleImports = [
             "import { MikroOrmModule } from '@mikro-orm/nestjs';",
             "import { EICRUDModule } from '../../core/eicrud.module';",
-            "import { CRUDEntities } from './services';"
+            "import { CRUDEntities } from './services/index';"
         ]
 
         const keys: any = {
@@ -46,7 +46,7 @@ export class Setup {
         const getReplaceString = (array) => {
             let rep = array.trim()
             rep = rep ? '  ' + rep + '\n' : ''
-            return `imports: [\n${moduleContent}\n${rep}]`
+            return `imports: [\n${moduleContent}\n${rep}  ]`
         };
         content = _utils_cli.addNewLineToMatched(content, importsReguex, getReplaceString, `Could not find imports array in ${modulePath}`);
 

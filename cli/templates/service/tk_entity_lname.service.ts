@@ -1,6 +1,6 @@
 import { ModuleRef } from "@nestjs/core";
 
-import { tk_entity_name } from "./tk_entity_name";
+import tk_entity_name from "./tk_entity_lname.entity";
 import { Injectable } from "@nestjs/common";
 import { getSecurity } from "./tk_entity_lname.security";
 import { CrudService } from "../../../core/crud/crud.service";

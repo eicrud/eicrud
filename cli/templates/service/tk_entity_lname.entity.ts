@@ -4,7 +4,7 @@ import { CrudEntity } from "../../../core/crud/model/CrudEntity";
 
 
 @Entity()
-export class tk_entity_name implements CrudEntity {
+export default class tk_entity_name implements CrudEntity {
 
     @PrimaryKey({ name: '_id' })
     @IsString()

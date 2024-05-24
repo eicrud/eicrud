@@ -104,7 +104,7 @@ export class CrudSecurity {
      * @example
      * { 
      *   'super_admin': {
-     *       defineCRUDAbility(can, cannot, ctx) {
+     *       async defineCRUDAbility(can, cannot, ctx) {
      *          can('crud', 'service_name');
      *       },
      *   },
@@ -142,11 +142,11 @@ export interface CrudSecurityRights {
     
     fields?: string[];
 
-    defineCRUDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext);
+    defineCRUDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext): Promise<any>;
     
-    defineCMDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext);
+    defineCMDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext): Promise<any>;
 
-    defineOPTAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext);
+    defineOPTAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext): Promise<any>;
     
 }
 
