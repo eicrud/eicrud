@@ -1,0 +1,40 @@
+site_name: Documentation - EICRUD
+theme:
+  name: material
+  palette:
+   scheme: slate
+   primary: custom
+   accent: custom
+  features:
+    - content.code.copy
+    - navigation.footer
+
+extra:
+  social:
+    - icon: fontawesome/solid/heart
+      link: https://fosstodon.org/@squidfunk
+      name: support this project
+    - icon: fontawesome/solid/earth-europe
+      link: https://fosstodon.org/@squidfunk
+      name: homepage
+
+repo_url: https://github.com/squidfunk/mkdocs-material
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+      linenums: false
+      pygments_style: 'dracula'
+      noclasses: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - def_list
+  - toc:
+      toc_depth: 2
+      title: On this page

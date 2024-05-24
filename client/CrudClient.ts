@@ -51,6 +51,9 @@ export interface ClientOptions {
   batchSize?: number;
 }
 
+/**
+ * A client for CRUD operations.
+ */
 export class CrudClient<T> {
 
   JWT_COOKIE_KEY = "crud-client";
