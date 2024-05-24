@@ -5,6 +5,7 @@ import { CrudContext } from './model/CrudContext';
 import { Context } from '../authentification/auth.utils';
 import { BackdoorQuery, CrudQuery } from '../../shared/CrudQuery';
 import { CrudAuthorizationService } from './crud.authorization.service';
+import { setImmediate } from "timers/promises";
 
 import { CRUD_CONFIG_KEY, CrudConfigService, MicroServicesOptions } from './crud.config.service';
 import { CmdSecurity } from './model/CrudSecurity';
@@ -145,9 +146,12 @@ export class CrudController {
         try {
             await this.crudAuthorization.authorizeBatch(ctx, newEntities?.length, currentService.security);
 
-            for (const entity of newEntities) {
-                await this.assignContext('POST', query, entity, entity, 'crud', ctx);
+            for (let i = 0; i < newEntities.length; i++) {
+                await this.assignContext('POST', query, newEntities[i], newEntities[i], 'crud', ctx);
                 await this.performValidationAuthorizationAndHooks(ctx, currentService, true);
+                if(i % this.crudConfig.validationOptions.BATCH_VALIDATION_YIELD_RATE === 0){
+                    await setImmediate(); // allow other requests to be processed
+                }
             }
 
             await this.assignContext('POST', query, null, newEntities, 'crud', ctx);
@@ -362,9 +366,12 @@ export class CrudController {
         try {
             await this.crudAuthorization.authorizeBatch(ctx, data?.length, currentService.security);
 
-            for (const d of data) {
-                await this.assignContext('PATCH', query, d.query, d.data, 'crud', ctx);
+            for (let i = 0; i < data.length; i++) {
+                await this.assignContext('PATCH', query, data[i].query, data[i].data, 'crud', ctx);
                 await this.performValidationAuthorizationAndHooks(ctx, currentService, true);
+                if(i % this.crudConfig.validationOptions.BATCH_VALIDATION_YIELD_RATE === 0){
+                    await setImmediate(); // allow other requests to be processed
+                }
             }
 
             await this.assignContext('PATCH', query, null, data, 'crud', ctx);
@@ -417,8 +424,9 @@ export class CrudController {
 
         this.userLastLoginAttemptMap.set(data.email, now);
 
-        if (data.expiresIn && !this.crudConfig.authenticationOptions.ALLOWED_JWT_EXPIRES_IN.includes(data.expiresIn)) {
-            throw new BadRequestException("Invalid expiresIn: " + data.expiresIn + " allowed: " + this.ALLOWED_JWT_EXPIRES_IN.join(', '));
+        const ALLOWED_JWT_EXPIRES_IN =this.crudConfig.authenticationOptions.ALLOWED_JWT_EXPIRES_IN;
+        if (data.expiresIn && !ALLOWED_JWT_EXPIRES_IN.includes(data.expiresIn)) {
+            throw new BadRequestException("Invalid expiresIn: " + data.expiresIn + " allowed: " + ALLOWED_JWT_EXPIRES_IN.join(', '));
         }
 
         if (data.password?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH) {

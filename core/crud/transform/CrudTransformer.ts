@@ -36,11 +36,13 @@ export class CrudTransformer {
         this.crudAuthorization = crudController?.crudAuthorization;
     }
     
-    async validateOrReject(obj, skipMissingProperties, label) {
+    async validateOrReject(obj, skipUndefinedProperties, label) {
         try {
             await validateOrReject(obj, {
                 stopAtFirstError: true,
-                skipMissingProperties,
+                skipUndefinedProperties,
+                whitelist: true,
+                forbidNonWhitelisted: true,
             });
         } catch (errors) {
             const msg = label + ' ' + errors.toString();
