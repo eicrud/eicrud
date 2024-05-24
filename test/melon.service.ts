@@ -36,8 +36,7 @@ const melonSecurity = (MELON) => { return {
                 can('read', MELON);
             },
 
-            async defineCMDAbility(can, cannot, ctx) {
-            },
+  
         },
         guest: {
             async defineCRUDAbility(can, cannot, ctx) {

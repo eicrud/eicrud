@@ -55,6 +55,7 @@ export class Setup {
         console.log('UPDATED:', modulePath);
 
         const configPath = './src/eicrud.config.service.ts';
+        //TODO create config file
 
         return null;
     }

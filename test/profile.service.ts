@@ -37,6 +37,19 @@ const myProfileSecurity = (USER_PROFILE) => { return {
             maxUsesPerUser: 10,
             additionalUsesPerTrustPoint: 1,
             dto: TestCmdDto,
+            rolesRights: { 
+                user: {     
+                    async defineCMDAbility(can, cannot, ctx) {
+                        can('testCmd', USER_PROFILE);
+                    },
+                },
+        
+                guest: {
+                    async defineCMDAbility(can, cannot, ctx) {
+                        can('testCmd', USER_PROFILE, { returnMessage: "I'M A GUEST!" });
+                    },
+                }
+            },
         } as CmdSecurity
     },
 
@@ -54,7 +67,7 @@ const myProfileSecurity = (USER_PROFILE) => { return {
                 can('crud', USER_PROFILE, { type: 'basic' });
             },
 
-            defineOPTAbility(can, cannot, ctx) {
+            async defineOPTAbility(can, cannot, ctx) {
                 
                 const populateWhiteList = ['pictures'];
                 if(ctx.options?.populate?.every(p => populateWhiteList.includes(p))) {
@@ -77,16 +90,11 @@ const myProfileSecurity = (USER_PROFILE) => { return {
                 cannot('cu', USER_PROFILE, { type: 'admin' });
                 cannot('update', USER_PROFILE, ['type', 'user']);
             },
-
-            async defineCMDAbility(can, cannot, ctx) {
-                can('testCmd', USER_PROFILE);
-            },
+  
         },
 
         guest: {
-            async defineCMDAbility(can, cannot, ctx) {
-                can('testCmd', USER_PROFILE, { returnMessage: "I'M A GUEST!" });
-            },
+
         }
     },
 

@@ -1,13 +1,15 @@
+import { t } from "@mikro-orm/core";
 import { _utils_cli } from "../utils";
+import tk_cmd_dto_name from "../templates/cmd/tk_cmd_lname.dto";
 
 const fs = require('fs');
 
 export class Generate {
     
-    static action(type, name): Promise<any> {
+    static action(type, name, cmd): Promise<any> {
         switch (type) {
-            case 'app':
-                return Generate.app(name);
+            case 'cmd':
+                return Generate.cmd(name, cmd);
             case 'service':
                 return Generate.service(name);
             default:
@@ -15,8 +17,29 @@ export class Generate {
         }
     }
 
-    static app(name): Promise<any> {
-        return Promise.resolve();
+    static copyTemplateFiles(template_folder, files, keys, dir){
+        files.forEach(file => {
+            const sourcePath = `${template_folder}/${file}`;
+            let newFileName = file;
+            for(const key in keys) {
+                const value = keys[key];
+                newFileName = newFileName.replace(key, value);
+            }
+            const targetPath = `${dir}/${newFileName}`;
+            fs.copyFileSync(sourcePath, targetPath);
+            console.log('CREATED:', targetPath);
+
+            //replace content
+            let content = fs.readFileSync(targetPath, 'utf8');
+            for(const key in keys) {
+                const value = keys[key];
+                content = content.replace(new RegExp(key, 'g'), value);
+            }
+            //write content
+            fs.writeFileSync(targetPath, content);
+            
+
+        });
     }
 
     static service(name): Promise<any> {
@@ -39,33 +62,20 @@ export class Generate {
         const template_folder = 'cli/templates/service';
         const files = ['tk_entity_lname.entity.ts', 'tk_entity_lname.security.ts', 'tk_entity_lname.service.ts'];
 
-        files.forEach(file => {
-            const sourcePath = `${template_folder}/${file}`;
-            let newFileName = file;
-            for(const key in keys) {
-                const value = keys[key];
-                newFileName = newFileName.replace(key, value);
-            }
-            const targetPath = `${dir}/${newFileName}`;
-            fs.copyFileSync(sourcePath, targetPath);
-            console.log('CREATED:', targetPath);
-
-            //replace content
-            let content = fs.readFileSync(targetPath, 'utf8');
-            for(const key in keys) {
-                const value = keys[key];
-                content = content.replace(new RegExp(key, 'g'), value);
-            }
-            //write content
-            fs.writeFileSync(targetPath, content);
-
-        });
+        Generate.copyTemplateFiles(template_folder, files, keys, dir);
 
 
         const indexFile = `./src/services/index.ts`;
         if (!fs.existsSync(indexFile)){
             const templateIndex = `${template_folder}/index.ts`;
             fs.copyFileSync(templateIndex, indexFile);
+        }
+
+        const cmdsFile = `./src/services/cmds.ts`;
+        if (!fs.existsSync(cmdsFile)){
+            const templateIndex = `${template_folder}/cmds.ts`;
+            fs.copyFileSync(templateIndex, cmdsFile);
+            console.log('CREATED:', cmdsFile);
         }
 
         const serviceName = `${name}Service`;
@@ -150,4 +160,104 @@ export class Generate {
         return Promise.resolve();
     }
     
+
+    static cmd(serviceName, name): Promise<any> {
+  
+        //console.log('Generating service', name);
+        serviceName = serviceName.charAt(0).toUpperCase() + serviceName.slice(1);
+
+        name = name.replace('-', '_');
+
+        const keys = {
+            tk_entity_name: serviceName,
+            tk_entity_lname: serviceName.toLowerCase(),
+            tk_entity_uname: serviceName.toUpperCase(),
+            tk_cmd_name: name,
+            tk_cmd_lname: name.toLowerCase(),
+            tk_cmd_uname: name.toUpperCase(),
+            tk_cmd_dto_name: name.charAt(0).toUpperCase() + name.slice(1) + 'CmdDto'
+        }
+
+        let dir = `./src/services/${keys.tk_entity_lname}`;
+        if (!fs.existsSync(dir)){
+            throw new Error(`Could not find service directory: ${dir}`);
+        }
+
+        dir = dir + '/cmds/' + keys.tk_cmd_lname;
+        if (!fs.existsSync(dir)){
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        
+        const template_folder = 'cli/templates';
+        const files = ['tk_cmd_lname.action.ts', 'tk_cmd_lname.security.ts', 'tk_cmd_lname.dto.ts'];
+
+        Generate.copyTemplateFiles(template_folder + '/cmd', files, keys, dir);
+   
+
+        const cmdsFile = `./src/services/${serviceName}/cmds.ts`;
+        if (!fs.existsSync(cmdsFile)){
+            const templateIndex = `${template_folder}/service/cmds.ts`;
+            fs.copyFileSync(templateIndex, cmdsFile);
+            console.log('CREATED:', cmdsFile);
+        }
+
+        const importLines = [
+            `import { ${keys.tk_cmd_name}Security } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.security';`,
+        ];
+
+        let content = fs.readFileSync(cmdsFile, 'utf8');
+
+        importLines.forEach(importLine => {
+            content = importLine + '\n' + content;
+        });
+
+        const replaces = [
+            {
+                regex: /export[ ]{1,}const[ ]{1,}serviceCmds[ ]{1,}=[ ]{1,}\{([^\}]*)\}/,
+                getReplaceString: (array) => {
+                    const newLine = `    ${keys.tk_cmd_name}: ${keys.tk_cmd_name}Security,`;
+                    let rep = array.trim()
+                    rep = rep ? '    ' + rep + '\n' : ''
+                    return `export const serviceCmds =  {\n${newLine}\n${rep}}`;
+                },
+                error: 'Could not find serviceCmds array in cmds file'
+            },     
+        ]
+
+        for(let replace of replaces) {
+            content = _utils_cli.addNewLineToMatched(content, replace.regex, replace.getReplaceString, replace.error);
+        }
+
+        //write content
+        fs.writeFileSync(cmdsFile, content);
+
+        console.log('UPDATED:', cmdsFile);
+
+        const servicePath = `./src/services/${keys.tk_entity_lname}/${keys.tk_entity_lname}.service.ts`;
+        let serviceFileContent = fs.readFileSync(servicePath, 'utf8');
+
+        const [before, rest, after] = serviceFileContent.split(/GENERATED START(.+)/);
+
+        console.log('BEFORE:', before);
+        console.log('AFTER:', rest);
+        console.log('IGNORE:', after);
+
+        const defTemplateFile = `${template_folder}/service/cmd_definition.ts`;
+        let defContent = fs.readFileSync(defTemplateFile, 'utf8');
+        for(const key in keys) {
+            const value = keys[key];
+            defContent = defContent.replace(new RegExp(key, 'g'), value);
+        }
+
+        const importLine = `import ${keys.tk_cmd_dto_name} from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
+
+        serviceFileContent = importLine + '\n' + before + 'GENERATED START' + rest + '\n' + defContent + '\n' + after;
+
+        //write content
+        fs.writeFileSync(servicePath, serviceFileContent);
+        console.log('UPDATED:', servicePath);
+
+
+        return Promise.resolve();
+    }
 }

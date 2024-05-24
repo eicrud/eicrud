@@ -35,4 +35,6 @@
 
 [ ] test account & emails
 
-[ ] cli generate cmds
+[x] cli generate cmds
+
+[x] move defineCMDAbility
