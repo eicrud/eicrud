@@ -105,6 +105,12 @@ describe('AppController', () => {
       profileType: "admin",
       skipProfile: true,
     },
+    "John NoProfile": {
+      email: "john.noprofile@mail.com",
+      role: "user",
+      bio: 'I am a cool guy.',
+      skipProfile: true
+    },
   }
 
   beforeAll(async () => {
@@ -689,4 +695,6 @@ describe('AppController', () => {
       await testMethod({ url: '/crud/one', method: 'PATCH', expectedObject, fetchEntity, expectedCode: 200, app, jwt: user.jwt, entityManager, query, crudConfig, payload});
 
     });
+
+
 });

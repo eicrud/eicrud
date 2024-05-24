@@ -120,8 +120,7 @@ export async function createNewProfileTest(app, jwt, entityManager, payload, que
   }
   let resDb = await entityManager.fork().findOne(UserProfile, { id: res[crudConfig.id_field] }) as UserProfile;
   resDb = JSON.parse(JSON.stringify(res));
-  expect(res.address).toBeUndefined();
-  expect((resDb as any).address).toBeUndefined();
+
   expect(res.userName).toEqual(payload.userName);
   expect(resDb.userName).toEqual(payload.userName);
   return res;

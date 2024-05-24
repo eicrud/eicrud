@@ -210,7 +210,6 @@ describe('AppController', () => {
       userName,
       user: user.id,
       bio: user.bio,
-      address: '1234 Main St.', // This should be removed
       type: 'basic'
     } as any;
     const query: CrudQuery = {
@@ -243,7 +242,6 @@ describe('AppController', () => {
       userName,
       user: user.id,
       bio: user.bio,
-      address: '1234 Main St.' // This should be removed
     } as any;
     const query: CrudQuery = {
       service: 'user-profile'
@@ -576,7 +574,6 @@ describe('AppController', () => {
     const user = users[userName];
     const payload: Partial<UserProfile> = {
       userName: 'Sarah Jane',
-      fakeField: 'fake',
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
@@ -587,13 +584,11 @@ describe('AppController', () => {
       ...payload,
       bio: user.bio,
     }
-    delete (expectedObject as any).fakeField;
 
     const fetchEntity = { entity: UserProfile, id: user.profileId };
 
     let res = await testMethod({ url: '/crud/one', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 200, fetchEntity, expectedObject, crudConfig });
     expect(res.userName).toBeDefined();
-    expect(res.fakeField).toBeUndefined();
   });
 
   it('should forbid patch own profile without limiting key', async () => {
@@ -601,7 +596,6 @@ describe('AppController', () => {
     const user = users[userName];
     const payload: Partial<UserProfile> = {
       userName: 'Sarah Jane',
-      fakeField: 'fake',
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',
@@ -620,7 +614,6 @@ describe('AppController', () => {
     const user = users[userName];
     const payload: Partial<UserProfile> = {
       userName: 'Sarah Jane',
-      fakeField: 'fake',
       type: 'admin'
     } as any;
     const query: CrudQuery = {
@@ -641,7 +634,6 @@ describe('AppController', () => {
     const otherUser = users["Sarah Doe"];
     const payload: Partial<UserProfile> = {
       userName: 'Sarah Jane',
-      fakeField: 'fake',
       user: crudConfig.dbAdapter.formatId(otherUser.id, crudConfig)
     } as any;
     const query: CrudQuery = {

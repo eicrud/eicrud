@@ -1,5 +1,5 @@
 import { PrimaryKey, OneToOne, Property, ManyToOne, Entity, Embeddable, Embedded } from "@mikro-orm/core";
-import { IsDate, IsInt, IsMongoId, IsOptional, IsString, ValidateNested } from "class-validator";
+import { Allow, IsDate, IsInt, IsMongoId, IsOptional, IsString, ValidateNested } from "class-validator";
 import { CrudEntity } from "../../core/crud/model/CrudEntity";
 import { MyUser } from "./MyUser";
 import { $MaxLength, $MaxSize, $ToLowerCase, $Transform, $Trim, $Type } from "../../core/crud/transform/decorators";
@@ -61,11 +61,15 @@ export class Melon implements CrudEntity {
     name: string;
 
     @Property({ nullable: true })
+    @IsString()
+    @IsOptional()
     @$MaxSize(100, 5)
     longName: string;
 
     @Embedded(() => Slice, { nullable: true })
     @$Type(Slice)
+    @IsOptional()
+    @ValidateNested()
     firstSlice: Slice;
 
     @Embedded(() => Seed, { array: true, nullable: true })
@@ -78,6 +82,7 @@ export class Melon implements CrudEntity {
 
 
     @Property({ nullable: true })
+    @Allow()
     stringSeeds: string[];
 
     @Property()

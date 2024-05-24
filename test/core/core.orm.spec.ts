@@ -121,6 +121,9 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile'
     }
+
+    await testMethod({ url: '/crud/one', method: 'POST', expectedCode: 400, app, jwt, entityManager, payload, query, crudConfig});
+    delete (payload as any).address;
     const res = await  testMethod({ url: '/crud/one', method: 'POST', expectedCode: 201, app, jwt: jwt, entityManager, payload, query, crudConfig});
 
     let resDb = await profileService.$findOne({ id: res[crudConfig.id_field] }, null) as UserProfile;
@@ -153,6 +156,8 @@ describe('AppController', () => {
 
     const fetchEntity = { entity: UserProfile, id: user.profileId };
 
+    await testMethod({ url: '/crud/one', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 400, fetchEntity: null, expectedObject: null, crudConfig });
+    delete (payload as any).fakeField;
     let res = await testMethod({ url: '/crud/one', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity, expectedObject, crudConfig });
     expect(res.userName).toEqual('John Green');
     expect(res.fakeField).toBeUndefined();
