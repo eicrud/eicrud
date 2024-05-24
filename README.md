@@ -1,7 +1,5 @@
 
 
-## Eicrud-nest (beta)
-
 **Eicrud** is CRUD/Authorization framework meant to extend a [Nestjs](https://github.com/nestjs/nest) application. It is works with [MikroOrm](https://mikro-orm.io/) entities  guarded with [CASL](https://casl.js.org) and [class-validator](https://github.com/typestack/class-validator).
 
 
@@ -26,7 +24,7 @@ export class Profile {
     @MaxLength(30)
     userName: string;
 }
-````
+```
 
 Then define your security (who can access the data) :
 
@@ -70,75 +68,35 @@ You can extends it using [commands](#commands) (for complex operations).
 
 ## Features
 - Out of the box CRUD Services
-  - No need to write controllers
-  - Extensible using CMDs
+    * No need to write controllers
+    * Extensible using CMDs
 - Authorization
-  - Secure by default (all operations are forbidden until allowed)
-  - Based on roles with inheritance
+    * Secure by default (all operations are forbidden until allowed)
+    * Based on roles with inheritance
 - Authentification
-  - JWT based
-  - Bruteforce protection
-  - Password hashing
-  - Timeout system (ban)
-  - Session kick
-  - Extensible for 3rd party auth
+    * JWT based
+    * Bruteforce protection
+    * Password hashing
+    * Timeout system (ban)
+    * Session kick
+    * Extensible for 3rd party auth
 - Validation/Transform
-  - Entities are DTOs
-  - CMDs have their own DTOs
-  - Custom $Transform decorators
+    * Entities are DTOs
+    * CMDs have their own DTOs
+    * Custom $Transform decorators
 - Database Control
-  - Max entities per user
-  - Max entities in db
-  - Object size is always validated
+    * Max entities per user
+    * Max entities in db
+    * Object size is always validated
 - Easy to use Client
-  - Handle login and session
-  - Handle expired jwt (disconnect)
-  - Handle limited results (auto-fetching)
+    * Handle login and session
+    * Handle expired jwt (disconnect)
+    * Handle limited results (auto-fetching)
 - Monolitic/Microservices structure
-  - Simple (dynamic) configuration
-  - Group your CRUD services into microservices
-  - Application can be both monolitic and distributed
+    * Simple (dynamic) configuration
+    * Group your CRUD services into microservices
+    * Application can be both monolitic and distributed
 - And more!
-  - Rate limiting
-  - DDOS protection
-  - ...
-
-## Running the app
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+    * Rate limiting
+    * DDOS protection
+    * ...

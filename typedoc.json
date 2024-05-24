@@ -1,0 +1,4 @@
+{
+    "excludeNotDocumented": true,
+    "entryPoints": ["./core/**", "./db_*/**", "./client/**", ".shared/**"],
+}
