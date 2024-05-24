@@ -1,10 +1,10 @@
 import { ModuleRef } from "@nestjs/core";
-
 import tk_entity_name from "./tk_entity_lname.entity";
 import { Injectable } from "@nestjs/common";
 import { getSecurity } from "./tk_entity_lname.security";
 import { CrudService } from "../../../core/crud/crud.service";
-
+import { serviceCmds } from "./cmds";
+import { CrudContext } from "../../../core/crud/model/CrudContext";
 
 @Injectable()
 export class tk_entity_nameService extends CrudService<tk_entity_name> {
@@ -12,4 +12,7 @@ export class tk_entity_nameService extends CrudService<tk_entity_name> {
         const serviceName = CrudService.getName(tk_entity_name);
         super(moduleRef, tk_entity_name, getSecurity(serviceName));
     }
+
+    // GENERATED START - do not remove
+
 }

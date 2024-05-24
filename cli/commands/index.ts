@@ -11,8 +11,9 @@ program
 
 program.command('generate')
   .description('Generate new files')
-  .argument('<type>', 'service')
-  .argument('<name>')
+  .argument('<type>', 'service, cmd')
+  .argument('<serviceName>')
+  .argument('[cmdName]')
   .action(Generate.action);
 
 program.command('setup')

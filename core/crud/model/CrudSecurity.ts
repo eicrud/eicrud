@@ -49,6 +49,13 @@ export interface CmdSecurity {
      * @type {number}
      */
     ADMIN_LIMIT_QUERY?: number;
+
+    rolesRights?: Record<string, CmdSecurityRights>;
+
+}
+
+export interface CmdSecurityRights {
+    defineCMDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext): Promise<any>;
 }
 
 /**
@@ -144,8 +151,6 @@ export interface CrudSecurityRights {
 
     defineCRUDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext): Promise<any>;
     
-    defineCMDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext): Promise<any>;
-
     defineOPTAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext): Promise<any>;
     
 }

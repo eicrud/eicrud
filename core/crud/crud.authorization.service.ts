@@ -191,7 +191,8 @@ export class CrudAuthorizationService {
                 if (ctx.origin == "crud") {
                     await roleRights.defineCRUDAbility?.(can, cannot, ctx);
                 } else {
-                    await roleRights.defineCMDAbility?.(can, cannot, ctx);
+                    const cmdRights = security.cmdSecurityMap?.[ctx.cmdName]?.rolesRights?.[role.name];
+                    await cmdRights?.defineCMDAbility?.(can, cannot, ctx);
                 }
     
                 if (roleRights.fields && ctx.method == 'GET') {
