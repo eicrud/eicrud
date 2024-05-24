@@ -221,7 +221,6 @@ export class CrudService<T extends CrudEntity> {
 
         const em = ctx?.em || this.entityManager.fork();
         if (secure) {
-
             await this.checkItemDbCount(em, ctx);
         }
 

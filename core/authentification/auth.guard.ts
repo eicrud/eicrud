@@ -46,6 +46,8 @@ export class ValidationOptions{
   DEFAULT_MAX_SIZE = 50;
   DEFAULT_MAX_LENGTH = 20;
   DEFAULT_MAX_ITEMS_PER_USER = 1000;
+
+  BATCH_VALIDATION_YIELD_RATE = 300;
 };
 
 

@@ -1,6 +1,7 @@
 import { IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
 import { CrudOptions } from "./CrudOptions";
 import { $Type, $Transform, $MaxSize } from "../core/crud/transform/decorators";
+import { _utils } from "../core/utils";
 
 
 export class CrudQuery {
@@ -10,14 +11,12 @@ export class CrudQuery {
 
     @IsOptional()
     @$Type(CrudOptions)
-    @$Transform((value) => {
-        return JSON.parse(value)
-    })
+    @$Transform(_utils.parseIfString)
     @ValidateNested()
     options?: CrudOptions;
     
     @IsOptional()
-    @$Transform((value) => JSON.parse(value))
+    @$Transform(_utils.parseIfString)
     @$MaxSize(-1)
     query?: any;
 
@@ -37,7 +36,7 @@ export class BackdoorQuery {
 
     inheritancePos?: number;
 
-    @$Transform((value) => JSON.parse(value))
+    @$Transform(_utils.parseIfString)
     undefinedArgs?: string | number[];
 
 }
