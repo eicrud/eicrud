@@ -103,6 +103,12 @@
             "request": "launch",
             "name": "npm run start:test-ms",
             "command": "npm run start:test-ms",
+        },
+        {
+            "type": "node-terminal",
+            "request": "launch",
+            "name": "npm run start:test-ms:proxy",
+            "command": "npm run start:test-ms:proxy",
         }
     ]
 }

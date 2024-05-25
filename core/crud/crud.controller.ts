@@ -6,13 +6,13 @@ import { Context } from '../authentification/auth.utils';
 import { BackdoorQuery, CrudQuery } from '../../shared/CrudQuery';
 import { CrudAuthorizationService } from './crud.authorization.service';
 import { setImmediate } from "timers/promises";
-
+import replyFrom from '@fastify/reply-from'
 import { CRUD_CONFIG_KEY, CrudConfigService, MicroServicesOptions } from './crud.config.service';
 import { CmdSecurity } from './model/CrudSecurity';
 import { CrudErrors } from '../../shared/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
 import { CrudOptions } from '../../shared/CrudOptions';
-import { ModuleRef } from '@nestjs/core';
+import { HttpAdapterHost, ModuleRef } from '@nestjs/core';
 import { ICrudRightsFieldInfo, ICrudRightsInfo, LoginDto, LoginResponseDto } from '../../shared/dtos';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { LRUCache } from 'mnemonist';
@@ -44,6 +44,7 @@ export class CrudController {
     constructor(
         private crudAuthService: CrudAuthService,
         public crudAuthorization: CrudAuthorizationService,
+        private adapterHost: HttpAdapterHost,
         protected moduleRef: ModuleRef,
     ) {
 
@@ -51,8 +52,72 @@ export class CrudController {
 
     onModuleInit() {
         this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY, { strict: false })
-
         this.userLastLoginAttemptMap = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_TRACKED_USERS / 2);
+        this.initProxyController();
+    }
+
+    initProxyController(){
+        const msConfig: MicroServicesOptions = this.crudConfig.microServicesOptions;
+
+        const currentService = MicroServicesOptions.getCurrentService();
+
+        if(!currentService){
+            return;
+        }
+
+        let ms = msConfig.microServices?.[currentService];
+
+        if(!ms){
+            return;
+        }
+
+        const app = this.adapterHost.httpAdapter.getInstance();
+
+        if(ms.proxyCrudController){
+
+            const registered = {};
+            for(const micro in msConfig.microServices){
+                if(micro == currentService){
+                    continue;
+                }
+                 const other = msConfig.microServices[micro];
+                 if(!other.openController){
+                    continue;
+                 }
+                    for(const serv of other.services){
+                        const name = CrudService.getName(serv);
+                        if(registered[name]){
+                            continue;
+                        }
+                        console.log("Registering proxy for: " + name);
+                        app.register(proxy, {
+                            upstream: other.url + '/crud/s/' + name,
+                            prefix: '/crud/s/' + name,
+
+                        });
+                        registered[name] = true;
+                    }   
+               
+            }
+
+        }
+
+        if(ms.proxyAuthTo){
+            if(ms.proxyAuthTo != currentService){
+                const other = msConfig.microServices[ms.proxyAuthTo];
+                if(!other.openController){
+                    throw new Error("Proxy auth to service not open.");
+                }
+                // app.register(proxy, {
+                //     upstream: other.url + '/crud/auth',
+                //     prefix: '/crud/auth', 
+                //     proxyPayloads: false
+                // });
+                
+            }
+        }
+
+
     }
 
     assignContext(method: string, crudQuery: CrudQuery, query: any, data: any, type, ctx: CrudContext): CrudService<any> {

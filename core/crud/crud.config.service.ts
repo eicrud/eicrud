@@ -31,6 +31,8 @@ export interface MicroServiceConfig {
     services: EntityClass<any>[],
     openBackDoor: boolean,
     openController: boolean,
+    proxyCrudController?: boolean,
+    proxyAuthTo?: string,
     url: string,
     username?: string,
     password?: string,
@@ -55,6 +57,10 @@ export class MicroServicesOptions {
             }
         }
         return matches;
+    }
+
+    getMicroService(key: string){
+        return this.microServices[key];
     }
 
 
