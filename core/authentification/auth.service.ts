@@ -1,16 +1,8 @@
-import { BadRequestException, HttpException, HttpStatus, Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
-import { CrudUserService } from '../user/crud-user.service';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { _utils } from '../utils';
-
-import * as bcrypt from 'bcrypt';
-import { t } from '@mikro-orm/core';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../crud/crud.config.service';
-import { CrudErrors } from '../../shared/CrudErrors';
-import { CrudUser } from '../user/model/CrudUser';
 import { ModuleRef } from '@nestjs/core';
-import { LoginResponseDto } from '../../shared/dtos';
-import { CrudContext } from '../crud/model/CrudContext';
 import { CrudAuthGuard } from './auth.guard';
 
 

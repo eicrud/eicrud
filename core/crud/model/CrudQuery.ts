@@ -1,10 +1,11 @@
 import { Allow, IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
 import { CrudOptions } from "./CrudOptions";
-import { $Type, $Transform, $MaxSize } from "../core/crud/transform/decorators";
-import { _utils } from "../core/utils";
+import { $Type, $Transform, $MaxSize } from "../transform/decorators";
+import { _utils } from "../../utils";
+import { ICrudQuery } from "../../../shared/interfaces";
 
 
-export class CrudQuery {
+export class CrudQuery implements ICrudQuery {
 
     @Allow()
     service: string;

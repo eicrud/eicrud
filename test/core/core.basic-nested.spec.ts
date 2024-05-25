@@ -4,11 +4,9 @@ import { getModule, createNestApplication, readyApp, dropDatabases } from '../te
 import { CrudController } from '../../core/crud/crud.controller';
 import { MyUserService } from '../myuser.service';
 import { CrudAuthService } from '../../core/authentification/auth.service';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
-import { wrap } from '@mikro-orm/core';
 import { UserProfile } from '../entities/UserProfile';
-import { CrudQuery } from '../../shared/CrudQuery';
 import { createAccountsAndProfiles, createNewProfileTest, testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/crud/crud.config.service';
@@ -16,6 +14,7 @@ import { TestUser } from '../test.utils';
 import { Picture } from '../entities/Picture';
 import { Melon } from '../entities/Melon';
 import { MyPictureService } from '../picture.service';
+import { CrudQuery } from '../../core/crud/model/CrudQuery';
 
 const testAdminCreds = {
   email: "admin@testmail.com",

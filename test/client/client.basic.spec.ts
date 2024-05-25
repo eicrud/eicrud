@@ -7,7 +7,6 @@ import { CrudAuthService } from '../../core/authentification/auth.service';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
-import { CrudQuery } from '../../shared/CrudQuery';
 import { createAccountsAndProfiles, createMelons, createNewProfileTest,  testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
 import { Melon } from '../entities/Melon';
@@ -19,8 +18,8 @@ import exp from 'constants';
 import { CrudAuthGuard } from '../../core/authentification/auth.guard';
 import { APP_GUARD, NestFactory } from '@nestjs/core';
 import { ClientConfig, ClientOptions, CrudClient, MemoryStorage } from '../../client/CrudClient';
-import { LoginDto, LoginResponseDto } from '../../shared/dtos';
 import { Module } from '@nestjs/common';
+import { LoginDto } from '../../core/crud/model/dtos';
 
 const testAdminCreds = {
   email: "admin@testmail.com",

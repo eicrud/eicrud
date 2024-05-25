@@ -1,8 +1,8 @@
-import { FindOptions } from "@mikro-orm/core";
 import { IsArray, IsInt, IsOptional, IsString } from "class-validator";
-import { $MaxSize } from "../core/crud/transform/decorators";
+import { $MaxSize } from "../transform/decorators";
+import { ICrudOptions } from "../../../shared/interfaces";
 
-export class CrudOptions  {
+export class CrudOptions implements ICrudOptions  {
 
     @IsOptional()
     @IsArray()

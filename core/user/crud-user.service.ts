@@ -12,7 +12,8 @@ import { CrudAuthService } from '../authentification/auth.service';
 import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { ModuleRef } from '@nestjs/core';
 import { $Transform } from '../crud/transform/decorators';
-import { LoginResponseDto, UserIdDto } from '../../shared/dtos';
+import { UserIdDto } from '../crud/model/dtos';
+import { LoginResponseDto } from '../../shared/interfaces';
 import * as bcrypt from 'bcrypt';
 
 
@@ -58,7 +59,6 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
   protected USERNAME_FIELD = 'email';
 
-  protected crudConfig: CrudConfigService;
   protected authorizationService: CrudAuthorizationService;
   protected authService: CrudAuthService;
 

@@ -1,11 +1,11 @@
 import { set } from "mnemonist";
-import { CrudOptions } from "../shared/CrudOptions";
-import { CrudQuery } from "../shared/CrudQuery";
+import { ICrudOptions } from "../shared/interfaces";
+import { ICrudQuery } from "../shared/interfaces";
 import { Cookies } from "js-cookie"
-import { FindResponseDto } from "../shared/FindResponseDto";
+import { FindResponseDto } from "../shared/interfaces";
 import axios from "axios";
 import { CrudErrors } from "../shared/CrudErrors";
-import { LoginDto, LoginResponseDto } from "../shared/dtos";
+import { ILoginDto, LoginResponseDto } from "../shared/interfaces";
 import wildcard from "wildcard";
 import { _utils } from "../core/utils";
 
@@ -106,7 +106,7 @@ export class CrudClient<T> {
     }
   }
 
-  async login(dto: LoginDto): Promise<LoginResponseDto> {
+  async login(dto: ILoginDto): Promise<LoginResponseDto> {
     const url = this.url + "/crud/auth";
 
     let res: LoginResponseDto = (await axios.post(url, dto)).data;
@@ -142,20 +142,20 @@ export class CrudClient<T> {
     return res.data;
   }
 
-  private async _doLimitQuery(fetchFunc: (q: CrudQuery) => Promise<FindResponseDto<any>>, crudQuery: CrudQuery) {
-    const options = crudQuery.options || {};
-    const res: FindResponseDto<any> = await fetchFunc({...crudQuery, options: JSON.stringify(options) as any});
+  private async _doLimitQuery(fetchFunc: (q: ICrudQuery) => Promise<FindResponseDto<any>>, ICrudQuery: ICrudQuery) {
+    const options = ICrudQuery.options || {};
+    const res: FindResponseDto<any> = await fetchFunc({...ICrudQuery, options: JSON.stringify(options) as any});
 
     if (res.limit > 0 && (!options.limit || res.limit < options.limit) && res.total > res.limit) {
       let offset = res.limit;
       let total = options.limit || res.total;
       while (offset < total) {
-        const newOptions: CrudOptions = { ...options, limit: res.limit, offset };
-        const newCrudQuery: CrudQuery = {
-          ...crudQuery,
+        const newOptions: ICrudOptions = { ...options, limit: res.limit, offset };
+        const newICrudQuery: ICrudQuery = {
+          ...ICrudQuery,
           options: JSON.stringify(newOptions) as any,
         }
-        const newRes: FindResponseDto<any> = await fetchFunc(newCrudQuery);
+        const newRes: FindResponseDto<any> = await fetchFunc(newICrudQuery);
         res.data.push(...newRes.data);
         offset += res.limit;
       }
@@ -165,37 +165,37 @@ export class CrudClient<T> {
     return res;
   }
 
-  async findOne(query: any, options: CrudOptions = undefined): Promise<T> {
-    const crudQuery: CrudQuery = {
+  async findOne(query: any, options: ICrudOptions = undefined): Promise<T> {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
     const url = this.url + "/crud/s/" + this.serviceName + "/one";
 
-    const res = await this._tryOrLogout(axios.get, 1, url, { params: crudQuery, headers: this._getHeaders() });
+    const res = await this._tryOrLogout(axios.get, 1, url, { params: ICrudQuery, headers: this._getHeaders() });
 
     return res;
   }
 
-  async find(query: any, options: CrudOptions = undefined): Promise<FindResponseDto<T>> {
-    const crudQuery: CrudQuery = {
+  async find(query: any, options: ICrudOptions = undefined): Promise<FindResponseDto<T>> {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: options,
       query: JSON.stringify(query)
     }
     const url = this.url + "/crud/s/" + this.serviceName + "/many";
 
-    const fetchFunc = async (crdQuery: CrudQuery) => {
+    const fetchFunc = async (crdQuery: ICrudQuery) => {
       return await this._tryOrLogout(axios.get, 1, url, { params: crdQuery, headers: this._getHeaders() });
     }
 
-    return await this._doLimitQuery(fetchFunc, crudQuery);
+    return await this._doLimitQuery(fetchFunc, ICrudQuery);
 
   }
 
-  async findIn(q: any[] | object, options: CrudOptions = undefined, copts: ClientOptions = {}): Promise<FindResponseDto<T>> {
-    const crudQuery: CrudQuery = {
+  async findIn(q: any[] | object, options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<FindResponseDto<T>> {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: options,
     }
@@ -211,38 +211,38 @@ export class CrudClient<T> {
     const url = this.url + "/crud/s/" + this.serviceName + "/in";
 
     const batchFunc = async (chunk: any[]) => {
-      const newCrudQuery: CrudQuery = {
-        ...crudQuery,
+      const newICrudQuery: ICrudQuery = {
+        ...ICrudQuery,
         query: JSON.stringify({...addToQuery, [this.id_field]: chunk })
       }
-      const fetchFunc = async (crdQ: CrudQuery) => {
+      const fetchFunc = async (crdQ: ICrudQuery) => {
         return await this._tryOrLogout(axios.get, 1, url, { params: crdQ, headers: this._getHeaders() });
       }
   
-      return await this._doLimitQuery(fetchFunc, newCrudQuery);
+      return await this._doLimitQuery(fetchFunc, newICrudQuery);
     }
 
     return await this._doBatch(batchFunc, ids, copts.batchSize, true);
 
   }
 
-  async findIds(query: any, options: CrudOptions = undefined): Promise<FindResponseDto<string>> {
-    const crudQuery: CrudQuery = {
+  async findIds(query: any, options: ICrudOptions = undefined): Promise<FindResponseDto<string>> {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: options,
       query: JSON.stringify(query)
     }
     const url = this.url + "/crud/s/" + this.serviceName + "/ids";
     
-    const fetchFunc = async (crdQ: CrudQuery) => {
+    const fetchFunc = async (crdQ: ICrudQuery) => {
       return await this._tryOrLogout(axios.get, 1, url, { params: crdQ, headers: this._getHeaders() });
     }
 
-    return await this._doLimitQuery(fetchFunc, crudQuery);
+    return await this._doLimitQuery(fetchFunc, ICrudQuery);
   }
 
-  private async _doCmd(cmdName: string, dto: any, options: CrudOptions, secure: boolean, limited: boolean): Promise<any> {
-    const crudQuery: CrudQuery = {
+  private async _doCmd(cmdName: string, dto: any, options: ICrudOptions, secure: boolean, limited: boolean): Promise<any> {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: options,
       cmd: cmdName
@@ -253,16 +253,16 @@ export class CrudClient<T> {
 
     if (limited) {
 
-      const fetchFunc = async (crdQ: CrudQuery) => {
+      const fetchFunc = async (crdQ: ICrudQuery) => {
         return await this._tryOrLogout(method, 2, url, dto, { params: crdQ, headers: this._getHeaders() });
       }
 
-      return await this._doLimitQuery(fetchFunc, crudQuery);
+      return await this._doLimitQuery(fetchFunc, ICrudQuery);
 
     }
 
-    crudQuery.options = JSON.stringify(options) as any;
-    const res = await this._tryOrLogout(secure ? axios.post : axios.patch, 2, url, dto, { params: crudQuery, headers: this._getHeaders() });
+    ICrudQuery.options = JSON.stringify(options) as any;
+    const res = await this._tryOrLogout(secure ? axios.post : axios.patch, 2, url, dto, { params: ICrudQuery, headers: this._getHeaders() });
 
     return res;
   }
@@ -298,7 +298,7 @@ export class CrudClient<T> {
     return [query, data];
   }
 
-  async patchOne(q: object | string[], d: object, options: CrudOptions = undefined): Promise<T> {
+  async patchOne(q: object | string[], d: object, options: ICrudOptions = undefined): Promise<T> {
     let query = {};
     let data = d;
     if (Array.isArray(q)) {
@@ -308,7 +308,7 @@ export class CrudClient<T> {
     } else {
       query = q;
     }
-    const crudQuery: CrudQuery = {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
@@ -316,26 +316,26 @@ export class CrudClient<T> {
 
     const url = this.url + "/crud/s/" + this.serviceName + "/one";
 
-    const res = await this._tryOrLogout(axios.patch, 2, url, data, { params: crudQuery, headers: this._getHeaders() });
+    const res = await this._tryOrLogout(axios.patch, 2, url, data, { params: ICrudQuery, headers: this._getHeaders() });
 
     return res;
 
   }
 
-  async patchMany(query: object, data: any, options: CrudOptions = undefined): Promise<FindResponseDto<T>> {
-    const crudQuery: CrudQuery = {
+  async patchMany(query: object, data: any, options: ICrudOptions = undefined): Promise<FindResponseDto<T>> {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
     const url = this.url + "/crud/s/" + this.serviceName + "/many";
 
-    const res = await this._tryOrLogout(axios.patch, 2, url, data, { params: crudQuery, headers: this._getHeaders() });
+    const res = await this._tryOrLogout(axios.patch, 2, url, data, { params: ICrudQuery, headers: this._getHeaders() });
 
     return res;
   }
 
-  async patchIn(q: any[] | object, data: any, options: CrudOptions = undefined, copts: ClientOptions = {}): Promise<FindResponseDto<T>> {
+  async patchIn(q: any[] | object, data: any, options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<FindResponseDto<T>> {
     const url = this.url + "/crud/s/" + this.serviceName + "/in";
     let ids = [];
     let addToQuery = {}
@@ -347,17 +347,17 @@ export class CrudClient<T> {
     }
 
 
-    const crudQuery: CrudQuery = {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
     }
 
     const batchFunc = async (chunk: any[]) => {
-      const newCrudQuery: CrudQuery = {
-        ...crudQuery,
+      const newICrudQuery: ICrudQuery = {
+        ...ICrudQuery,
         query: JSON.stringify({...addToQuery, [this.id_field]: chunk })
       }
-      return await this._tryOrLogout(axios.patch, 2, url, data, { params: newCrudQuery, headers: this._getHeaders() });
+      return await this._tryOrLogout(axios.patch, 2, url, data, { params: newICrudQuery, headers: this._getHeaders() });
     }
 
     const res = await this._doBatch(batchFunc, ids, copts.batchSize);
@@ -365,7 +365,7 @@ export class CrudClient<T> {
     return res;
   }
 
-  async patchBatch(limitingFields: string[], objects: any[], options: CrudOptions = undefined, copts: ClientOptions = {}): Promise<T[]> {
+  async patchBatch(limitingFields: string[], objects: any[], options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<T[]> {
 
     const datas = objects.map(o => {
       let query, data;
@@ -389,16 +389,16 @@ export class CrudClient<T> {
     return chunks;
   }
 
-  async _patchBatch(datas: { query: any, data: any }[], batchSize = 5000, options: CrudOptions = undefined): Promise<T[]> {
+  async _patchBatch(datas: { query: any, data: any }[], batchSize = 5000, options: ICrudOptions = undefined): Promise<T[]> {
     const url = this.url + "/crud/s/" + this.serviceName + "/batch";
 
-    const crudQuery: CrudQuery = {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
     }
 
     const batchFunc = async (chunk: any[]) => {
-      this._tryOrLogout(axios.patch, 2, url, chunk, { params: crudQuery, headers: this._getHeaders() })
+      this._tryOrLogout(axios.patch, 2, url, chunk, { params: ICrudQuery, headers: this._getHeaders() })
     }
 
     return await this._doBatch(batchFunc, datas, batchSize);
@@ -439,73 +439,73 @@ export class CrudClient<T> {
     return res;
   }
 
-  async postBatch(objects: object[], options: CrudOptions = undefined, copts: ClientOptions = {}): Promise<T[]> {
+  async postBatch(objects: object[], options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<T[]> {
     const url = this.url + "/crud/s/" + this.serviceName + "/batch";
 
-    const crudQuery: CrudQuery = {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
     }
 
     const batchFunc = async (chunk: any[]) => {
-      this._tryOrLogout(axios.post, 2, url, chunk, { params: crudQuery, headers: this._getHeaders() })
+      this._tryOrLogout(axios.post, 2, url, chunk, { params: ICrudQuery, headers: this._getHeaders() })
     }
 
     return await this._doBatch(batchFunc, objects, copts.batchSize);  
   }
 
-  async postOne(data: object, options: CrudOptions = undefined): Promise<T> {
-    const crudQuery: CrudQuery = {
+  async postOne(data: object, options: ICrudOptions = undefined): Promise<T> {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
     }
     const url = this.url + "/crud/s/" + this.serviceName + "/one";
 
-    const res = await this._tryOrLogout(axios.post, 2, url, data, { params: crudQuery, headers: this._getHeaders() });
+    const res = await this._tryOrLogout(axios.post, 2, url, data, { params: ICrudQuery, headers: this._getHeaders() });
 
     return res;
   }
 
-  async deleteOne(query: object, options: CrudOptions = undefined): Promise<1> {
-    const crudQuery: CrudQuery = {
+  async deleteOne(query: object, options: ICrudOptions = undefined): Promise<1> {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
     const url = this.url + "/crud/s/" + this.serviceName + "/one";
 
-    const res = await this._tryOrLogout(axios.delete, 1, url, { params: crudQuery, headers: this._getHeaders() });
+    const res = await this._tryOrLogout(axios.delete, 1, url, { params: ICrudQuery, headers: this._getHeaders() });
 
     return res;
 
   }
 
-  async delete(query: object, options: CrudOptions = undefined): Promise<number> {
-    const crudQuery: CrudQuery = {
+  async delete(query: object, options: ICrudOptions = undefined): Promise<number> {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
     const url = this.url + "/crud/s/" + this.serviceName + "/many";
 
-    const res = await this._tryOrLogout(axios.delete, 1, url, { params: crudQuery, headers: this._getHeaders() });
+    const res = await this._tryOrLogout(axios.delete, 1, url, { params: ICrudQuery, headers: this._getHeaders() });
 
     return res;
   }
 
-  async deleteIn(ids: any[], options: CrudOptions = undefined, copts: ClientOptions = {}): Promise<number> {
-    const crudQuery: CrudQuery = {
+  async deleteIn(ids: any[], options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<number> {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
     }
     const url = this.url + "/crud/s/" + this.serviceName + "/in";
     
     const batchFunc = async (chunk: any[]) => {
-      const newCrudQuery: CrudQuery = {
-        ...crudQuery,
+      const newICrudQuery: ICrudQuery = {
+        ...ICrudQuery,
         query: JSON.stringify({ [this.id_field]: chunk })
       }
-      return await this._tryOrLogout(axios.delete, 1, url, { params: newCrudQuery, headers: this._getHeaders() });
+      return await this._tryOrLogout(axios.delete, 1, url, { params: newICrudQuery, headers: this._getHeaders() });
     }
 
     const res = await this._doBatch(batchFunc, ids, copts.batchSize);
@@ -513,32 +513,32 @@ export class CrudClient<T> {
     return res?.reduce((acc, val) => acc + val, 0);
   }
 
-  async deleteMany(query: object, options: CrudOptions = undefined): Promise<number> {
-    const crudQuery: CrudQuery = {
+  async deleteMany(query: object, options: ICrudOptions = undefined): Promise<number> {
+    const ICrudQuery: ICrudQuery = {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
     const url = this.url + "/crud/s/" + this.serviceName + "/many";
 
-    const res = await this._tryOrLogout(axios.delete, 1, url, { params: crudQuery, headers: this._getHeaders() });
+    const res = await this._tryOrLogout(axios.delete, 1, url, { params: ICrudQuery, headers: this._getHeaders() });
 
     return res;
   }
   
-  async cmd(cmdName: string, dto: any, options: CrudOptions = undefined): Promise<any> {
+  async cmd(cmdName: string, dto: any, options: ICrudOptions = undefined): Promise<any> {
     return await this._doCmd(cmdName, dto, options, false, false);
   }
 
-  async cmdL(cmdName: string, dto: any, options: CrudOptions = undefined): Promise<any> {
+  async cmdL(cmdName: string, dto: any, options: ICrudOptions = undefined): Promise<any> {
     return await this._doCmd(cmdName, dto, options, false, true);
   }
 
-  async cmdS(cmdName: string, dto: any, options: CrudOptions = undefined): Promise<any> {
+  async cmdS(cmdName: string, dto: any, options: ICrudOptions = undefined): Promise<any> {
     return await this._doCmd(cmdName, dto, options, true, false);
   }
 
-  async cmdSL(cmdName: string, dto: any, options: CrudOptions = undefined): Promise<any> {
+  async cmdSL(cmdName: string, dto: any, options: ICrudOptions = undefined): Promise<any> {
     return await this._doCmd(cmdName, dto, options, true, true);
   }
 

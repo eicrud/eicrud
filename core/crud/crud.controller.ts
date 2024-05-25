@@ -3,7 +3,7 @@ import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
 import { CrudContext } from './model/CrudContext';
 import { Context } from '../authentification/auth.utils';
-import { BackdoorQuery, CrudQuery } from '../../shared/CrudQuery';
+import { BackdoorQuery, CrudQuery } from '../crud/model/CrudQuery';
 import { CrudAuthorizationService } from './crud.authorization.service';
 import { setImmediate } from "timers/promises";
 import replyFrom from '@fastify/reply-from'
@@ -11,15 +11,15 @@ import { CRUD_CONFIG_KEY, CrudConfigService, MicroServicesOptions } from './crud
 import { CmdSecurity } from './model/CrudSecurity';
 import { CrudErrors } from '../../shared/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
-import { CrudOptions } from '../../shared/CrudOptions';
+import { CrudOptions } from '../crud/model/CrudOptions';
 import { HttpAdapterHost, ModuleRef } from '@nestjs/core';
-import { ICrudRightsFieldInfo, ICrudRightsInfo, LoginDto, LoginResponseDto } from '../../shared/dtos';
+import { ICrudRightsFieldInfo, ICrudRightsInfo, LoginDto } from '../crud/model/dtos';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { LRUCache } from 'mnemonist';
 import { _utils } from '../utils';
 import { CrudTransformer, IFieldMetadata } from './transform/CrudTransformer';
 import { CrudValidationPipe } from './transform/CrudValidationPipe';
-import { FindResponseDto } from '../../shared/FindResponseDto';
+import { FindResponseDto, LoginResponseDto } from '../../shared/interfaces';
 import { CrudRole } from './model/CrudRole';
 
 export class LimitOptions {
