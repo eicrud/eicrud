@@ -15,7 +15,7 @@ import { LimitOptions } from "./crud.controller";
 import { CrudDbAdapter } from "./dbAdapter/crudDbAdapter";
 
 
-export interface SecurityCacheManager {
+export interface CrudCache {
     get: (key: string) => Promise<any>;
     set: (key: string, value: any, ttl: number) => Promise<any>;
 }
@@ -85,7 +85,7 @@ export class CrudConfigService {
     guest_role: string = "guest" 
     public rolesMap: Record<string, CrudRole> = {};
 
-    cacheManager: SecurityCacheManager;
+    cacheManager: CrudCache;
 
     public userService: CrudUserService<any>;
     public logService: LogService;
@@ -104,7 +104,7 @@ export class CrudConfigService {
         captchaService?: any,
         emailService: EmailService,
         jwtSecret: string,
-        cacheManager: SecurityCacheManager,
+        cacheManager: CrudCache,
         authenticationOptions?: Partial<AuthenticationOptions>,
         watchTrafficOptions?: Partial<TrafficWatchOptions>,
         defaultCacheOptions?: Partial<CacheOptions>,

@@ -7,7 +7,7 @@ import { CrudContext } from './model/CrudContext';
 
 import { CrudUser } from '../user/model/CrudUser';
 import { CrudUserService } from '../user/crud-user.service';
-import { CRUD_CONFIG_KEY, CacheOptions, CrudConfigService, MicroServiceConfig, MicroServicesOptions } from './crud.config.service';
+import { CRUD_CONFIG_KEY, CacheOptions, CrudConfigService, MicroServiceConfig, MicroServicesOptions, CrudCache } from './crud.config.service';
 import { ModuleRef } from '@nestjs/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { CrudTransformer } from './transform/CrudTransformer';
@@ -61,6 +61,7 @@ export class CrudService<T extends CrudEntity> {
     protected crudConfig: CrudConfigService;
     public dbAdapter: CrudDbAdapter;
     protected crudAuthorization: CrudAuthorizationService;
+    cacheManager: CrudCache;
 
     constructor(
         protected moduleRef: ModuleRef,
@@ -70,6 +71,7 @@ export class CrudService<T extends CrudEntity> {
             cacheOptions?: CacheOptions,
             entityManager?: EntityManager,
             dbAdapter?: CrudDbAdapter,
+            cacheManager?: CrudCache,
         }
     ) {
         this.serviceName = CrudService.getName(entity);
@@ -83,6 +85,8 @@ export class CrudService<T extends CrudEntity> {
         this.dbAdapter = this.config?.dbAdapter || this.crudConfig.dbAdapter;
         this.dbAdapter.setConfigService(this.crudConfig);
         this.crudConfig.addService(this);
+
+        this.cacheManager = this.config?.cacheManager || this.crudConfig.cacheManager;
 
         this.security.cmdSecurityMap = this.security.cmdSecurityMap || {} as any;
         this.security.cmdSecurityMap['getRights'] = this.security.cmdSecurityMap['getRights'] || {} as any;
@@ -298,7 +302,7 @@ export class CrudService<T extends CrudEntity> {
     }
 
     getCacheKey(entity: Partial<T>) {
-        return this.entity?.toString() + entity[this.crudConfig.id_field].toString();
+        return this.serviceName + '_' + entity[this.crudConfig.id_field].toString();
     }
 
     async $findOne(entity: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
@@ -316,18 +320,18 @@ export class CrudService<T extends CrudEntity> {
         this.checkObjectForIds(entity);
 
         let cacheKey = this.getCacheKey(entity);
-        const cached = await this.crudConfig.cacheManager.get(cacheKey);
+        const cached = await this.cacheManager.get(cacheKey);
         if (cached) {
             return cached;
         }
         const result = await this.$findOne(entity, ctx, inheritance);
-        this.crudConfig.cacheManager.set(cacheKey, result, this.CACHE_TTL);
+        this.cacheManager.set(cacheKey, result, this.CACHE_TTL);
         return result;
     }
 
     async $setCached(entity: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
         let cacheKey = this.getCacheKey(entity);
-        this.crudConfig.cacheManager.set(cacheKey, entity, this.CACHE_TTL);
+        this.cacheManager.set(cacheKey, entity, this.CACHE_TTL);
         return entity;
     }
 
