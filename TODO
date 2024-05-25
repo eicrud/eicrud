@@ -38,3 +38,5 @@
 [x] cli generate cmds
 
 [x] move defineCMDAbility
+
+[ ] change controller route (:service) & proxy request

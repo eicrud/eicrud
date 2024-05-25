@@ -1,32 +1,27 @@
 import { EntityManager, MikroORM } from "@mikro-orm/core";
 import { Injectable } from "@nestjs/common";
-import { BasicMemoryCache } from "../../core/authentification/auth.utils";
-import { CrudConfigService } from "../../core/crud/crud.config.service";
-import { CrudRole } from "../../core/crud/model/CrudRole";
-import { MongoDbAdapter } from "../../db_mongo/mongoDbAdapter";
-import { PostgreDbAdapter } from "../../db_postgre/postgreDbAdapter";
-import { MyEmailService } from "../../test/myemail.service";
-import { MyUserService } from "../../test/myuser.service";
+import { BasicMemoryCache } from "../core/authentification/auth.utils";
+import { CrudConfigService } from "../core/crud/crud.config.service";
+import { EmailService } from "services/email/email.service";
+import { UserService } from "services/user/user.service";
 import { tk_db_adapter } from tk_db_adapter_path
+import { roles } from "./roles";
 
-const roles: CrudRole[] = [
-    { name: 'guest' },
-]
 
 @Injectable()
 export class MyConfigService extends CrudConfigService {
 
     constructor(
-        public userService: MyUserService,
+        public userService: UserService,
         public entityManager: EntityManager,
-        public emailService: MyEmailService,
+        public emailService: EmailService,
         protected orm: MikroORM
     ) {
         super({
             userService,
             entityManager,
             emailService,
-            jwtSecret: process.env.JWT_SECRET || tk_jwt_secret,
+            jwtSecret: process.env.JWT_SECRET,
             cacheManager: new BasicMemoryCache(),
             orm,
             id_field: 'id',

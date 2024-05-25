@@ -11,7 +11,7 @@ export class Generate {
             case 'cmd':
                 return Generate.cmd(name, cmd);
             case 'service':
-                return Generate.service(name);
+                return Generate.service(name, (this as any).opts());
             default:
                 return Promise.resolve();
         }
@@ -42,7 +42,7 @@ export class Generate {
         });
     }
 
-    static service(name): Promise<any> {
+    static service(name, options?): Promise<any> {
   
         //console.log('Generating service', name);
 
@@ -71,7 +71,7 @@ export class Generate {
             fs.copyFileSync(templateIndex, indexFile);
         }
 
-        const cmdsFile = `./src/services/cmds.ts`;
+        const cmdsFile = dir + `/cmds.ts`;
         if (!fs.existsSync(cmdsFile)){
             const templateIndex = `${template_folder}/cmds.ts`;
             fs.copyFileSync(templateIndex, cmdsFile);
@@ -101,16 +101,21 @@ export class Generate {
                 },
                 error: 'Could not find CRUDServices array in index file'
             },     
-            {
-                regex: /export[ ]{1,}const[ ]{1,}CRUDEntities[ ]{1,}=[ ]{1,}\[([^\]]*)\]/,
-                getReplaceString: (array) => {
-                    let rep = array.trim()
-                    rep = rep ? '    ' + rep + '\n' : ''
-                    return `export const CRUDEntities = [\n    ${name},\n${rep}]`;
-                },
-                error: 'Could not find CRUDEntities array in index file'
-            },
         ]
+
+        if(!options?.nonCrud) {
+            replaces.push(
+                {
+                    regex: /export[ ]{1,}const[ ]{1,}CRUDEntities[ ]{1,}=[ ]{1,}\[([^\]]*)\]/,
+                    getReplaceString: (array) => {
+                        let rep = array.trim()
+                        rep = rep ? '    ' + rep + '\n' : ''
+                        return `export const CRUDEntities = [\n    ${name},\n${rep}]`;
+                    },
+                    error: 'Could not find CRUDEntities array in index file'
+                }
+            )
+        }
 
         for(let replace of replaces) {
             content = _utils_cli.addNewLineToMatched(content, replace.regex, replace.getReplaceString, replace.error);
@@ -235,6 +240,11 @@ export class Generate {
 
         const servicePath = `./src/services/${keys.tk_entity_lname}/${keys.tk_entity_lname}.service.ts`;
         let serviceFileContent = fs.readFileSync(servicePath, 'utf8');
+
+
+        if(!serviceFileContent.includes('GENERATED START')) {
+            throw new Error('Could not find "// GENERATED START - do not remove" in service file');
+        }
 
         const [before, rest, after] = serviceFileContent.split(/GENERATED START(.+)/);
 

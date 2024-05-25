@@ -14,7 +14,12 @@ program.command('generate')
   .argument('<type>', 'service, cmd')
   .argument('<serviceName>')
   .argument('[cmdName]')
-  .action(Generate.action);
+  .option('-n, --non-crud', 'will not create a DB table for this service')
+  .action(
+    function() {
+      return Generate.action.apply(this, this.args)
+    }
+  );
 
 program.command('setup')
   .description('Setup new project (adapt an existing nestjs application)')
