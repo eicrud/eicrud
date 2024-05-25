@@ -139,7 +139,7 @@ export class CrudController {
         }
     }
 
-    @Post('batch')
+    @Post('s/:service/batch')
     async _batchCreate(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() newEntities: any[], @Context() ctx: CrudContext) {
         const currentService = await this.assignContext('POST', query, null, newEntities, 'crud', ctx);
         ctx.isBatch = true;
@@ -408,7 +408,6 @@ export class CrudController {
         return ret as LoginResponseDto;
     }
 
-
     @Post('auth')
     async login(@Body(new CrudValidationPipe()) data: LoginDto, @Context() ctx: CrudContext) {
 
@@ -483,8 +482,6 @@ export class CrudController {
         }
 
     }
-
-
 
     addCountToCmdMap(ctx: CrudContext, ct) {
         if (this.crudConfig.userService.notGuest(ctx?.user)) {
