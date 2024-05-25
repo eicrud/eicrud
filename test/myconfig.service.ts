@@ -56,26 +56,28 @@ msOptions.microServices = {
         openBackDoor: false,
         openController: true,
         url: "http://localhost:3004",
-        allowNonSecureUrl: true
+        allowNonSecureUrl: true,
+        proxyCrudController: process.env.TEST_CRUD_PROXY ? true : false,
+        proxyAuthTo: process.env.TEST_CRUD_PROXY ? 'user' : undefined
     },
     "user": {
         services: [MyUser],
         openBackDoor: true,
-        openController: false,
+        openController: process.env.TEST_CRUD_PROXY ? true : false,
         url: "http://localhost:3005",
         allowNonSecureUrl: true
     },
     "melon": {
         services: [Melon, UserProfile, Picture],
         openBackDoor: true,
-        openController: false,
+        openController: process.env.TEST_CRUD_PROXY ? true : false,
         url: "http://localhost:3006",
         allowNonSecureUrl: true
     },
     "email": {
         services: [FakeEmail],
         openBackDoor: true,
-        openController: false,
+        openController: process.env.TEST_CRUD_PROXY ? true : false,
         url: "http://localhost:3007",
         allowNonSecureUrl: true
     }
