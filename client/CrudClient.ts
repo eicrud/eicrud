@@ -171,7 +171,7 @@ export class CrudClient<T> {
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
-    const url = this.url + "/crud/one";
+    const url = this.url + "/crud/s/" + this.serviceName + "/one";
 
     const res = await this._tryOrLogout(axios.get, 1, url, { params: crudQuery, headers: this._getHeaders() });
 
@@ -184,7 +184,7 @@ export class CrudClient<T> {
       options: options,
       query: JSON.stringify(query)
     }
-    const url = this.url + "/crud/many";
+    const url = this.url + "/crud/s/" + this.serviceName + "/many";
 
     const fetchFunc = async (crdQuery: CrudQuery) => {
       return await this._tryOrLogout(axios.get, 1, url, { params: crdQuery, headers: this._getHeaders() });
@@ -208,7 +208,7 @@ export class CrudClient<T> {
       addToQuery = q;
     }
 
-    const url = this.url + "/crud/in";
+    const url = this.url + "/crud/s/" + this.serviceName + "/in";
 
     const batchFunc = async (chunk: any[]) => {
       const newCrudQuery: CrudQuery = {
@@ -232,7 +232,7 @@ export class CrudClient<T> {
       options: options,
       query: JSON.stringify(query)
     }
-    const url = this.url + "/crud/ids";
+    const url = this.url + "/crud/s/" + this.serviceName + "/ids";
     
     const fetchFunc = async (crdQ: CrudQuery) => {
       return await this._tryOrLogout(axios.get, 1, url, { params: crdQ, headers: this._getHeaders() });
@@ -247,7 +247,7 @@ export class CrudClient<T> {
       options: options,
       cmd: cmdName
     }
-    const url = this.url + "/crud/cmd";
+    const url = this.url + "/crud/s/" + this.serviceName + "/cmd";
 
     const method = secure ? axios.post : axios.get;
 
@@ -314,7 +314,7 @@ export class CrudClient<T> {
       query: JSON.stringify(query)
     }
 
-    const url = this.url + "/crud/one";
+    const url = this.url + "/crud/s/" + this.serviceName + "/one";
 
     const res = await this._tryOrLogout(axios.patch, 2, url, data, { params: crudQuery, headers: this._getHeaders() });
 
@@ -328,7 +328,7 @@ export class CrudClient<T> {
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
-    const url = this.url + "/crud/many";
+    const url = this.url + "/crud/s/" + this.serviceName + "/many";
 
     const res = await this._tryOrLogout(axios.patch, 2, url, data, { params: crudQuery, headers: this._getHeaders() });
 
@@ -336,7 +336,7 @@ export class CrudClient<T> {
   }
 
   async patchIn(q: any[] | object, data: any, options: CrudOptions = undefined, copts: ClientOptions = {}): Promise<FindResponseDto<T>> {
-    const url = this.url + "/crud/in";
+    const url = this.url + "/crud/s/" + this.serviceName + "/in";
     let ids = [];
     let addToQuery = {}
     if(Array.isArray(q)){
@@ -390,7 +390,7 @@ export class CrudClient<T> {
   }
 
   async _patchBatch(datas: { query: any, data: any }[], batchSize = 5000, options: CrudOptions = undefined): Promise<T[]> {
-    const url = this.url + "/crud/batch";
+    const url = this.url + "/crud/s/" + this.serviceName + "/batch";
 
     const crudQuery: CrudQuery = {
       service: this.serviceName,
@@ -440,7 +440,7 @@ export class CrudClient<T> {
   }
 
   async postBatch(objects: object[], options: CrudOptions = undefined, copts: ClientOptions = {}): Promise<T[]> {
-    const url = this.url + "/crud/batch";
+    const url = this.url + "/crud/s/" + this.serviceName + "/batch";
 
     const crudQuery: CrudQuery = {
       service: this.serviceName,
@@ -459,7 +459,7 @@ export class CrudClient<T> {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
     }
-    const url = this.url + "/crud/one";
+    const url = this.url + "/crud/s/" + this.serviceName + "/one";
 
     const res = await this._tryOrLogout(axios.post, 2, url, data, { params: crudQuery, headers: this._getHeaders() });
 
@@ -472,7 +472,7 @@ export class CrudClient<T> {
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
-    const url = this.url + "/crud/one";
+    const url = this.url + "/crud/s/" + this.serviceName + "/one";
 
     const res = await this._tryOrLogout(axios.delete, 1, url, { params: crudQuery, headers: this._getHeaders() });
 
@@ -486,7 +486,7 @@ export class CrudClient<T> {
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
-    const url = this.url + "/crud/many";
+    const url = this.url + "/crud/s/" + this.serviceName + "/many";
 
     const res = await this._tryOrLogout(axios.delete, 1, url, { params: crudQuery, headers: this._getHeaders() });
 
@@ -498,7 +498,7 @@ export class CrudClient<T> {
       service: this.serviceName,
       options: JSON.stringify(options) as any,
     }
-    const url = this.url + "/crud/in";
+    const url = this.url + "/crud/s/" + this.serviceName + "/in";
     
     const batchFunc = async (chunk: any[]) => {
       const newCrudQuery: CrudQuery = {
@@ -519,7 +519,7 @@ export class CrudClient<T> {
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
-    const url = this.url + "/crud/many";
+    const url = this.url + "/crud/s/" + this.serviceName + "/many";
 
     const res = await this._tryOrLogout(axios.delete, 1, url, { params: crudQuery, headers: this._getHeaders() });
 

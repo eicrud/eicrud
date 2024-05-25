@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
+import { Allow, IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
 import { CrudOptions } from "./CrudOptions";
 import { $Type, $Transform, $MaxSize } from "../core/crud/transform/decorators";
 import { _utils } from "../core/utils";
@@ -6,7 +6,7 @@ import { _utils } from "../core/utils";
 
 export class CrudQuery {
 
-    @IsString()
+    @Allow()
     service: string;
 
     @IsOptional()

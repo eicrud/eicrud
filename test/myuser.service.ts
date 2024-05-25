@@ -19,13 +19,33 @@ class CallTestCmdDto {
     returnMessage: string;
 }
 
+
 const cmdSecurityMap: Record<string, CmdSecurity> = {
     'callTestCmd': {
-        dto: CallTestCmdDto
+        dto: CallTestCmdDto,
+         rolesRights: {
+            guest: {
+                async defineCMDAbility(can, cannot, ctx) {
+                    can('callTestCmd', 'my-user');
+                }
+            }
+        },
+    },
+    [baseCmds.createAccount.name]: {
+        dto: baseCmds.createAccount.dto,
+        rolesRights: {
+            guest: {
+                async defineCMDAbility(can, cannot, ctx) {
+                    can(baseCmds.createAccount.name, 'my-user', { role: 'user' });
+                }
+            }
+        },
     }
+
+    
 }
 
-const myUserSecurity = (USER) => {
+const myUserSecurity = (USER): CrudSecurity => {
     return {
 
         cmdSecurityMap,
@@ -42,17 +62,12 @@ const myUserSecurity = (USER) => {
 
             },
             guest: {
-                async defineCMDAbility(can, cannot, ctx) {
-                    const createAccount = baseCmds.createAccount.name;
-                    can(createAccount, USER, { role: 'user' });
 
-                    can('callTestCmd', USER);
-                }
             }
         },
 
 
-    } as CrudSecurity
+    } 
 }
 
 

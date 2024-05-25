@@ -11,7 +11,7 @@ export function getSecurity(tk_entity_uname: string): CrudSecurity {
         },
 
         cmdSecurityMap: Object.keys(serviceCmds).reduce((acc, cmd) => {
-            acc[cmd] = serviceCmds[cmd].getCmdSecurity(cmd); return acc;
+            acc[cmd] = serviceCmds[cmd].getCmdSecurity(cmd, tk_entity_uname); return acc;
         }, {})
     }
 }
