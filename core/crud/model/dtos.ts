@@ -1,12 +1,13 @@
 import { IsString, IsOptional, IsBoolean } from "class-validator";
-import { $Transform } from "../core/crud/transform/decorators";
+import { $Transform } from "../transform/decorators";
+import { ILoginDto } from "../../../shared/interfaces";
 
 
 export class UserIdDto {
     @IsString()
     userId: string;
 }
-export class LoginDto {
+export class LoginDto implements ILoginDto {
     @IsString()
     @$Transform((value) => {
        return value.toLowerCase().trim()
@@ -23,12 +24,6 @@ export class LoginDto {
     @IsOptional()
     @IsString()
     expiresIn?: string;
-}
-
-export class LoginResponseDto {
-    userId: string;
-    accessToken?: string;
-    refreshTokenSec?: number;
 }
 
 export interface ICrudRightsFieldInfo {

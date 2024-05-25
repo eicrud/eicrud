@@ -37,3 +37,5 @@ lerna-debug.log*
 docs/api/
 docs/Ξ Api/
 src/
+*.npmrc
+**/node_modules/**

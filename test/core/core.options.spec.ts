@@ -7,7 +7,7 @@ import { CrudAuthService } from '../../core/authentification/auth.service';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
-import { CrudQuery } from '../../shared/CrudQuery';
+import { CrudQuery } from '../../core/crud/model/CrudQuery';
 import { createAccountsAndProfiles, createMelons, createNewProfileTest, testMethod } from '../test.utils';
 import { MyProfileService, TestCmdDto } from '../profile.service';
 import { Melon } from '../entities/Melon';
@@ -16,7 +16,7 @@ import { TestUser } from '../test.utils';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/crud/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
-import { CrudOptions } from '../../shared/CrudOptions';
+import { CrudOptions } from '../../core/crud/model/CrudOptions';
 
 
 const testAdminCreds = {

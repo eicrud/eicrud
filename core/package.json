@@ -1,0 +1,34 @@
+{
+  "name": "@eicrud/core",
+  "version": "0.1.0",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@casl/ability": "^6.5.0",
+    "@fastify/reply-from": "^9.7.0",
+    "@mikro-orm/core": "^6.1.12",
+    "@mikro-orm/mongodb": "^6.1.12",
+    "@mikro-orm/nestjs": "^5.2.3",
+    "@mikro-orm/postgresql": "^6.1.12",
+    "@nestjs/cache-manager": "^2.2.1",
+    "@nestjs/common": "^10.3.6",
+    "@nestjs/core": "^10.3.6",
+    "@nestjs/jwt": "^10.2.0",
+    "@nestjs/platform-fastify": "^10.3.6",
+    "@nestjs/schedule": "^4.0.1",
+    "axios": "^1.6.8",
+    "bcrypt": "^5.1.1",
+    "cache-manager": "^5.4.0",
+    "class-validator": "^0.14.1",
+    "js-cookie": "^3.0.5",
+    "lru-cache": "^10.2.0",
+    "mnemonist": "^0.39.8",
+    "reflect-metadata": "^0.2.1",
+    "wildcard": "^2.0.1"
+  }
+}

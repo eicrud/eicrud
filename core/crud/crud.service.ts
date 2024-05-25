@@ -11,14 +11,14 @@ import { CRUD_CONFIG_KEY, CacheOptions, CrudConfigService, MicroServiceConfig, M
 import { ModuleRef } from '@nestjs/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { CrudTransformer } from './transform/CrudTransformer';
-import { BackdoorQuery } from '../../shared/CrudQuery';
+import { BackdoorQuery } from '../crud/model/CrudQuery';
 import axios from 'axios';
 import { CrudDbAdapter } from './dbAdapter/crudDbAdapter';
-import { FindResponseDto } from '../../shared/FindResponseDto';
+import { FindResponseDto } from '../../shared/interfaces';
 import { CrudAuthorizationService } from './crud.authorization.service';
 import { _utils } from '../utils';
 import { CrudRole } from './model/CrudRole';
-import { GetRightDto, ICrudRightsFieldInfo, ICrudRightsInfo } from '../../shared/dtos';
+import { GetRightDto, ICrudRightsFieldInfo, ICrudRightsInfo } from '../crud/model/dtos';
 import { IsBoolean, IsOptional } from 'class-validator';
 
 const NAMES_REGEX = /([^\s,]+)/g;
