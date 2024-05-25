@@ -180,13 +180,13 @@ export class CrudAuthorizationService {
         return problemField;
     }
 
-    async recursCheckRolesAndParents(role: CrudRole, ctx: CrudContext, fields: string[], security: CrudSecurity, result: SecurityResult = { checkedRoles: [], authorized: false }): SecurityResult {
+    async recursCheckRolesAndParents(role: CrudRole, ctx: CrudContext, fields: string[], security: CrudSecurity, result: SecurityResult = { checkedRoles: [], authorized: false }): Promise<SecurityResult> {
         const roleRights = security.rolesRights[role.name];
         let currentResult: RoleResult = null;
         if (!roleRights) {
             currentResult = { roleName: role.name, problemField: 'all' };
         }else{
-            const userAbilities = defineAbility(async (can, cannot) => {
+            const userAbilities = await defineAbility(async (can, cannot) => {
 
                 if (ctx.origin == "crud") {
                     await roleRights.defineCRUDAbility?.(can, cannot, ctx);
@@ -208,7 +208,7 @@ export class CrudAuthorizationService {
        
 
         if (!currentResult && ctx.options) {
-            const userOptionsAbilities = defineAbility(async (can, cannot) => {
+            const userOptionsAbilities = await defineAbility(async (can, cannot) => {
                 await roleRights.defineOPTAbility?.(can, cannot, ctx);
             }, {});
 

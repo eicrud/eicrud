@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpException, HttpStatus, Inject, Patch, Post, Put, Query, UnauthorizedException, forwardRef } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpException, HttpStatus, Inject, Param, Patch, Post, Put, Query, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
 import { CrudContext } from './model/CrudContext';
@@ -57,13 +57,6 @@ export class CrudController {
 
     assignContext(method: string, crudQuery: CrudQuery, query: any, data: any, type, ctx: CrudContext): CrudService<any> {
 
-        // if(method === 'PATCH' && type === 'crud'){
-        //     if(!query && data?.[this.crudConfig.id_field]){
-        //         query = { [this.crudConfig.id_field]: data[this.crudConfig.id_field] };
-        //     }
-        //     delete data?.[this.crudConfig.id_field];
-        // }
-
         const currentService: CrudService<any> = this.crudConfig.servicesMap[crudQuery?.service];
         this.checkServiceNotFound(currentService, crudQuery);
         ctx.method = method
@@ -73,7 +66,7 @@ export class CrudController {
         ctx.options = crudQuery.options;
         ctx.origin = type;
 
-        ctx.authCache = ctx.authCache || {};
+        ctx._temp = ctx._temp || {};
 
         ctx.getCurrentService = () => currentService;
 
@@ -124,8 +117,9 @@ export class CrudController {
         }
     }
 
-    @Post('one')
-    async _create(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() newEntity: any, @Context() ctx: CrudContext) {
+    @Post('s/:service/one')
+    async _create(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Body() newEntity: any, @Context() ctx: CrudContext) {
+        query.service = service;
         const currentService = await this.assignContext('POST', query, newEntity, newEntity, 'crud', ctx);
         try {
 
@@ -144,7 +138,8 @@ export class CrudController {
     }
 
     @Post('s/:service/batch')
-    async _batchCreate(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() newEntities: any[], @Context() ctx: CrudContext) {
+    async _batchCreate(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Body() newEntities: any[], @Context() ctx: CrudContext) {
+        query.service = service;
         const currentService = await this.assignContext('POST', query, null, newEntities, 'crud', ctx);
         ctx.isBatch = true;
         try {
@@ -173,18 +168,20 @@ export class CrudController {
         }
     }
 
-    @Post('cmd')
-    async _secureCMD(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    @Post('s/:service/cmd')
+    async _secureCMD(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Body() data, @Context() ctx: CrudContext) {
+        query.service = service;
         return this.subCMD(query, data, ctx, 'POST');
     }
 
-    @Patch('cmd')
-    async _unsecureCMD(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    @Patch('s/:service/cmd')
+    async _unsecureCMD(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Body() data, @Context() ctx: CrudContext) {
+        query.service = service;
         return this.subCMD(query, data, ctx, 'PATCH');
     }
 
 
-    async subCMD(query: CrudQuery,data, ctx: CrudContext, METHOD: string) {
+    async subCMD(query: CrudQuery, data, ctx: CrudContext, METHOD: string) {
             const currentService = await this.assignContext(METHOD, query, data, data, 'cmd', ctx);
             try {
                 const cmdSecurity: CmdSecurity = currentService.security?.cmdSecurityMap?.[ctx.cmdName];
@@ -199,8 +196,9 @@ export class CrudController {
             }
     }
 
-    @Get('many')
-    async _find(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
+    @Get('s/:service/many')
+    async _find(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Context() ctx: CrudContext) {
+        query.service = service;
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
             return await this.subFind(query, ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY, currentService);
@@ -209,8 +207,8 @@ export class CrudController {
         }
     }
 
-    @Get('ids')
-    async _findIds(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
+    @Get('s/:service/ids')
+    async _findIds(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Context() ctx: CrudContext) {
         query.options = query.options || {};
         query.options.fields = [this.crudConfig.id_field as any];
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
@@ -233,8 +231,9 @@ export class CrudController {
 
 
 
-    @Get('in')
-    async _findIn(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
+    @Get('s/:service/in')
+    async _findIn(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Context() ctx: CrudContext) {
+        query.service = service;
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
             this.limitQuery(ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
@@ -254,8 +253,9 @@ export class CrudController {
 
     }
 
-    @Get('one')
-    async _findOne(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
+    @Get('s/:service/one')
+    async _findOne(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Context() ctx: CrudContext) {
+        query.service = service;
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -267,8 +267,9 @@ export class CrudController {
         }
     }
 
-    @Delete('one')
-    async _delete(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
+    @Delete('s/:service/one')
+    async _delete(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Context() ctx: CrudContext) {
+        query.service = service;
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -281,8 +282,9 @@ export class CrudController {
         }
     }
 
-    @Delete('many')
-    async _deleteMany(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
+    @Delete('s/:service/many')
+    async _deleteMany(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Context() ctx: CrudContext) {
+        query.service = service;
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -295,8 +297,9 @@ export class CrudController {
         }
     }
 
-    @Delete('in')
-    async _deleteIn(@Query(new CrudValidationPipe()) query: CrudQuery, @Context() ctx: CrudContext) {
+    @Delete('s/:service/in')
+    async _deleteIn(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Context() ctx: CrudContext) {
+        query.service = service;
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
             const ids = ctx.query?.[this.crudConfig.id_field];
@@ -315,8 +318,9 @@ export class CrudController {
         }
     }
 
-    @Patch('one')
-    async _patchOne(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    @Patch('s/:service/one')
+    async _patchOne(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Body() data, @Context() ctx: CrudContext) {
+        query.service = service;
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
         if(!query.query || !data){
             throw new BadRequestException("Query and data are required for PATCH one.");
@@ -331,8 +335,9 @@ export class CrudController {
         }
     }
 
-    @Patch('in')
-    async _patchIn(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    @Patch('s/:service/in')
+    async _patchIn(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Body() data, @Context() ctx: CrudContext) {
+        query.service = service;
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
         try {
             const ids = ctx.query?.[this.crudConfig.id_field];
@@ -350,8 +355,9 @@ export class CrudController {
         }
     }
 
-    @Patch('many')
-    async _patchMany(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data, @Context() ctx: CrudContext) {
+    @Patch('s/:service/many')
+    async _patchMany(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Body() data, @Context() ctx: CrudContext) {
+        query.service = service;
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
@@ -363,8 +369,9 @@ export class CrudController {
         }
     }
 
-    @Patch('batch')
-    async _batchPatch(@Query(new CrudValidationPipe()) query: CrudQuery, @Body() data: any[], @Context() ctx: CrudContext) {
+    @Patch('s/:service/batch')
+    async _batchPatch(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Body() data: any[], @Context() ctx: CrudContext) {
+        query.service = service;
         const currentService = await this.assignContext('PATCH', query, null, null, 'crud', ctx);
         ctx.isBatch = true;
         try {

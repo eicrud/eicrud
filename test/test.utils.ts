@@ -49,10 +49,11 @@ export function testMethod(arg: { app: NestFastifyApplication,
       headers['Authorization'] = `Basic ${Buffer.from(`${arg.basicAuth.username}:${arg.basicAuth.password}`).toString('base64')}`;
     }
     const query = new URLSearchParams(arg.query as any).toString();
+    const url = ['/auth', '/backdoor'].some(r=> arg.url.includes(r)) ? arg.url : '/crud/s/' + arg.query.service + arg.url.replace('/crud', '');
     return arg.app
       .inject({
         method: arg.method as any,
-        url: arg.url,
+        url,
         headers,
         payload: arg.payload,
         query,

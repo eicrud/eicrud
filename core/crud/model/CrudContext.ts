@@ -25,7 +25,12 @@ export interface CrudContext {
     url?: string;
     currentMs?: string;
     backdoorGuarded?: boolean;
-    authCache?: object;
+    /**
+     * Temp object that will not be serialized to backdoors, set to {} for every request
+     * @UsageNotes You can use it to cache data during authorization process (useful for batch operations)
+     * @type {object}
+     */
+    _temp?: object;
     getCurrentService?: () => CrudService<any>;
     getRequest?: () => any;
 }

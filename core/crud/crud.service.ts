@@ -188,6 +188,7 @@ export class CrudService<T extends CrudEntity> {
                 ...args[ctxPos],
                 em: undefined,
                 noFlush: undefined,
+                _temp: undefined,
 
             } as CrudContext;
 
@@ -302,7 +303,7 @@ export class CrudService<T extends CrudEntity> {
     }
 
     getCacheKey(entity: Partial<T>) {
-        return this.serviceName + '_' + entity[this.crudConfig.id_field].toString();
+        return this.serviceName + '_one_' + entity[this.crudConfig.id_field].toString();
     }
 
     async $findOne(entity: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
