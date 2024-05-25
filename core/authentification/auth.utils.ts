@@ -4,7 +4,7 @@ import { Reflector } from '@nestjs/core';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { CrudSecurity } from '../crud/model/CrudSecurity';
 import { CrudContext } from '../crud/model/CrudContext';
-import { SecurityCacheManager } from '../crud/crud.config.service';
+import { CrudCache } from '../crud/crud.config.service';
 import { LRUCache } from 'lru-cache'
 import { CrudUser } from '../user/model/CrudUser';
 
@@ -21,7 +21,7 @@ export const Context = createParamDecorator(
   },
 );
 
-export class BasicMemoryCache implements SecurityCacheManager {
+export class BasicMemoryCache implements CrudCache {
   cache: LRUCache<string, CrudUser>;
 
   constructor(size = 10000) {

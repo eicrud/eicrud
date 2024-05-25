@@ -73,6 +73,10 @@ export class CrudController {
         ctx.options = crudQuery.options;
         ctx.origin = type;
 
+        ctx.authCache = ctx.authCache || {};
+
+        ctx.getCurrentService = () => currentService;
+
         if (ctx.origin == 'cmd') {
             ctx.cmdName = crudQuery.cmd;
         }

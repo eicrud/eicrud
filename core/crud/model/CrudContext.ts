@@ -3,6 +3,7 @@ import { CrudOptions } from "../../../shared/CrudOptions";
 import { CrudUser } from "../../user/model/CrudUser";
 import { CrudSecurity } from "./CrudSecurity";
 import { CrudConfigService } from "../crud.config.service";
+import { CrudService } from "../crud.service";
 
 export interface CrudContext {
     isBatch?: boolean;
@@ -24,5 +25,7 @@ export interface CrudContext {
     url?: string;
     currentMs?: string;
     backdoorGuarded?: boolean;
+    authCache?: object;
+    getCurrentService?: () => CrudService<any>;
     getRequest?: () => any;
 }
