@@ -53,69 +53,79 @@ export class CrudController {
     onModuleInit() {
         this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY, { strict: false })
         this.userLastLoginAttemptMap = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_TRACKED_USERS / 2);
-        this.initProxyController();
+        this._initProxyController();
     }
 
-    initProxyController(){
-        const msConfig: MicroServicesOptions = this.crudConfig.microServicesOptions;
+    _initProxyController(){
+        const msOptions: MicroServicesOptions = this.crudConfig.microServicesOptions;
 
-        const currentService = MicroServicesOptions.getCurrentService();
+        const currentMs = MicroServicesOptions.getCurrentService();
 
-        if(!currentService){
+        if(!currentMs){
             return;
         }
 
-        let ms = msConfig.microServices?.[currentService];
+        let currentMsConfig = msOptions.microServices?.[currentMs];
 
-        if(!ms){
+        if(!currentMsConfig){
+            return;
+        }
+
+        if(!currentMsConfig.proxyCrudController && !currentMsConfig.proxyAuthTo){
             return;
         }
 
         const app = this.adapterHost.httpAdapter.getInstance();
 
-        if(ms.proxyCrudController){
+        app.register(replyFrom)
+
+        if(currentMsConfig.proxyCrudController){
 
             const registered = {};
-            for(const micro in msConfig.microServices){
-                if(micro == currentService){
+            for(const micro in msOptions.microServices){
+                if(micro == currentMs){
                     continue;
                 }
-                 const other = msConfig.microServices[micro];
-                 if(!other.openController){
+                const other = msOptions.microServices[micro];
+                if(!other.openController){
                     continue;
-                 }
-                    for(const serv of other.services){
+                }
+                for(const serv of other.services){
+                        if(currentMsConfig.services.includes(serv)){
+                            continue;
+                        }
                         const name = CrudService.getName(serv);
                         if(registered[name]){
                             continue;
                         }
-                        console.log("Registering proxy for: " + name);
-                        app.register(proxy, {
-                            upstream: other.url + '/crud/s/' + name,
-                            prefix: '/crud/s/' + name,
-
-                        });
-                        registered[name] = true;
-                    }   
-               
+                        registered[name] = other.url;
+                }   
             }
 
-        }
-
-        if(ms.proxyAuthTo){
-            if(ms.proxyAuthTo != currentService){
-                const other = msConfig.microServices[ms.proxyAuthTo];
-                if(!other.openController){
-                    throw new Error("Proxy auth to service not open.");
-                }
-                // app.register(proxy, {
-                //     upstream: other.url + '/crud/auth',
-                //     prefix: '/crud/auth', 
-                //     proxyPayloads: false
-                // });
+            app.addHook('preValidation', async (request, reply) => {
                 
-            }
+                if(request.url.includes('/crud/s')){
+                    const serviceName = request.url.split('/crud/s/')[1].split('/')[0];
+                    const url = registered[serviceName];
+                    if(url){
+                        const rest = request.url.replace('/client-basic', '');
+                        request.headers['x-forwarded-for'] = request.ip;
+                        return await reply.from(url + rest);
+                    }
+                 
+                }
+                const proxyAuthTo = currentMsConfig.proxyAuthTo;
+                if(proxyAuthTo && proxyAuthTo != currentMs && request.url.includes('crud/auth')){
+                    const url = msOptions.microServices[proxyAuthTo].url;
+                    const rest = request.url.replace('/client-basic', '');
+                    request.headers['x-forwarded-for'] = request.ip;
+                    return await reply.from(url + rest);
+                }
+                
+            })
+
         }
+
 
 
     }

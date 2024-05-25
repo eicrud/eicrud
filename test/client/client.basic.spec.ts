@@ -197,6 +197,38 @@ describe('AppController', () => {
     expect(melons.total).toBe(10000);
   }, 10000);
 
+    //@Patch('many')
+  it('should find & patch many melons', async () => {
+    const user = users["Melon Many"];
+    const dto: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password
+    }
+    const myClient = getMelonClient();
+
+    await myClient.login(dto);
+
+    const melons: Melon[] = (await myClient.find({ owner: user.id })).data;
+
+    expect(melons.length).toBe(user.melons);
+
+    expect(melons[0].price).toBe(0);
+
+    const patch: Partial<Melon> = {
+      price: 136,
+    }
+
+    await myClient.patchMany({ owner: user.id }, patch);
+
+    const updatedMelons: Melon[] = (await myClient.find({ owner: user.id })).data;
+
+    expect(updatedMelons.length).toBe(user.melons);
+    for(let mel of updatedMelons) {
+      expect(mel.price).toBe(patch.price);
+    }
+
+  });
+
 
   it('should findIds & patchIn & findIn melons', async () => {
 
@@ -240,7 +272,6 @@ describe('AppController', () => {
 
   }, 8500);
 
-
   //@Patch('one')
   it('should patch one profile', async () => {
     const user = users["Jon Doe"];
@@ -263,39 +294,6 @@ describe('AppController', () => {
     expect(profile.astroSign).toBe(patch.astroSign);
 
   });
-
-  //@Patch('many')
-  it('should find & patch many melons', async () => {
-    const user = users["Melon Many"];
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password
-    }
-    const myClient = getMelonClient();
-
-    await myClient.login(dto);
-
-    const melons: Melon[] = (await myClient.find({ owner: user.id })).data;
-
-    expect(melons.length).toBe(user.melons);
-
-    expect(melons[0].price).toBe(0);
-
-    const patch: Partial<Melon> = {
-      price: 136,
-    }
-
-    await myClient.patchMany({ owner: user.id }, patch);
-
-    const updatedMelons: Melon[] = (await myClient.find({ owner: user.id })).data;
-
-    expect(updatedMelons.length).toBe(user.melons);
-    for(let mel of updatedMelons) {
-      expect(mel.price).toBe(patch.price);
-    }
-
-  });
-
 
 
 });

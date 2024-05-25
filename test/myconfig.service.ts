@@ -102,11 +102,14 @@ export class MyConfigService extends CrudConfigService {
             id_field: 'id',
             captchaService: true,
             watchTrafficOptions: {
-                ddosProtection: true,
+                userTrafficProtection: process.env.TEST_CRUD_PROXY ? false : true,
+                ddosProtection: process.env.TEST_CRUD_PROXY ? false : true,
+                useForwardedIp: process.env.TEST_CRUD_PROXY ? true : false,
             },
             dbAdapter: process.env.TEST_CRUD_DB == 'postgre' ? new PostgreDbAdapter() : new MongoDbAdapter(),
             microServicesOptions: msOptions,
         });
+        
 
         this.addRoles(roles);
     }

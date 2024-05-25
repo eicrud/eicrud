@@ -94,10 +94,12 @@ export class CrudAuthGuard implements CanActivate {
 
     const request = ctx.switchToHttp().getRequest();
     const url = request.url;
+
     const ip = this.crudConfig.watchTrafficOptions.useForwardedIp ? request.headers['x-forwarded-for'] : request.socket.remoteAddress;
     
     const msOptions = this.crudConfig.microServicesOptions;
     const currentMs = MicroServicesOptions.getCurrentService();
+
     const currentMsConfig = msOptions.microServices[currentMs];
 
     function getRequest(){
