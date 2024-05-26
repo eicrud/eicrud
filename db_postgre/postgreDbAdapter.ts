@@ -1,6 +1,6 @@
-import { CrudConfigService } from "../core/crud/crud.config.service";
-import { CrudDbAdapter } from "../core/crud/dbAdapter/crudDbAdapter";
-import { CrudContext } from "../core/crud/model/CrudContext";
+import { CrudConfigService } from "@eicrud/core/config";
+import { CrudDbAdapter } from "@eicrud/core/config";
+import { CrudContext } from "@eicrud/core/crud";
 import { MikroORM, IDatabaseDriver, Connection, EntityManager, raw, EntityClass } from "@mikro-orm/core";
 
 

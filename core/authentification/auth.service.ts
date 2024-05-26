@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { _utils } from '../utils';
-import { CRUD_CONFIG_KEY, CrudConfigService } from '../crud/crud.config.service';
+import { CRUD_CONFIG_KEY, CrudConfigService } from '../config/crud.config.service';
 import { ModuleRef } from '@nestjs/core';
 import { CrudAuthGuard } from './auth.guard';
 

@@ -1,4 +1,4 @@
-import { CrudRole } from "../../core/crud/model/CrudRole";
+import { CrudRole } from "@ecirud/core/crud";
 
 export const roles: CrudRole[] = [
     { 

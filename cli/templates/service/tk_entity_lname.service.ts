@@ -2,9 +2,9 @@ import { ModuleRef } from "@nestjs/core";
 import tk_entity_name from "./tk_entity_lname.entity";
 import { Injectable } from "@nestjs/common";
 import { getSecurity } from "./tk_entity_lname.security";
-import { CrudService } from "../../../core/crud/crud.service";
+import { CrudService } from "@eicrud/core/crud";
 import { serviceCmds } from "./cmds";
-import { CrudContext } from "../../../core/crud/model/CrudContext";
+import { CrudContext } from "@eicrud/core/crud";
 
 @Injectable()
 export class tk_entity_nameService extends CrudService<tk_entity_name> {

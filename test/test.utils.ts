@@ -2,9 +2,9 @@ import { EntityManager, ObjectId } from "@mikro-orm/mongodb";
 import { NestFastifyApplication } from "@nestjs/platform-fastify";
 import { UserProfile } from "./entities/UserProfile";
 import { Melon } from "./entities/Melon";
-import { CrudConfigService } from "../core/crud/crud.config.service";
-import { CrudUserService } from "../core/user/crud-user.service";
-import { CrudUser } from "../core/user/model/CrudUser";
+import { CrudConfigService } from "../core/config/crud.config.service";
+import { CrudUserService } from "../core/config/crud-user.service";
+import { CrudUser } from "../core/config/model/CrudUser";
 import { Picture } from "./entities/Picture";
 
 

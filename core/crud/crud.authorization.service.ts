@@ -1,12 +1,12 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { AuthUtils } from "../authentification/auth.utils";
 import { CrudContext } from "./model/CrudContext";
-import { CrudRole } from "./model/CrudRole";
+import { CrudRole } from "../config/model/CrudRole";
 import { defineAbility, subject } from "@casl/ability";
-import { CmdSecurity, CrudSecurity, CrudSecurityRights, httpAliasResolver } from "./model/CrudSecurity";
-import { CrudUserService } from "../user/crud-user.service";
-import { CRUD_CONFIG_KEY, CrudConfigService } from "./crud.config.service";
-import { CrudUser } from "../user/model/CrudUser";
+import { CmdSecurity, CrudSecurity, CrudSecurityRights, httpAliasResolver } from "../config/model/CrudSecurity";
+import { CrudUserService } from "../config/crud-user.service";
+import { CRUD_CONFIG_KEY, CrudConfigService } from "../config/crud.config.service";
+import { CrudUser } from "../config/model/CrudUser";
 import { ModuleRef } from "@nestjs/core";
 import { _utils } from "../utils";
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
@@ -23,8 +23,6 @@ export class CrudAuthorizationService {
     ) {
 
     }
-
-
 
     onModuleInit() {
         this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY, { strict: false })

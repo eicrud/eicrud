@@ -1,6 +1,6 @@
 import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
 import { IsString, IsOptional } from "class-validator";
-import { CrudEntity } from "../../../core/crud/model/CrudEntity";
+import { CrudEntity } from "@eicrud/core/crud";
 
 
 @Entity()

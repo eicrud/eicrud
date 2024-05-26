@@ -12,14 +12,14 @@ import {
 
 import { CrudContext } from '../crud/model/CrudContext';
 
-import { CrudUser } from '../user/model/CrudUser';
+import { CrudUser } from '../config/model/CrudUser';
 
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { CRUD_CONFIG_KEY, CrudConfigService, MicroServicesOptions } from '../crud/crud.config.service';
+import { CRUD_CONFIG_KEY, CrudConfigService, MicroServicesOptions } from '../config/crud.config.service';
 import { LogType } from '../log/entities/log';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { CrudOptions } from '../crud/model/CrudOptions';
-import { CrudRole } from '../crud/model/CrudRole';
+import { CrudRole } from '../config/model/CrudRole';
 import { CrudAuthService } from './auth.service';
 import { ModuleRef } from '@nestjs/core';
 import { LRUCache } from 'mnemonist';

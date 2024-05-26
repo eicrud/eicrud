@@ -4,8 +4,8 @@ import { Melon } from "./entities/Melon";
 import { MyConfigService } from "./myconfig.service";
 import { Injectable } from "@nestjs/common";
 import { CrudService } from "../core/crud/crud.service";
-import { CrudSecurity } from "../core/crud/model/CrudSecurity";
-import { CrudUser } from "../core/user/model/CrudUser";
+import { CrudSecurity } from "../core/config/model/CrudSecurity";
+import { CrudUser } from "../core/config/model/CrudUser";
 
 const melonSecurity = (MELON) => { return {
 

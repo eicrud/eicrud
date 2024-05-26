@@ -1,4 +1,4 @@
-import { CrudSecurity } from "../../../core/crud/model/CrudSecurity";
+import { CrudSecurity } from "@eicrud/core/config";
 import { serviceCmds } from "./cmds";
 
 export function getSecurity(tk_entity_uname: string): CrudSecurity { 

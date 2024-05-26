@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { ModuleRef } from "@nestjs/core";
-import { CrudService } from "../../core/crud/crud.service";
+import { CrudService } from "@eicrud/core/crud";
 import Email from "./email.entity";
 import { getSecurity } from "./email.security";
 

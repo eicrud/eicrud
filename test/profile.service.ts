@@ -2,14 +2,14 @@ import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { CrudAuthService } from "../core/authentification/auth.service";
 import { CrudAuthorizationService } from "../core/crud/crud.authorization.service";
 import { CrudService } from "../core/crud/crud.service";
-import { CmdSecurity, CrudSecurity } from "../core/crud/model/CrudSecurity";
+import { CmdSecurity, CrudSecurity } from "../core/config/model/CrudSecurity";
 import { MyConfigService } from "./myconfig.service";
 import { ModuleRef } from "@nestjs/core";
 import { UserProfile } from "./entities/UserProfile";
 import { IsOptional, IsString, MaxLength } from "class-validator";
-import { CrudUser } from "../core/user/model/CrudUser";
+import { CrudUser } from "../core/config/model/CrudUser";
 import { CrudContext } from "../core/crud/model/CrudContext";
-import { $MaxSize, $ToLowerCase, $Transform, $Type } from "../core/crud/transform/decorators";
+import { $MaxSize, $ToLowerCase, $Transform, $Type } from "../core/validation/decorators";
 
 
 class subTestCmdDto {

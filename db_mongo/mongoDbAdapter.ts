@@ -1,11 +1,10 @@
 import { Connection, IDatabaseDriver, ObjectId } from "@mikro-orm/mongodb";
-import { CrudConfigService } from "../core/crud/crud.config.service";
-import { CrudDbAdapter } from "../core/crud/dbAdapter/crudDbAdapter";
-import { CrudContext } from "../core/crud/model/CrudContext";
+import { CrudConfigService } from "@eicrud/core/config";
+import { CrudDbAdapter } from "@eicrud/core/config";
+import { CrudContext } from "@eicrud/core/crud";
 import { MikroORM, EntityManager, EntityClass } from "@mikro-orm/core";
 
 export class MongoDbAdapter extends CrudDbAdapter {
-    
     
     async onModuleInit(orm: MikroORM<IDatabaseDriver<Connection>, EntityManager<IDatabaseDriver<Connection>>>) {
         await orm.schema.ensureIndexes();

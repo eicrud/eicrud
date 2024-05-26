@@ -11,7 +11,7 @@ import { FakeEmail } from "./entities/FakeEmail";
 import { Melon } from "./entities/Melon";
 import { EICRUDModule } from "../core/eicrud.module";
 import { MelonService } from "./melon.service";
-import { CRUD_CONFIG_KEY } from "../core/crud/crud.config.service";
+import { CRUD_CONFIG_KEY } from "../core/config/crud.config.service";
 import { MyProfileService } from "./profile.service";
 import { Picture } from "./entities/Picture";
 import { NestFastifyApplication, FastifyAdapter } from "@nestjs/platform-fastify";

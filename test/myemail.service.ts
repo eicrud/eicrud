@@ -1,7 +1,7 @@
 import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { CrudService } from "../core/crud/crud.service";
-import { CrudSecurity } from "../core/crud/model/CrudSecurity";
-import { EmailService } from "../core/email/email.service";
+import { CrudSecurity } from "../core/config/model/CrudSecurity";
+import { EmailService } from "../core/config/crud-email.service";
 import { FakeEmail } from "./entities/FakeEmail";
 import { MyConfigService } from "./myconfig.service";
 import { ModuleRef } from "@nestjs/core";

@@ -1,6 +1,6 @@
 import { Allow, IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
 import { CrudOptions } from "./CrudOptions";
-import { $Type, $Transform, $MaxSize } from "../transform/decorators";
+import { $Type, $Transform, $MaxSize } from "../../validation/decorators";
 import { _utils } from "../../utils";
 import { ICrudQuery } from '@eicrud/shared/interfaces';
 

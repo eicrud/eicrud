@@ -1,5 +1,5 @@
 import { AbilityBuilder, createAliasResolver } from "@casl/ability";
-import { CrudContext } from "./CrudContext";
+import { CrudContext } from "../../crud/model/CrudContext";
 
 /**
  * Security applied to a cmd.

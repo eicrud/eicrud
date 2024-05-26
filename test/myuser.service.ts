@@ -2,14 +2,14 @@ import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { CrudAuthService } from "../core/authentification/auth.service";
 import { CrudAuthorizationService } from "../core/crud/crud.authorization.service";
 import { CrudService } from "../core/crud/crud.service";
-import { CmdSecurity, CrudSecurity } from "../core/crud/model/CrudSecurity";
-import { CrudUserService } from "../core/user/crud-user.service";
+import { CmdSecurity, CrudSecurity } from "../core/config/model/CrudSecurity";
+import { CrudUserService } from "../core/config/crud-user.service";
 import { MyUser } from "./entities/MyUser";
 import { MyConfigService } from "./myconfig.service";
 import { ModuleRef } from "@nestjs/core";
-import { baseCmds } from "../core/user/crud-user.service";
+import { baseCmds } from "../core/config/crud-user.service";
 import { IsString, MaxLength } from "class-validator";
-import { $Transform } from "../core/crud/transform/decorators";
+import { $Transform } from "../core/validation/decorators";
 import { CrudContext } from "../core/crud/model/CrudContext";
 import { MyProfileService } from "./profile.service";
 

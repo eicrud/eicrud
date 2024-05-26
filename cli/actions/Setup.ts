@@ -10,8 +10,7 @@ const __dirname = dirname(__filename);
 export class Setup {
     
     static action(type, name): Promise<any> {
-        let packages = ['@eicrud/core', '@eicrud/shared', '@mikro-orm/core', '@mikro-orm/nestjs', 'class-validator'];
-
+        let packages = ['@eicrud/core', '@eicrud/shared'];
         const allowedTypes = ['mongo', 'postgre'];
         if (!allowedTypes.includes(type)) {
             throw new Error(`Invalid type: ${type}. Allowed types: ${allowedTypes.join(', ')}`);
@@ -23,23 +22,21 @@ export class Setup {
 
         const moduleImports = [
             "import { MikroOrmModule } from '@mikro-orm/nestjs';",
-            "import { EICRUDModule } from '../../core/eicrud.module';",
+            "import { EICRUDModule } from '@eicrud/core';",
             "import { CRUDEntities } from './services/index';"
         ]
 
         const keys: any = {
             tk_db_name: `"${name.toLowerCase()}-db"`,
-            tk_db_adapter_path: type === 'mongo' ? "'../db_mongo/mongoDbAdapter'" : "'../db_postgre/postgreDbAdapter'",
+            tk_db_adapter_path: type === 'mongo' ? "'@eicrud/mongodb'" : "'@eicrud/postgresql'",
             tk_db_adapter: type === 'mongo' ? 'MongoDbAdapter' : 'PostgreDbAdapter',
         }
 
         if(type === 'mongo') {
-            packages.push('@mikro-orm/mongodb');
             packages.push('@eicrud/mongodb');
             keys.tk_orm_driver = 'MongoDriver';
             moduleImports.push("import { MongoDriver } from '@mikro-orm/mongodb';");
         }else {
-            packages.push('@mikro-orm/postgresql');
             packages.push('@eicrud/postgresql');
             keys.tk_orm_driver = 'PostgreSqlDriver';
             moduleImports.push("import { PostgreSqlDriver } from '@mikro-orm/postgresql';");
@@ -91,7 +88,7 @@ export class Setup {
         let userServiceContent = fs.readFileSync(userServicePath, 'utf8');
 
         const userServiceImports = [
-            "import { CrudUserService } from '../core/user/crud-user.service'",
+            "import { CrudUserService } from '@eicrud/core/config'",
         ]
 
         userServiceContent = userServiceImports.join('\n') + '\n' + userServiceContent
@@ -105,7 +102,7 @@ export class Setup {
         fs.copyFileSync(userTemplateFile, userPath);
         console.log('UPDATED:', userPath);
 
-        child_process.exec('npm install ' + packages.join(' ')) // or any other command which you give from terminal or command prompt
+        child_process.execSync('npm install ' + packages.join(' '), {stdio: 'inherit'}) 
 
         return null;
     }

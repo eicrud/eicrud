@@ -1,23 +1,23 @@
 import { BadRequestException, HttpException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { BaseEntity, EntityClass, EntityManager, EntityName, wrap } from '@mikro-orm/core';
-import { CrudSecurity } from './model/CrudSecurity';
+import { CrudSecurity } from '../config/model/CrudSecurity';
 import { Cache } from 'cache-manager';
 import { CrudContext } from './model/CrudContext';
 
-import { CrudUser } from '../user/model/CrudUser';
-import { CrudUserService } from '../user/crud-user.service';
-import { CRUD_CONFIG_KEY, CacheOptions, CrudConfigService, MicroServiceConfig, MicroServicesOptions, CrudCache } from './crud.config.service';
+import { CrudUser } from '../config/model/CrudUser';
+import { CrudUserService } from '../config/crud-user.service';
+import { CRUD_CONFIG_KEY, CacheOptions, CrudConfigService, MicroServiceConfig, MicroServicesOptions, CrudCache } from '../config/crud.config.service';
 import { ModuleRef } from '@nestjs/core';
 import { ObjectId } from '@mikro-orm/mongodb';
-import { CrudTransformer } from './transform/CrudTransformer';
+import { CrudTransformer } from '../validation/CrudTransformer';
 import { BackdoorQuery } from '../crud/model/CrudQuery';
 import axios from 'axios';
-import { CrudDbAdapter } from './dbAdapter/crudDbAdapter';
+import { CrudDbAdapter } from '../config/dbAdapter/crudDbAdapter';
 import { FindResponseDto } from '@eicrud/shared/interfaces';
 import { CrudAuthorizationService } from './crud.authorization.service';
 import { _utils } from '../utils';
-import { CrudRole } from './model/CrudRole';
+import { CrudRole } from '../config/model/CrudRole';
 import { GetRightDto, ICrudRightsFieldInfo, ICrudRightsInfo } from '../crud/model/dtos';
 import { IsBoolean, IsOptional } from 'class-validator';
 

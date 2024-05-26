@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsBoolean } from "class-validator";
-import { $Transform } from "../transform/decorators";
+import { $Transform } from "../../validation/decorators";
 import { ILoginDto } from '@eicrud/shared/interfaces';
 
 
