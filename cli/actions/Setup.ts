@@ -10,7 +10,7 @@ const __dirname = dirname(__filename);
 export class Setup {
     
     static action(type, name): Promise<any> {
-        let packages = ['@eicrud/core', '@eicrud/shared'];
+        let packages = ['@eicrud/core'];
         const allowedTypes = ['mongo', 'postgre'];
         if (!allowedTypes.includes(type)) {
             throw new Error(`Invalid type: ${type}. Allowed types: ${allowedTypes.join(', ')}`);
@@ -18,12 +18,12 @@ export class Setup {
 
         const templateDir = path.join(__dirname, '../templates');
 
-        const moduleTemplateFile = path.join(templateDir, 'module-imports.ts');
-
         const moduleImports = [
             "import { MikroOrmModule } from '@mikro-orm/nestjs';",
             "import { EICRUDModule } from '@eicrud/core';",
-            "import { CRUDEntities } from './services/index';"
+            "import { CRUDEntities } from './services/index';",
+            "import { CRUD_CONFIG_KEY } from '@eicrud/core/config';",
+            "import { MyConfigService } from './eicrud.config.service';",
         ]
 
         const keys: any = {
@@ -42,11 +42,20 @@ export class Setup {
             moduleImports.push("import { PostgreSqlDriver } from '@mikro-orm/postgresql';");
         }
 
+        const moduleTemplateFile = path.join(templateDir, 'module-imports.ts');
         let moduleContent = fs.readFileSync(moduleTemplateFile, 'utf8');
         for(const key in keys) {
             const value = keys[key];
             moduleContent = moduleContent.replace(new RegExp(key, 'g'), value);
         }
+
+        const providerTemplateFile = path.join(templateDir, 'module-providers.ts');
+        let providerContent = fs.readFileSync(providerTemplateFile, 'utf8');
+        for(const key in keys) {
+            const value = keys[key];
+            providerContent = providerContent.replace(new RegExp(key, 'g'), value);
+        }
+
         const modulePath = './src/app.module.ts';
 
         let content = fs.readFileSync(modulePath, 'utf8');
@@ -59,6 +68,15 @@ export class Setup {
             return `imports: [\n${moduleContent}\n${rep}  ]`
         };
         content = _utils_cli.addNewLineToMatched(content, importsReguex, getReplaceString, `Could not find imports array in ${modulePath}`);
+
+
+        const providersReguex = /providers[ ]{0,}:[ ]{1,}\[([^\]]*)\]/;
+        const getProvidersReplaceString = (array) => {
+            let rep = array.trim()
+            rep = rep ? '  ' + rep + '\n' : ''
+            return `providers: [\n${providerContent}\n${rep}  ]`
+        };
+        content = _utils_cli.addNewLineToMatched(content, providersReguex, getProvidersReplaceString, `Could not find providers array in ${modulePath}`);
 
         //write content
         fs.writeFileSync(modulePath, content);
@@ -101,6 +119,11 @@ export class Setup {
         const userPath = './src/services/user/user.entity.ts';
         fs.copyFileSync(userTemplateFile, userPath);
         console.log('UPDATED:', userPath);
+
+        const emailServiceTemplateFile = path.join(templateDir, '/email.service.ts');
+        const emailServicePath = './src/services/email/email.service.ts';
+        fs.copyFileSync(emailServiceTemplateFile, emailServicePath);
+        console.log('UPDATED:', emailServicePath);
 
         child_process.execSync('npm install ' + packages.join(' '), {stdio: 'inherit'}) 
 

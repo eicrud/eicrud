@@ -159,8 +159,7 @@ export class CrudService<T extends CrudEntity> {
     async forwardToBackdoor(args: any[], methodName: string, msConfig: MicroServiceConfig, ctxPos: number, inheritancePos: number) {
         
         
-        const query: BackdoorQuery = {
-            service: this.serviceName,
+        const query: Partial<BackdoorQuery> = {
             methodName,
             ctxPos,
             inheritancePos,
@@ -177,7 +176,7 @@ export class CrudService<T extends CrudEntity> {
             query.undefinedArgs = JSON.stringify(query.undefinedArgs);
         }
 
-        const url = msConfig.url + '/crud/backdoor';
+        const url = msConfig.url + '/crud/backdoor/' + this.serviceName;
 
         const payload = {
             args,

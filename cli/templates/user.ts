@@ -1,5 +1,5 @@
 import {  Entity, PrimaryKey, Property, Unique } from "@mikro-orm/core";
-import { CrudUser } from "@ecirud/core/config";;
+import { CrudUser } from "@eicrud/core/config";
 
 @Entity()
 export default class User implements CrudUser {
