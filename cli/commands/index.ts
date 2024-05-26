@@ -18,6 +18,7 @@ program.command('generate')
   .option('-n, --non-crud', 'will not create a DB table for this service')
   .action(
     function() {
+      // @ts-ignore
       return Generate.action.apply(this, this.args)
     }
   );

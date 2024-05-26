@@ -1,19 +1,15 @@
 {
     "name": "@eicrud/cli",
-    "version": "0.0.10",
+    "version": "0.0.11",
     "description": "cli for @eicrud framework",
     "author": "acrosett",
     "license": "UNLICENSED",
-    "type": "module",
-    "files": [
-        "dist"
-    ],
     "bin": {
         "eicrud": "./dist/commands/index.js"
     },
     "scripts": {
         "generate": "./commands/index",
-        "compile": "rimraf dist && tsc && cpx templates/** dist/templates",
+        "compile": "rimraf dist && tsc",
         "publish:package": "npm run compile && npm publish"
     },
     "devDependencies": {

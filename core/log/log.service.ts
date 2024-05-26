@@ -14,8 +14,6 @@ export const logSecurity: CrudSecurity = {
 }
 @Injectable()
 export class LogService extends CrudService<Log> {
-
-    protected crudConfig: CrudConfigService;
     
     constructor(
         protected moduleRef: ModuleRef,

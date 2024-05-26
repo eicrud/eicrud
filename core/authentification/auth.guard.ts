@@ -17,7 +17,7 @@ import { CrudUser } from '../user/model/CrudUser';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CRUD_CONFIG_KEY, CrudConfigService, MicroServicesOptions } from '../crud/crud.config.service';
 import { LogType } from '../log/entities/log';
-import { CrudErrors } from '../../shared/CrudErrors';
+import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { CrudOptions } from '../crud/model/CrudOptions';
 import { CrudRole } from '../crud/model/CrudRole';
 import { CrudAuthService } from './auth.service';

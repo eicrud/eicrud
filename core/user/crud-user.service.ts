@@ -7,13 +7,13 @@ import { CrudContext } from '../crud/model/CrudContext';
 import { CrudConfigService } from '../crud/crud.config.service';
 import { CrudAuthorizationService } from '../crud/crud.authorization.service';
 import { Loaded, Type } from '@mikro-orm/core';
-import { CrudErrors } from '../../shared/CrudErrors';
+import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
 import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { ModuleRef } from '@nestjs/core';
 import { $Transform } from '../crud/transform/decorators';
 import { UserIdDto } from '../crud/model/dtos';
-import { LoginResponseDto } from '../../shared/interfaces';
+import { LoginResponseDto } from '@eicrud/shared/interfaces';
 import * as bcrypt from 'bcrypt';
 
 

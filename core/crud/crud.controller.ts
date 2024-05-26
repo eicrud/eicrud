@@ -9,7 +9,7 @@ import { setImmediate } from "timers/promises";
 import replyFrom from '@fastify/reply-from'
 import { CRUD_CONFIG_KEY, CrudConfigService, MicroServicesOptions } from './crud.config.service';
 import { CmdSecurity } from './model/CrudSecurity';
-import { CrudErrors } from '../../shared/CrudErrors';
+import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
 import { CrudOptions } from '../crud/model/CrudOptions';
 import { HttpAdapterHost, ModuleRef } from '@nestjs/core';
@@ -19,7 +19,7 @@ import { LRUCache } from 'mnemonist';
 import { _utils } from '../utils';
 import { CrudTransformer, IFieldMetadata } from './transform/CrudTransformer';
 import { CrudValidationPipe } from './transform/CrudValidationPipe';
-import { FindResponseDto, LoginResponseDto } from '../../shared/interfaces';
+import { FindResponseDto, LoginResponseDto } from '@eicrud/shared/interfaces';
 import { CrudRole } from './model/CrudRole';
 
 export class LimitOptions {

@@ -1,6 +1,6 @@
 import { IsArray, IsInt, IsOptional, IsString } from "class-validator";
 import { $MaxSize } from "../transform/decorators";
-import { ICrudOptions } from "../../../shared/interfaces";
+import { ICrudOptions } from '@eicrud/shared/interfaces';
 
 export class CrudOptions implements ICrudOptions  {
 
