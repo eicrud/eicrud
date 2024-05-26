@@ -1,5 +1,5 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from "@nestjs/common";
-import { CrudConfigService } from "../crud.config.service";
+import { CrudConfigService } from "../config/crud.config.service";
 import { CrudTransformer, CrudTransformerConfig } from "./CrudTransformer";
 
 

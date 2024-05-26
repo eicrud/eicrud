@@ -13,7 +13,7 @@ import { MyProfileService, TestCmdDto } from '../profile.service';
 import { Melon } from '../entities/Melon';
 import { CrudService } from '../../core/crud/crud.service';
 import { TestUser } from '../test.utils';
-import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/crud/crud.config.service';
+import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/config/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
 import { CrudOptions } from '../../core/crud/model/CrudOptions';

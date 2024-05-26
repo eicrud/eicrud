@@ -9,7 +9,7 @@ import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
 import { createAccountsAndProfiles, createNewProfileTest, testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
-import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/crud/crud.config.service';
+import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/config/crud.config.service';
 import { TestUser } from '../test.utils';
 import { Picture } from '../entities/Picture';
 import { Melon } from '../entities/Melon';

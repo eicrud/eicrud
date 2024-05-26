@@ -10,10 +10,10 @@ import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
 import { createAccountsAndProfiles, createNewProfileTest, testMethod } from '../test.utils';
 import { MyProfileService } from '../profile.service';
-import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/crud/crud.config.service';
+import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/config/crud.config.service';
 import { TestUser } from '../test.utils';
 import exp from 'constants';
-import { CreateAccountDto } from '../../core/user/crud-user.service';
+import { CreateAccountDto } from '../../core/config/crud-user.service';
 
 const testAdminCreds = {
   email: "admin@testmail.com",

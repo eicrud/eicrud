@@ -2,11 +2,10 @@
 import { SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { CrudSecurity } from '../crud/model/CrudSecurity';
+import { CrudSecurity } from '../config/model/CrudSecurity';
 import { CrudContext } from '../crud/model/CrudContext';
-import { CrudCache } from '../crud/crud.config.service';
-import { LRUCache } from 'lru-cache'
-import { CrudUser } from '../user/model/CrudUser';
+import { CrudCache } from '../config/crud.config.service';
+import { CrudUser } from '../config/model/CrudUser';
 
 
 export const IS_PUBLIC_KEY = 'isPublic';
@@ -20,28 +19,6 @@ export const Context = createParamDecorator(
     return ctx;
   },
 );
-
-export class BasicMemoryCache implements CrudCache {
-  cache: LRUCache<string, CrudUser>;
-
-  constructor(size = 10000) {
-    this.cache = new LRUCache({
-      max: size,
-    });
-  }
-
-  async get(key: string){
-    return this.cache.get(key);
-  }
-
-  async set(key: string, value: any, ttl: number){
-    return this.cache.set(key, value, {
-      ttl: ttl,
-    });
-  }
-
-  
-}
 
 export class AuthUtils {
   static isPublicKey(ctx, reflector: Reflector) {

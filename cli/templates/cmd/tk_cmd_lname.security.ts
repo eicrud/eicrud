@@ -1,4 +1,4 @@
-import { CmdSecurity } from "../../../core/crud/model/CrudSecurity";
+import { CmdSecurity } from "@eicrud/core/config";
 import tk_cmd_name from "./tk_cmd_lname.action";
 import tk_cmd_dto_name from "./tk_cmd_lname.dto";
 

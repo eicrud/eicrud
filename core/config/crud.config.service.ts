@@ -1,17 +1,40 @@
 import { CrudRole } from "./model/CrudRole";
-import { CrudService } from "./crud.service";
-import { CrudUserService } from "../user/crud-user.service";
+import { CrudService } from "../crud/crud.service";
+import { CrudUserService } from "./crud-user.service";
 import { LogService } from "../log/log.service";
 import { EntityClass, EntityManager, raw } from "@mikro-orm/core";
-import { CrudContext } from "./model/CrudContext";
+import { CrudContext } from "../crud/model/CrudContext";
 import { TrafficWatchOptions, ValidationOptions } from "../authentification/auth.guard";
-import { CrudUser } from "../user/model/CrudUser";
-import { EmailService } from "../email/email.service";
+import { CrudUser } from "./model/CrudUser";
+import { EmailService } from "./crud-email.service";
 import { AuthenticationOptions } from "../authentification/auth.service";
 import { MikroORM } from "@mikro-orm/core";
-import { LimitOptions } from "./crud.controller";
+import { LimitOptions } from "../crud/crud.controller";
 import { CrudDbAdapter } from "./dbAdapter/crudDbAdapter";
+import { LRUCache } from 'lru-cache'
 
+
+export class BasicMemoryCache implements CrudCache {
+    cache: LRUCache<string, CrudUser>;
+  
+    constructor(size = 10000) {
+      this.cache = new LRUCache({
+        max: size,
+      });
+    }
+  
+    async get(key: string){
+      return this.cache.get(key);
+    }
+  
+    async set(key: string, value: any, ttl: number){
+      return this.cache.set(key, value, {
+        ttl: ttl,
+      });
+    }
+  
+    
+  }
 
 export interface CrudCache {
     get: (key: string) => Promise<any>;

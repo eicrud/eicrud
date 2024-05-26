@@ -1,8 +1,6 @@
 import { EntityClass, MikroORM } from "@mikro-orm/core";
 import { CrudConfigService } from "../crud.config.service";
-import { CrudContext } from "../model/CrudContext";
-
-
+import { CrudContext } from "../../crud/model/CrudContext";
 
 export abstract class CrudDbAdapter {
 

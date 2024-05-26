@@ -7,8 +7,8 @@ import { BackdoorQuery, CrudQuery } from '../crud/model/CrudQuery';
 import { CrudAuthorizationService } from './crud.authorization.service';
 import { setImmediate } from "timers/promises";
 import replyFrom from '@fastify/reply-from'
-import { CRUD_CONFIG_KEY, CrudConfigService, MicroServicesOptions } from './crud.config.service';
-import { CmdSecurity } from './model/CrudSecurity';
+import { CRUD_CONFIG_KEY, CrudConfigService, MicroServicesOptions } from '../config/crud.config.service';
+import { CmdSecurity } from '../config/model/CrudSecurity';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
 import { CrudOptions } from '../crud/model/CrudOptions';
@@ -17,10 +17,10 @@ import { ICrudRightsFieldInfo, ICrudRightsInfo, LoginDto } from '../crud/model/d
 import { ObjectId } from '@mikro-orm/mongodb';
 import { LRUCache } from 'mnemonist';
 import { _utils } from '../utils';
-import { CrudTransformer, IFieldMetadata } from './transform/CrudTransformer';
-import { CrudValidationPipe } from './transform/CrudValidationPipe';
+import { CrudTransformer, IFieldMetadata } from '../validation/CrudTransformer';
+import { CrudValidationPipe } from '../validation/CrudValidationPipe';
 import { FindResponseDto, LoginResponseDto } from '@eicrud/shared/interfaces';
-import { CrudRole } from './model/CrudRole';
+import { CrudRole } from '../config/model/CrudRole';
 
 export class LimitOptions {
     NON_ADMIN_LIMIT_QUERY = 40;

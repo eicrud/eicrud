@@ -1,10 +1,10 @@
 import { BadRequestException } from "@nestjs/common";
-import { CrudConfigService } from "../crud.config.service";
+import { CrudConfigService } from "../config/crud.config.service";
 import { ICrudTransformOptions } from "./decorators";
-import { CrudContext } from "../model/CrudContext";
+import { CrudContext } from "../crud/model/CrudContext";
 import { IsEmail, IsOptional, IsString, MaxLength, validateOrReject } from 'class-validator';
-import { CrudController } from "../crud.controller";
-import { CrudAuthorizationService } from "../crud.authorization.service";
+import { CrudController } from "../crud/crud.controller";
+import { CrudAuthorizationService } from "../crud/crud.authorization.service";
 
 export const crudClassMetadataMap: Record<string, Record<string, IFieldMetadata>> = {};
 

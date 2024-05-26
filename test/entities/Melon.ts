@@ -2,7 +2,7 @@ import { PrimaryKey, OneToOne, Property, ManyToOne, Entity, Embeddable, Embedded
 import { Allow, IsDate, IsInt, IsMongoId, IsOptional, IsString, ValidateNested } from "class-validator";
 import { CrudEntity } from "../../core/crud/model/CrudEntity";
 import { MyUser } from "./MyUser";
-import { $MaxLength, $MaxSize, $ToLowerCase, $Transform, $Trim, $Type } from "../../core/crud/transform/decorators";
+import { $MaxLength, $MaxSize, $ToLowerCase, $Transform, $Trim, $Type } from "../../core/validation/decorators";
 
 
 

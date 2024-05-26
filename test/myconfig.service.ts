@@ -1,12 +1,9 @@
 import { Inject, Injectable, forwardRef } from "@nestjs/common";
-import { CrudConfigService, MicroServicesOptions } from "../core/crud/crud.config.service";
+import { BasicMemoryCache, CrudConfigService, MicroServicesOptions } from "../core/config/crud.config.service";
 import { MyUserService } from "./myuser.service";
-import { EntityManager } from "@mikro-orm/mongodb";
-import { MikroORM } from '@mikro-orm/core';
-
+import { MikroORM, EntityManager } from "@mikro-orm/core";
 import { MyEmailService } from "./myemail.service";
-import { CrudRole } from "../core/crud/model/CrudRole";
-import { BasicMemoryCache } from "../core/authentification/auth.utils";
+import { CrudRole } from "../core/config/model/CrudRole";
 import { MongoDbAdapter } from "../db_mongo/mongoDbAdapter";
 import { MyUser } from "./entities/MyUser";
 import { UserProfile } from "./entities/UserProfile";
