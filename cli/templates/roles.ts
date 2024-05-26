@@ -1,4 +1,4 @@
-import { CrudRole } from "@ecirud/core/crud";
+import { CrudRole } from "@eicrud/core/config";
 
 export const roles: CrudRole[] = [
     { 
