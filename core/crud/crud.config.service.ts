@@ -1,12 +1,10 @@
-import { Injectable } from "@nestjs/common";
 import { CrudRole } from "./model/CrudRole";
 import { CrudService } from "./crud.service";
 import { CrudUserService } from "../user/crud-user.service";
 import { LogService } from "../log/log.service";
 import { EntityClass, EntityManager, raw } from "@mikro-orm/core";
 import { CrudContext } from "./model/CrudContext";
-import { CrudAuthorizationService } from "./crud.authorization.service";
-import { CrudAuthGuard, TrafficWatchOptions, ValidationOptions } from "../authentification/auth.guard";
+import { TrafficWatchOptions, ValidationOptions } from "../authentification/auth.guard";
 import { CrudUser } from "../user/model/CrudUser";
 import { EmailService } from "../email/email.service";
 import { AuthenticationOptions } from "../authentification/auth.service";

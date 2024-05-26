@@ -2,8 +2,8 @@ import { EntityManager, MikroORM } from "@mikro-orm/core";
 import { Injectable } from "@nestjs/common";
 import { BasicMemoryCache } from "../core/authentification/auth.utils";
 import { CrudConfigService } from "../core/crud/crud.config.service";
-import { EmailService } from "services/email/email.service";
-import { UserService } from "services/user/user.service";
+import { EmailService } from "./services/email/email.service";
+import { UserService } from "./services/user/user.service";
 import { tk_db_adapter } from tk_db_adapter_path
 import { roles } from "./roles";
 
