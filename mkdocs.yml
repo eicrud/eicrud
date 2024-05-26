@@ -1,4 +1,4 @@
-site_name: Documentation - EICRUD
+site_name: EICRUD - Docs
 theme:
   name: material
   palette:
@@ -10,12 +10,13 @@ theme:
     - navigation.footer
 
 extra:
+  homepage: https://example.com
   social:
     - icon: fontawesome/solid/heart
-      link: https://fosstodon.org/@squidfunk
+      link: https://example.com
       name: support this project
     - icon: fontawesome/solid/earth-europe
-      link: https://fosstodon.org/@squidfunk
+      link: https://example.com
       name: homepage
 
 repo_url: https://github.com/squidfunk/mkdocs-material

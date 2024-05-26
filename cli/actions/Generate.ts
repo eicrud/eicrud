@@ -1,8 +1,10 @@
-import { t } from "@mikro-orm/core";
-import { _utils_cli } from "../utils";
-import tk_cmd_dto_name from "../templates/cmd/tk_cmd_lname.dto";
+import { _utils_cli } from "../utils.js";
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import path, { dirname } from 'path';
 
-const fs = require('fs');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export class Generate {
     
@@ -19,13 +21,13 @@ export class Generate {
 
     static copyTemplateFiles(template_folder, files, keys, dir){
         files.forEach(file => {
-            const sourcePath = `${template_folder}/${file}`;
+            const sourcePath = path.join(template_folder, file);
             let newFileName = file;
             for(const key in keys) {
                 const value = keys[key];
                 newFileName = newFileName.replace(key, value);
             }
-            const targetPath = `${dir}/${newFileName}`;
+            const targetPath = path.join(dir, newFileName);
             fs.copyFileSync(sourcePath, targetPath);
             console.log('CREATED:', targetPath);
 
@@ -59,7 +61,8 @@ export class Generate {
             fs.mkdirSync(dir, { recursive: true });
         }
 
-        const template_folder = 'cli/templates/service';
+        const template_folder = path.join(__dirname, '../templates/service');
+
         const files = ['tk_entity_lname.entity.ts', 'tk_entity_lname.security.ts', 'tk_entity_lname.service.ts'];
 
         Generate.copyTemplateFiles(template_folder, files, keys, dir);
@@ -67,13 +70,13 @@ export class Generate {
 
         const indexFile = `./src/services/index.ts`;
         if (!fs.existsSync(indexFile)){
-            const templateIndex = `${template_folder}/index.ts`;
+            const templateIndex = path.join(template_folder, '/index.ts');
             fs.copyFileSync(templateIndex, indexFile);
         }
 
         const cmdsFile = dir + `/cmds.ts`;
         if (!fs.existsSync(cmdsFile)){
-            const templateIndex = `${template_folder}/cmds.ts`;
+            const templateIndex = path.join(template_folder, '/cmds.ts');
             fs.copyFileSync(templateIndex, cmdsFile);
             console.log('CREATED:', cmdsFile);
         }
@@ -193,15 +196,15 @@ export class Generate {
             fs.mkdirSync(dir, { recursive: true });
         }
         
-        const template_folder = 'cli/templates';
+        const template_folder = path.join(__dirname, '../templates');
         const files = ['tk_cmd_lname.action.ts', 'tk_cmd_lname.security.ts', 'tk_cmd_lname.dto.ts'];
 
-        Generate.copyTemplateFiles(template_folder + '/cmd', files, keys, dir);
+        Generate.copyTemplateFiles(path.join(template_folder, '/cmd'), files, keys, dir);
    
 
         const cmdsFile = `./src/services/${serviceName}/cmds.ts`;
         if (!fs.existsSync(cmdsFile)){
-            const templateIndex = `${template_folder}/service/cmds.ts`;
+            const templateIndex = path.join(template_folder, '/service/cmds.ts');
             fs.copyFileSync(templateIndex, cmdsFile);
             console.log('CREATED:', cmdsFile);
         }
@@ -248,11 +251,7 @@ export class Generate {
 
         const [before, rest, after] = serviceFileContent.split(/GENERATED START(.+)/);
 
-        console.log('BEFORE:', before);
-        console.log('AFTER:', rest);
-        console.log('IGNORE:', after);
-
-        const defTemplateFile = `${template_folder}/service/cmd_definition.ts`;
+        const defTemplateFile = path.join(template_folder, '/service/cmd_definition.ts');
         let defContent = fs.readFileSync(defTemplateFile, 'utf8');
         for(const key in keys) {
             const value = keys[key];

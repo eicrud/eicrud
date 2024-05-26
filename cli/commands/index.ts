@@ -1,6 +1,7 @@
-const { Command } = require('commander');
-import { Generate } from "../actions/Generate";
-import { Setup } from "../actions/Setup";
+#!/usr/bin/env node
+import { Command } from 'commander';
+import { Generate } from "../actions/Generate.js";
+import { Setup } from "../actions/Setup.js";
 
 const program = new Command();
 

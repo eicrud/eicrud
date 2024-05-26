@@ -14,7 +14,7 @@
     "start:test-ms:proxy": "concurrently -k -s='last' npm:start:ms:proxy-* npm:test:ms:proxy",
     "start:ms-user": "cross-env CRUD_CURRENT_MS=user PORT=3005 nest start",
     "start:ms-melon": "cross-env CRUD_CURRENT_MS=melon PORT=3006 nest start",
-    "start:ms-email": "cross-env CRUD_CURRENT_MS=email PORT=3007 nest start",    
+    "start:ms-email": "cross-env CRUD_CURRENT_MS=email PORT=3007 nest start",
     "start:ms:proxy-user": "cross-env TEST_CRUD_PROXY=true CRUD_CURRENT_MS=user PORT=3005 nest start",
     "start:ms:proxy-melon": "cross-env TEST_CRUD_PROXY=true CRUD_CURRENT_MS=melon PORT=3006 nest start",
     "start:ms:proxy-email": "cross-env TEST_CRUD_PROXY=true CRUD_CURRENT_MS=email PORT=3007 nest start",
@@ -59,6 +59,7 @@
     "wildcard": "^2.0.1"
   },
   "devDependencies": {
+    "@eicrud/cli": "^0.1.0",
     "@nestjs/cli": "^10.3.2",
     "@nestjs/schematics": "^10.1.1",
     "@nestjs/testing": "^10.3.6",

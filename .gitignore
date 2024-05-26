@@ -39,3 +39,4 @@ docs/Ξ Api/
 src/
 *.npmrc
 **/node_modules/**
+cli/dist/
