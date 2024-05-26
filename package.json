@@ -30,7 +30,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "generate:typedoc": "typedoc --plugin typedoc-plugin-markdown --out docs/api && del-cli docs/api/README.md"
+    "generate:typedoc": "typedoc --plugin typedoc-plugin-markdown --out docs/api && del-cli docs/api/README.md",
+    "clean": "del-cli **.js **.d.ts **.js.map !node_modules !**node_modules"
   },
   "dependencies": {
     "@casl/ability": "^6.5.0",
@@ -102,6 +103,12 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@eicrud/core/(.*)$": "<rootDir>/../core/$1",
+      "^@eicrud/core$": "<rootDir>/../core",
+      "^@eicrud/shared/(.*)$": "<rootDir>/../shared/$1",
+      "^@eicrud/shared$": "<rootDir>/../shared"    
+    }
   }
 }

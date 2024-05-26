@@ -1,12 +1,9 @@
 import { BadRequestException, HttpException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
-import { BaseEntity, EntityClass, EntityManager, EntityName, wrap } from '@mikro-orm/core';
 import { CrudSecurity } from '../config/model/CrudSecurity';
-import { Cache } from 'cache-manager';
 import { CrudContext } from './model/CrudContext';
 
 import { CrudUser } from '../config/model/CrudUser';
-import { CrudUserService } from '../config/crud-user.service';
 import { CRUD_CONFIG_KEY, CacheOptions, CrudConfigService, MicroServiceConfig, MicroServicesOptions, CrudCache } from '../config/crud.config.service';
 import { ModuleRef } from '@nestjs/core';
 import { ObjectId } from '@mikro-orm/mongodb';
@@ -20,6 +17,7 @@ import { _utils } from '../utils';
 import { CrudRole } from '../config/model/CrudRole';
 import { GetRightDto, ICrudRightsFieldInfo, ICrudRightsInfo } from '../crud/model/dtos';
 import { IsBoolean, IsOptional } from 'class-validator';
+import { BaseEntity, EntityClass, EntityManager, EntityName, wrap } from '@mikro-orm/core';
 
 const NAMES_REGEX = /([^\s,]+)/g;
 const COMMENTS_REGEX = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
