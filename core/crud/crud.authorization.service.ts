@@ -9,7 +9,7 @@ import { CRUD_CONFIG_KEY, CrudConfigService } from "./crud.config.service";
 import { CrudUser } from "../user/model/CrudUser";
 import { ModuleRef } from "@nestjs/core";
 import { _utils } from "../utils";
-import { CrudErrors } from "../../shared/CrudErrors";
+import { CrudErrors } from '@eicrud/shared/CrudErrors';
 
 
 const SKIPPABLE_OPTIONS = ['limit', 'offset', 'sort', 'fields', 'mockRole'];

@@ -14,7 +14,7 @@ import { CrudTransformer } from './transform/CrudTransformer';
 import { BackdoorQuery } from '../crud/model/CrudQuery';
 import axios from 'axios';
 import { CrudDbAdapter } from './dbAdapter/crudDbAdapter';
-import { FindResponseDto } from '../../shared/interfaces';
+import { FindResponseDto } from '@eicrud/shared/interfaces';
 import { CrudAuthorizationService } from './crud.authorization.service';
 import { _utils } from '../utils';
 import { CrudRole } from './model/CrudRole';

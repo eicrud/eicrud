@@ -18,7 +18,7 @@ import { format } from 'path';
 import exp from 'constants';
 import { MelonService } from '../melon.service';
 import axios from 'axios';
-import { CrudErrors } from '../../shared/CrudErrors';
+import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { CrudOptions } from '../../core/crud/model/CrudOptions';
 
 const testAdminCreds = {

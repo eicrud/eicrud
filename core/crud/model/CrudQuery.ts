@@ -2,7 +2,7 @@ import { Allow, IsInt, IsOptional, IsString, ValidateNested } from "class-valida
 import { CrudOptions } from "./CrudOptions";
 import { $Type, $Transform, $MaxSize } from "../transform/decorators";
 import { _utils } from "../../utils";
-import { ICrudQuery } from "../../../shared/interfaces";
+import { ICrudQuery } from '@eicrud/shared/interfaces';
 
 
 export class CrudQuery implements ICrudQuery {

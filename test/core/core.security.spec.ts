@@ -18,7 +18,7 @@ import { format } from 'path';
 import exp from 'constants';
 import { MelonService } from '../melon.service';
 import axios from 'axios';
-import { CrudErrors } from '../../shared/CrudErrors';
+import { CrudErrors } from '@eicrud/shared/CrudErrors';
 
 const testAdminCreds = {
   email: "admin@testmail.com",

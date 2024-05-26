@@ -16,7 +16,7 @@ import { MyUser } from '../entities/MyUser';
 import exp from 'constants';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
 import { LoginDto } from '../../core/crud/model/dtos';
-import { LoginResponseDto } from '../../shared/interfaces';
+import { LoginResponseDto } from '@eicrud/shared/interfaces';
 
 const testAdminCreds = {
   email: "admin@testmail.com",

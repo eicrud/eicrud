@@ -1,13 +1,19 @@
 {
   "name": "@eicrud/core",
   "version": "0.1.0",
-  "description": "",
-  "author": "",
-  "private": true,
+  "description": "eicrud core package",
+  "author": "acrosett",
   "license": "UNLICENSED",
   "files": [
     "dist"
   ],
+  "scripts": {
+    "compile": "rimraf dist && tsc",
+    "publish:package": "npm run compile && npm publish"
+  },
+  "peerDependencies": {
+    "@eicrud/shared": "^0.1.2"
+  },
   "dependencies": {
     "@casl/ability": "^6.5.0",
     "@fastify/reply-from": "^9.7.0",

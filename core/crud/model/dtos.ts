@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsBoolean } from "class-validator";
 import { $Transform } from "../transform/decorators";
-import { ILoginDto } from "../../../shared/interfaces";
+import { ILoginDto } from '@eicrud/shared/interfaces';
 
 
 export class UserIdDto {
