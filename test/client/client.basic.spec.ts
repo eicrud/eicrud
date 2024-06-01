@@ -173,8 +173,8 @@ describe('AppController', () => {
     await myClient.login(dto);
 
     const melons: string[] = (await myClient.findIds({ owner: user.id })).data;
-
     expect(melons.length).toBe(10000);
+
   }, 10000);
 
 

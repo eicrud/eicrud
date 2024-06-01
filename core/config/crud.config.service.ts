@@ -117,7 +117,7 @@ export class CrudConfigService {
     public userService: CrudUserService<any>;
     public logService: LogService;
     public entityManager: EntityManager;
-    public captchaService: any;
+    public captchaService: string;
     public emailService: EmailService;
     protected orm: MikroORM;
 

@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
+import wildcard from "wildcard";
 
 import { CrudContext } from '../crud/model/CrudContext';
 
@@ -39,6 +40,7 @@ export class TrafficWatchOptions{
 
   useForwardedIp: boolean = false;
   ddosProtection: boolean = false;
+  
   userTrafficProtection: boolean = true;
 }
 
@@ -108,7 +110,7 @@ export class CrudAuthGuard implements CanActivate {
 
     const crudContext: CrudContext = { ip, url, currentMs, getRequest };
 
-    if(url.includes('crud/backdoor')){
+    if(url.includes('/crud/backdoor')){
       if(!currentMsConfig){
         throw new UnauthorizedException('Microservice not found.');
       } else if(currentMsConfig && !currentMsConfig.openBackDoor){
@@ -127,8 +129,8 @@ export class CrudAuthGuard implements CanActivate {
       crudContext.backdoorGuarded = true;
       request['crudContext'] = crudContext
       return true;
-    }else if(url.includes('crud/')){
-      if(url.includes('crud/rdy')){
+    }else if(url.includes('/crud')){
+      if(url.includes('/crud/rdy')){
         return true;
       }
       if(currentMsConfig && !currentMsConfig.openController){
@@ -155,7 +157,7 @@ export class CrudAuthGuard implements CanActivate {
     let user: Partial<CrudUser> = { role: this.crudConfig.guest_role};
     let userId;
     const options: CrudOptions = request.query?.query?.options || {};
-    if (token) {
+    if (token && this.extractUserCheck(url)) {
         const payload = await this.authService.getJwtPayload(token);
         crudContext.jwtPayload = payload;
         const query = {
@@ -182,8 +184,8 @@ export class CrudAuthGuard implements CanActivate {
         }
 
         if(user?.captchaRequested && !user?.didCaptcha 
-          && !url.includes('crud/captcha')
           && this.crudConfig.captchaService
+          && !url.includes('/crud/s/'+this.crudConfig.captchaService)
           ){
           throw new UnauthorizedException(CrudErrors.CAPTCHA_REQUIRED.str());
         }  
@@ -212,6 +214,17 @@ export class CrudAuthGuard implements CanActivate {
     }
     request['crudContext'] = crudContext
     return true;
+  }
+  extractUserCheck(url: any) {
+    if(url.includes('/crud')){
+      return true;
+    }
+    for(const routeWildCard of this.crudConfig.authenticationOptions.extractUserOnRoutes){
+      if(wildcard(routeWildCard, url)){
+        return true;
+      }
+    }
+    return false;
   }
 
   private extractTokenFromHeader(request: any): string | undefined {
