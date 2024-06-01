@@ -31,7 +31,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "generate:typedoc": "typedoc --plugin typedoc-plugin-markdown --out docs/api && del-cli docs/api/README.md",
+    "generate:typedoc": "typedoc --plugin typedoc-plugin-markdown --out \"docs/Ξ Api\" && del-cli \"docs/Ξ Api/README.md\"",
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules !**node_modules"
   },
   "dependencies": {

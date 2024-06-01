@@ -1,1 +1,0 @@
-Services are the main component of you Eicrud application. They host a basic CRUD entity as well as CMDs for non-crud operations.

@@ -12,6 +12,10 @@ theme:
     - navigation.footer
     - content.tabs.link
 
+plugins:
+    - search
+    - awesome-pages
+
 extra:
   homepage: https://example.com
   social:
@@ -43,6 +47,9 @@ markdown_extensions:
   - toc:
       toc_depth: 2
       title: On this page
-  - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
+  - admonition
+  - pymdownx.details
+
+

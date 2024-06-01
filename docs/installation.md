@@ -1,10 +1,10 @@
-Eicrud plugs itself on a working NestJS application (configured with [Fastify](https://fastify.dev){:target="_blank"}). You need a database server ([MongoDB](https://www.mongodb.com/docs/v5.0/tutorial/convert-replica-set-to-replicated-shard-cluster){:target="_blank"} or [PostgreSQL](https://www.postgresql.org/){:target="_blank"}) listening on the right port.
+Eicrud plugs itself on a working [NestJS](https://nestjs.com){:target="_blank"} application (configured with [Fastify](https://fastify.dev){:target="_blank"}). You'll need a database server ([MongoDB](https://www.mongodb.com/docs/v5.0/tutorial/convert-replica-set-to-replicated-shard-cluster){:target="_blank"} or [PostgreSQL](https://www.postgresql.org/){:target="_blank"}) listening on the right port.
 
 ## Install with the CLI (recommended)
 
 It is recommended to use Eicrud's [CLI](){:target="_blank"} throughout all your developments since it will maintain a proper directory structure.
 
-First create your app as specified in the [NestJS documentation](https://docs.nestjs.com/#installation){:target="_blank"}.
+First create your nest app as specified in the [NestJS documentation](https://docs.nestjs.com/#installation){:target="_blank"}.
 
 ```
  npm i -g @nestjs/cli
@@ -12,7 +12,7 @@ First create your app as specified in the [NestJS documentation](https://docs.ne
  cd project-name
 ```
 
-Then use the [CLI](){:target="_blank"} to setup your project.
+Then use the CLI to setup your project.
 
 === "mongoDB"
     ```
@@ -37,7 +37,7 @@ npm install
 
 ## Post Installation
 
-Eicrud needs a secret key in order to sign JWT tokens, thoses are used during [authentication](){:target="_blank"}. You can generate a new one using the `node:crypto` module.
+Eicrud needs a secret key in order to sign JWT tokens, those are used during [authentication](){:target="_blank"}. You can generate a new one using the `node:crypto` module.
 ```
 node -e "console.log(require('crypto').randomBytes(256).toString('base64'));"
 ```
@@ -46,7 +46,7 @@ Store it in a `.env` file at the root of your project.
 JWT_SECRET=<generated_jwt_secret>
 ```
 
-You also need a local (or remote) database server in order to use Eicrud. Once you have it running, verify that your connection is correct. Check out [Mikro-orm's configuration](https://mikro-orm.io/docs/configuration#connection){:target="_blank"} for more info.
+You also need a local (or remote) database server in order to use Eicrud. Once you have it running, verify that your connection is working. Check out [Mikro-orm's configuration](https://mikro-orm.io/docs/configuration#connection){:target="_blank"} for more info.
 ```typescript title=" project-name/app.module.ts"
 // ...
    MikroOrmModule.forRoot({

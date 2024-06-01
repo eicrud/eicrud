@@ -1,6 +1,6 @@
 
 
-**Eicrud** is CRUD/Authorization framework meant to extend a [Nestjs](https://github.com/nestjs/nest) application. It is works with [MikroOrm](https://mikro-orm.io/) entities  guarded with [CASL](https://casl.js.org) and [class-validator](https://github.com/typestack/class-validator).
+**Eicrud** is CRUD/Authorization framework meant to extend a [Nestjs](https://github.com/nestjs/nest) application. It works with [MikroOrm](https://mikro-orm.io/) entities  guarded with [CASL](https://casl.js.org) and [class-validator](https://github.com/typestack/class-validator).
 
 
 ## How it works
