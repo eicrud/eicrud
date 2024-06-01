@@ -47,34 +47,36 @@ const msOptions = new MicroServicesOptions();
 msOptions.username = 'backDoorUser';
 msOptions.password = 'zMaXZAAQlqfZWkvm4545za';
 
+const PROXY_TEST = process.env.TEST_CRUD_PROXY
+
 msOptions.microServices = {
     "entry": {
-        services: [],
-        openBackDoor: false,
+        services: PROXY_TEST ? [UserProfile, Picture]: [],
+        openBackDoor: PROXY_TEST ? true : false,
         openController: true,
         url: "http://localhost:3004",
         allowNonSecureUrl: true,
-        proxyCrudController: process.env.TEST_CRUD_PROXY ? true : false,
-        proxyAuthTo: process.env.TEST_CRUD_PROXY ? 'user' : undefined
+        proxyCrudController: PROXY_TEST ? true : false,
+        proxyAuthTo: PROXY_TEST ? 'user' : undefined
     },
     "user": {
         services: [MyUser],
         openBackDoor: true,
-        openController: process.env.TEST_CRUD_PROXY ? true : false,
+        openController: PROXY_TEST ? true : false,
         url: "http://localhost:3005",
         allowNonSecureUrl: true
     },
     "melon": {
-        services: [Melon, UserProfile, Picture],
+        services: PROXY_TEST ? [Melon] : [Melon, UserProfile, Picture],
         openBackDoor: true,
-        openController: process.env.TEST_CRUD_PROXY ? true : false,
+        openController: PROXY_TEST ? true : false,
         url: "http://localhost:3006",
         allowNonSecureUrl: true
     },
     "email": {
         services: [FakeEmail],
         openBackDoor: true,
-        openController: process.env.TEST_CRUD_PROXY ? true : false,
+        openController: PROXY_TEST ? true : false,
         url: "http://localhost:3007",
         allowNonSecureUrl: true
     }
@@ -99,9 +101,9 @@ export class MyConfigService extends CrudConfigService {
             id_field: 'id',
             captchaService: true,
             watchTrafficOptions: {
-                userTrafficProtection: process.env.TEST_CRUD_PROXY ? false : true,
-                ddosProtection: process.env.TEST_CRUD_PROXY ? false : true,
-                useForwardedIp: process.env.TEST_CRUD_PROXY ? true : false,
+                userTrafficProtection: PROXY_TEST ? false : true,
+                ddosProtection: PROXY_TEST ? false : true,
+                useForwardedIp: PROXY_TEST ? true : false,
             },
             dbAdapter: process.env.TEST_CRUD_DB == 'postgre' ? new PostgreDbAdapter() : new MongoDbAdapter(),
             microServicesOptions: msOptions,

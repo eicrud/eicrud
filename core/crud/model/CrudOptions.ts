@@ -21,6 +21,12 @@ export class CrudOptions implements ICrudOptions  {
     fields?: string[];
 
     @IsOptional()
+    @IsArray()
+    @IsString({each: true})
+    @$MaxSize(300)
+    exclude?: string[];
+
+    @IsOptional()
     @IsInt()
     limit?: number;
 

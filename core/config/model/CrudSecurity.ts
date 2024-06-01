@@ -6,6 +6,12 @@ import { AbilityBuilder, createAliasResolver } from "@casl/ability";
  */
 export interface CmdSecurity {
     /**
+    * Min required time between cmd calls (for a specific user)
+    * @type {number}
+    * @public
+    */
+    minTimeBetweenCmdCallMs?: number;
+    /**
     * Max number of times an user can call the cmd
     * @type {number}
     * @public
@@ -78,6 +84,13 @@ export class CrudSecurity {
     * @public
     */
     maxItemsInDb?: number;
+
+    /**
+    * List of fields that are always excluded from the response
+    * @type {string[]}
+    * @public
+    */
+    alwaysExcludeFields?: string[];
 
     /**
     * Max number of entities an user can create in the db

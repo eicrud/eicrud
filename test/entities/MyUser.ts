@@ -73,6 +73,10 @@ export class MyUser implements CrudUser {
     @Property({ type: 'json', nullable: true })
     cmdUserCountMap: Record<string, number> | string;
 
+    @Property({ type: 'json', nullable: true })
+    cmdUserLastUseMap: Record<string, Date> | string;
+
+
     @Property({ nullable: true })
     errorCount: number;
 

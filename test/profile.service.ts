@@ -50,7 +50,19 @@ const myProfileSecurity = (USER_PROFILE) => { return {
                     },
                 }
             },
-        } as CmdSecurity
+        } as CmdSecurity,
+        'testCmdRateLimited': {
+            minTimeBetweenCmdCallMs: 500,
+            dto: TestCmdDto,
+            rolesRights: { 
+                user: {     
+                    async defineCMDAbility(can, cannot, ctx) {
+                        can('testCmdRateLimited', USER_PROFILE);
+                    },
+                },
+            },
+        } as CmdSecurity,
+
     },
 
     rolesRights: {
@@ -111,6 +123,11 @@ export class MyProfileService extends CrudService<UserProfile> {
     }
 
     $testCmd(dto: TestCmdDto, ctx: CrudContext, inheritance?: any ): Promise<string> {
+        let res = dto?.sub?.subfield || dto.returnMessage;
+        return Promise.resolve(res);
+    }  
+    
+    $testCmdRateLimited(dto: TestCmdDto, ctx: CrudContext, inheritance?: any ): Promise<string> {
         let res = dto?.sub?.subfield || dto.returnMessage;
         return Promise.resolve(res);
     }

@@ -1269,7 +1269,9 @@ describe('AppController', () => {
 
     const res = await testMethod({ url: '/crud/backdoor/user-profile', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 401, expectedObject, crudConfig });
 
-    expect(['Microservice not found.','Backdoor is closed.']).toContain(res.message);
+    const expectedArray = process.env.TEST_CRUD_PROXY ? ['Invalid backdoor credentials.'] : ['Microservice not found.','Backdoor is closed.'];
+
+    expect(expectedArray).toContain(res.message);
 
     if(process.env.CRUD_CURRENT_MS){
       const msConfig = crudConfig.microServicesOptions;

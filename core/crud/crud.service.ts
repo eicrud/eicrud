@@ -339,9 +339,9 @@ export class CrudService<T extends CrudEntity> {
 
         const em = ctx?.em || this.entityManager.fork();
         const results = await this.doQueryPatch(query, newEntity, ctx, em, secure);
-        if (!ctx?.noFlush) {
-            await em.flush();
-        }
+        // if (!ctx?.noFlush) {
+        //     await em.flush();
+        // }
         ctx = ctx || {};
         ctx.em = em;
         return results;
@@ -351,16 +351,13 @@ export class CrudService<T extends CrudEntity> {
     async $unsecure_incPatch(args: { query: Partial<T>, increments: { [key: string]: number }, addPatch?: any }, ctx: CrudContext, inheritance: any = {}) {
         this.checkObjectForIds(args.query);
         const em = ctx?.em || this.entityManager.fork();
-        const update = await this.dbAdapter.getIncrementUpdate(args.increments, this.entity, ctx);
-        await em.nativeUpdate(this.entity, args.query, update as any);
-        ctx.em = em;
-        let res;
+        let update = this.dbAdapter.getIncrementUpdate(args.increments, this.entity, ctx);
         if (args.addPatch) {
-            this.checkObjectForIds(args.addPatch)
-            res = await this.$unsecure_fastPatch(args.query, args.addPatch, ctx, inheritance);
-        } else if (!ctx.noFlush) {
-            res = await em.flush();
+            update = { ...update, ...args.addPatch };
         }
+        const res = await em.nativeUpdate(this.entity, args.query, update as any);
+        ctx.em = em;
+
         return res;
     }
 

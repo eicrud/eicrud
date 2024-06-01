@@ -28,6 +28,30 @@ export class PostgreDbAdapter extends CrudDbAdapter {
         return updateSql;
     }
 
+    getSetUpdate(updates: { [key: string]: any; }) {
+        let updateSql = {};
+        for (let key in updates) {
+            let update = updates[key];
+            if(key.includes('.')){
+                const [root, rest] = key.split(/\.(.*)/s);
+                const columnName = this.convertColumnName(root);
+                
+                if(update instanceof Date){
+                    update = update.toISOString();
+                }
+
+                if(typeof update === 'string'){
+                    update = `"${update}"`
+                }
+
+                updateSql[root] = raw(`jsonb_set(COALESCE("${columnName}"::jsonb, '{}'::jsonb), '{${rest}}', '${update}'::text::jsonb)`)
+            }else{
+                updateSql[key] = update;
+            }
+        }
+        return updateSql;
+    }
+
     createNewId(str?: string) {
         return str || Math.random().toString(36).substring(7);
     }

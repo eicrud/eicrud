@@ -466,18 +466,6 @@ export class CrudClient<T> {
 
   }
 
-  async delete(query: object, options: ICrudOptions = undefined): Promise<number> {
-    const ICrudQuery: ICrudQuery = {      
-      options: JSON.stringify(options) as any,
-      query: JSON.stringify(query)
-    }
-    const url = this.url + "/crud/s/" + this.serviceName + "/many";
-
-    const res = await this._tryOrLogout(axios.delete, 1, url, { params: ICrudQuery, headers: this._getHeaders() });
-
-    return res;
-  }
-
   async deleteIn(ids: any[], options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<number> {
     const ICrudQuery: ICrudQuery = {      
       options: JSON.stringify(options) as any,

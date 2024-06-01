@@ -9,7 +9,7 @@ import { CrudAuthorizationService } from '../crud/crud.authorization.service';
 import { Loaded, Type } from '@mikro-orm/core';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { CrudAuthService } from '../authentification/auth.service';
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { ModuleRef } from '@nestjs/core';
 import { $Transform } from '../validation/decorators';
 import { UserIdDto } from '../crud/model/dtos';
@@ -31,18 +31,50 @@ export class CreateAccountDto {
   role: string;
 }
 
+export class ResetPasswordDto {
+  @IsString()
+  token_id: string;
+
+  @IsString()
+  newPassword: string;
+}
+
+export class VerifyTokenDto {
+  @IsString()
+  token_id: string;
+}
+
+export class SendVerificationEmailDto {
+  @IsEmail()
+  @IsOptional()
+  newEmail: string;
+
+  @IsOptional()
+  @IsString()
+  password: string;
+}
+
+export class SendPasswordResetEmailDto {
+  @IsEmail()
+  email: string;
+}
+
 export const baseCmds = {
   sendVerificationEmail: {
-    name: 'sendVerificationEmail'
+    name: 'sendVerificationEmail',
+    dto: SendVerificationEmailDto
   },
   verifyEmail: {
-    name: 'verifyEmail'
+    name: 'verifyEmail',
+    dto: VerifyTokenDto
   },
   sendPasswordResetEmail: {
-    name: 'sendPasswordResetEmail'
+    name: 'sendPasswordResetEmail',
+    dto: SendPasswordResetEmailDto
   },
   resetPassword: {
-    name: 'resetPassword'
+    name: 'resetPassword',
+    dto: ResetPasswordDto
   },
   createAccount: {
     name: 'createAccount',
@@ -249,8 +281,8 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return { emailCount, timeout};
   }
 
-  async sendTokenEmail(ctx: CrudContext, lastEmailSentKey, { emailCount, timeout }, tokenKey,  sendEmailFunc, attempCountKey){
-    const lastEmailSent = new Date(ctx.user[lastEmailSentKey]);
+  async sendTokenEmail(email: string, user: CrudUser, ctx: CrudContext, lastEmailSentKey, { emailCount, timeout }, tokenKey,  sendEmailFunc, attempCountKey){
+    const lastEmailSent = new Date(user[lastEmailSentKey]);
 
     if(emailCount < 2 
       || !lastEmailSent 
@@ -258,22 +290,25 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       ){
       const token = _utils.generateRandomString(16);
       const patch: Partial<CrudUser> = {[tokenKey]: token, [lastEmailSentKey]: new Date(), [attempCountKey]: emailCount+1};
-      await this.$unsecure_fastPatchOne(ctx.user[this.crudConfig.id_field], patch as any, ctx);
-      await sendEmailFunc(ctx.data.email, token);
+      if(user.email != email){
+        patch.nextEmail = email;
+      }
+      await this.$unsecure_fastPatchOne(user[this.crudConfig.id_field], patch as any, ctx);
+      await sendEmailFunc(email, token);
       return true;
     }
 
     return new BadRequestException(CrudErrors.EMAIL_ALREADY_SENT.str());
   }
 
-  async useToken(ctx: CrudContext, lastEmailVerificationSentKey, userConditionFunc, tokenKey, userGetTimeoutFunc, callBackFunc ){
-    const userId = ctx.data.userId;
-    const lastEmailSent = new Date(ctx.user[lastEmailVerificationSentKey]);
+  async useToken(userId, token, ctx: CrudContext ,lastEmailVerificationSentKey, userConditionFunc, tokenKey, userGetTimeoutFunc, callBackFunc ){
+
     const user: CrudUser = await this.$findOne(userId, ctx) as any;
+    const lastEmailSent = new Date(user[lastEmailVerificationSentKey]);
     if(userConditionFunc(user)){
       return true;
     }
-    if(user && user[tokenKey] === ctx.data.token){
+    if(user && user[tokenKey] === token){
       //check if expired
       const { emailCount, timeout } = userGetTimeoutFunc(user);
       if((lastEmailSent && lastEmailSent.getTime() + timeout ) < Date.now()){
@@ -285,11 +320,23 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return new BadRequestException(CrudErrors.TOKEN_EXPIRED.str());
   }
 
-  async sendVerificationEmail(ctx: CrudContext){
+  async $sendVerificationEmail(dto: SendVerificationEmailDto, ctx: CrudContext){
+
+    if(dto?.newEmail){
+      //Verify password
+      const match = await bcrypt.compare(dto.password, ctx.user?.password);
+      if (!match) {
+        throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
+      }
+    }
+
     //Doing this for type checking
     const user: Partial<CrudUser> = { lastEmailVerificationSent: null, emailVerificationToken: null, verifiedEmailAttempCount: 0} 
     const keys = Object.keys(user); 
-    return await this.sendTokenEmail(ctx, 
+    return await this.sendTokenEmail(
+      dto?.newEmail || ctx.user.email,
+      ctx.user,
+      ctx, 
       keys[0], 
       this.getVerificationEmailTimeoutHours(ctx.user), 
       keys[1], 
@@ -297,11 +344,16 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       keys[2]);
   }
 
-  async $verifyEmail(ctx: CrudContext){
+  async $verifyEmail(dto: VerifyTokenDto, ctx: CrudContext){
+    const { token_id } = dto;
+    const [ token, userId ] = token_id.split('_', 2);
     //Doing this for type checking
     const user: Partial<CrudUser> = { lastEmailVerificationSent: null, emailVerificationToken: null} 
     const keys = Object.keys(user); 
-    const res = await this.useToken(ctx, 
+    const res = await this.useToken(
+      userId,
+      token,
+      ctx, 
       keys[0], 
       (user: CrudUser) => user?.verifiedEmail && !user.nextEmail, 
       keys[1], 
@@ -332,23 +384,46 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return true;
   }
 
-  async sendPasswordResetEmail(ctx: CrudContext){
+  async $sendPasswordResetEmail(dto: SendPasswordResetEmailDto, ctx: CrudContext){
         //Doing this for type checking
-        const user: Partial<CrudUser> = { lastPasswordResetSent: null, passwordResetToken: null, passwordResetAttempCount: 0} 
-        const keys = Object.keys(user); 
-        return await this.sendTokenEmail(ctx, 
-          keys[0], 
-          this.getPasswordResetEmailTimeoutHours(ctx.user), 
-          keys[1], 
-          this.crudConfig.emailService.sendPasswordResetEmail, 
-          keys[2]);
+        const userObj: Partial<CrudUser> = { lastPasswordResetSent: null, passwordResetToken: null, passwordResetAttempCount: 0} 
+        const keys = Object.keys(userObj); 
+        const entity = {};
+        entity[this.USERNAME_FIELD] = dto.email;
+        const user: CrudUser = await this.$findOne(entity, ctx);
+        if(!user){
+          //Silent error
+          return true;
+        }
+        try{
+          return await this.sendTokenEmail(
+            dto.email,
+            user,
+            ctx, 
+            keys[0], 
+            this.getPasswordResetEmailTimeoutHours(ctx.user), 
+            keys[1], 
+            this.crudConfig.emailService.sendPasswordResetEmail, 
+            keys[2]);
+        } catch(e){ 
+          //Silent error
+          return true;
+        }
   }
 
-  async $resetPassword(ctx: CrudContext) {
+  async $resetPassword(dto: ResetPasswordDto, ctx: CrudContext) {
+    const { newPassword, token_id } = dto;
+    const [ token, userId ] = token_id.split('_', 2);
+    if(newPassword?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH){
+      throw new BadRequestException(CrudErrors.PASSWORD_TOO_LONG.str());
+    }
      //Doing this for type checking
     const user: Partial<CrudUser> = { lastPasswordResetSent: null, passwordResetToken: null} 
     const keys = Object.keys(user); 
-    const res = await this.useToken(ctx, 
+    const res = await this.useToken(
+      userId,
+      token,
+      ctx,
       keys[0], 
       (user: CrudUser) => true, 
       keys[1], 
@@ -375,18 +450,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       return { userId: res[this.crudConfig.id_field], accessToken: await this.authService.signTokenForUser(res)}
   }
 
-  async $signIn(ctx: CrudContext, email, pass, expiresIn = '30m', twoFA_code?): Promise<LoginResponseDto> {
-    email = email.toLowerCase().trim();
-    const entity = {};
-    entity[this.USERNAME_FIELD] = email;
-    const user: CrudUser = await this.crudConfig.userService.$findOne(entity, ctx);
-    if(!user){
-      throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
-    }
-
-    if(user?.timeout && new Date(user.timeout) > new Date()){
-      throw new UnauthorizedException(CrudErrors.TIMED_OUT.str(new Date(user.timeout).toISOString()));
-    }
+  async $authUser(ctx: CrudContext, user: CrudUser, pass, expiresIn = '30m', twoFA_code?){
 
     if(user.failedLoginCount >= this.rateLimitCount){
       const timeoutMS = Math.min(user.failedLoginCount*user.failedLoginCount*1000, 60000 * 5);
@@ -405,17 +469,17 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         await this.$sendTwoFACode(user[this.crudConfig.id_field], user as CrudUser, ctx);
         throw new UnauthorizedException(CrudErrors.TWOFA_REQUIRED.str());
       }
-      await this.crudConfig.userService.verifyTwoFA(user, twoFA_code);
+      await this.verifyTwoFA(user, twoFA_code);
     }
     
     user.lastLoginAttempt = new Date();
 
     const match = await bcrypt.compare(pass, user?.password);
     if (!match) {
-      const addPatch: Partial<CrudUser> =  { lastLoginAttempt: user.lastLoginAttempt};
-      const query = { [this.crudConfig.id_field]: user[this.crudConfig.id_field] };
+      const addPatch: Partial<CrudUser> = this.dbAdapter.getSetUpdate({ lastLoginAttempt: user.lastLoginAttempt});
+      const query: any = { [this.crudConfig.id_field]: user[this.crudConfig.id_field] };
       const increments = {failedLoginCount: 1}
-      this.crudConfig.userService.$unsecure_incPatch({ query, increments, addPatch }, ctx);
+      this.$unsecure_incPatch({ query, increments, addPatch }, ctx);
 
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }
@@ -437,6 +501,21 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       accessToken: await this.authService.signTokenForUser(user, expiresIn),
       userId: user[this.crudConfig.id_field],
     } as LoginResponseDto;
+  }
+
+  async $signIn(ctx: CrudContext, email, pass, expiresIn = '30m', twoFA_code?): Promise<LoginResponseDto> {
+    email = email.toLowerCase().trim();
+    const entity = {};
+    entity[this.USERNAME_FIELD] = email;
+    const user: CrudUser = await this.$findOne(entity, ctx);
+    if(!user){
+      throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
+    }
+
+    if(user?.timeout && new Date(user.timeout) > new Date()){
+      throw new UnauthorizedException(CrudErrors.TIMED_OUT.str(new Date(user.timeout).toISOString()));
+    }
+    return await this.$authUser(ctx, user, pass, expiresIn, twoFA_code);
   }
 
   async $logoutEverywhere(dto: UserIdDto, ctx: CrudContext, inheritance: any = {}){
