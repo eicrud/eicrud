@@ -40,8 +40,20 @@ const cmdSecurityMap: Record<string, CmdSecurity> = {
                 }
             }
         },
-    }
-
+    },
+    ...[baseCmds.sendPasswordResetEmail, baseCmds.changePassword].reduce((acc, cmd) => {
+        acc[cmd.name] = {
+            dto: cmd.dto,
+            rolesRights: {
+                guest: {
+                    async defineCMDAbility(can, cannot, ctx) {
+                        can(cmd.name, 'my-user');
+                    }
+                }
+            },
+        }
+        return acc;
+    }, {})
     
 }
 

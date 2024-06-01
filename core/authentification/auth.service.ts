@@ -21,6 +21,7 @@ export class AuthenticationOptions {
   ALLOWED_JWT_EXPIRES_IN = ['1s', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '4d', '5d', '6d', '7d', '14d', '30d'];
 
   extractUserOnRoutes: string[] = [];
+  TOKEN_LENGTH: number = 17;
 }
 
 @Injectable()

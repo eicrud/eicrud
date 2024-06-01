@@ -241,6 +241,9 @@ export class CrudConfigService {
     }
 
     getSaltRounds(newEntity: CrudUser): number {
+        if(!newEntity.role){
+            throw new Error("Role is required when updating password");
+        }
         const role = this.rolesMap[newEntity.role];
         if(role.isAdminRole){
           return this.authenticationOptions.SALT_ROUNDS_ADMIN;

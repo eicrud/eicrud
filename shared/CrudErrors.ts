@@ -33,4 +33,5 @@ export class CrudErrors {
     static readonly PASSWORD_TOO_LONG = new CrudError("Password too long", 11);
     static readonly IN_REQUIRED_LENGTH = new CrudError("In query max id length", 12);
     static readonly MAX_BATCH_SIZE_EXCEEDED = new CrudError("Max batch size exceeded", 13);
+    static readonly WAIT_UNTIL = new CrudError("Wait until", 14);
 }
