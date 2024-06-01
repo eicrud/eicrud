@@ -30,5 +30,4 @@ export class MyConfigService extends CrudConfigService {
         this.addRoles(roles);
     }
 
-
 }

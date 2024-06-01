@@ -3,4 +3,6 @@
 # include the .d.ts files
 !*.d.ts
 
+!templates/**
+
 node_modules

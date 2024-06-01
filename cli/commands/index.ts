@@ -2,13 +2,25 @@
 import { Command } from 'commander';
 import { Generate } from "../actions/Generate.js";
 import { Setup } from "../actions/Setup.js";
-
 const program = new Command();
+
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import path, { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const getVersion = () => {
+  const packageContent = fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8');
+  const packageJ = JSON.parse(packageContent);
+  return packageJ.version;
+}
 
 program
   .name('eicrud-cli')
   .description('CLI for Eicrud')
-  .version('0.1.0');
+  .version(getVersion())
 
 program.command('generate')
   .description('Generate new files')
