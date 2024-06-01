@@ -117,7 +117,7 @@ describe('AppController', () => {
     const userDb: MyUser =  await userService.$findOne({ id: userService.dbAdapter.createNewId(userId) }, null);
     
     expect(userDb.email).toEqual(payload.email);
-
+    delete query.cmd;
     jwt = accessToken;
     const res = await testMethod({ url: '/crud/auth', method: 'GET', expectedCode: 200, app, jwt, entityManager, payload, query, crudConfig});
 

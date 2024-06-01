@@ -243,15 +243,17 @@ export class CrudController {
         }
     }
 
-    @Post('s/:service/cmd')
-    async _secureCMD(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Body() data, @Context() ctx: CrudContext) {
+    @Post('s/:service/cmd/:cmd')
+    async _secureCMD(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Param('cmd') cmd: string, @Body() data, @Context() ctx: CrudContext) {
         query.service = service;
+        query.cmd = cmd;
         return this.subCMD(query, data, ctx, 'POST');
     }
 
-    @Patch('s/:service/cmd')
-    async _unsecureCMD(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Body() data, @Context() ctx: CrudContext) {
+    @Patch('s/:service/cmd/:cmd')
+    async _unsecureCMD(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Param('cmd') cmd: string, @Body() data, @Context() ctx: CrudContext) {
         query.service = service;
+        query.cmd = cmd;
         return this.subCMD(query, data, ctx, 'PATCH');
     }
 
