@@ -1,6 +1,6 @@
 {
   "name": "@eicrud/shared",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "shared interfaces between @eicrud packages",
   "author": "acrosett",
   "license": "UNLICENSED",

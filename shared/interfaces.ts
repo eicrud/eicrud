@@ -40,3 +40,12 @@ export interface LoginResponseDto {
     accessToken?: string;
     refreshTokenSec?: number;
 }
+
+export interface IResetPasswordDto {
+    token_id: string;
+    newPassword: string;
+}
+
+export interface ISendPasswordResetEmailDto {
+    
+}

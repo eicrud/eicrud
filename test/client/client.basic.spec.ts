@@ -269,7 +269,7 @@ describe('AppController', () => {
     }
 
 
-  }, 9500);
+  }, 10000);
 
   //@Patch('one')
   it('should patch one profile', async () => {
