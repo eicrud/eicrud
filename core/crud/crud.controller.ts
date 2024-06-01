@@ -288,6 +288,7 @@ export class CrudController {
     async _findIds(@Query(new CrudValidationPipe()) query: CrudQuery, @Param('service') service: string, @Context() ctx: CrudContext) {
         query.options = query.options || {};
         query.options.fields = [this.crudConfig.id_field as any];
+        query.service = service;
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
             const res: FindResponseDto<any> = await this.subFind(query, ctx, this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY_IDS, this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY_IDS, currentService);

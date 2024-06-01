@@ -130,6 +130,15 @@ export class Setup {
         fs.copyFileSync(emailServiceTemplateFile, emailServicePath);
         console.log('UPDATED:', emailServicePath);
 
+        const mainFile = './src/main.ts';
+        let mainFileContent = fs.readFileSync(mainFile, 'utf8');
+        const mainFileImports = [
+            "import { FastifyAdapter } from '@nestjs/platform-fastify';",
+        ]
+        mainFileContent = mainFileImports.join('\n') + '\n' + mainFileContent.replace('NestFactory.create(AppModule)', 'NestFactory.create(AppModule, new FastifyAdapter())');
+        fs.writeFileSync(mainFile, mainFileContent);
+        console.log('UPDATED:', mainFile);
+
         child_process.execSync('npm install ' + packages.join(' '), {stdio: 'inherit'}) 
 
         return null;
