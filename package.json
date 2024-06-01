@@ -1,5 +1,5 @@
 {
-  "name": "core-ms",
+  "name": "eicrud-monorepo",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -34,30 +34,9 @@
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules !**node_modules"
   },
   "dependencies": {
-    "@casl/ability": "^6.5.0",
-    "@fastify/reply-from": "^9.7.0",
-    "@mikro-orm/core": "^6.1.12",
-    "@mikro-orm/mongodb": "^6.1.12",
-    "@mikro-orm/nestjs": "^5.2.3",
-    "@mikro-orm/postgresql": "^6.1.12",
-    "@nestjs/cache-manager": "^2.2.1",
-    "@nestjs/common": "^10.3.6",
-    "@nestjs/core": "^10.3.6",
-    "@nestjs/jwt": "^10.2.0",
-    "@nestjs/platform-fastify": "^10.3.6",
-    "@nestjs/schedule": "^4.0.1",
-    "axios": "^1.6.8",
-    "bcrypt": "^5.1.1",
-    "cache-manager": "^5.4.0",
-    "class-validator": "^0.14.1",
-    "concurrently": "^8.2.2",
-    "js-cookie": "^3.0.5",
-    "lru-cache": "^10.2.0",
-    "mnemonist": "^0.39.8",
-    "reflect-metadata": "^0.2.1",
-    "rxjs": "^7.8.1",
-    "wait-on": "^7.2.0",
-    "wildcard": "^2.0.1"
+    "@eicrud/core": "file:core",
+    "@eicrud/mongodb": "file:db_mongo",
+    "@eicrud/postgresql": "file:db_postgre"
   },
   "devDependencies": {
     "@eicrud/cli": "^0.1.0",
@@ -71,6 +50,7 @@
     "@typescript-eslint/eslint-plugin": "^7.0.2",
     "@typescript-eslint/parser": "^7.0.2",
     "commander": "^12.0.0",
+    "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "del-cli": "^5.1.0",
     "eslint": "^8.56.0",
@@ -86,8 +66,10 @@
     "tsconfig-paths": "4.2.0",
     "typedoc": "^0.25.13",
     "typedoc-plugin-markdown": "^3.17.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "wait-on": "^7.2.0"
   },
+  "rootDir": "test",
   "jest": {
     "moduleFileExtensions": [
       "js",
@@ -108,7 +90,7 @@
       "^@eicrud/core/(.*)$": "<rootDir>/../core/$1",
       "^@eicrud/core$": "<rootDir>/../core",
       "^@eicrud/shared/(.*)$": "<rootDir>/../shared/$1",
-      "^@eicrud/shared$": "<rootDir>/../shared"    
+      "^@eicrud/shared$": "<rootDir>/../shared"
     }
   }
 }

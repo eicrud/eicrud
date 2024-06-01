@@ -23,5 +23,6 @@
       "@eicrud/shared": ["./shared"],
       "@eicrud/shared/*": ["./shared/*"]
     }
-  }
+  },
+  "exclude": ["cli", "core", "shared", "db_mongo", "db_postgre"],
 }
