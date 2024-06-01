@@ -8,6 +8,19 @@ import child_process from "child_process";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 export class Setup {
+
+
+    static getMikroOrmDriver(type, keys, moduleImports, packages?) {
+        if(type === 'mongo') {
+            packages?.push('@eicrud/mongodb');
+            keys.tk_orm_driver = 'MongoDriver';
+            moduleImports.push("import { MongoDriver } from '@mikro-orm/mongodb';");
+        }else {
+            packages?.push('@eicrud/postgresql');
+            keys.tk_orm_driver = 'PostgreSqlDriver';
+            moduleImports.push("import { PostgreSqlDriver } from '@mikro-orm/postgresql';");
+        }
+    }
     
     static action(type, name): Promise<any> {
         let packages = ['@eicrud/core'];
@@ -32,15 +45,7 @@ export class Setup {
             tk_db_adapter: type === 'mongo' ? 'MongoDbAdapter' : 'PostgreDbAdapter',
         }
 
-        if(type === 'mongo') {
-            packages.push('@eicrud/mongodb');
-            keys.tk_orm_driver = 'MongoDriver';
-            moduleImports.push("import { MongoDriver } from '@mikro-orm/mongodb';");
-        }else {
-            packages.push('@eicrud/postgresql');
-            keys.tk_orm_driver = 'PostgreSqlDriver';
-            moduleImports.push("import { PostgreSqlDriver } from '@mikro-orm/postgresql';");
-        }
+        Setup.getMikroOrmDriver(type, keys, moduleImports, packages);
 
         const moduleTemplateFile = path.join(templateDir, 'module-imports.ts');
         let moduleContent = fs.readFileSync(moduleTemplateFile, 'utf8');

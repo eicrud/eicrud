@@ -2,6 +2,7 @@ import { _utils_cli } from "../utils.js";
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
+import { Setup } from "./Setup.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -136,6 +137,10 @@ export class Generate {
 
         //update app.module.ts
         content = fs.readFileSync(providersFile, 'utf8');
+
+
+        const dbType = content.includes('MongoDriver') ? 'mongo' : 'postgres';
+
         const contentlength = content.length;
 
         const importServicesLine = `import { CRUDServices } from './services/index';`;
@@ -164,6 +169,18 @@ export class Generate {
             console.log('UPDATED:', providersFile);
         }
 
+        // add test file
+        const importsTestFile = [];
+        Setup.getMikroOrmDriver(dbType, keys, importsTestFile, []);
+        const testFileTemplate = path.join(template_folder, 'tk_entity_lname.service.spec.ts');
+        let testContent = importsTestFile.join('\n') + '\n' + fs.readFileSync(testFileTemplate, 'utf8');
+        for(const key in keys) {
+            const value = keys[key];
+            testContent = testContent.replace(new RegExp(key, 'g'), value);
+        }
+        const testFile = path.join(dir,`/${keys.tk_entity_lname}.service.spec.ts`);
+        fs.writeFileSync(testFile, testContent);
+        console.log('CREATED:', testFile);
 
         return Promise.resolve();
     }
