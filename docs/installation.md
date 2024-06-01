@@ -46,7 +46,7 @@ Store it in a `.env` file at the root of your project.
 JWT_SECRET=<generated_jwt_secret>
 ```
 
-You also need a local (or remote) database server in order to use Eicrud. Once you have it running, verify that your connection is working. Check out [Mikro-orm's configuration](https://mikro-orm.io/docs/configuration#connection){:target="_blank"} for more info.
+You also need a local (or remote) database server to use Eicrud. Once you have it running, verify your connection. Check out [Mikro-orm's configuration](https://mikro-orm.io/docs/configuration#connection){:target="_blank"} for more info.
 ```typescript title=" project-name/app.module.ts"
 // ...
    MikroOrmModule.forRoot({

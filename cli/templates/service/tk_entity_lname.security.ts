@@ -6,6 +6,8 @@ export function getSecurity(tk_entity_uname: string): CrudSecurity {
         rolesRights: {
             guest: {
                 async defineCRUDAbility(can, cannot, ctx) {
+                    // Define abilities for guest
+                    
                 }
             }
         },

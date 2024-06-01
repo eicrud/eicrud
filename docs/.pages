@@ -1,7 +1,8 @@
 nav: 
-  - Home: index.md
-  - Installation: installation.md
-  - service
+  - Introduction: index.md
+  - First steps: installation.md
+  - services
   - client
   - configuration
+  - microservices
   - ...

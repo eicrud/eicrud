@@ -38,6 +38,8 @@ export function getSecurity(PROFILE: string): CrudSecurity {
         rolesRights: {
             guest: {
                 async defineCRUDAbility(can, cannot, ctx) {
+                    //rules for guests
+
                 }
             }
         },
@@ -47,7 +49,7 @@ export function getSecurity(PROFILE: string): CrudSecurity {
 This is where you define the access rules for your entity. By default, nothing is allowed unless specified in the security.
 
 ### [Service]()
-```typescript title="services/profile/profile.security.ts"
+```typescript title="services/profile/profile.service.ts"
 @Injectable()
 export class ProfileService extends CrudService<Profile> {
     constructor(protected modRef: ModuleRef) {
@@ -68,16 +70,16 @@ The actual service implementation, it's a [NestJS provider](https://docs.nestjs.
     - pass parameters that can be serialized
     - return values that can be serialized 
     
-     Check out [this guide]() to ensure your application can smoothly transition from monolithic to microservices.
+     Check out [this guide](/microservices/dollar-functions) to ensure your application can smoothly transition from monolithic to microservices.
 
 
 ## Operations
 
-A CrudService will handle all CRUD operations out of the box :  
+A CrudService handles all CRUD operations out of the box :  
 
-  - **Create**: [create](), [createBatch]()
-  - **Read**: [find](), [findOne](), [findIn](), [findIds]()
-  - **Update**: [patch](), [patchOne](), [patchIn](), [patchBatch]()
-  - **Delete**: [remove](), [removeOne](), [removeIn]()
+  - **Create**: [$create](), [$createBatch]()
+  - **Read**: [$find](), [$findOne](), [$findIn](), [$findIds]()
+  - **Update**: [$patch](), [$patchOne](), [$patchIn](), [$patchBatch]()
+  - **Delete**: [$remove](), [$removeOne](), [$removeIn]()
 
 You can extend it with [CMDs]() for everything else.
