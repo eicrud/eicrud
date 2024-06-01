@@ -7,7 +7,6 @@ import { ICrudQuery } from '@eicrud/shared/interfaces';
 
 export class CrudQuery implements ICrudQuery {
 
-    @Allow()
     service: string;
 
     @IsOptional()
@@ -21,8 +20,6 @@ export class CrudQuery implements ICrudQuery {
     @$MaxSize(-1)
     query?: any;
 
-    @IsOptional()
-    @IsString()
     cmd?: string;
 
 }

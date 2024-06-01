@@ -167,7 +167,7 @@ export class CrudClient<T> {
 
   async findOne(query: any, options: ICrudOptions = undefined): Promise<T> {
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
+      
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
@@ -180,7 +180,7 @@ export class CrudClient<T> {
 
   async find(query: any, options: ICrudOptions = undefined): Promise<FindResponseDto<T>> {
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
+      
       options: options,
       query: JSON.stringify(query)
     }
@@ -196,7 +196,7 @@ export class CrudClient<T> {
 
   async findIn(q: any[] | object, options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<FindResponseDto<T>> {
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
+      
       options: options,
     }
     let ids = [];
@@ -228,7 +228,7 @@ export class CrudClient<T> {
 
   async findIds(query: any, options: ICrudOptions = undefined): Promise<FindResponseDto<string>> {
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
+      
       options: options,
       query: JSON.stringify(query)
     }
@@ -243,11 +243,9 @@ export class CrudClient<T> {
 
   private async _doCmd(cmdName: string, dto: any, options: ICrudOptions, secure: boolean, limited: boolean): Promise<any> {
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
       options: options,
-      cmd: cmdName
     }
-    const url = this.url + "/crud/s/" + this.serviceName + "/cmd";
+    const url = this.url + "/crud/s/" + this.serviceName + "/cmd/" + cmdName;
 
     const method = secure ? axios.post : axios.get;
 
@@ -309,7 +307,7 @@ export class CrudClient<T> {
       query = q;
     }
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
+      
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
@@ -324,7 +322,7 @@ export class CrudClient<T> {
 
   async patchMany(query: object, data: any, options: ICrudOptions = undefined): Promise<FindResponseDto<T>> {
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
+      
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
@@ -348,7 +346,7 @@ export class CrudClient<T> {
 
 
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
+      
       options: JSON.stringify(options) as any,
     }
 
@@ -393,7 +391,7 @@ export class CrudClient<T> {
     const url = this.url + "/crud/s/" + this.serviceName + "/batch";
 
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
+      
       options: JSON.stringify(options) as any,
     }
 
@@ -443,7 +441,7 @@ export class CrudClient<T> {
     const url = this.url + "/crud/s/" + this.serviceName + "/batch";
 
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
+      
       options: JSON.stringify(options) as any,
     }
 
@@ -456,7 +454,7 @@ export class CrudClient<T> {
 
   async postOne(data: object, options: ICrudOptions = undefined): Promise<T> {
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
+      
       options: JSON.stringify(options) as any,
     }
     const url = this.url + "/crud/s/" + this.serviceName + "/one";
@@ -468,7 +466,7 @@ export class CrudClient<T> {
 
   async deleteOne(query: object, options: ICrudOptions = undefined): Promise<1> {
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
+      
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
@@ -482,7 +480,7 @@ export class CrudClient<T> {
 
   async delete(query: object, options: ICrudOptions = undefined): Promise<number> {
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
+      
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }
@@ -495,7 +493,7 @@ export class CrudClient<T> {
 
   async deleteIn(ids: any[], options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<number> {
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
+      
       options: JSON.stringify(options) as any,
     }
     const url = this.url + "/crud/s/" + this.serviceName + "/in";
@@ -515,7 +513,7 @@ export class CrudClient<T> {
 
   async deleteMany(query: object, options: ICrudOptions = undefined): Promise<number> {
     const ICrudQuery: ICrudQuery = {
-      service: this.serviceName,
+      
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)
     }

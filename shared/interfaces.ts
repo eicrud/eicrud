@@ -10,7 +10,7 @@ export interface ICrudOptions  {
 
 export interface ICrudQuery {
 
-    service: string;
+    service?: string;
     options?: ICrudOptions;
     query?: any;
     cmd?: string;

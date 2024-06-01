@@ -47,8 +47,15 @@ export function testMethod(arg: { app: NestFastifyApplication,
     if(arg.basicAuth){
       headers['Authorization'] = `Basic ${Buffer.from(`${arg.basicAuth.username}:${arg.basicAuth.password}`).toString('base64')}`;
     }
-    const query = new URLSearchParams(arg.query as any).toString();
-    const url = ['/auth', '/backdoor'].some(r=> arg.url.includes(r)) ? arg.url : '/crud/s/' + arg.query.service + arg.url.replace('/crud', '');
+    let url = ['/auth', '/backdoor'].some(r=> arg.url.includes(r)) ? arg.url : '/crud/s/' + arg.query.service + arg.url.replace('/crud', '');
+    if(arg.query.cmd) {
+      url = url + '/' + arg.query.cmd;
+    }
+    const squery = {...arg.query};
+    delete squery.service;
+    delete squery.cmd;
+    const query = new URLSearchParams(squery as any).toString();
+
     return arg.app
       .inject({
         method: arg.method as any,

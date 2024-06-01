@@ -4,7 +4,6 @@ import tk_cmd_dto_name from "./tk_cmd_lname.dto";
 
 
 const getCmdSecurity = (tk_cmd_uname, tk_entity_uname): CmdSecurity => { 
-
     return {
         dto: tk_cmd_dto_name,
         rolesRights: {
