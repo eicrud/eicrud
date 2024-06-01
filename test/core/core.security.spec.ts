@@ -1267,7 +1267,7 @@ describe('AppController', () => {
 
     const expectedObject = null;
 
-    const res = await testMethod({ url: '/crud/backdoor', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 401, expectedObject, crudConfig });
+    const res = await testMethod({ url: '/crud/backdoor/user-profile', method: 'PATCH', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 401, expectedObject, crudConfig });
 
     expect(['Microservice not found.','Backdoor is closed.']).toContain(res.message);
 
@@ -1279,7 +1279,7 @@ describe('AppController', () => {
 
       const targetServiceConfig: MicroServiceConfig = matches[0];
 
-      const url = targetServiceConfig.url + '/crud/backdoor';
+      const url = targetServiceConfig.url + '/crud/backdoor/user-profile';
 
       const data = {
         args: ['testCmd', { data: { returnMessage: 'backdoor ping' }}]
