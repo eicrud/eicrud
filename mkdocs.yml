@@ -10,6 +10,7 @@ theme:
   features:
     - content.code.copy
     - navigation.footer
+    - content.tabs.link
 
 extra:
   homepage: https://example.com
@@ -27,6 +28,7 @@ extra_css:
   - stylesheets/extra.css
 
 markdown_extensions:
+  - attr_list
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -41,3 +43,6 @@ markdown_extensions:
   - toc:
       toc_depth: 2
       title: On this page
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true

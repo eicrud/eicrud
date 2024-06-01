@@ -23,7 +23,7 @@ export class Setup {
     }
     
     static action(type, name): Promise<any> {
-        let packages = ['@eicrud/core'];
+        let packages = ['@eicrud/core', '@nestjs/config'];
         const allowedTypes = ['mongo', 'postgre'];
         if (!allowedTypes.includes(type)) {
             throw new Error(`Invalid type: ${type}. Allowed types: ${allowedTypes.join(', ')}`);
@@ -37,6 +37,7 @@ export class Setup {
             "import { CRUDEntities } from './services/index';",
             "import { CRUD_CONFIG_KEY } from '@eicrud/core/config';",
             "import { MyConfigService } from './eicrud.config.service';",
+            "import { ConfigModule } from '@nestjs/config';"
         ]
 
         const keys: any = {
