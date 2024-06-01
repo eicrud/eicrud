@@ -224,6 +224,28 @@ describe('AppController', () => {
     await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
 
   });
+  
+  
+  it('should rate limit cmd with minTimeBetweenCmdCallMs', async () => {
+    const user = users["Admin Dude"];
+
+    const payload: TestCmdDto = {
+      returnMessage: "Hello World"
+    }
+
+    const query: CrudQuery = {
+      service: "user-profile",
+      cmd: "testCmdRateLimited",
+    }
+
+    await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+    await new Promise(resolve => setTimeout(resolve, 350));
+    await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 429, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+    await new Promise(resolve => setTimeout(resolve, 150));
+    await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+
+  });
 
 
 });

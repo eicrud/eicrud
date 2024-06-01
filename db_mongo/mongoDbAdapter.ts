@@ -18,6 +18,15 @@ export class MongoDbAdapter extends CrudDbAdapter {
         return updateMongo;
     }
 
+    getSetUpdate(updates: { [key: string]: any; }) {
+        let updateMongo = { $set: {} };
+        for (let key in updates) {
+            updateMongo.$set[key] = updates[key];
+        }
+        return updateMongo;
+    }
+
+
     createNewId(str?: string) {
           return str ? new ObjectId(str) : new ObjectId();
     }

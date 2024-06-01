@@ -265,7 +265,7 @@ export class CrudController {
                 this.limitQuery(ctx, cmdSecurity?.NON_ADMIN_LIMIT_QUERY || this.crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY, cmdSecurity?.ADMIN_LIMIT_QUERY || this.crudConfig.limitOptions.ADMIN_LIMIT_QUERY);
                 await this.performValidationAuthorizationAndHooks(ctx, currentService);
                 const res = await currentService.$cmdHandler(query.cmd, ctx);
-                this.addCountToCmdMap(ctx, 1);
+                this.addCountToCmdMap(ctx, 1, !!cmdSecurity.minTimeBetweenCmdCallMs);
                 await this.afterHooks(currentService, res, ctx);
                 return res;
             } catch (e) {
@@ -572,11 +572,16 @@ export class CrudController {
 
     }
 
-    addCountToCmdMap(ctx: CrudContext, ct) {
+    addCountToCmdMap(ctx: CrudContext, ct, timestamp = false) {
         if (this.crudConfig.userService.notGuest(ctx?.user)) {
             const increments = {['cmdUserCountMap.' + ctx.serviceName + '_' + ctx.cmdName]: ct}
             const query = { [this.crudConfig.id_field]: ctx.user[this.crudConfig.id_field] };
-            this.crudConfig.userService.$unsecure_incPatch({ query, increments }, ctx);
+            let addPatch = {};
+            if(timestamp){
+                const updates = { ['cmdUserLastUseMap.' + ctx.serviceName + '_' + ctx.cmdName] : (new Date()).getTime() }
+                addPatch = this.crudConfig.userService.dbAdapter.getSetUpdate(updates)
+            }
+            this.crudConfig.userService.$unsecure_incPatch({ query, increments, addPatch }, ctx);
         }
     }
 

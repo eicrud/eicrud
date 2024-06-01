@@ -14,6 +14,9 @@ export abstract class CrudDbAdapter {
 
    abstract getIncrementUpdate(increments: { [key: string]: number }, entity: EntityClass<any>, ctx: CrudContext);
 
+   abstract getSetUpdate(updates: { [key: string]: any; });
+
+
    abstract createNewId(str?: string);
 
    abstract makeInQuery(ids, query: any);

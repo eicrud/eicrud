@@ -35,6 +35,8 @@ export interface CrudUser extends CrudEntity{
 
     crudUserCountMap?: Record<string, number> | string;
     cmdUserCountMap?: Record<string, number> | string;
+    
+    cmdUserLastUseMap?: Record<string, Date> | string;
 
     errorCount: number;
     incidentCount: number;

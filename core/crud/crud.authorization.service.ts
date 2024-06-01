@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, forwardRef } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { AuthUtils } from "../authentification/auth.utils";
 import { CrudContext } from "./model/CrudContext";
 import { CrudRole } from "../config/model/CrudRole";
@@ -135,8 +135,11 @@ export class CrudAuthorizationService {
             await this.checkmaxItemsPerUser(ctx, security);
         } else if (ctx.origin == 'cmd') {
             const cmdSec = security.cmdSecurityMap?.[ctx.cmdName];
-            const hasMaxUses = cmdSec?.maxUsesPerUser && this.crudConfig.userService.notGuest(ctx.user)
-            const isSecureOnly = cmdSec?.secureOnly;
+            if(!cmdSec){
+                throw new ForbiddenException(`Command ${ctx.cmdName} not found in security map`);
+            }
+            const hasMaxUses = cmdSec.maxUsesPerUser && this.crudConfig.userService.notGuest(ctx.user)
+            const isSecureOnly = cmdSec.secureOnly;
             if (ctx.method != 'POST' && (hasMaxUses || isSecureOnly)) {
                 // in that case user is cached and we can't check the cmd count properly
                 throw new ForbiddenException(`Command must be used in secure mode (POST)`);
@@ -147,6 +150,19 @@ export class CrudAuthorizationService {
                 const count = cmdMap?.[ctx.serviceName + '_' + ctx.cmdName] || 0;
                 if (count >= max) {
                     throw new ForbiddenException(`You have reached the maximum uses for this command (${max})`);
+                }
+            }
+            if(cmdSec.minTimeBetweenCmdCallMs && ctx.user?.cmdUserLastUseMap){
+                const lastCall = _utils.parseIfString(ctx.user.cmdUserLastUseMap)[ctx.serviceName + '_' + ctx.cmdName];
+                if(lastCall){
+                    const nextCall = lastCall + cmdSec.minTimeBetweenCmdCallMs;
+                    if(nextCall > Date.now()){
+                        throw new HttpException({
+                            statusCode: HttpStatus.TOO_MANY_REQUESTS,
+                            error: 'Too Many Requests',
+                            message: CrudErrors.WAIT_UNTIL.str({ nextAllowedCall: nextCall }),
+                          }, 429);
+                    }
                 }
             }
         }
@@ -161,6 +177,10 @@ export class CrudAuthorizationService {
                 msg += `- ${r.roleName} failed on ${r.problemField} `;
             }
             throw new ForbiddenException(msg);
+        }
+
+        if (security.alwaysExcludeFields && ctx.method == 'GET') {
+            ctx.options.exclude = security.alwaysExcludeFields as any;
         }
 
         return true;
@@ -192,11 +212,9 @@ export class CrudAuthorizationService {
                     const cmdRights = security.cmdSecurityMap?.[ctx.cmdName]?.rolesRights?.[role.name];
                     await cmdRights?.defineCMDAbility?.(can, cannot, ctx);
                 }
-    
-                if (roleRights.fields && ctx.method == 'GET') {
-                    ctx.options.fields = roleRights.fields as any;
-                }
+
             }, { resolveAction: httpAliasResolver });
+
             const methodToCheck = ctx.origin == "crud" ? ctx.method : ctx.cmdName;
             const pbField = this.loopFieldAndCheckCannot( methodToCheck, ctx.query, fields, userAbilities, ctx);
             if (pbField) {
@@ -225,6 +243,11 @@ export class CrudAuthorizationService {
         if (!currentResult) {
             result.checkedRoles.push({ roleName: role.name, problemField: null });
             result.authorized = true;
+
+            if (roleRights.fields && ctx.method == 'GET') {
+                ctx.options.fields = roleRights.fields as any;
+            }
+
             return result;
         }
         result.checkedRoles.push(currentResult);
