@@ -2,7 +2,7 @@ import { BadRequestException, HttpException, Inject, Injectable, forwardRef } fr
 import { CrudEntity } from './model/CrudEntity';
 import { CrudSecurity } from '../config/model/CrudSecurity';
 import { CrudContext } from './model/CrudContext';
-
+import { toKebabCase } from '@eicrud/shared/utils';
 import { CrudUser } from '../config/model/CrudUser';
 import { CRUD_CONFIG_KEY, CacheOptions, CrudConfigService, MicroServiceConfig, MicroServicesOptions, CrudCache } from '../config/crud.config.service';
 import { ModuleRef } from '@nestjs/core';
@@ -215,7 +215,7 @@ export class CrudService<T extends CrudEntity> {
     }
 
     static getName(entity) {
-        return entity.name.replace(/[A-Z]+(?![a-z])|[A-Z]/g, (match, p1) => (p1 ? "-" : "") + match.toLowerCase());
+        return toKebabCase(entity.name)
     }
 
     async $create(newEntity: Partial<T>, ctx: CrudContext, secure: boolean = true, inheritance: any = {}) {

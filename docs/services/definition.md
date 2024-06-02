@@ -10,7 +10,7 @@ eicrud generate service profile
 
 An Eicrud service (CrudService) has 3 main components:
 
-### [Entity]()
+### An [Entity]()
 
 ```typescript title="services/profile/profile.entity.ts"
 @Entity()
@@ -31,7 +31,7 @@ export default class Profile implements CrudEntity {
 ```
 It is the database schema as well as the DTO for CRUD operations. In that case, a `profile` table is automatically created.
 
-### [Security]()
+### A [Security]()
 ```typescript title="services/profile/profile.security.ts"
 export function getSecurity(PROFILE: string): CrudSecurity { 
     return {
@@ -48,7 +48,7 @@ export function getSecurity(PROFILE: string): CrudSecurity {
 ```
 This is where you define the access rules for your entity. By default, nothing is allowed unless specified in the security.
 
-### [Service]()
+### A [Service]()
 ```typescript title="services/profile/profile.service.ts"
 @Injectable()
 export class ProfileService extends CrudService<Profile> {
@@ -58,7 +58,7 @@ export class ProfileService extends CrudService<Profile> {
     }
 }
 ```
-The actual service implementation, it's a [NestJS provider](https://docs.nestjs.com/providers) that you can use everywhere in your app. This is where the service's configuration is specified. 
+The actual service implementation, it's a [NestJS provider](https://docs.nestjs.com/providers){:target="_blank"} that you can use everywhere in your app. This is where the service's configuration is specified. 
 
 !!! info
 
@@ -83,3 +83,22 @@ A CrudService handles all CRUD operations out of the box :
   - **Delete**: [$remove](), [$removeOne](), [$removeIn]()
 
 You can extend it with [CMDs]() for everything else.
+
+## Import your service
+Since services are [NestJS providers](https://docs.nestjs.com/providers){:target="_blank"}, you can inject them into any other service:
+
+```typescript
+@Injectable()
+export class UserService extends CrudUserService<User> {
+    constructor(
+        protected modRef: ModuleRef,
+        protected profileService: ProfileService 
+    ) {
+        super(modRef, MyUser, myUserSecurity(CrudService.getName(MyUser)));
+    }
+
+    async findProfile(query){
+        return await this.profileService.find(query);
+    }
+}
+```

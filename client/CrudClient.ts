@@ -238,7 +238,8 @@ export class CrudClient<T> {
   }
 
   private async _doCmd(cmdName: string, dto: any, options: ICrudOptions, secure: boolean, limited: boolean): Promise<any> {
-    const ICrudQuery: ICrudQuery = {      options: options,
+    const ICrudQuery: ICrudQuery = { 
+      options: options,
     }
     const url = this.url + "/crud/s/" + this.serviceName + "/cmd/" + cmdName;
 
