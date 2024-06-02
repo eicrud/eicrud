@@ -1,4 +1,4 @@
-Every ability in Eicrud is attached to a role. Roles are dynamically assigned to users via the property [CrudUser](./user.md)->`role`.
+Every ability in Eicrud is attached to a role. Roles are dynamically assigned to users via the property [CrudUser](../user/definition.md)->`role`.
 
 ```typescript title="roles.ts"
 import { CrudRole } from "@eicrud/core/config";

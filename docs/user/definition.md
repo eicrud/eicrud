@@ -86,3 +86,13 @@ async defineCRUDAbility(can, cannot, ctx) {
 }
 
 ```
+
+
+## Trust
+Eicurd keeps a trust score for each user (`user.trust`) indicating the likeliness of them being a good actor.  
+
+Trust score grants additional permissions when options like `additionalItemsInDbPerTrustPoints` are specified. 
+
+You can add your computation to the trust score by overriding the `UserService`->`addToComputedTrust` method.
+
+By default, the trust score is computed every 24 hours in `UserService`->`$computeTrust`.
