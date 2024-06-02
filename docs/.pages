@@ -4,6 +4,7 @@ nav:
   - services
   - validation
   - security
+  - user
   - Context: context.md
   - client
   - configuration
