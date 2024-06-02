@@ -10,7 +10,7 @@ eicrud generate service profile
 
 An Eicrud service (CrudService) has 3 main components:
 
-### An [Entity]()
+### An [Entity]():
 
 ```typescript title="services/profile/profile.entity.ts"
 @Entity()
@@ -31,7 +31,7 @@ export default class Profile implements CrudEntity {
 ```
 It is the database schema as well as the DTO for CRUD operations. In that case, a `profile` table is automatically created.
 
-### A [Security]()
+### A [Security]():
 ```typescript title="services/profile/profile.security.ts"
 export function getSecurity(PROFILE: string): CrudSecurity { 
     return {
@@ -48,7 +48,7 @@ export function getSecurity(PROFILE: string): CrudSecurity {
 ```
 This is where you define the access rules for your entity. By default, nothing is allowed unless specified in the security.
 
-### A [Service]()
+### A [Service]():
 ```typescript title="services/profile/profile.service.ts"
 @Injectable()
 export class ProfileService extends CrudService<Profile> {
@@ -78,14 +78,14 @@ The actual service implementation, it's a [NestJS provider](https://docs.nestjs.
 A CrudService handles all CRUD operations out of the box :  
 
   - **Create**: [$create](), [$createBatch]()
-  - **Read**: [$find](), [$findOne](), [$findIn](), [$findIds]()
-  - **Update**: [$patch](), [$patchOne](), [$patchIn](), [$patchBatch]()
-  - **Delete**: [$remove](), [$removeOne](), [$removeIn]()
+  - **Read**: [$findOne](), [$find](), [$findIds](), [$findIn]()
+  - **Update**: [$patchOne](), [$patch](), [$patchIn](), [$patchBatch]()
+  - **Delete**: [$removeOne](), [$remove](), [$removeIn]()
 
 You can extend it with [CMDs]() for everything else.
 
 ## Import your service
-Since services are [NestJS providers](https://docs.nestjs.com/providers){:target="_blank"}, you can inject them into any other service:
+Since services are [NestJS providers](https://docs.nestjs.com/providers){:target="_blank"}, you can inject them anywhere in your app:
 
 ```typescript
 @Injectable()
@@ -94,11 +94,11 @@ export class UserService extends CrudUserService<User> {
         protected modRef: ModuleRef,
         protected profileService: ProfileService 
     ) {
-        super(modRef, MyUser, myUserSecurity(CrudService.getName(MyUser)));
+        super(modRef, User, userSecurity(CrudService.getName(User)));
     }
 
     async findProfile(query){
-        return await this.profileService.find(query);
+        return await this.profileService.$find(query);
     }
 }
 ```
