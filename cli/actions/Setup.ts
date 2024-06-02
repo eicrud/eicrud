@@ -4,6 +4,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import child_process from "child_process";
+import { toKebabCase } from '@eicrud/shared/utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -107,6 +108,46 @@ export class Setup {
 
         Generate.service('user');
         Generate.service('email', { nonCrud: true });
+
+        const userBaseCmds = [
+            'sendVerificationEmail',
+            'verifyEmail',
+            'sendPasswordResetEmail',
+            'changePassword',
+            'resetPassword',
+            'createAccount',
+            'logoutEverywhere',
+        ]
+
+        const bKeysArray = [];
+
+        for(const baseCmd of userBaseCmds) {
+            const snaked = toKebabCase(baseCmd).replaceAll('-', '_');
+
+            const bKeys = {
+                tk_cmd_bname: baseCmd,
+                tk_cmd_lname: snaked,
+                tk_cmd_name: snaked,
+                tk_entity_lname: 'user',
+            }
+            const dir = `./src/services/user/cmds/${snaked}`;
+            if (!fs.existsSync(dir)){
+                fs.mkdirSync(dir, { recursive: true });
+            }
+            const basecmdSecurityTemplateFile = path.join(templateDir, 'cmd/tk_basecmd_lname.security.ts');
+            const basecmdSecurityPath = dir + `/${snaked}.security.ts`;
+            let basecmdSecurityContent = fs.readFileSync(basecmdSecurityTemplateFile, 'utf8');
+            for(const key in bKeys) {
+                const value = bKeys[key];
+                basecmdSecurityContent = basecmdSecurityContent.replace(new RegExp(key, 'g'), value);
+            }
+            fs.writeFileSync(basecmdSecurityPath, basecmdSecurityContent);
+            console.log('CREATED:', basecmdSecurityPath);
+
+            bKeysArray.push(bKeys);
+        }
+
+        _utils_cli.addSecurityToCmdIndex(fs, path, templateDir, 'user', bKeysArray);
 
         const userServicePath = './src/services/user/user.service.ts';
         let userServiceContent = fs.readFileSync(userServicePath, 'utf8');

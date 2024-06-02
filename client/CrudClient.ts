@@ -118,8 +118,12 @@ export class CrudClient<T> {
         days = dayNum;
       }
     }
-    this.storage.set(this.JWT_COOKIE_KEY, res.accessToken, days, false);
+    this.setJwt(res.accessToken, days);
     return res;
+  }
+
+  setJwt(jwt: string, durationDays: number = 1) {
+    this.storage.set(this.JWT_COOKIE_KEY, jwt, durationDays, true);
   }
 
   private async _tryOrLogout(method, optsIndex, ...args) {

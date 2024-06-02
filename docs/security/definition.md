@@ -112,7 +112,7 @@ async defineOPTAbility(can, cannot, ctx) {
 The command security defines which roles can perform the command and how.
 
 Ability syntax is `can(<cmd_name>, <service_name>, ...args)`, for example:
-```typescript title="services/profile/cmds/say_hello/say_hello.security.ts"
+```typescript title="say_hello.security.ts"
 user: {
   async defineCMDAbility(can, cannot, ctx) {
     can('say_hello', 'profile') // users can call say_hello on service profile

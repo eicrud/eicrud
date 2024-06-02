@@ -5,6 +5,7 @@ import { EmailService } from "../core/config/crud-email.service";
 import { FakeEmail } from "./entities/FakeEmail";
 import { MyConfigService } from "./myconfig.service";
 import { ModuleRef } from "@nestjs/core";
+import { CrudContext } from "@eicrud/core/crud";
 
 
 const emailSecurity: CrudSecurity = {
@@ -18,7 +19,7 @@ export class MyEmailService extends CrudService<FakeEmail> implements EmailServi
     ) {
         super(moduleRef, FakeEmail, emailSecurity);
     }
-    sendVerificationEmail(to: string, token: string): Promise<any> {
+    sendVerificationEmail(to: string, token: string, ctx: CrudContext): Promise<any> {
         const email: Partial<FakeEmail> = {
             to,
             message: token,
@@ -26,7 +27,7 @@ export class MyEmailService extends CrudService<FakeEmail> implements EmailServi
         }
         return this.$create(email, null);
     }
-    sendTwoFactorEmail(to: string, code: string): Promise<any> {
+    sendTwoFactorEmail(to: string, code: string, ctx: CrudContext): Promise<any> {
         const email: Partial<FakeEmail> = {
             to,
             message: code,
@@ -34,7 +35,7 @@ export class MyEmailService extends CrudService<FakeEmail> implements EmailServi
         }
         return this.$create(email, null);
     }
-    sendPasswordResetEmail(to: string, token: string): Promise<any> {
+    sendPasswordResetEmail(to: string, token: string, ctx: CrudContext): Promise<any> {
         const email: Partial<FakeEmail> = {
             to,
             message: token,

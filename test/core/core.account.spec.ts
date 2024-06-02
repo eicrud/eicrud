@@ -125,7 +125,7 @@ describe('AppController', () => {
     const { userId, accessToken } = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload, query, crudConfig});
 
     const userDb: MyUser =  await userService.$findOne({ id: userService.dbAdapter.createNewId(userId) }, null);
-    
+
     expect(userDb.email).toEqual(payload.email);
     delete query.cmd;
     jwt = accessToken;
@@ -220,7 +220,7 @@ describe('AppController', () => {
       token_id: email.message + '_' + user.id,
       newPassword: "newpassword",
     }
-    resetPassQuery.cmd = 'changePassword';
+    resetPassQuery.cmd = 'reset_password';
     const res = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload: resetPassDto, query: resetPassQuery, crudConfig});
     
     await new Promise((r) => setTimeout(r, 600));
@@ -269,7 +269,7 @@ describe('AppController', () => {
       token_id: email.message + '_' + user.id,
       newPassword: "newpassword",
     }
-    resetPassQuery.cmd = 'changePassword';
+    resetPassQuery.cmd = 'reset_password';
     const res = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload: resetPassDto, query: resetPassQuery, crudConfig});
 
     await testMethod({ url: '/crud/auth', method: 'POST', expectedCode: 401, app, jwt, entityManager, payload, query, crudConfig});

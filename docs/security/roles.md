@@ -50,21 +50,3 @@ The authorization stops going up the tree whenever a role passes the check, it a
 
 ## Guest Role
 Your application needs a guest role to define unauthenticated users' abilities. It is set the [config service]()'s constructor and defaults as `'guest'`.  
-
-## Options
-
-**name: string**  
-A unique name identifying the role.
-
-**isAdminRole: boolean**  
-Indicate if the role is an admin role. Admin roles start with more [trust]() and are allowed to perform [batch operations]().
-
-**canMock: boolean**  
-Indicate if the role can mock inherited roles. Useful for debugging.
-
-**noTokenRefresh: boolean**  
-Indicate that the user's JWT tokens shouldn't be automatically extended even when [AuthenticationOptions]()->`renewJwt` is set.
-
-
-**inherits: string[]**  
-A list of roles to inherit abilities from.

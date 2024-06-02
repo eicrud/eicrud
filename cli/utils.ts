@@ -15,4 +15,56 @@ export class _utils_cli {
         return content;
     }
 
+    static addSecurityToCmdIndex(fs, path, template_folder, serviceName, keysArray){
+        
+        const cmdsFile = `./src/services/${serviceName}/cmds.ts`;
+        if (!fs.existsSync(cmdsFile)){
+            const templateIndex = path.join(template_folder, '/service/cmds.ts');
+            fs.copyFileSync(templateIndex, cmdsFile);
+            console.log('CREATED:', cmdsFile);
+        }
+
+        let importLines = [
+        ];
+
+        for(const keys of keysArray) {
+            importLines = [
+                ...importLines,
+                `import { ${keys.tk_cmd_bname}Security } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.security';`,
+            ]
+        }
+
+        let content = fs.readFileSync(cmdsFile, 'utf8');
+
+        importLines.forEach(importLine => {
+            content = importLine + '\n' + content;
+        });
+
+        for(const keys of keysArray) {
+
+            const replaces = [
+                {
+                    regex: /export[ ]{1,}const[ ]{1,}serviceCmds[ ]{1,}=[ ]{1,}\{([^\}]*)\}/,
+                    getReplaceString: (array) => {
+                        const newLine = `    ${keys.tk_cmd_name}: ${keys.tk_cmd_bname}Security,`;
+                        let rep = array.trim()
+                        rep = rep ? '    ' + rep + '\n' : ''
+                        return `export const serviceCmds =  {\n${newLine}\n${rep}}`;
+                    },
+                    error: 'Could not find serviceCmds array in cmds file'
+                },     
+            ]
+
+            for(let replace of replaces) {
+                content = _utils_cli.addNewLineToMatched(content, replace.regex, replace.getReplaceString, replace.error);
+            }
+        }
+
+        //write content
+        fs.writeFileSync(cmdsFile, content);
+
+        console.log('UPDATED:', cmdsFile);
+
+    }
+
 }

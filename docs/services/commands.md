@@ -15,7 +15,7 @@ Like [services](/services/definition), CMDs have 3 main components:
 
 ### A Dto:
 
-```typescript title="services/profile/cmds/say_hello/say_hello.dto.ts"
+```typescript title="say_hello.dto.ts"
 export default class SayHelloDto {
 
     @IsString()
@@ -29,7 +29,7 @@ Command DTOs follow the same [validation](/services/validation)/[transform](/ser
 
 ### A [Security](/../security/definition):
 
-```typescript title="services/profile/cmds/say_hello/say_hello.security.ts"
+```typescript title="say_hello.security.ts"
 const getCmdSecurity = (say_hello, profile): CmdSecurity => { 
     return {
         dto: SayHelloDto,
@@ -54,7 +54,7 @@ async defineCMDAbility(can, cannot, ctx) {
 ```
 
 ### An Action:
-```typescript title="services/profile/cmds/sayhello/sayhello.action.ts"
+```typescript title="sayhello.action.ts"
 export default function say_hello(dto, service, ctx, inheritance?){
     return `Hello ${dto.arg}!`
 }
@@ -62,7 +62,7 @@ export default function say_hello(dto, service, ctx, inheritance?){
 This is the CMD implementation. Any value returned is sent back to the client.
 
 Eicrud's controller will route CMD calls to your CrudService's methods (`'$' + <cmd_name>`):
-```typescript title="services/profile/profile.service.ts"
+```typescript title="profile.service.ts"
 async $say_hello(dto: SayHelloDto, ctx: CrudContext, inheritance?: any) {
    return await serviceCmds.say_hello.action(dto, this, ctx, inheritance);
 }

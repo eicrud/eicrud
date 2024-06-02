@@ -1,11 +1,11 @@
-import { CmdSecurity } from "@eicrud/core/config";
-import tk_cmd_name from "./tk_cmd_lname.action";
-import tk_cmd_dto_name from "./tk_cmd_lname.dto";
+import { CmdSecurity, baseCmds } from "@eicrud/core/config";
 
 
 const getCmdSecurity = (tk_cmd_lname, tk_entity_lname): CmdSecurity => { 
     return {
-        dto: tk_cmd_dto_name,
+        secureOnly: true,
+        minTimeBetweenCmdCallMs: 1000,
+        dto: baseCmds.tk_cmd_bname.dto,
         rolesRights: {
             user: {
                 async defineCMDAbility(can, cannot, ctx) {
@@ -19,5 +19,4 @@ const getCmdSecurity = (tk_cmd_lname, tk_entity_lname): CmdSecurity => {
 
 export const tk_cmd_bnameSecurity = {
     getCmdSecurity,
-    action: tk_cmd_name
 }

@@ -41,7 +41,7 @@ const cmdSecurityMap: Record<string, CmdSecurity> = {
             }
         },
     },
-    ...[baseCmds.sendPasswordResetEmail, baseCmds.changePassword].reduce((acc, cmd) => {
+    ...[baseCmds.sendPasswordResetEmail, baseCmds.changePassword, baseCmds.resetPassword].reduce((acc, cmd) => {
         acc[cmd.name] = {
             dto: cmd.dto,
             rolesRights: {
@@ -51,7 +51,7 @@ const cmdSecurityMap: Record<string, CmdSecurity> = {
                     }
                 }
             },
-        }
+        } as CmdSecurity;
         return acc;
     }, {})
     
