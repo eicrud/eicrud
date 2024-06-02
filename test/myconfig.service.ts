@@ -29,7 +29,8 @@ const roles: CrudRole[] = [
     {
         name: 'moderator',
         inherits: ['trusted_user'],
-    },    {
+    },    
+    {
         name: 'trusted_user',
         inherits: ['user'],
     },
