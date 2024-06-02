@@ -139,18 +139,19 @@ export class CrudSecurity {
 export const httpAliasResolver = createAliasResolver({
     create: ['POST'],
     read: ['GET'],
-    update: ['PUT', 'PATCH'],
+    update: ['PATCH'],
     delete: ['DELETE'],
-    crud: ['POST', 'GET', 'PUT', 'PATCH', 'DELETE'],
-    cru: ['POST', 'GET', 'PUT', 'PATCH'],
+    crud: ['POST', 'GET', 'PATCH', 'DELETE'],
+    cru: ['POST', 'GET', 'PATCH'],
     crd: ['POST', 'GET', 'DELETE'],
-    cud: ['POST', 'PUT', 'PATCH', 'DELETE'],
+    cud: ['POST', 'PATCH', 'DELETE'],
+    rud: ['GET', 'PATCH', 'DELETE'],
     cr: ['POST', 'GET'],
-    cu: ['POST', 'PUT', 'PATCH'],
+    cu: ['POST', 'PATCH'],
     cd: ['POST', 'DELETE'],
-    ru: ['GET', 'PUT', 'PATCH'],
+    ru: ['GET', 'PATCH'],
     rd: ['GET', 'DELETE'],
-    ud: ['PUT', 'PATCH', 'DELETE'],
+    ud: [ 'PATCH', 'DELETE'],
 });
  
 /**

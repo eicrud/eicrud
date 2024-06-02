@@ -49,4 +49,4 @@ const {data, total, limit} = await profileService.$find(query, ctx);
 ```
 
 
-## findIds
+## $findIds

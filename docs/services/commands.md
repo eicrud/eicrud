@@ -27,7 +27,7 @@ export default class SayHelloDto {
 
 Command DTOs follow the same [validation](/services/validation)/[transform](/services/transform) rules as [entities](/services/entity).
 
-### A [Security](/services/security):
+### A [Security](/../security/definition):
 
 ```typescript title="services/profile/cmds/say_hello/say_hello.security.ts"
 const getCmdSecurity = (say_hello, profile): CmdSecurity => { 

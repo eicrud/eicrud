@@ -28,6 +28,9 @@ export class TestCmdDto {
     @IsOptional()
     @$Type(subTestCmdDto)
     sub?: subTestCmdDto;
+
+    @IsOptional()
+    forbiddenField?: string;
 }
 
 const myProfileSecurity = (USER_PROFILE) => { return {
@@ -46,7 +49,7 @@ const myProfileSecurity = (USER_PROFILE) => { return {
         
                 guest: {
                     async defineCMDAbility(can, cannot, ctx) {
-                        can('testCmd', USER_PROFILE, { returnMessage: "I'M A GUEST!" });
+                        can('testCmd', USER_PROFILE,['returnMessage'], { returnMessage: "I'M A GUEST!" });
                     },
                 }
             },
