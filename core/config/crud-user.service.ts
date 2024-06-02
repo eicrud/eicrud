@@ -13,7 +13,7 @@ import { IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-valid
 import { ModuleRef } from '@nestjs/core';
 import { $Transform } from '../validation/decorators';
 import { UserIdDto } from '../crud/model/dtos';
-import { LoginResponseDto, IResetPasswordDto, ISendPasswordResetEmailDto, IChangePasswordDto, ICreateAccountDto } from '@eicrud/shared/interfaces';
+import { LoginResponseDto, IResetPasswordDto, ISendPasswordResetEmailDto, IChangePasswordDto, ICreateAccountDto, ISendVerificationEmailDto } from '@eicrud/shared/interfaces';
 import * as bcrypt from 'bcrypt';
 
 
@@ -122,12 +122,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     security = security || new CrudSecurity();
     super(moduleRef, userEntityClass, security);
 
-    for(const cmd in baseCmds){
+    for(const cmdIndex in baseCmds){
+      const cmd = baseCmds[cmdIndex];
+      const cmdName = cmd.name;
       security.cmdSecurityMap = security.cmdSecurityMap || {} as any;
-      security.cmdSecurityMap[cmd] = security.cmdSecurityMap?.[cmd] || {} as any;
-      security.cmdSecurityMap[cmd].secureOnly = true;
-      if(!security.cmdSecurityMap[cmd].dto){
-        security.cmdSecurityMap[cmd].dto = baseCmds[cmd].dto;
+      security.cmdSecurityMap[cmdName] = security.cmdSecurityMap?.[cmdName] || {} as any;
+      security.cmdSecurityMap[cmdName].secureOnly = true;
+      if(!security.cmdSecurityMap[cmdName].dto){
+        security.cmdSecurityMap[cmdName].dto = cmd.dto;
       }
     }
   }

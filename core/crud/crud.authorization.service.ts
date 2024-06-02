@@ -203,7 +203,9 @@ export class CrudAuthorizationService {
         const roleRights = security.rolesRights[role.name];
         let currentResult: RoleResult = null;
         if (!roleRights) {
-            console.warn(`Unknown role: ${role.name}.`);
+            if(!this.crudConfig.rolesMap[role.name]){
+                console.warn(`Unknown role: ${role.name}.`);
+            }
             currentResult = { problemField: 'all' };
         }else{
             const userAbilities = await defineAbility(async (can, cannot) => {

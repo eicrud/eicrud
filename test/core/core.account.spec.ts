@@ -118,7 +118,7 @@ describe('AppController', () => {
     };
     const query: CrudQuery = {
       service: 'my-user',
-      cmd: 'createAccount',
+      cmd: 'create_account',
     }
     let jwt = null;
 
@@ -143,7 +143,7 @@ describe('AppController', () => {
     };
     const query: CrudQuery = {
       service: 'my-user',
-      cmd: 'createAccount',
+      cmd: 'create_account',
     }
     let jwt = null;
 
@@ -209,7 +209,7 @@ describe('AppController', () => {
 
     const resetPassQuery: CrudQuery = {
       service: 'my-user',
-      cmd: 'sendPasswordResetEmail',
+      cmd: 'send_password_reset_email',
     }
     await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload: resetPassEmailDto, query: resetPassQuery, crudConfig});
 
@@ -254,7 +254,7 @@ describe('AppController', () => {
 
     const resetPassQuery: CrudQuery = {
       service: 'my-user',
-      cmd: 'sendPasswordResetEmail',
+      cmd: 'send_password_reset_email',
     }
     await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt, entityManager, payload: resetPassEmailDto, query: resetPassQuery, crudConfig});
     
@@ -318,7 +318,7 @@ describe('AppController', () => {
 
   });
 
-  it('should trim and lowercase email on createAccount', async () => {
+  it('should trim and lowercase email on create_account', async () => {
     const payload: CreateAccountDto = {
       email: " nonTriMMed@mail.com ",
       password: testAdminCreds.password,
@@ -326,7 +326,7 @@ describe('AppController', () => {
     };
     const query: CrudQuery = {
       service: 'my-user',
-      cmd: 'createAccount',
+      cmd: 'create_account',
     }
     let jwt = null;
 
