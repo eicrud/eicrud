@@ -283,7 +283,7 @@ export class CrudAuthGuard implements CanActivate {
         `High traffic event for user ${userId} with ${traffic} requests.`, 
         { userId, user, ip } as CrudContext
         )
-      await this.crudConfig.onHighTrafficEvent(traffic, user);
+      await this.crudConfig.onHighTrafficEvent(traffic, user, ctx);
       traffic = 0;
     }
     this.userTrafficMap.set(userId, traffic + 1);
