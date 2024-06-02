@@ -3,9 +3,6 @@ nav:
   - entity.md
   - operations.md
   - commands.md
-  - validation.md
-  - transform.md
-  - security.md
   - ...
 
 

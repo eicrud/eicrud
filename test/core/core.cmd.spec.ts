@@ -205,6 +205,10 @@ describe('AppController', () => {
     payload.returnMessage = "I'm a guest!";
 
     await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: null, entityManager, payload, query, crudConfig});
+    
+    payload.forbiddenField = "POOP";
+
+    await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 403, app, jwt: null, entityManager, payload, query, crudConfig});
 
   });
 
