@@ -16,7 +16,7 @@ import { CrudContext } from '../crud/model/CrudContext';
 import { CrudUser } from '../config/model/CrudUser';
 
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { CRUD_CONFIG_KEY, CrudConfigService, MicroServicesOptions } from '../config/crud.config.service';
+import { BasicMemoryCache, CRUD_CONFIG_KEY, CrudCache, CrudConfigService, MicroServicesOptions } from '../config/crud.config.service';
 import { LogType } from '../log/entities/log';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { CrudOptions } from '../crud/model/CrudOptions';
@@ -25,7 +25,38 @@ import { CrudAuthService } from './auth.service';
 import { ModuleRef } from '@nestjs/core';
 import { LRUCache } from 'mnemonist';
 
-export class TrafficWatchOptions{
+export interface TrafficCache {
+  get: (key: string) => Promise<any>;
+  set: (key: string, value: any) => Promise<any>;
+  inc: (key: string, increment: number, currentValue: number) => Promise<any>;
+  clear?: () => Promise<any>;
+}
+export class BasicTrafficCache implements TrafficCache {
+  cache: LRUCache<string, CrudUser>;
+
+  constructor(size = 10000) {
+    this.cache = new LRUCache(size);
+  }
+  async inc(key: string, increment: number, currentValue: number){
+    return this.set(key, (currentValue) + increment);
+  };
+
+  async get(key: string){
+    return this.cache.get(key);
+  }
+
+  async set(key: string, value: any){
+    return this.cache.set(key, value);
+  }
+
+  async clear(){
+      return this.cache.clear();
+  }
+
+  
+}
+
+export class WatchTrafficOptions{
   MAX_TRACKED_USERS: number = 10000;
 
   MAX_TRACKED_IPS: number = 10000;
@@ -42,6 +73,10 @@ export class TrafficWatchOptions{
   ddosProtection: boolean = false;
   
   userTrafficProtection: boolean = true;
+
+  userTrafficCache: TrafficCache = null;
+  ipTrafficCache: TrafficCache = null;
+  ipTimeoutCache: TrafficCache = null;
 }
 
 export class ValidationOptions{
@@ -56,9 +91,9 @@ export class ValidationOptions{
 @Injectable()
 export class CrudAuthGuard implements CanActivate {
   
-  userTrafficMap: LRUCache<string, number>;
-  ipTrafficMap: LRUCache<string, number>;
-  timedOutIps: LRUCache<string, number>;
+  userTrafficCache: TrafficCache;
+  ipTrafficCache: TrafficCache;
+  ipTimeoutCache: TrafficCache;
 
   reciprocalRequestThreshold: number;
   
@@ -67,8 +102,8 @@ export class CrudAuthGuard implements CanActivate {
   
   @Cron(CronExpression.EVERY_5_MINUTES)
   handleCron() {
-    this.userTrafficMap.clear();
-    this.ipTrafficMap.clear();
+    this.userTrafficCache.clear?.();
+    this.ipTrafficCache.clear?.();
   }
 
   
@@ -81,9 +116,10 @@ export class CrudAuthGuard implements CanActivate {
 
     onModuleInit() {
       this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY,{ strict: false })
-      this.userTrafficMap = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_TRACKED_USERS);
-      this.ipTrafficMap = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_TRACKED_IPS);
-      this.timedOutIps = new LRUCache(this.crudConfig.watchTrafficOptions.MAX_TRACKED_IPS);
+      const { watchTrafficOptions } = this.crudConfig;
+      this.userTrafficCache = watchTrafficOptions.userTrafficCache || new BasicTrafficCache(watchTrafficOptions.MAX_TRACKED_USERS);
+      this.ipTrafficCache = watchTrafficOptions.ipTrafficCache || new BasicTrafficCache(watchTrafficOptions.MAX_TRACKED_IPS);
+      this.ipTimeoutCache = watchTrafficOptions.ipTimeoutCache || new BasicTrafficCache(watchTrafficOptions.MAX_TRACKED_IPS);
 
       this.reciprocalRequestThreshold = 1 / this.crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD;
     }
@@ -139,10 +175,10 @@ export class CrudAuthGuard implements CanActivate {
     } 
 
     if(this.crudConfig.watchTrafficOptions.ddosProtection){
-      let timeout = this.timedOutIps.get(ip);
+      let timeout = await this.ipTimeoutCache.get(ip);
       if(timeout != undefined){
         if(timeout > Date.now()){
-          await this.addTrafficToIpTrafficMap(ip, true);
+          this.addTrafficToIpTrafficMap(ip, true);
           throw new HttpException({
             statusCode: HttpStatus.TOO_MANY_REQUESTS,
             error: 'Too Many Requests',
@@ -150,7 +186,7 @@ export class CrudAuthGuard implements CanActivate {
           }, 429);
         }
       }
-      await this.addTrafficToIpTrafficMap(ip);
+      this.addTrafficToIpTrafficMap(ip);
     }
 
     const token = this.extractTokenFromHeader(request);
@@ -202,7 +238,7 @@ export class CrudAuthGuard implements CanActivate {
         }
 
         if(this.crudConfig.watchTrafficOptions.userTrafficProtection){
-          await this.addTrafficToUserTrafficMap(userId, user, ip, crudContext);
+          this.addTrafficToUserTrafficMap(userId, user, ip, crudContext);
         }
 
     }
@@ -235,7 +271,7 @@ export class CrudAuthGuard implements CanActivate {
   
 
   async addTrafficToIpTrafficMap(ip: string, silent = false){
-    let traffic = this.ipTrafficMap.get(ip);
+    let traffic = await this.ipTrafficCache.get(ip);
     if (traffic === undefined) {
       traffic = 0;
     }
@@ -247,15 +283,15 @@ export class CrudAuthGuard implements CanActivate {
           )
       }
       const timeout_end = Date.now() + this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN * 60 * 1000;
-      this.timedOutIps.set(ip, timeout_end);
+      this.ipTimeoutCache.set(ip, timeout_end);
       return true;
     }
-    this.ipTrafficMap.set(ip, traffic + 1);
+    this.ipTrafficCache.inc(ip, 1, traffic);
     return false;
   }
 
   async addTrafficToUserTrafficMap(userId, user: Partial<CrudUser>, ip, ctx: CrudContext){
-    let traffic = this.userTrafficMap.get(userId);
+    let traffic = await this.userTrafficCache.get(userId);
     if (traffic === undefined) {
       traffic = 0;
     }
@@ -283,10 +319,10 @@ export class CrudAuthGuard implements CanActivate {
         `High traffic event for user ${userId} with ${traffic} requests.`, 
         { userId, user, ip } as CrudContext
         )
-      await this.crudConfig.onHighTrafficEvent(traffic, user, ctx);
+      this.crudConfig.onHighTrafficEvent(traffic, user, ctx);
       traffic = 0;
     }
-    this.userTrafficMap.set(userId, traffic + 1);
+    this.userTrafficCache.inc(userId, 1, traffic);
   }
 
 }

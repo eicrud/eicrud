@@ -23,7 +23,7 @@ msOptions.microServices = {
 
 This means you must be careful when defining `$` functions inside your CrudServices since the behavior of the function might change depending on where it is called. 
 
-**Here are a few guidelines that will make your transition from monolithic to microservices a breeze.**
+**Here are a few guidelines that will make your transition from monolithic to microservices simple.**
 
 ## Treat all functions as async
 
