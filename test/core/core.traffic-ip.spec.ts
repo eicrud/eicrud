@@ -77,11 +77,11 @@ describe('AppController', () => {
     const res = await Promise.all(promises);
     await testMethod({ url: '/crud/many', method: 'GET', app, entityManager, payload, query, expectedCode: 429, crudConfig });
   
-    authGuard.ipTrafficMap.clear();
+    authGuard.ipTrafficCache.clear?.();
 
     await testMethod({ url: '/crud/many', method: 'GET', app, entityManager, payload, query, expectedCode: 429, crudConfig });
 
-    authGuard.timedOutIps.set('127.0.0.1', 0);
+    authGuard.ipTimeoutCache.set('127.0.0.1', 0);
 
     await testMethod({ url: '/crud/many', method: 'GET', app, entityManager, payload, query, expectedCode: 200, crudConfig });
 

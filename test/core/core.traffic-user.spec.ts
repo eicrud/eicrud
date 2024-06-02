@@ -117,8 +117,8 @@ describe('AppController', () => {
         didCaptcha = true;
       }
 
-      authGuard.ipTrafficMap.clear();
-      authGuard.userTrafficMap.clear();
+      authGuard.ipTrafficCache.clear?.();
+      authGuard.userTrafficCache.clear?.();
 
     }
 

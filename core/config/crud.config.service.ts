@@ -4,7 +4,7 @@ import { CrudUserService } from "./crud-user.service";
 import { LogService } from "../log/log.service";
 import { EntityClass, EntityManager, raw } from "@mikro-orm/core";
 import { CrudContext } from "../crud/model/CrudContext";
-import { TrafficWatchOptions, ValidationOptions } from "../authentification/auth.guard";
+import { WatchTrafficOptions, ValidationOptions } from "../authentification/auth.guard";
 import { CrudUser } from "./model/CrudUser";
 import { EmailService } from "./crud-email.service";
 import { AuthenticationOptions } from "../authentification/auth.service";
@@ -32,13 +32,16 @@ export class BasicMemoryCache implements CrudCache {
         ttl: ttl,
       });
     }
-  
-    
+
+    async clear(){
+        return this.cache.clear();
+    }
+
   }
 
 export interface CrudCache {
     get: (key: string) => Promise<any>;
-    set: (key: string, value: any, ttl: number) => Promise<any>;
+    set: (key: string, value: any, ttl?: number) => Promise<any>;
 }
 
 export interface CacheOptions {
@@ -92,7 +95,7 @@ export class MicroServicesOptions {
 
 export class CrudConfigService {
     
-    watchTrafficOptions = new TrafficWatchOptions();
+    watchTrafficOptions = new WatchTrafficOptions();
   
     microServicesOptions = new MicroServicesOptions();
     
@@ -133,7 +136,7 @@ export class CrudConfigService {
         jwtSecret: string,
         cacheManager: CrudCache,
         authenticationOptions?: Partial<AuthenticationOptions>,
-        watchTrafficOptions?: Partial<TrafficWatchOptions>,
+        watchTrafficOptions?: Partial<WatchTrafficOptions>,
         defaultCacheOptions?: Partial<CacheOptions>,
         validationOptions?: Partial<ValidationOptions>,
         limitOptions?: Partial<LimitOptions>,
