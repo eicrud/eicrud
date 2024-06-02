@@ -13,11 +13,11 @@ import { IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-valid
 import { ModuleRef } from '@nestjs/core';
 import { $Transform } from '../validation/decorators';
 import { UserIdDto } from '../crud/model/dtos';
-import { LoginResponseDto, IResetPasswordDto, ISendPasswordResetEmailDto } from '@eicrud/shared/interfaces';
+import { LoginResponseDto, IResetPasswordDto, ISendPasswordResetEmailDto, IChangePasswordDto, ICreateAccountDto } from '@eicrud/shared/interfaces';
 import * as bcrypt from 'bcrypt';
 
 
-export class CreateAccountDto {
+export class CreateAccountDto implements ICreateAccountDto{
   @IsString()
   @$Transform((value ) => {
     return value.toLowerCase().trim()
@@ -41,13 +41,23 @@ export class ResetPasswordDto implements IResetPasswordDto {
   @IsString()
   expiresIn: string;
 }
+export class ChangePasswordDto implements IChangePasswordDto {
+  @IsString()
+  oldPassword: string;
+
+  @IsString()
+  newPassword: string;
+
+  @IsString()
+  expiresIn: string;
+}
 
 export class VerifyTokenDto {
   @IsString()
   token_id: string;
 }
 
-export class SendVerificationEmailDto {
+export class SendVerificationEmailDto implements ISendVerificationEmailDto {
   @IsEmail()
   @IsOptional()
   newEmail: string;
@@ -64,27 +74,31 @@ export class SendPasswordResetEmailDto implements ISendPasswordResetEmailDto{
 
 export const baseCmds = {
   sendVerificationEmail: {
-    name: 'sendVerificationEmail',
+    name: 'send_verification_email',
     dto: SendVerificationEmailDto
   },
   verifyEmail: {
-    name: 'verifyEmail',
+    name: 'verify_email',
     dto: VerifyTokenDto
   },
   sendPasswordResetEmail: {
-    name: 'sendPasswordResetEmail',
+    name: 'send_password_reset_email',
     dto: SendPasswordResetEmailDto
   },
-  changePassword: {
-    name: 'changePassword',
+  resetPassword: {
+    name: 'reset_password',
     dto: ResetPasswordDto
   },
+  changePassword: {
+    name: 'change_password',
+    dto: ChangePasswordDto
+  },
   createAccount: {
-    name: 'createAccount',
+    name: 'create_account',
     dto: CreateAccountDto
   },
   logoutEverywhere: {
-    name: 'logoutEverywhere',
+    name: 'logout_everywhere',
     dto: UserIdDto,
   }
 
@@ -312,13 +326,20 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return new BadRequestException(CrudErrors.TOKEN_EXPIRED.str());
   }
 
-  async $sendVerificationEmail(dto: SendVerificationEmailDto, ctx: CrudContext){
+  async $send_verification_email(dto: SendVerificationEmailDto, ctx: CrudContext){
 
     if(dto?.newEmail){
       //Verify password
       const match = await bcrypt.compare(dto.password, ctx.user?.password);
       if (!match) {
         throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
+      }
+    }else{
+      if(!ctx.userId){
+        throw new ForbiddenException("Must be logged to send verification email");
+      }
+      if(ctx.user.verifiedEmail){
+        return true;
       }
     }
 
@@ -332,11 +353,11 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       keys[0], 
       this.getVerificationEmailTimeoutHours(ctx.user), 
       keys[1], 
-      (email, token) => this.crudConfig.emailService.sendVerificationEmail(email, token), 
+      (email, token) => this.crudConfig.emailService.sendVerificationEmail(email, token, ctx), 
       keys[2]);
   }
 
-  async $verifyEmail(dto: VerifyTokenDto, ctx: CrudContext){
+  async $verify_email(dto: VerifyTokenDto, ctx: CrudContext){
     const { token_id } = dto;
     const [ token, userId ] = token_id.split('_', 2);
     //Doing this for type checking
@@ -375,13 +396,13 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const twoFACodeCount = user.twoFACodeCount || 0;
     const patch: Partial<CrudUser> = {lastTwoFACode: code, lastTwoFACodeSent: new Date(), twoFACodeCount: twoFACodeCount+1};
     const proms = [];
-    proms.push(this.crudConfig.emailService.sendTwoFactorEmail(user.email, code));
+    proms.push(this.crudConfig.emailService.sendTwoFactorEmail(user.email, code, ctx));
     proms.push(this.$unsecure_fastPatchOne(userId, patch as any, ctx));
     await Promise.all(proms);
     return true;
   }
 
-  async $sendPasswordResetEmail(dto: SendPasswordResetEmailDto, ctx: CrudContext){
+  async $send_password_reset_email(dto: SendPasswordResetEmailDto, ctx: CrudContext){
         //Doing this for type checking
         const userObj: Partial<CrudUser> = { lastPasswordResetSent: null, passwordResetToken: null, passwordResetAttempCount: 0} 
         const keys = Object.keys(userObj); 
@@ -401,7 +422,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
             keys[0], 
             this.getPasswordResetEmailTimeoutHours(ctx.user), 
             keys[1], 
-            (email, token) => this.crudConfig.emailService.sendPasswordResetEmail(email, token),
+            (email, token) => this.crudConfig.emailService.sendPasswordResetEmail(email, token, ctx),
             keys[2]);
         } catch(e){ 
           //Silent error
@@ -410,7 +431,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         }
   }
 
-  async $changePassword(dto: ResetPasswordDto, ctx: CrudContext) {
+  async $reset_password(dto: ResetPasswordDto, ctx: CrudContext) {
     const ALLOWED_JWT_EXPIRES_IN = this.crudConfig.authenticationOptions.ALLOWED_JWT_EXPIRES_IN;
     if(dto.expiresIn && !ALLOWED_JWT_EXPIRES_IN.includes(dto.expiresIn)){
       throw new BadRequestException("Invalid expiresIn: " + dto.expiresIn + " allowed: " + ALLOWED_JWT_EXPIRES_IN.join(', '));
@@ -442,9 +463,38 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         return patch;
       });
     return { accessToken: await this.authService.signTokenForUser(updatedUser, dto.expiresIn || undefined)}
+  }  
+  
+  async $change_password(dto: ChangePasswordDto, ctx: CrudContext) {
+    const ALLOWED_JWT_EXPIRES_IN = this.crudConfig.authenticationOptions.ALLOWED_JWT_EXPIRES_IN;
+    if(dto.expiresIn && !ALLOWED_JWT_EXPIRES_IN.includes(dto.expiresIn)){
+      throw new BadRequestException("Invalid expiresIn: " + dto.expiresIn + " allowed: " + ALLOWED_JWT_EXPIRES_IN.join(', '));
+    }
+    if(!ctx.userId){
+      throw new ForbiddenException("Must be logged to change password");
+    }
+    const { newPassword, oldPassword } = dto;
+
+    if(newPassword?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH){
+      throw new BadRequestException(CrudErrors.PASSWORD_TOO_LONG.str());
+    }
+    const user: CrudUser = ctx.user;
+    const match = await bcrypt.compare(oldPassword, user?.password);
+    if (!match) {
+      throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
+    }
+    const patch: Partial<CrudUser> = {
+      role: user.role, 
+      revokedCount: user.revokedCount ?? 0,
+      password: dto.newPassword, passwordResetAttempCount: 0
+    };
+    await this.$unsecure_fastPatchOne(user[this.crudConfig.id_field], patch as any, ctx);
+    const updatedUser = {...user, ...patch};
+
+    return { accessToken: await this.authService.signTokenForUser(updatedUser, dto.expiresIn || undefined)}
   }
 
-  async $createAccount(dto: CreateAccountDto, ctx: CrudContext, inheritance: any = {}){
+  async $create_account(dto: CreateAccountDto, ctx: CrudContext, inheritance: any = {}){
       const { email, password, role } = dto;
       if(password?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH){
         throw new BadRequestException(CrudErrors.PASSWORD_TOO_LONG.str());
@@ -527,7 +577,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return await this.$authUser(ctx, user, pass, expiresIn, twoFA_code);
   }
 
-  async $logoutEverywhere(dto: UserIdDto, ctx: CrudContext, inheritance: any = {}){
+  async $logout_everywhere(dto: UserIdDto, ctx: CrudContext, inheritance: any = {}){
     const query: any = { [this.crudConfig.id_field]: dto.userId };
     const user = (ctx.user?.[this.crudConfig.id_field] == dto.userId) ? ctx.user : await this.$findOne(query, ctx);
     user.revokedCount = user.revokedCount || 0;

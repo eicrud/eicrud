@@ -1,4 +1,4 @@
-export interface ICrudOptions  {
+export interface ICrudOptions {
 
     populate?: string[];
     mockRole?: string;
@@ -46,6 +46,19 @@ export interface IResetPasswordDto {
     newPassword: string;
 }
 
+export interface ICreateAccountDto {
+    email: string;
+    password: string;
+    role: string;
+}
+export interface IChangePasswordDto {
+    oldPassword: string;
+    newPassword: string;
+}
+export class ISendVerificationEmailDto {
+    newEmail: string;
+    password: string;
+}
 export interface ISendPasswordResetEmailDto {
-    
+    email: string;
 }

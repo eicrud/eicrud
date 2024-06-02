@@ -220,7 +220,7 @@ export class CrudAuthorizationService {
             const methodToCheck = ctx.origin == "crud" ? ctx.method : ctx.cmdName;
             const pbField = this.loopFieldAndCheckCannot( methodToCheck, ctx.query, fields, userAbilities, ctx);
             if (pbField) {
-                currentResult = { roleName: role.name, problemField: pbField };
+                currentResult = { problemField: pbField };
             }
         }
        
@@ -240,7 +240,7 @@ export class CrudAuthorizationService {
                 }
                 const pbField = this.loopFieldAndCheckCannot(key, ctx.query, ofields, userOptionsAbilities, ctx);
                 if (pbField) {
-                    currentResult = { roleName: role.name, problemField: key+'->'+pbField };
+                    currentResult = { problemField: key+'->'+pbField };
                     break;
                 }
             }

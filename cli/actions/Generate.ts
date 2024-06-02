@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import { Setup } from "./Setup.js";
 import { CrudService } from "@eicrud/core/crud/crud.service.js";
-import { toKebabCase } from '@eicrud/shared/utils';
+import { toKebabCase } from '@eicrud/shared/utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -193,13 +193,13 @@ export class Generate {
         //console.log('Generating service', name);
         serviceName = serviceName.charAt(0).toUpperCase() + serviceName.slice(1);
 
-
+        const tk_cmd_bname = name;
         const tk_cmd_dto_name = name.charAt(0).toUpperCase() + name.slice(1) + 'Dto';
 
 
         name = toKebabCase(name);
 
-        name = name.replace('-', '_');
+        name = name.replaceAll('-', '_');
 
         const keys = {
             tk_entity_name: serviceName,
@@ -208,7 +208,8 @@ export class Generate {
             tk_cmd_name: name,
             tk_cmd_lname: name.toLowerCase(),
             tk_cmd_uname: name.toUpperCase(),
-            tk_cmd_dto_name
+            tk_cmd_dto_name,
+            tk_cmd_bname
         }
 
         let dir = `./src/services/${keys.tk_entity_lname}`;
@@ -226,45 +227,8 @@ export class Generate {
 
         Generate.copyTemplateFiles(path.join(template_folder, '/cmd'), files, keys, dir);
    
+        _utils_cli.addSecurityToCmdIndex(fs, path, template_folder, serviceName, [keys]);
 
-        const cmdsFile = `./src/services/${serviceName}/cmds.ts`;
-        if (!fs.existsSync(cmdsFile)){
-            const templateIndex = path.join(template_folder, '/service/cmds.ts');
-            fs.copyFileSync(templateIndex, cmdsFile);
-            console.log('CREATED:', cmdsFile);
-        }
-
-        const importLines = [
-            `import { ${keys.tk_cmd_name}Security } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.security';`,
-        ];
-
-        let content = fs.readFileSync(cmdsFile, 'utf8');
-
-        importLines.forEach(importLine => {
-            content = importLine + '\n' + content;
-        });
-
-        const replaces = [
-            {
-                regex: /export[ ]{1,}const[ ]{1,}serviceCmds[ ]{1,}=[ ]{1,}\{([^\}]*)\}/,
-                getReplaceString: (array) => {
-                    const newLine = `    ${keys.tk_cmd_name}: ${keys.tk_cmd_name}Security,`;
-                    let rep = array.trim()
-                    rep = rep ? '    ' + rep + '\n' : ''
-                    return `export const serviceCmds =  {\n${newLine}\n${rep}}`;
-                },
-                error: 'Could not find serviceCmds array in cmds file'
-            },     
-        ]
-
-        for(let replace of replaces) {
-            content = _utils_cli.addNewLineToMatched(content, replace.regex, replace.getReplaceString, replace.error);
-        }
-
-        //write content
-        fs.writeFileSync(cmdsFile, content);
-
-        console.log('UPDATED:', cmdsFile);
 
         const servicePath = `./src/services/${keys.tk_entity_lname}/${keys.tk_entity_lname}.service.ts`;
         let serviceFileContent = fs.readFileSync(servicePath, 'utf8');

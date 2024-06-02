@@ -155,7 +155,7 @@ describe('AppController', () => {
       password: testAdminCreds.password,
       role: "super_admin",
     }
-    const accRes = await userService.$createAccount(createAccountDto, null);
+    const accRes = await userService.$create_account(createAccountDto, null);
     jwt = accRes.accessToken;
     userId = crudConfig.dbAdapter.formatId(accRes.userId, crudConfig);
 
