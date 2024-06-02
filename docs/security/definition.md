@@ -26,7 +26,7 @@ The service security defines who can access or modify the [entity](../services/e
 }
 ```
 Ability syntax is `can(<operation>, <service>, ...args)`:
-```typescript
+```typescript title="services/profile/profile.security.ts"
 user: {
   async defineCRUDAbility(can, cannot, ctx) {
     can('crud', 'profile', { owner: ctx.userId }); // can crud own profile
@@ -34,7 +34,7 @@ user: {
   }
 }
 ```
-The following `args` are **fields** and **query**.
+The following `...args` can be **fields** or **query**.
 
 **Fields** are the [entity](./../services/entity.md) fields that can be modified (for `'create'` and `'update'` operations).
 ```typescript
@@ -55,7 +55,7 @@ writer: {
     can('update', 'article', { author: ctx.userId }); //can update articles where author == userId
     can('delete', 'article', { author: ctx.userId }); //can delete articles where author == userId
 
-    //equivalent to:
+    // equivalent to:
     can('cud', 'article', { author: ctx.userId }); 
   }
 }
@@ -70,18 +70,56 @@ moderator: {
   }
 }
 ```
+## Options abilities
+Service security also defines abilities for options.
+Ability syntax is `can(<option_field>, <service_name>, ...args)`, for example: 
+```typescript title="services/profile/profile.security.ts"
+user: {
+  async defineCRUDAbility(can, cannot, ctx) {
+      can('read', 'profile'); 
+  },
+  async defineOPTAbility(can, cannot, ctx) {
+      can('populate', 'profile'); 
+      // user can call find with any options.populate value
+  }
+}
+```
+
+The following `...args` can be **fields** or **query**.
+  
+**Fields** are the allowed values for the option.
+```typescript
+async defineOPTAbility(can, cannot, ctx) {
+    can('populate', 'profile', ['pictures']); 
+    // can call find with options.populate = ['pictures']
+},
+```
+!!! note
+    `defineOPTAbility`'s fields argument has a different meaning than in other "define functions".
+
+**Query** is the same as for `defineCRUDAbility`: entity query or data.
+```typescript
+async defineOPTAbility(can, cannot, ctx) {
+    can('populate', 'profile', ['pictures']); 
+    // can call find with options.populate = ['pictures']
+    can('populate', 'profile', ['owner'], { owner: ctx.userId }); 
+    // can call find with options.populate = ['owner'] / ['pictures', 'owner']
+    // when query.owner == ctx.userId
+},
+```
+
 ## [Command](../services/commands.md) security
 The command security defines which roles can perform the command and how.
 
 Ability syntax is `can(<cmd_name>, <service_name>, ...args)`, for example:
-```typescript
+```typescript title="services/profile/cmds/say_hello/say_hello.security.ts"
 user: {
   async defineCMDAbility(can, cannot, ctx) {
     can('say_hello', 'profile') // users can call say_hello on service profile
   }
 }
 ```
-The following `args` are **fields** and **query**.
+The following `...args` can be **fields** or **query**.
 
 **Fields** and **Query** represent the command DTO's instance.
 ```typescript
@@ -100,15 +138,23 @@ user: {
     can('say_hello', 'profile', { arg: "world"}) // users can call say_hello with arg == world
     cannot('say_hello', 'profile', ['forbiddenField']) // users cannot call say_hello with forbiddenField defined
 
-    //Equivalent to:
+    // equivalent to:
     can('say_hello', 'profile', ['arg'], { arg: "world"}) 
   }
 }
 ```
-## Options security
 
 ## Access the [CrudContext](../context.md)
-You can access the CurdContext of the current request when defining abilities.
+You can access the CrudContext of the current request when defining abilities.
+```typescript
+user: {
+  async defineCRUDAbility(can, cannot, ctx) {
+      const data = ctx.data;
+      const query = ctx.query
+      const user =  ctx.user
+  },
+}
+```
 
 ## Fetching during authorization
 `defineAbility` functions are async which means you can fetch additional data before authorizing a request.
@@ -141,3 +187,18 @@ However, doing so may increase your operations' response time **significantly**.
         }
     }
     ```
+
+## Comparing arrays
+[CASL's array comparison operators](https://casl.js.org/v6/en/guide/conditions-in-depth#supported-operators){:target="_blank"} can be misleading in Eicrud's context (checks for **intersection**, not inclusion/exclusion). You can verify arrays using JS functions when in doubt.
+```typescript
+moderator: {
+  async defineCRUDAbility(can, cannot, ctx) {
+    const userAuths = ctx.user.modAuthorizations;
+    const articleAuths = ctx.query.requiredAuthorizations;
+    
+    if(articleAuths.every((a) => userAuths.includes(a))){
+      can('update', 'article', ['isApproved']);
+    }
+  }
+}
+```

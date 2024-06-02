@@ -29,7 +29,7 @@ export default class Profile implements CrudEntity {
 
 }
 ```
-It is the database schema as well as the DTO for CRUD operations. In that case, a `profile` table is automatically created.
+It is the database schema as well as the DTO for CRUD operations. In that case, a `profile` table is created.
 
 ### A [Security]():
 ```typescript title="services/profile/profile.security.ts"

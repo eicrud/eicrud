@@ -84,10 +84,8 @@ const myProfileSecurity = (USER_PROFILE) => { return {
 
             async defineOPTAbility(can, cannot, ctx) {
                 
-                const populateWhiteList = ['pictures'];
-                if(ctx.options?.populate?.every(p => populateWhiteList.includes(p))) {
-                    can('populate', USER_PROFILE);
-                }
+                can('populate', USER_PROFILE, ['pictures']);
+                can('populate', USER_PROFILE, 'user', { user: ctx.userId });
 
             },
         },
