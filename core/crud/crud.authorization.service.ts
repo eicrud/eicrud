@@ -173,8 +173,9 @@ export class CrudAuthorizationService {
 
         if (!checkRes.authorized) {
             let msg = `Role ${ctx.user.role} is not allowed to ${ctx.method} ${ctx.serviceName} ${ctx.cmdName || ''}`;
-            for(let r of checkRes.checkedRoles){
-                msg += `- ${r.roleName} failed on ${r.problemField} `;
+            for(let roleName in checkRes.checkedRoles){
+                const r = checkRes.checkedRoles[roleName];
+                msg += `- ${roleName} failed on ${r.problemField} `;
             }
             throw new ForbiddenException(msg);
         }
@@ -198,11 +199,12 @@ export class CrudAuthorizationService {
         return problemField;
     }
 
-    async recursCheckRolesAndParents(role: CrudRole, ctx: CrudContext, fields: string[], security: CrudSecurity, result: SecurityResult = { checkedRoles: [], authorized: false }): Promise<SecurityResult> {
+    async recursCheckRolesAndParents(role: CrudRole, ctx: CrudContext, fields: string[], security: CrudSecurity, result: SecurityResult = { checkedRoles: {}, authorized: false }): Promise<SecurityResult> {
         const roleRights = security.rolesRights[role.name];
         let currentResult: RoleResult = null;
         if (!roleRights) {
-            currentResult = { roleName: role.name, problemField: 'all' };
+            console.warn(`Unknown role: ${role.name}.`);
+            currentResult = { problemField: 'all' };
         }else{
             const userAbilities = await defineAbility(async (can, cannot) => {
 
@@ -245,7 +247,7 @@ export class CrudAuthorizationService {
         }
 
         if (!currentResult) {
-            result.checkedRoles.push({ roleName: role.name, problemField: null });
+            result.checkedRoles[role.name] = { problemField: null };
             result.authorized = true;
 
             if (roleRights.fields && ctx.method == 'GET') {
@@ -254,9 +256,12 @@ export class CrudAuthorizationService {
 
             return result;
         }
-        result.checkedRoles.push(currentResult);
+        result.checkedRoles[role.name] = currentResult;
         if (role.inherits?.length) {
             for (const parent of role.inherits) {
+                if(result.checkedRoles[parent]){
+                    continue;
+                }
                 const parentRole = this.rolesMap[parent];
                 await this.recursCheckRolesAndParents(parentRole, ctx, fields, security, result)
                 if (result.authorized) {
@@ -271,12 +276,11 @@ export class CrudAuthorizationService {
 
 
 interface RoleResult {
-    roleName: string;
     problemField: string;
 }
 
 interface SecurityResult {
-    checkedRoles: RoleResult[];
+    checkedRoles: Record<string, RoleResult>;
     authorized: boolean;
 }
 
