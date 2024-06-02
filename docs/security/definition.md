@@ -178,7 +178,7 @@ However, doing so may increase your operations' response time **significantly**.
     `defineAbility` functions are called for **each** resource when authorizing batch operations. For example, a [batch create]() of X items, will call `defineCRUDAbility` X times. You should implement some caching to avoid redundant fetches. A basic cache can be stored in the `ctx` since it is unique to each request.
     ```typescript
     async defineCRUDAbility(can, cannot, ctx) {
-        let res = getFromCache(ctx);
+        let res = getFromCache(ctx._temp);
         if(!res){
             res = await fetchFromDb(ctx);
         }
@@ -187,6 +187,8 @@ However, doing so may increase your operations' response time **significantly**.
         }
     }
     ```
+    Make sure to use the `_temp` property for caching since [it will not be serialized to other microservices](../context.md#caching).
+
 
 ## Comparing arrays
 [CASL's array comparison operators](https://casl.js.org/v6/en/guide/conditions-in-depth#supported-operators){:target="_blank"} can be misleading in Eicrud's context (checks for **intersection**, not inclusion/exclusion). You can verify arrays using JS functions when in doubt.

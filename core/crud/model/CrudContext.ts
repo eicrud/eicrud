@@ -5,6 +5,9 @@ import { CrudSecurity } from "../../config/model/CrudSecurity";
 import { CrudConfigService } from "../../config/crud.config.service";
 import { CrudService } from "../crud.service";
 
+/**
+ * A context assigned to every request.
+ */
 export interface CrudContext {
     isBatch?: boolean;
     serviceName?: string, 

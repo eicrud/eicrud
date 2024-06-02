@@ -224,7 +224,7 @@ export class CrudConfigService {
         return Promise.resolve();
     }
 
-    async onHighTrafficEvent(count: number, user: Partial<CrudUser>){
+    async onHighTrafficEvent(count: number, user: Partial<CrudUser>, ctx: CrudContext){
         return Promise.resolve();
     }
 

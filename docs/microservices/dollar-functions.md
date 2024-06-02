@@ -130,3 +130,10 @@ obj = await myUserService.$methodC(obj);
 
 console.log(obj.value)
 ```
+
+## Naming your arguments
+
+Argument name `ctx` is reserved in `$` function, and should only be used to pass the [CrudContext](../context.md).
+
+!!! note
+    You might want to pass the [CrudContext](../context.md) to every `$` function to enable reliable logging in backdoor [hooks](../configuration/config-service.md#hooks).

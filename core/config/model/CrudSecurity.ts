@@ -12,7 +12,7 @@ export interface CmdSecurity {
     */
     minTimeBetweenCmdCallMs?: number;
     /**
-    * Max number of times an user can call the cmd
+    * Max number of times a user can call the cmd
     * @type {number}
     * @public
     */
@@ -93,7 +93,7 @@ export class CrudSecurity {
     alwaysExcludeFields?: string[];
 
     /**
-    * Max number of entities an user can create in the db
+    * Max number of entities a user can create in the db
     * @type {number}
     * @public
     */
