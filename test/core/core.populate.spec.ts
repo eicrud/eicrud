@@ -213,6 +213,20 @@ describe('AppController', () => {
 
     await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
 
+    
+    query.options = JSON.stringify({
+      populate: ['pictures', 'user']
+    } as CrudOptions);
+
+    await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 403, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
+
+
+    query.query = JSON.stringify({ type: 'basic', user: user.id });
+
+    await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
+
+
+
   });
 
 

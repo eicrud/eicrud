@@ -232,9 +232,13 @@ export class CrudAuthorizationService {
                 if (SKIPPABLE_OPTIONS.includes(key)) {
                     continue;
                 }
-                const pbField = this.loopFieldAndCheckCannot(key, ctx.options, ['all'], userOptionsAbilities, ctx);
+                let ofields = ctx.options[key];
+                if (!Array.isArray(ofields)) {
+                    ofields = [ofields];
+                }
+                const pbField = this.loopFieldAndCheckCannot(key, ctx.query, ofields, userOptionsAbilities, ctx);
                 if (pbField) {
-                    currentResult = { roleName: role.name, problemField: key };
+                    currentResult = { roleName: role.name, problemField: key+'->'+pbField };
                     break;
                 }
             }
