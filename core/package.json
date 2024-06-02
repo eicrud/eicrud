@@ -10,7 +10,7 @@
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
   },
   "peerDependencies": {
-    "@eicrud/shared": "^0.1.3"
+    "@eicrud/shared": "^0.1.4"
   },
   "dependencies": {
     "@casl/ability": "^6.5.0",

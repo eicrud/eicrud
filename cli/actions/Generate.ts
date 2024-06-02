@@ -3,6 +3,8 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import { Setup } from "./Setup.js";
+import { CrudService } from "@eicrud/core/crud/crud.service.js";
+import { toKebabCase } from '@eicrud/shared/utils';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -191,6 +193,12 @@ export class Generate {
         //console.log('Generating service', name);
         serviceName = serviceName.charAt(0).toUpperCase() + serviceName.slice(1);
 
+
+        const tk_cmd_dto_name = name.charAt(0).toUpperCase() + name.slice(1) + 'Dto';
+
+
+        name = toKebabCase(name);
+
         name = name.replace('-', '_');
 
         const keys = {
@@ -200,7 +208,7 @@ export class Generate {
             tk_cmd_name: name,
             tk_cmd_lname: name.toLowerCase(),
             tk_cmd_uname: name.toUpperCase(),
-            tk_cmd_dto_name: name.charAt(0).toUpperCase() + name.slice(1) + 'CmdDto'
+            tk_cmd_dto_name
         }
 
         let dir = `./src/services/${keys.tk_entity_lname}`;

@@ -9,6 +9,8 @@ const getCmdSecurity = (tk_cmd_uname, tk_entity_uname): CmdSecurity => {
         rolesRights: {
             user: {
                 async defineCMDAbility(can, cannot, ctx) {
+                    // Define abilities for user
+
                 }
             }
         },
