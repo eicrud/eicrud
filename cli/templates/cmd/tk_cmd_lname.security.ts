@@ -3,7 +3,7 @@ import tk_cmd_name from "./tk_cmd_lname.action";
 import tk_cmd_dto_name from "./tk_cmd_lname.dto";
 
 
-const getCmdSecurity = (tk_cmd_uname, tk_entity_uname): CmdSecurity => { 
+const getCmdSecurity = (tk_cmd_lname, tk_entity_lname): CmdSecurity => { 
     return {
         dto: tk_cmd_dto_name,
         rolesRights: {
