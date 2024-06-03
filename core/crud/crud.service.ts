@@ -420,7 +420,7 @@ export class CrudService<T extends CrudEntity> {
 
         const opts = this.getReadOptions(ctx);
         let result = query;
-        if (!result[this.crudConfig.id_field]) {
+        if (secure) {
             const tempEm = em.fork();
             result = await tempEm.findOne(this.entity, query, opts as any);
             if (!result) {
@@ -430,7 +430,7 @@ export class CrudService<T extends CrudEntity> {
         const id = this.dbAdapter.checkId(result[this.crudConfig.id_field]);
 
         let res = em.getReference(this.entity, id);
-        wrap(res).assign(newEntity as any, { mergeObjectProperties: true, onlyProperties: true, onlyOwnProperties: true });
+        wrap(res).assign(newEntity as any, {updateByPrimaryKey: false, mergeObjectProperties: true, onlyProperties: true, onlyOwnProperties: true });
         return res;
     }
 
