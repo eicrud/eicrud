@@ -1,4 +1,5 @@
 
+## CrudOptions
 
 You can pass the [CrudOptions](../services/options.md) with every client method call.
 
@@ -15,8 +16,11 @@ const crudOptions: ICrudOptions = {
 }
 const {data, total, limit} = await profileClient.find(query, crudOptions);
 ```
-## Client Options
-You can also pass client options with every method call.
+!!! info
+    `CrudOptions` must be allowed in the [security](../security/definition.md#options-abilities) before usage.
+
+## ClientOptions 
+Additional client options can be specified.
 ```typescript
 export interface ClientOptions {
   batchSize?: number;
@@ -40,10 +44,10 @@ const {data, total, limit} = await profileClient.findIn(query);
 ```
 
 !!! note 
-    The `defaultBatchSize` is set in the client and defaults to 200.
+    The `defaultBatchSize` is set in the [client config](setup.md) and defaults to 200.
 
 ### batchField
-If you use batchSize for a `cmd` operation, `batchField` must be specified to indicate which DTO field holds the array.
+If you use batchSize for a `cmd` operation, `batchField` must be specified to indicate which DTO field holds the input array.
 
 ```typescript
 import { ClientOptions } from '@eicrud/client';
