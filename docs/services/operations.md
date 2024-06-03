@@ -49,4 +49,18 @@ const {data, total, limit} = await profileService.$find(query, ctx);
 ```
 
 
-## $findIds
+## $findIn 
+Find entities with IDs included in the provided list. 
+```typescript
+const ids = ['4d3ed089fb60ab534684b7e9', '4d3ed089fb60ab534684b7ff']
+const {data, total, limit} = await profileService.$findIds(ids, {}, ctx);
+```
+
+## $patchOne
+Update an existing entity.
+```typescript
+const query: Partial<Profile> = {
+    astroSign: "Aries"
+}
+await profileService.$patchOne({ id: user.profileId }, { bio: undefined }, ctx);
+```

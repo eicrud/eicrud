@@ -74,6 +74,7 @@ export function testMethod(arg: { app: NestFastifyApplication,
             console.error(result.json());
           }
         }
+
         expect(result.statusCode).toEqual(arg.expectedCode);
         let res: any = {};
 

@@ -55,7 +55,28 @@ describe('AppController', () => {
       bio: 'My bio.',
       store: profiles,
       favoriteColor: "red",
-    }
+    },
+    "RemoveMy Bio": {
+      email: "RemoveMy.Bio@test.com",
+      role: "super_admin",
+      bio: 'My bio.',
+      store: profiles,
+      favoriteColor: "red",
+    },
+    "ChangeMy Bio": {
+      email: "ChangeMy.Bio@test.com",
+      role: "super_admin",
+      bio: 'My bio.',
+      store: profiles,
+      favoriteColor: "red",
+    },
+    "PatchMy Bio": {
+      email: "PatchMy.Bio@test.com",
+      role: "super_admin",
+      bio: 'My bio.',
+      store: profiles,
+      favoriteColor: "red",
+    },
    
 }
 
@@ -162,6 +183,72 @@ describe('AppController', () => {
     expect(res.userName).toEqual('John Green');
     expect(res.fakeField).toBeUndefined();
     expect(res.favoriteColor).toEqual("red");
+  });  
+  
+  
+  it('service $patch with undefined value should not affect existing value', async () => {
+    const user: Partial<TestUser> = users["RemoveMy Bio"];
+    
+    await profileService.$patchOne({ id: user.profileId }, { bio: undefined }, null);
+
+    const findRes = await profileService.$findOne({ id: user.profileId }, null) as UserProfile;
+    expect(findRes.userName).toBe("RemoveMy Bio");
+    expect(findRes.bio).toBe(user.bio);
+
+  });
+
+  it('$patchOne should throw if limiting fields do not match', async () => {
+    const user: Partial<TestUser> = users["ChangeMy Bio"];
+
+    const payload: Partial<UserProfile> = {
+      bio: undefined,
+    } as any;
+    const formatedId = crudConfig.dbAdapter.formatId(user.profileId, crudConfig);
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ id: formatedId })
+    }
+
+    const expectedObject = {}
+
+    const fetchEntity = null;
+
+    await testMethod({ url: '/crud/one', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity, expectedObject, crudConfig });
+
+    query.query = JSON.stringify({ id: formatedId, astroSign: "Titan5892" });
+
+    await testMethod({ url: '/crud/one', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 400, fetchEntity, expectedObject, crudConfig});
+
+  });
+
+  it('patch many shouldn\'t patch if limiting fields do not match', async () => {
+    const user: Partial<TestUser> = users["PatchMy Bio"];
+
+    let payload: Partial<UserProfile> = {
+      chineseSign: "Cyber Pig",
+    } as any;
+    const formatedId = crudConfig.dbAdapter.formatId(user.profileId, crudConfig);
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({ id: formatedId })
+    }
+
+    const expectedObject = {}
+
+    const fetchEntity = null;
+
+    const res = await testMethod({ url: '/crud/many', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity, expectedObject, crudConfig });
+    expect(res).toBe(1);
+   
+    query.query = JSON.stringify({ id: formatedId, bio: "impossible bio 45azalmdq2qs" });
+    payload = { astroSign: "Titan5892" };
+    const res2 = await testMethod({ url: '/crud/many', method: 'PATCH', app, jwt, entityManager, payload, query, expectedCode: 200, fetchEntity, expectedObject, crudConfig });
+    expect(res2).toBe(0);
+
+    const findRes = await profileService.$findOne({ id: user.profileId }, null) as UserProfile;
+    expect(findRes.userName).toBe("PatchMy Bio");
+    expect(findRes.chineseSign).toBe("Cyber Pig");
+    expect(findRes.astroSign).toBeUndefined();
   });
 
 });

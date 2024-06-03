@@ -78,7 +78,7 @@ The actual service implementation, it's a [NestJS provider](https://docs.nestjs.
 A CrudService handles all CRUD operations out of the box :  
 
   - **Create**: [$create](), [$createBatch]()
-  - **Read**: [$findOne](), [$find](), [$findIds](), [$findIn]()
+  - **Read**: [$findOne](), [$find](), [$findIn]()
   - **Update**: [$patchOne](), [$patch](), [$patchIn](), [$patchBatch]()
   - **Delete**: [$removeOne](), [$remove](), [$removeIn]()
 
