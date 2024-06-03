@@ -71,8 +71,8 @@
         {
             "type": "node-terminal",
             "request": "launch",
-            "name": "npm run test traffic",
-            "command": "npm run test traffic",
+            "name": "npm run test traffic-ip",
+            "command": "npm run test traffic-ip",
         },
         {
             "type": "node-terminal",

@@ -24,6 +24,7 @@ import { CrudRole } from '../config/model/CrudRole';
 import { CrudAuthService } from './auth.service';
 import { ModuleRef } from '@nestjs/core';
 import { LRUCache } from 'mnemonist';
+import { Mutex } from 'async-mutex';
 
 export interface TrafficCache {
   get: (key: string) => Promise<any>;
@@ -31,14 +32,26 @@ export interface TrafficCache {
   inc: (key: string, increment: number, currentValue: number) => Promise<any>;
   clear?: () => Promise<any>;
 }
+
+
+
 export class BasicTrafficCache implements TrafficCache {
   cache: LRUCache<string, number>;
+  mutex = new Mutex();
 
   constructor(size = 10000) {
     this.cache = new LRUCache(size);
   }
   async inc(key: string, increment: number, currentValue: number){
-    return this.set(key, (currentValue) + increment);
+    const release = await this.mutex.acquire();
+    let res;
+    try {
+      const current = await this.get(key) || 0;
+      res = await this.cache.set(key, current + increment);
+    } finally {
+      release();
+    }
+    return res;
   };
 
   async get(key: string){
@@ -46,7 +59,14 @@ export class BasicTrafficCache implements TrafficCache {
   }
 
   async set(key: string, value: any){
-    return this.cache.set(key, value);
+    const release = await this.mutex.acquire();
+    let res;
+    try {
+      res = await  this.cache.set(key, value);
+    } finally {
+      release();
+    }
+    return res;
   }
 
   async clear(){
@@ -297,6 +317,12 @@ export class CrudAuthGuard implements CanActivate {
     }
     const multiplier = user.allowedTrafficMultiplier || 1;
     if(traffic >= (this.crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD * multiplier)){
+      const query: any = { [this.crudConfig.id_field]: userId };
+
+      if(ctx.method != 'POST'){
+        user = await this.crudConfig.userService.$findOne(query, ctx);
+      }
+      
       user.highTrafficCount = user.highTrafficCount || 0;
       let count;
       if(multiplier > 1){
@@ -304,16 +330,21 @@ export class CrudAuthGuard implements CanActivate {
       }else{
         count = traffic * this.reciprocalRequestThreshold;
       }          
-      user.highTrafficCount += Math.round(count);
+      const increment = Math.round(count);
 
-      const addPatch: any = {}
+      let addPatch: any = {}
       if(user.highTrafficCount >= this.crudConfig.watchTrafficOptions.TIMEOUT_THRESHOLD_TOTAL){
         this.crudConfig.userService.addTimeoutToUser(user as CrudUser, this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN)
         addPatch.timeout = user.timeout
         addPatch.timeoutCount = user.timeoutCount
       }
       user.captchaRequested = true;
-      this.crudConfig.userService.$unsecure_fastPatchOne(userId, { highTrafficCount: user.highTrafficCount, ...addPatch }, ctx);
+      addPatch.captchaRequested = true;
+      user.highTrafficCount = user.highTrafficCount + increment;
+      const increments = { highTrafficCount: increment }
+
+      this.crudConfig.userService.$unsecure_incPatch({ query, increments, addPatch}, ctx);
+
       this.crudConfig.userService.$setCached(user, ctx);
       this.crudConfig.logService?.log(LogType.SECURITY, 
         `High traffic event for user ${userId} with ${traffic} requests.`, 
@@ -321,8 +352,10 @@ export class CrudAuthGuard implements CanActivate {
         )
       this.crudConfig.onHighTrafficEvent(traffic, user, ctx);
       traffic = 0;
+      this.userTrafficCache.set(userId, 0);
+    }else{
+      this.userTrafficCache.inc(userId, 1, traffic);
     }
-    this.userTrafficCache.inc(userId, 1, traffic);
   }
 
 }

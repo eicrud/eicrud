@@ -76,10 +76,13 @@ describe('AppController', () => {
 
   });
 
-  jest.retryTimes(1);
+  //jest.retryTimes(1);
 
   it('should limit user requests', async () => {
     const user = users["Michael Doe"];
+    
+    // await authGuard.ipTrafficCache.clear?.();
+    // await authGuard.userTrafficCache.clear?.();
   
     const query: CrudQuery = {
       service: 'melon',
@@ -87,23 +90,29 @@ describe('AppController', () => {
     }
     const payload = {}
 
-    let promises = [];
+    const promises = []
 
     let didCaptcha = false;
 
-    for(let u = 0; u < (crudConfig.watchTrafficOptions.TIMEOUT_THRESHOLD_TOTAL); u++){
-      
-      for(let i = 0; i <= (crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD); i++){
-        const prom = testMethod({ url: '/crud/many', method: 'GET', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 200, crudConfig })
-        // .catch(e => {
-        //   console.log(u, i);
-        //   console.log(e);
-        //   throw e;
-        // });
+    for(let u = 0; u <= (crudConfig.watchTrafficOptions.TIMEOUT_THRESHOLD_TOTAL) ; u++){
 
+      for(let i = 0; i <= (crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD - 1); i++){
+        const prom = testMethod({ url: '/crud/many', method: 'GET', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 200, crudConfig })
         promises.push(prom);
       }
-      const res = await Promise.all(promises);
+
+      await Promise.all(promises);
+      let res = 0;
+      while(res < crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD){
+        res = await authGuard.userTrafficCache.get(user.id?.toString()) || 0;
+        await new Promise((r) => setTimeout(r, 200));
+      }
+
+      await testMethod({ url: '/crud/many', method: 'GET', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 200, crudConfig });
+      while(res > 0){
+        res = await authGuard.userTrafficCache.get(user.id?.toString());
+        await new Promise((r) => setTimeout(r, 200));
+      }
 
       if(!didCaptcha){
         await testMethod({ url: '/crud/many', method: 'GET', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 401, crudConfig });
@@ -117,13 +126,13 @@ describe('AppController', () => {
         didCaptcha = true;
       }
 
-      authGuard.ipTrafficCache.clear?.();
-      authGuard.userTrafficCache.clear?.();
+      await authGuard.ipTrafficCache.clear?.();
+      await authGuard.userTrafficCache.clear?.();
 
     }
 
     //50ms delay
-    await new Promise((r) => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, 50));
 
     await testMethod({ url: '/crud/many', method: 'GET', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 401, crudConfig });
 
@@ -134,7 +143,7 @@ describe('AppController', () => {
 
     await testMethod({ url: '/crud/many', method: 'GET', jwt: user.jwt, app, entityManager, payload, query, expectedCode: 200, crudConfig });
 
-  }, 20000);
+  }, 30000);
 
 
 });

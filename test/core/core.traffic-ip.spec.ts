@@ -70,11 +70,22 @@ describe('AppController', () => {
 
     const promises = [];
 
-    for(let i = 0; i <= (crudConfig.watchTrafficOptions.IP_REQUEST_THRESHOLD + 1); i++){
+    for(let i = 0; i <= (crudConfig.watchTrafficOptions.IP_REQUEST_THRESHOLD); i++){
       const prom = testMethod({ url: '/crud/many', method: 'GET', app, entityManager, payload, query, expectedCode: 200, crudConfig });
       promises.push(prom);
     }
-    const res = await Promise.all(promises);
+    await Promise.all(promises);
+
+    let res = 0;
+    while(res < (crudConfig.watchTrafficOptions.IP_REQUEST_THRESHOLD)){
+      res = await authGuard.ipTrafficCache.get('127.0.0.1') || 0;
+      await new Promise((r) => setTimeout(r, 200));
+    }
+
+    await testMethod({ url: '/crud/many', method: 'GET', app, entityManager, payload, query, expectedCode: 200, crudConfig });
+    
+    await new Promise((r) => setTimeout(r, 200));
+
     await testMethod({ url: '/crud/many', method: 'GET', app, entityManager, payload, query, expectedCode: 429, crudConfig });
   
     authGuard.ipTrafficCache.clear?.();
@@ -82,6 +93,11 @@ describe('AppController', () => {
     await testMethod({ url: '/crud/many', method: 'GET', app, entityManager, payload, query, expectedCode: 429, crudConfig });
 
     authGuard.ipTimeoutCache.set('127.0.0.1', 0);
+    res = 1;
+    while(res != 0){
+      res = await authGuard.ipTimeoutCache.get('127.0.0.1');
+      await new Promise((r) => setTimeout(r, 200));
+    }
 
     await testMethod({ url: '/crud/many', method: 'GET', app, entityManager, payload, query, expectedCode: 200, crudConfig });
 
