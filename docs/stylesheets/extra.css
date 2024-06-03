@@ -12,7 +12,30 @@
     --md-primary-fg-color--dark:  #4d5f5f;
   }
 
-  
+  /* ... */
+  .md-content {
+    max-width: 41rem; 
+  }
+  .md-grid {
+    max-width: 81rem;
+  }
+  .md-footer, .md-header{
+    .md-grid {
+      max-width: 73rem;
+    }  
+  }
+
+
+  .md-sidebar {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .md-nav {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  /* ... */
   
 /* Dark mode */
 [data-md-color-scheme="slate"] {

@@ -5,6 +5,7 @@ export interface ICrudOptions {
     fields?: string[];
     limit?: number;
     offset?: number;
+    cached?: boolean;
 
 }
 

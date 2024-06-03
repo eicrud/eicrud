@@ -9,7 +9,7 @@ import { CrudAuthGuard } from './auth.guard';
 export class AuthenticationOptions {
   saltRounds = 11;
   saltRoundsAdmin = 14;
-  verificationEmailTimeoutHours = 6;
+  verificationEmailTimeoutHours = 24;
   twoFaEmailTimeoutMinutes = 15;
   passwordResetEmailTimeoutHours = 6;
   passwordMaxLength = 64;
