@@ -25,6 +25,7 @@ import { CrudAuthService } from './auth.service';
 import { ModuleRef } from '@nestjs/core';
 import { LRUCache } from 'mnemonist';
 import { Mutex } from 'async-mutex';
+import { CrudAuthorizationService } from '../crud/crud.authorization.service';
 
 export interface TrafficCache {
   get: (key: string) => Promise<any>;
@@ -109,6 +110,7 @@ export class CrudAuthGuard implements CanActivate {
   reciprocalRequestThreshold: number;
   
   protected crudConfig: CrudConfigService;
+  authorizationService: CrudAuthorizationService;
 
   
   @Cron(CronExpression.EVERY_5_MINUTES)
@@ -133,6 +135,9 @@ export class CrudAuthGuard implements CanActivate {
       this.ipTimeoutCache = watchTrafficOptions.ipTimeoutCache || new BasicTrafficCache(watchTrafficOptions.maxTrackedIPs);
 
       this.reciprocalRequestThreshold = 1 / this.crudConfig.watchTrafficOptions.userRequestsThreshold;
+
+      this.authorizationService = this.moduleRef.get(CrudAuthorizationService, { strict: false });
+
     }
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
@@ -306,7 +311,8 @@ export class CrudAuthGuard implements CanActivate {
     if (traffic === undefined) {
       traffic = 0;
     }
-    const multiplier = user.allowedTrafficMultiplier || 1;
+    const userRole = this.authorizationService.getUserRole(user as any)
+    const multiplier = userRole?.allowedTrafficMultiplier || 1;
     if(traffic >= (this.crudConfig.watchTrafficOptions.userRequestsThreshold * multiplier)){
       const query: any = { [this.crudConfig.id_field]: userId };
 

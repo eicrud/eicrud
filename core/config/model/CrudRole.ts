@@ -32,4 +32,10 @@ export class CrudRole{
      * @type {string[]}
     */
     inherits?: string[] = [];
+
+    /**
+     * Multiplies how much traffic this role is allowed, base is normal user traffic (userRequestsThreshold).
+     * @type {number}
+    */
+    allowedTrafficMultiplier?: number = 1;
 }

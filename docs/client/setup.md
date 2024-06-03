@@ -16,10 +16,16 @@ const profileClient = new CrudClient(config)
 ```typescript
 export interface ClientConfig { 
   serviceName: string, 
-  url: string, 
-  storage?: ClientStorage, 
-  id_field?: string
+  url: string,
   onLogout?: () => void,
+  storage?: ClientStorage, 
+  id_field?: string,
+  defaultMockRole: string,
+  defaultBatchSize?: number,
+  cmdDefaultBatchMap?: { [key: string]: { batchField, batchSize: number} },
+  limitingFields: string[],
+  defaultProgressCallBack?: 
+    (progress: number, total: number, type: 'limit' | 'batch') => Promise<void>,
 };
 ```
 ## Login
