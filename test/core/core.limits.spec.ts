@@ -290,4 +290,31 @@ describe('AppController', () => {
   }, 10000);
 
 
+  it('should offset and no result should be returned if offset is greater than the number of results', async () => {
+    const user = users["Michael Doe"];
+
+    const payload = {}
+
+    const query: CrudQuery = {
+      service: "melon",
+      query: JSON.stringify({owner: user.id}),
+      options: JSON.stringify({
+        offset: user.melons - 1
+      }) as any
+    }
+
+    const res = await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
+
+    expect(res.data.length).toBe(1);
+
+    query.options = JSON.stringify({
+        offset: user.melons
+      }) as any
+   
+    const res2 = await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
+
+    expect(res2.data.length).toBe(0);
+
+  });
+
 });
