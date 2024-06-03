@@ -55,6 +55,7 @@ export interface ClientConfig {
 
 export interface ClientOptions {
   batchSize?: number;
+  progressCallBack?: (progress: number, total: number) => Promise<void>;
 }
 
 /**
@@ -235,7 +236,7 @@ export class CrudClient<T> {
       return await this._doLimitQuery(fetchFunc, newICrudQuery);
     }
 
-    return await this._doBatch(batchFunc, ids, copts.batchSize, true);
+    return await this._doBatch(batchFunc, ids, copts, true);
 
   }
 
@@ -367,7 +368,7 @@ export class CrudClient<T> {
       return await this._tryOrLogout(axios.patch, 2, url, data, { params: newICrudQuery, headers: this._getHeaders() });
     }
 
-    const res = await this._doBatch(batchFunc, ids, copts.batchSize);
+    const res = await this._doBatch(batchFunc, ids, copts);
 
     return res;
   }
@@ -384,7 +385,7 @@ export class CrudClient<T> {
       return { query, data };
     });
 
-    return await this._patchBatch(datas, copts.batchSize, options);
+    return await this._patchBatch(datas, options, copts);
 
   }
 
@@ -396,7 +397,7 @@ export class CrudClient<T> {
     return chunks;
   }
 
-  async _patchBatch(datas: { query: any, data: any }[], batchSize = 5000, options: ICrudOptions = undefined): Promise<T[]> {
+  async _patchBatch(datas: { query: any, data: any }[], options: ICrudOptions = undefined, copts: ClientOptions = {batchSize: 5000}): Promise<T[]> {
     const url = this.url + "/crud/s/" + this.serviceName + "/batch";
 
     const ICrudQuery: ICrudQuery = {      
@@ -407,20 +408,21 @@ export class CrudClient<T> {
       this._tryOrLogout(axios.patch, 2, url, chunk, { params: ICrudQuery, headers: this._getHeaders() })
     }
 
-    return await this._doBatch(batchFunc, datas, batchSize);
+    return await this._doBatch(batchFunc, datas, copts);
   }
 
-  private async _doBatch(batchFunc: (datas) => any, datas, batchSize = 200, limited?){
+  private async _doBatch(batchFunc: (datas) => any, datas, copts: ClientOptions = { batchSize: 200, }, limited?){
     let res;
-
     let chunks = [datas];
-    if (batchSize > 0) {
-      chunks = this._splitArrayIntoChunks(datas, batchSize);
+    if (copts.batchSize > 0) {
+      chunks = this._splitArrayIntoChunks(datas, copts.batchSize);
     }
 
     try {
-      for (const chunk of chunks) {
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
         const r = await batchFunc(chunk);
+        copts.progressCallBack?.(i, chunks.length);
         if(!res){
           res = limited ? r : _utils.makeArray(r);
         }else if(limited){
@@ -434,8 +436,9 @@ export class CrudClient<T> {
         const parsedMessage = JSON.parse(e.response.data);
         if ([CrudErrors.MAX_BATCH_SIZE_EXCEEDED.code, CrudErrors.IN_REQUIRED_LENGTH.code].includes(parsedMessage.code)) {
           const maxBatchSize = parsedMessage.data.maxBatchSize;
-          if (maxBatchSize && (maxBatchSize < batchSize)) {
-            return await this._doBatch(batchFunc, datas, maxBatchSize);
+          if (maxBatchSize && (maxBatchSize < copts.batchSize)) {
+            const newOpts = { ...copts, batchSize: maxBatchSize };
+            return await this._doBatch(batchFunc, datas, newOpts);
           }
         }
       }
@@ -445,7 +448,7 @@ export class CrudClient<T> {
     return res;
   }
 
-  async postBatch(objects: object[], options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<T[]> {
+  async createBatch(objects: object[], options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<T[]> {
     const url = this.url + "/crud/s/" + this.serviceName + "/batch";
 
     const ICrudQuery: ICrudQuery = {      
@@ -456,10 +459,10 @@ export class CrudClient<T> {
       this._tryOrLogout(axios.post, 2, url, chunk, { params: ICrudQuery, headers: this._getHeaders() })
     }
 
-    return await this._doBatch(batchFunc, objects, copts.batchSize);  
+    return await this._doBatch(batchFunc, objects, copts);  
   }
 
-  async postOne(data: object, options: ICrudOptions = undefined): Promise<T> {
+  async create(data: object, options: ICrudOptions = undefined): Promise<T> {
     const ICrudQuery: ICrudQuery = {      
       options: JSON.stringify(options) as any,
     }
@@ -497,7 +500,7 @@ export class CrudClient<T> {
       return await this._tryOrLogout(axios.delete, 1, url, { params: newICrudQuery, headers: this._getHeaders() });
     }
 
-    const res = await this._doBatch(batchFunc, ids, copts.batchSize);
+    const res = await this._doBatch(batchFunc, ids, copts);
 
     return res?.reduce((acc, val) => acc + val, 0);
   }

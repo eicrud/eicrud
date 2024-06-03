@@ -1,6 +1,8 @@
 
 
-**Eicrud** is CRUD/Authorization framework meant to extend a [Nestjs](https://github.com/nestjs/nest) application. It works with [MikroOrm](https://mikro-orm.io/) entities guarded with [CASL](https://casl.js.org) and [class-validator](https://github.com/typestack/class-validator).
+<img height="80" width="80" src="./docs/planet.svg">
+
+**Eicrud** is CRUD/Authorization framework extending [NestJS](https://github.com/nestjs/nest). It works with [MikroOrm](https://mikro-orm.io/) entities guarded with [CASL](https://casl.js.org) and [class-validator](https://github.com/typestack/class-validator).
 
 
 ## How it works
@@ -46,7 +48,7 @@ const security: CrudSecurity = {
 }
 ```
 
-Finally register your [Nestjs](https://github.com/nestjs/nest) service :
+Finally, register your service :
 
 ```typescript
 @Injectable()
@@ -64,7 +66,29 @@ const client = new CrudClient({serviceName: 'profile'})
 const res = await client.findOne({ userName: 'jon doe' })
 ```
 
-You can extend it using [commands](#commands) (for complex operations).
+You can extend it using [commands](#commands) (for non-CRUD operations).
+
+## Monolithic/Microservices duality
+Eicrud lets you group your CRUD services into "microservices" with a simple configuration. You can start developing a monolith and easily switch to microservices later on.
+
+```typescript
+  "entry": {
+    services: [],
+    openBackDoor: false, openController: true,
+    url: "http://localhost:3004",
+  },
+  "users": {
+    services: [User, Profile],
+    openBackDoor: true, openController: false,
+    url: "http://localhost:3005",
+  },
+  "orders": {
+    services: [Order],
+    openBackDoor: true, openController: false,
+    url: "http://localhost:3006",
+  },
+}
+```
 
 ## Features
 - Out of the box CRUD Services
