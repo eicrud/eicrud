@@ -20,8 +20,8 @@ export interface IFieldMetadata {
 
 export interface CrudTransformerConfig {
 
-    DEFAULT_MAX_LENGTH?: number,
-    DEFAULT_MAX_SIZE?: number,
+    defaultMaxLength?: number,
+    defaultMaxSize?: number,
     checkMissingProperties?: boolean,
     skipValidation?: boolean
 
@@ -80,7 +80,7 @@ export class CrudTransformer {
                 if(type) {
                     if(Array.isArray(obj[key]) && checkSize){
                         const length = obj[key].length;
-                        let maxLength = field_metadata.maxLength || this.crudConfig?.validationOptions.DEFAULT_MAX_LENGTH || this.config.DEFAULT_MAX_LENGTH;
+                        let maxLength = field_metadata.maxLength || this.crudConfig?.validationOptions.defaultMaxLength || this.config.defaultMaxLength;
                         let add = field_metadata.addMaxLengthPerTrustPoint || 0;
                         if (add && this.ctx && this.crudConfig) {
                             const trust = (await this.crudAuthorization.getOrComputeTrust(this.ctx.user, this.ctx));
@@ -108,7 +108,7 @@ export class CrudTransformer {
                     }
                 }else if (checkSize){
                     const entitySize = JSON.stringify(obj[key]).length;
-                    let maxSize = field_metadata.maxSize || this.crudConfig?.validationOptions.DEFAULT_MAX_SIZE || this.config.DEFAULT_MAX_SIZE;
+                    let maxSize = field_metadata.maxSize || this.crudConfig?.validationOptions.defaultMaxSize || this.config.defaultMaxSize;
                     if(maxSize > 0){
                         let add = field_metadata.addMaxSizePerTrustPoint || 0;
                         if (add && this.ctx && this.crudConfig) {

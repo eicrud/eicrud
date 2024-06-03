@@ -41,7 +41,7 @@ await profileClient.login(dto);
     
 ### expiresIn  
 Indicates how long until the authentication token expires.
-Allowed `expiresIn` values are listed in the `ALLOWED_JWT_EXPIRES_IN` [authentication option](../configuration/authentication.md).
+Allowed `expiresIn` values are listed in the `allowedJwtExpiresIn` [authentication option](../configuration/authentication.md).
 
 !!! info
     If one of the clients encounters a `401` error, it will delete the JWT from storage, call the `onLogout` callback and retry the request as a [guest](../security/roles.md).

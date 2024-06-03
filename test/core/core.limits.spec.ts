@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModule, createNestApplication, readyApp, dropDatabases } from '../test.module';
 import { CrudController } from '../../core/crud/crud.controller';
 import { MyUserService } from '../myuser.service';
-import { CrudAuthService } from '../../core/authentification/auth.service';
+import { CrudAuthService } from '../../core/authentication/auth.service';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
@@ -96,7 +96,7 @@ describe('AppController', () => {
 
     let res = await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
 
-    expect(res.data.length).toBe(crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY);
+    expect(res.data.length).toBe(crudConfig.limitOptions.nonAdminQueryLimit);
 
 
     query = {
@@ -109,7 +109,7 @@ describe('AppController', () => {
 
     const res2 = await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
 
-    expect(res2.data.length).toBe(crudConfig.limitOptions.NON_ADMIN_LIMIT_QUERY);
+    expect(res2.data.length).toBe(crudConfig.limitOptions.nonAdminQueryLimit);
 
 
   });
@@ -147,7 +147,7 @@ describe('AppController', () => {
   
       const res = await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
   
-      expect(res.data.length).toBe(crudConfig.limitOptions.ADMIN_LIMIT_QUERY);  
+      expect(res.data.length).toBe(crudConfig.limitOptions.adminQueryLimit);  
   });
 
   it('should limit number of MELON per users', async () => {

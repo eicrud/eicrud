@@ -8,7 +8,7 @@ import { CrudConfigService } from './crud.config.service';
 import { CrudAuthorizationService } from '../crud/crud.authorization.service';
 import { Loaded, Type } from '@mikro-orm/core';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
-import { CrudAuthService } from '../authentification/auth.service';
+import { CrudAuthService } from '../authentication/auth.service';
 import { IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { ModuleRef } from '@nestjs/core';
 import { $Transform } from '../validation/decorators';
@@ -106,7 +106,7 @@ export const baseCmds = {
 @Injectable()
 export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
-  protected USERNAME_FIELD = 'email';
+  protected username_field = 'email';
 
   protected authorizationService: CrudAuthorizationService;
   protected authService: CrudAuthService;
@@ -140,7 +140,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     
     super.onModuleInit();
 
-    this.USERNAME_FIELD = this.crudConfig.authenticationOptions.USERNAME_FIELD;  
+    this.username_field = this.crudConfig.authenticationOptions.username_field;  
   }
 
   override async $create(newEntity: T, ctx: CrudContext): Promise<any> {
@@ -185,15 +185,15 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return (Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24 * 7);
   }
 
-  async timeoutUser(user: CrudUser, TIMEOUT_DURATION_MIN: number){
-    this.addTimeoutToUser(user, TIMEOUT_DURATION_MIN);
+  async timeoutUser(user: CrudUser, timeoutDurationMinutes: number){
+    this.addTimeoutToUser(user, timeoutDurationMinutes);
     const patch: any = {timeout: user.timeout, timeoutCount: user.timeoutCount};
     this.$unsecure_fastPatchOne(user[this.crudConfig.id_field] , patch, null);
   }
 
-  addTimeoutToUser(user: CrudUser, TIMEOUT_DURATION_MIN: number){
+  addTimeoutToUser(user: CrudUser, timeoutDurationMinutes: number){
     user.timeoutCount = user.timeoutCount || 1;
-    const duration = TIMEOUT_DURATION_MIN * 60 * 1000 * user.timeoutCount;
+    const duration = timeoutDurationMinutes * 60 * 1000 * user.timeoutCount;
     user.timeout = new Date(Date.now() + duration);
     user.timeoutCount++;
   }
@@ -268,7 +268,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     if(user.lastTwoFACode !== twoFA_code){
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }
-    if(new Date(user.lastTwoFACodeSent).getTime() + (this.crudConfig.authenticationOptions.TWOFA_EMAIL_TIMEOUT_MIN * 60 * 1000) < Date.now()){
+    if(new Date(user.lastTwoFACodeSent).getTime() + (this.crudConfig.authenticationOptions.twoFaEmailTimeoutMinutes * 60 * 1000) < Date.now()){
       throw new UnauthorizedException(CrudErrors.TOKEN_EXPIRED.str());
     }
 
@@ -279,7 +279,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     if(emailCount > 10){
       emailCount = 10;
     }
-    const timeout = emailCount * this.crudConfig.authenticationOptions.VERIFICATION_EMAIL_TIMEOUT_HOURS * 60 * 60 * 1000;
+    const timeout = emailCount * this.crudConfig.authenticationOptions.verificationEmailTimeoutHours * 60 * 60 * 1000;
     return { emailCount, timeout};
   }
 
@@ -288,7 +288,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     if(emailCount > 10){
       emailCount = 10;
     }
-    const timeout = emailCount * this.crudConfig.authenticationOptions.PASSWORD_RESET_EMAIL_TIMEOUT_HOURS * 60 * 60 * 1000;
+    const timeout = emailCount * this.crudConfig.authenticationOptions.passwordResetEmailTimeoutHours * 60 * 60 * 1000;
     return { emailCount, timeout};
   }
 
@@ -299,7 +299,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       || !lastEmailSent 
       || (lastEmailSent.getTime() + timeout ) >= Date.now()
       ){
-      const token = _utils.generateRandomString(this.crudConfig.authenticationOptions.TOKEN_LENGTH);
+      const token = _utils.generateRandomString(this.crudConfig.authenticationOptions.resetTokenLength);
       const patch: Partial<CrudUser> = {[tokenKey]: token, [lastEmailSentKey]: new Date(), [attempCountKey]: emailCount+1};
       if(user.email != email){
         patch.nextEmail = email;
@@ -391,7 +391,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
   async $sendTwoFACode(userId: string, user: CrudUser, ctx: CrudContext){
     const lastTwoFACodeSent = new Date(user.lastTwoFACodeSent);
-    if(lastTwoFACodeSent && (lastTwoFACodeSent.getTime() + (this.crudConfig.authenticationOptions.TWOFA_EMAIL_TIMEOUT_MIN * 60 * 1000)) > Date.now()){
+    if(lastTwoFACodeSent && (lastTwoFACodeSent.getTime() + (this.crudConfig.authenticationOptions.twoFaEmailTimeoutMinutes * 60 * 1000)) > Date.now()){
       return new UnauthorizedException(CrudErrors.EMAIL_ALREADY_SENT.str());
     }
     const code = _utils.generateRandomString(6).toUpperCase();
@@ -409,7 +409,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         const userObj: Partial<CrudUser> = { lastPasswordResetSent: null, passwordResetToken: null, passwordResetAttempCount: 0} 
         const keys = Object.keys(userObj); 
         const entity = {};
-        entity[this.USERNAME_FIELD] = dto.email;
+        entity[this.username_field] = dto.email;
         const user: CrudUser = await this.$findOne(entity, ctx);
         if(!user){
           console.debug("User not found for email: ", dto.email);
@@ -434,13 +434,13 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   }
 
   async $reset_password(dto: ResetPasswordDto, ctx: CrudContext) {
-    const ALLOWED_JWT_EXPIRES_IN = this.crudConfig.authenticationOptions.ALLOWED_JWT_EXPIRES_IN;
-    if(dto.expiresIn && !ALLOWED_JWT_EXPIRES_IN.includes(dto.expiresIn)){
-      throw new BadRequestException("Invalid expiresIn: " + dto.expiresIn + " allowed: " + ALLOWED_JWT_EXPIRES_IN.join(', '));
+    const allowedJwtExpiresIn = this.crudConfig.authenticationOptions.allowedJwtExpiresIn;
+    if(dto.expiresIn && !allowedJwtExpiresIn.includes(dto.expiresIn)){
+      throw new BadRequestException("Invalid expiresIn: " + dto.expiresIn + " allowed: " + allowedJwtExpiresIn.join(', '));
     }
     const { newPassword, token_id } = dto;
     const [ token, userId ] = token_id.split('_', 2);
-    if(newPassword?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH){
+    if(newPassword?.length > this.crudConfig.authenticationOptions.passwordMaxLength){
       throw new BadRequestException(CrudErrors.PASSWORD_TOO_LONG.str());
     }
      //Doing this for type checking
@@ -468,16 +468,16 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   }  
   
   async $change_password(dto: ChangePasswordDto, ctx: CrudContext) {
-    const ALLOWED_JWT_EXPIRES_IN = this.crudConfig.authenticationOptions.ALLOWED_JWT_EXPIRES_IN;
-    if(dto.expiresIn && !ALLOWED_JWT_EXPIRES_IN.includes(dto.expiresIn)){
-      throw new BadRequestException("Invalid expiresIn: " + dto.expiresIn + " allowed: " + ALLOWED_JWT_EXPIRES_IN.join(', '));
+    const allowedJwtExpiresIn = this.crudConfig.authenticationOptions.allowedJwtExpiresIn;
+    if(dto.expiresIn && !allowedJwtExpiresIn.includes(dto.expiresIn)){
+      throw new BadRequestException("Invalid expiresIn: " + dto.expiresIn + " allowed: " + allowedJwtExpiresIn.join(', '));
     }
     if(!ctx.userId){
       throw new ForbiddenException("Must be logged to change password");
     }
     const { newPassword, oldPassword } = dto;
 
-    if(newPassword?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH){
+    if(newPassword?.length > this.crudConfig.authenticationOptions.passwordMaxLength){
       throw new BadRequestException(CrudErrors.PASSWORD_TOO_LONG.str());
     }
     const user: CrudUser = ctx.user;
@@ -498,7 +498,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
   async $create_account(dto: CreateAccountDto, ctx: CrudContext, inheritance: any = {}){
       const { email, password, role } = dto;
-      if(password?.length > this.crudConfig.authenticationOptions.PASSWORD_MAX_LENGTH){
+      if(password?.length > this.crudConfig.authenticationOptions.passwordMaxLength){
         throw new BadRequestException(CrudErrors.PASSWORD_TOO_LONG.str());
       }
       const user = new this.userEntityClass();
@@ -567,7 +567,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   async $signIn(ctx: CrudContext, email, pass, expiresIn = '30m', twoFA_code?): Promise<LoginResponseDto> {
     email = email.toLowerCase().trim();
     const entity = {};
-    entity[this.USERNAME_FIELD] = email;
+    entity[this.username_field] = email;
     const user: CrudUser = await this.$findOne(entity, ctx);
     if(!user){
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());

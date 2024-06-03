@@ -54,7 +54,7 @@ export default class CmdDto {
 }
 ```
 !!! warning 
-    By default, every dto field has a max size of `50` (specified in `ValidationOptions`->`DEFAULT_MAX_SIZE`). This means you need to decorate fields with     `@$MaxSize(x)` to bypass this limit. Using `class-validator`'s `@MaxLength` won't affect that limit.
+    By default, every dto field has a max size of `50` (specified in [ValidationOptions](../configuration/validation.md)->`defaultMaxSize`). This means you need to decorate fields with     `@$MaxSize(x)` to bypass this limit. Using `class-validator`'s `@MaxLength` won't affect that limit.
 
 **$MaxLength(length: number, addPerTrustPoint?: number)**
 
@@ -74,7 +74,7 @@ export default class CmdDto {
     `@$MaxLength` must be used with `@$Type` decorator, or else `@$MaxSize` will be applied.
 
 !!! warning 
-    By default, `@$Type` dto fields have a max length of `20` (specified in `ValidationOptions`->`DEFAULT_MAX_LENGTH`). This means you need to decorate fields with     `@$MaxLength(x)` to bypass this limit.
+    By default, `@$Type` dto fields have a max length of `20` (specified in [ValidationOptions](../configuration/validation.md)->`defaultMaxLength`). This means you need to decorate fields with     `@$MaxLength(x)` to bypass this limit.
 
 ## Validation Pipe
 You can use `CrudValidationPipe` to apply Eicrud's validation and transforms to your own [NestJS controllers](https://docs.nestjs.com/controllers){:target="_blank"}.

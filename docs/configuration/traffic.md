@@ -1,24 +1,26 @@
 Eicrud provides various ways to control traffic to your application.
 
+```
+export class WatchTrafficOptions{
+  maxTrackedUsers: number = 10000;
+  maxTrackedIPs: number = 10000;
+  userRequestsThreshold: number = 350;
+  ipRequestsThreshold: number = 700;
+  totalTimeoutThreshold: number = 5;
+  timeoutDurationMinutes: number = 15;
+  useForwardedIp: boolean = false;
+  ddosProtection: boolean = false;
+  userTrafficProtection: boolean = true;
 
-```typescript title="eicrud.config.service.ts"
-const watchTrafficOptions = {
-  ddosProtection: false,
-  useForwardedIp: false,
-  IP_REQUEST_THRESHOLD: 700,
-  MAX_TRACKED_IPS: 10000,
-  
-  userTrafficProtection: true,
-  USER_REQUEST_THRESHOLD: 350,
-  MAX_TRACKED_USERS: 10000,
-  TIMEOUT_THRESHOLD_TOTAL: 5,
-
-  TIMEOUT_DURATION_MIN: 15,
-
-  userTrafficCache: null;
-  ipTrafficCache: null;
-  ipTimeoutCache: null;
+  userTrafficCache: TrafficCache = null;
+  ipTrafficCache: TrafficCache = null;
+  ipTimeoutCache: TrafficCache = null;
 }
+```
+```typescript title="eicrud.config.service.ts"
+import { WatchTrafficOptions } from '@eicrud/core/authentication'
+
+const watchTrafficOptions = new WatchTrafficOptions();
 
 @Injectable()
 export class MyConfigService extends CrudConfigService {
@@ -33,25 +35,25 @@ export class MyConfigService extends CrudConfigService {
 
 Activate with `userTrafficProtection` (defaults to `true`).
 
-Limit user traffic to `USER_REQUEST_THRESHOLD` request every 5 min. Exceeding that limit will trigger an incident ([onHighTrafficEvent](./config-service.md#events)).
+Limit user traffic to `userRequestsThreshold` request every 5 min. Exceeding that limit will trigger an incident ([onHighTrafficEvent](./service.md#events)).
 
 !!! note
     Traffic incidents lower the user's [trust score](../user/definition.md#trust). 
 
-After `TIMEOUT_THRESHOLD_TOTAL` incidents, the user will be timed out for `TIMEOUT_DURATION_MIN` * `user.timeoutCount` on each consecutive incident.
+After `totalTimeoutThreshold` incidents, the user will be timed out for `timeoutDurationMinutes` * `user.timeoutCount` on each consecutive incident.
 
 If you want a specific user to bypass these limits, you can set `user.allowedTrafficMultiplier` to **x** (is allowed the traffic of **x** users).
 
-`MAX_TRACKED_USERS` indicates how many users your application will track in its RAM cache (users with lower traffic are deleted first). 
+`maxTrackedUsers` indicates how many users your application will track in its RAM cache (users with lower traffic are deleted first). 
 
 
 ### DDOS Protection
 
 Activate with `ddosProtection` (defaults to `false`).
 
-After exceeding `IP_REQUEST_THRESHOLD` requests in 5 minutes, IP will be timed out for `TIMEOUT_DURATION_MIN`.
+After exceeding `ipRequestsThreshold` requests in 5 minutes, IP will be timed out for `timeoutDurationMinutes`.
 
-`MAX_TRACKED_IPS` indicates how many IPs your application will track in its RAM cache (IPs with lower traffic are deleted first).
+`maxTrackedIPs` indicates how many IPs your application will track in its RAM cache (IPs with lower traffic are deleted first).
 
 `useForwardedIp` indicates if the value from the `x-forwarded-for` header should be used instead of the request IP.
 

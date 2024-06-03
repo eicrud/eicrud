@@ -2,28 +2,27 @@ Eicrud handles the authentication of [users](./definition.md) in a global [NestJ
 
 ```typescript
 export class AuthenticationOptions {
-  SALT_ROUNDS = 11;
-  SALT_ROUNDS_ADMIN = 14;
-  VERIFICATION_EMAIL_TIMEOUT_HOURS = 6;
-  TWOFA_EMAIL_TIMEOUT_MIN = 15;
-  PASSWORD_RESET_EMAIL_TIMEOUT_HOURS = 6;
-  PASSWORD_MAX_LENGTH = 64;
-  JWT_SECRET = 'aeFzLsZAKL4153s9zsq2samXnv';
-  JWT_FIELD_IN_PAYLOAD = ['revokedCount'];
-  USERNAME_FIELD = 'email';
+  saltRounds = 11;
+  saltRoundsAdmin = 14;
+  verificationEmailTimeoutHours = 6;
+  twoFaEmailTimeoutMinutes = 15;
+  passwordResetEmailTimeoutHours = 6;
+  passwordMaxLength = 64;
+  jwtFieldInPayload = ['revokedCount'];
+  username_field = 'email';
   renewJwt = false;
   minTimeBetweenLoginAttempsMs: number = 600;
-  ALLOWED_JWT_EXPIRES_IN = ['1s', '15m', '30m', '1h', '2h', '6h', 
+  allowedJwtExpiresIn = ['1s', '15m', '30m', '1h', '2h', '6h', 
   '12h', '1d', '2d', '4d', '5d', '6d', '7d', '14d', '30d'];
   extractUserOnRoutes: string[] = [];
-  TOKEN_LENGTH: number = 17;
+  resetTokenLength: number = 17;
 }
 ```
 
-Options are passed to the [CrudConfigService](../configuration/config-service.md).
+Options are passed to the [CrudConfigService](../configuration/service.md).
 
 ```typescript title="eicrud.config.service.ts"
-import { AuthenticationOptions } from '@eicrud/core/authentification';
+import { AuthenticationOptions } from '@eicrud/core/authentication';
 
 const authenticationOptions = new AuthenticationOptions();
 
@@ -46,7 +45,7 @@ authenticationOptions.extractUserOnRoutes = ['my-custom-route']
 You can then retrieve the user in a [NestJS controller](https://docs.nestjs.com/controllers).
 ```typescript
 import { CrudContext } from "@eicrud/core/crud";
-import { Context } from "@eicrud/core/authentification";
+import { Context } from "@eicrud/core/authentication";
 import { Get, Query } from '@nestjs/common';
 
 // ...

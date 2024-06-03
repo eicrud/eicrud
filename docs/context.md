@@ -35,7 +35,7 @@ async $say_hello(dto: SayHelloDto, ctx: CrudContext, inheritance?: any) {
    const user = ctx.user;
 }
 ```
-And in [hook functions](./configuration/config-service.md).
+And in [hook functions](./configuration/service.md).
 ```typescript
 async afterCrudHook(res: any, ctx: CrudContext) {
     return Promise.resolve();
