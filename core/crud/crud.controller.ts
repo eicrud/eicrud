@@ -29,7 +29,7 @@ export class LimitOptions {
     nonAdminQueryLimit_IDS = 4000;
     adminQueryLimit_IDS = 8000;
 
-    MAX_GET_IN = 250;
+    maxFindInIdsLength = 250;
 }
 
 @Controller({
@@ -316,8 +316,8 @@ export class CrudController {
         try {
             this.limitQuery(ctx, this.crudConfig.limitOptions.nonAdminQueryLimit, this.crudConfig.limitOptions.adminQueryLimit);
             const ids = ctx.query?.[this.crudConfig.id_field];
-            if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.MAX_GET_IN) {
-                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str({ maxBatchSize: this.crudConfig.limitOptions.MAX_GET_IN, idsLength: ids.length}));
+            if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.maxFindInIdsLength) {
+                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str({ maxBatchSize: this.crudConfig.limitOptions.maxFindInIdsLength, idsLength: ids.length}));
             }
             ctx.ids = ids;
             delete ctx.query[this.crudConfig.id_field];
@@ -386,8 +386,8 @@ export class CrudController {
         const currentService = await this.assignContext('DELETE', query, query.query, null, 'crud', ctx);
         try {
             const ids = ctx.query?.[this.crudConfig.id_field];
-            if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.MAX_GET_IN) {
-                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str({ maxBatchSize: this.crudConfig.limitOptions.MAX_GET_IN, idsLength: ids.length}));
+            if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.maxFindInIdsLength) {
+                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str({ maxBatchSize: this.crudConfig.limitOptions.maxFindInIdsLength, idsLength: ids.length}));
             }
             ctx.ids = ids;
             delete ctx.query[this.crudConfig.id_field];
@@ -424,8 +424,8 @@ export class CrudController {
         const currentService = await this.assignContext('PATCH', query, query.query, data, 'crud', ctx);
         try {
             const ids = ctx.query?.[this.crudConfig.id_field];
-            if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.MAX_GET_IN) {
-                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str({ maxBatchSize: this.crudConfig.limitOptions.MAX_GET_IN, idsLength: ids.length}));
+            if (!ids || !ids.length || ids.length > this.crudConfig.limitOptions.maxFindInIdsLength) {
+                throw new BadRequestException(CrudErrors.IN_REQUIRED_LENGTH.str({ maxBatchSize: this.crudConfig.limitOptions.maxFindInIdsLength, idsLength: ids.length}));
             }
             ctx.ids = ids;
             delete ctx.query[this.crudConfig.id_field];

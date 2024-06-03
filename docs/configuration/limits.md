@@ -103,7 +103,7 @@ const limitOptions: LimitOptions = {
     adminQueryLimit: 400,
     nonAdminQueryLimit_IDS: 4000,
     adminQueryLimit_IDS: 8000,
-    MAX_GET_IN: 250,
+    maxFindInIdsLength: 250,
 }
 
 @Injectable()

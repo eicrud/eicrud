@@ -55,7 +55,8 @@ export interface ClientConfig {
 
 export interface ClientOptions {
   batchSize?: number;
-  progressCallBack?: (progress: number, total: number) => Promise<void>;
+  batchField?: string;
+  progressCallBack?: (progress: number, total: number, type: 'limit' | 'batch') => Promise<void>;
 }
 
 /**
@@ -159,11 +160,11 @@ export class CrudClient<T> {
     return res.data;
   }
 
-  private async _doLimitQuery(fetchFunc: (q: ICrudQuery) => Promise<FindResponseDto<any>>, ICrudQuery: ICrudQuery) {
+  private async _doLimitQuery(fetchFunc: (q: ICrudQuery) => Promise<FindResponseDto<any>>, ICrudQuery: ICrudQuery, copts: ClientOptions) {
     const options = ICrudQuery.options || {};
     const res: FindResponseDto<any> = await fetchFunc({...ICrudQuery, options: JSON.stringify(options) as any});
 
-    if (res.limit > 0 && (!options.limit || res.limit < options.limit) && res.total > res.limit) {
+    if (res?.limit > 0 && (!options.limit || res.limit < options.limit) && res.total > res.limit) {
       let offset = res.limit;
       let total = options.limit || res.total;
       while (offset < total) {
@@ -173,6 +174,7 @@ export class CrudClient<T> {
           options: JSON.stringify(newOptions) as any,
         }
         const newRes: FindResponseDto<any> = await fetchFunc(newICrudQuery);
+        copts.progressCallBack?.(offset, total, 'limit');
         res.data.push(...newRes.data);
         offset += res.limit;
       }
@@ -194,7 +196,7 @@ export class CrudClient<T> {
     return res;
   }
 
-  async find(query: any, options: ICrudOptions = undefined): Promise<FindResponseDto<T>> {
+  async find(query: any, options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<FindResponseDto<T>> {
     const ICrudQuery: ICrudQuery = {      
       options: options,
       query: JSON.stringify(query)
@@ -205,7 +207,7 @@ export class CrudClient<T> {
       return await this._tryOrLogout(axios.get, 1, url, { params: crdQuery, headers: this._getHeaders() });
     }
 
-    return await this._doLimitQuery(fetchFunc, ICrudQuery);
+    return await this._doLimitQuery(fetchFunc, ICrudQuery, copts);
 
   }
 
@@ -233,14 +235,14 @@ export class CrudClient<T> {
         return await this._tryOrLogout(axios.get, 1, url, { params: crdQ, headers: this._getHeaders() });
       }
   
-      return await this._doLimitQuery(fetchFunc, newICrudQuery);
+      return await this._doLimitQuery(fetchFunc, newICrudQuery, copts);
     }
 
     return await this._doBatch(batchFunc, ids, copts, true);
 
   }
 
-  async findIds(query: any, options: ICrudOptions = undefined): Promise<FindResponseDto<string>> {
+  async findIds(query: any, options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<FindResponseDto<string>> {
     const ICrudQuery: ICrudQuery = {      
       options: options,
       query: JSON.stringify(query)
@@ -251,31 +253,51 @@ export class CrudClient<T> {
       return await this._tryOrLogout(axios.get, 1, url, { params: crdQ, headers: this._getHeaders() });
     }
 
-    return await this._doLimitQuery(fetchFunc, ICrudQuery);
+    return await this._doLimitQuery(fetchFunc, ICrudQuery, copts);
   }
 
-  private async _doCmd(cmdName: string, dto: any, options: ICrudOptions, secure: boolean, limited: boolean): Promise<any> {
-    const ICrudQuery: ICrudQuery = { 
+  private async _doCmd(cmdName: string, dto: any, options: ICrudOptions, secure: boolean, limited: boolean, copts: ClientOptions): Promise<any> {
+    const crudQuery: ICrudQuery = { 
       options: options,
     }
     const url = this.url + "/crud/s/" + this.serviceName + "/cmd/" + cmdName;
 
     const method = secure ? axios.post : axios.get;
 
-    if (limited) {
+    return this._doCmdOrBatch(dto, options, method, url, crudQuery, limited, copts);
+   
+  }
 
+  private async _doCmdOrBatch(dto: any, options: ICrudOptions, method, url, crudQuery: ICrudQuery, limited: boolean, copts: ClientOptions){
+    try{
+      if(copts.batchSize && copts.batchField){
+        const batchFunc = async (chunk: any[]) => {
+          const newDto = { ...dto, [copts.batchField]: chunk };
+          return await this._subDoCmd(method, url, newDto, options, crudQuery, limited, copts);
+        }
+        return await this._doBatch(batchFunc, dto[copts.batchField], copts, limited);
+      }
+      return await this._subDoCmd(method, url, dto, options, crudQuery, limited, copts);
+
+    } catch (e) {
+      const detected = this._detectMatchBatchSize(e, copts);
+      if(detected){
+        const newOpts: ClientOptions = { ...copts, batchSize: detected.maxBatchSize, batchField: detected.field };
+        return await this._doCmdOrBatch(dto, options, method, url, crudQuery, limited, newOpts);
+      }
+    }
+  }
+
+  private async _subDoCmd(method, url, dto: any, options: ICrudOptions, crudQuery: ICrudQuery, limited: boolean, copts: ClientOptions): Promise<any> {
+    if (limited) {
       const fetchFunc = async (crdQ: ICrudQuery) => {
         return await this._tryOrLogout(method, 2, url, dto, { params: crdQ, headers: this._getHeaders() });
       }
-
-      return await this._doLimitQuery(fetchFunc, ICrudQuery);
-
+      return await this._doLimitQuery(fetchFunc, crudQuery, copts);
     }
 
-    ICrudQuery.options = JSON.stringify(options) as any;
-    const res = await this._tryOrLogout(secure ? axios.post : axios.patch, 2, url, dto, { params: ICrudQuery, headers: this._getHeaders() });
-
-    return res;
+    crudQuery.options = JSON.stringify(options) as any;
+    return await this._tryOrLogout(method, 2, url, dto, { params: crudQuery, headers: this._getHeaders() });
   }
 
   /**
@@ -411,7 +433,7 @@ export class CrudClient<T> {
     return await this._doBatch(batchFunc, datas, copts);
   }
 
-  private async _doBatch(batchFunc: (datas) => any, datas, copts: ClientOptions = { batchSize: 200, }, limited?){
+  private async _doBatch(batchFunc: (datas) => any, datas, copts: ClientOptions = { batchSize: 200 }, limited?){
     let res;
     let chunks = [datas];
     if (copts.batchSize > 0) {
@@ -422,30 +444,39 @@ export class CrudClient<T> {
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         const r = await batchFunc(chunk);
-        copts.progressCallBack?.(i, chunks.length);
+        copts.progressCallBack?.(i, chunks.length, 'batch');
         if(!res){
           res = limited ? r : _utils.makeArray(r);
         }else if(limited){
+          res.total += r.total;
           res.data.push(..._utils.makeArray(r.data));
         }else{
           res.push(..._utils.makeArray(r));
         }
       }
     } catch (e) {
-      if (e.response && e.response.status == 400) {
-        const parsedMessage = JSON.parse(e.response.data);
-        if ([CrudErrors.MAX_BATCH_SIZE_EXCEEDED.code, CrudErrors.IN_REQUIRED_LENGTH.code].includes(parsedMessage.code)) {
-          const maxBatchSize = parsedMessage.data.maxBatchSize;
-          if (maxBatchSize && (maxBatchSize < copts.batchSize)) {
-            const newOpts = { ...copts, batchSize: maxBatchSize };
-            return await this._doBatch(batchFunc, datas, newOpts);
-          }
-        }
+      const detected = this._detectMatchBatchSize(e, copts);
+      if(detected){
+        const newOpts = { ...copts, batchSize: detected.maxBatchSize };
+        return await this._doBatch(batchFunc, datas, newOpts);
       }
       throw e;
     }
 
     return res;
+  }
+
+  private _detectMatchBatchSize(e, copts: ClientOptions){
+    if (e.response && e.response.status == 400) {
+      const parsedMessage = JSON.parse(e.response.data);
+      if ([CrudErrors.MAX_BATCH_SIZE_EXCEEDED.code, CrudErrors.IN_REQUIRED_LENGTH.code].includes(parsedMessage.code)) {
+        const maxBatchSize = parsedMessage.data?.maxBatchSize;
+        if (maxBatchSize && (!copts.batchSize || (maxBatchSize < copts.batchSize))) {
+          return parsedMessage.data;
+        }
+      }
+    }
+    return null;
   }
 
   async createBatch(objects: object[], options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<T[]> {
@@ -517,20 +548,20 @@ export class CrudClient<T> {
     return res;
   }
   
-  async cmd(cmdName: string, dto: any, options: ICrudOptions = undefined): Promise<any> {
-    return await this._doCmd(cmdName, dto, options, false, false);
+  async cmd(cmdName: string, dto: any, options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<any> {
+    return await this._doCmd(cmdName, dto, options, false, false, copts);
   }
 
-  async cmdL(cmdName: string, dto: any, options: ICrudOptions = undefined): Promise<any> {
-    return await this._doCmd(cmdName, dto, options, false, true);
+  async cmdL(cmdName: string, dto: any, options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<any> {
+    return await this._doCmd(cmdName, dto, options, false, true, copts);
   }
 
-  async cmdS(cmdName: string, dto: any, options: ICrudOptions = undefined): Promise<any> {
-    return await this._doCmd(cmdName, dto, options, true, false);
+  async cmdS(cmdName: string, dto: any, options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<any> {
+    return await this._doCmd(cmdName, dto, options, true, false, copts);
   }
 
-  async cmdSL(cmdName: string, dto: any, options: ICrudOptions = undefined): Promise<any> {
-    return await this._doCmd(cmdName, dto, options, true, true);
+  async cmdSL(cmdName: string, dto: any, options: ICrudOptions = undefined, copts: ClientOptions = {}): Promise<any> {
+    return await this._doCmd(cmdName, dto, options, true, true, copts);
   }
 
 
