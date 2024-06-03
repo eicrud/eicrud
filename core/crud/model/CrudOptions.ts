@@ -1,4 +1,4 @@
-import { IsArray, IsInt, IsOptional, IsString } from "class-validator";
+import { IsArray, IsBoolean, IsInt, IsOptional, IsString } from "class-validator";
 import { $MaxSize } from "../../validation/decorators";
 import { ICrudOptions } from '@eicrud/shared/interfaces';
 
@@ -13,6 +13,10 @@ export class CrudOptions implements ICrudOptions  {
     @IsOptional()
     @IsString()
     mockRole?: string;
+
+    @IsOptional()
+    @IsBoolean()
+    cached?: boolean;
 
     @IsOptional()
     @IsArray()

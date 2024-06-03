@@ -18,6 +18,7 @@ import { CrudRole } from '../config/model/CrudRole';
 import { GetRightDto, ICrudRightsFieldInfo, ICrudRightsInfo } from '../crud/model/dtos';
 import { IsBoolean, IsOptional } from 'class-validator';
 import { BaseEntity, EntityClass, EntityManager, EntityName, wrap } from '@mikro-orm/core';
+import { CrudOptions } from '.';
 
 const NAMES_REGEX = /([^\s,]+)/g;
 const COMMENTS_REGEX = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
@@ -53,13 +54,13 @@ function getAllMethodNames(obj) {
 
 export class CrudService<T extends CrudEntity> {
 
-    CACHE_TTL = 60 * 10 * 1000; // 10 minutes
     protected entityManager: EntityManager;
     public serviceName: string;
     protected crudConfig: CrudConfigService;
     public dbAdapter: CrudDbAdapter;
     protected crudAuthorization: CrudAuthorizationService;
     cacheManager: CrudCache;
+    cacheOptions = new CacheOptions();
 
     constructor(
         protected moduleRef: ModuleRef,
@@ -79,11 +80,10 @@ export class CrudService<T extends CrudEntity> {
         this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY, { strict: false });
         this.crudAuthorization = this.moduleRef.get(CrudAuthorizationService, { strict: false });
         this.entityManager = this.config?.entityManager || this.crudConfig.entityManager;
-        this.CACHE_TTL = this.config?.cacheOptions?.TTL || this.crudConfig.defaultCacheOptions.TTL;
+        this.cacheOptions = {...(this.config?.cacheOptions||{}),...this.crudConfig.defaultCacheOptions};
         this.dbAdapter = this.config?.dbAdapter || this.crudConfig.dbAdapter;
         this.dbAdapter.setConfigService(this.crudConfig);
         this.crudConfig.addService(this);
-
         this.cacheManager = this.config?.cacheManager || this.crudConfig.cacheManager;
 
         this.security.cmdSecurityMap = this.security.cmdSecurityMap || {} as any;
@@ -299,8 +299,18 @@ export class CrudService<T extends CrudEntity> {
         return {...opts} as any;
     }
 
-    getCacheKey(entity: Partial<T>) {
-        return this.serviceName + '_one_' + entity[this.crudConfig.id_field].toString();
+    getCacheKey(entity: Partial<T>, opts?: CrudOptions) {
+        let key = this.serviceName + '_one_' + entity[this.crudConfig.id_field].toString();
+        if(opts?.exclude?.length){
+            key += '_e_' + opts.exclude.sort().join(',');
+        }
+        if(opts?.fields?.length){
+            key += '_f_' + opts.fields.sort().join(',');
+        }
+        if(opts?.populate?.length){
+            key += '_p_' + opts.populate.sort().join(',');
+        }
+        return key;
     }
 
     async $findOne(entity: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
@@ -313,23 +323,24 @@ export class CrudService<T extends CrudEntity> {
 
     async $findOneCached(entity: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
         if (!entity[this.crudConfig.id_field]) {
-            throw new BadRequestException('No id field found in entity');
+            throw new BadRequestException('id field is required for findOneCached');
         }
-        this.checkObjectForIds(entity);
-
-        let cacheKey = this.getCacheKey(entity);
+ 
+        let cacheKey = this.getCacheKey(entity, ctx?.options);
         const cached = await this.cacheManager.get(cacheKey);
         if (cached) {
             return cached;
         }
         const result = await this.$findOne(entity, ctx, inheritance);
-        this.cacheManager.set(cacheKey, result, this.CACHE_TTL);
+        if(!ctx.options?.cached || this.cacheOptions.allowClientCacheFilling){
+            this.cacheManager.set(cacheKey, result, this.cacheOptions.TTL);
+        }
         return result;
     }
 
     async $setCached(entity: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
         let cacheKey = this.getCacheKey(entity);
-        this.cacheManager.set(cacheKey, entity, this.CACHE_TTL);
+        await this.cacheManager.set(cacheKey, entity, this.cacheOptions.TTL);
         return entity;
     }
 

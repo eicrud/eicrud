@@ -337,7 +337,12 @@ export class CrudController {
         const currentService = await this.assignContext('GET', query, query.query, null, 'crud', ctx);
         try {
             await this.performValidationAuthorizationAndHooks(ctx, currentService);
-            const res = await currentService.$findOne(ctx.query, ctx);
+            let res;
+            if(ctx.options?.cached){
+                res = await currentService.$findOneCached(ctx.query, ctx);
+            }else{
+                res = await currentService.$findOne(ctx.query, ctx);
+            }
             await this.afterHooks(currentService, res, ctx);
             return res;
         } catch (e) {

@@ -44,8 +44,9 @@ export interface CrudCache {
     set: (key: string, value: any, ttl?: number) => Promise<any>;
 }
 
-export interface CacheOptions {
-    TTL: number;
+export class CacheOptions {
+    TTL = 60 * 12 * 1000; // 12 minutes
+    allowClientCacheFilling = false;
 }
 
 export const CRUD_CONFIG_KEY = 'CRUD_CONFIG_U4u7YojMIZ';
@@ -105,9 +106,7 @@ export class CrudConfigService {
 
     authenticationOptions = new AuthenticationOptions();
 
-    defaultCacheOptions: CacheOptions = {
-        TTL: 60 * 12 * 1000, // 12 minutes
-    }
+    defaultCacheOptions = new CacheOptions();
 
     servicesMap: Record<string, CrudService<any>> = {};
 

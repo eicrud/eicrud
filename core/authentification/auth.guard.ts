@@ -32,7 +32,7 @@ export interface TrafficCache {
   clear?: () => Promise<any>;
 }
 export class BasicTrafficCache implements TrafficCache {
-  cache: LRUCache<string, CrudUser>;
+  cache: LRUCache<string, number>;
 
   constructor(size = 10000) {
     this.cache = new LRUCache(size);
