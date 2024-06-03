@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModule, createNestApplication, readyApp, dropDatabases } from '../test.module';
 import { CrudController } from '../../core/crud/crud.controller';
 import { MyUserService } from '../myuser.service';
-import { CrudAuthService } from '../../core/authentification/auth.service';
+import { CrudAuthService } from '../../core/authentication/auth.service';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
@@ -16,7 +16,7 @@ import { TestUser } from '../test.utils';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/config/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
-import { CrudAuthGuard } from '../../core/authentification/auth.guard';
+import { CrudAuthGuard } from '../../core/authentication/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 
 const testAdminCreds = {
@@ -94,16 +94,16 @@ describe('AppController', () => {
 
     let didCaptcha = false;
 
-    for(let u = 0; u <= (crudConfig.watchTrafficOptions.TIMEOUT_THRESHOLD_TOTAL) ; u++){
+    for(let u = 0; u <= (crudConfig.watchTrafficOptions.totalTimeoutThreshold) ; u++){
 
-      for(let i = 0; i <= (crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD - 1); i++){
+      for(let i = 0; i <= (crudConfig.watchTrafficOptions.userRequestsThreshold - 1); i++){
         const prom = testMethod({ url: '/crud/many', method: 'GET', app, jwt: user.jwt, entityManager, payload, query, expectedCode: 200, crudConfig })
         promises.push(prom);
       }
 
       await Promise.all(promises);
       let res = 0;
-      while(res < crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD){
+      while(res < crudConfig.watchTrafficOptions.userRequestsThreshold){
         res = await authGuard.userTrafficCache.get(user.id?.toString()) || 0;
         await new Promise((r) => setTimeout(r, 200));
       }

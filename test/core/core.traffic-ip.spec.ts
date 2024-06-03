@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModule, createNestApplication, readyApp, dropDatabases } from '../test.module';
 import { CrudController } from '../../core/crud/crud.controller';
 import { MyUserService } from '../myuser.service';
-import { CrudAuthService } from '../../core/authentification/auth.service';
+import { CrudAuthService } from '../../core/authentication/auth.service';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
@@ -16,7 +16,7 @@ import { TestUser } from '../test.utils';
 import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/config/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
-import { CrudAuthGuard } from '../../core/authentification/auth.guard';
+import { CrudAuthGuard } from '../../core/authentication/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 
 const testAdminCreds = {
@@ -70,14 +70,14 @@ describe('AppController', () => {
 
     const promises = [];
 
-    for(let i = 0; i <= (crudConfig.watchTrafficOptions.IP_REQUEST_THRESHOLD); i++){
+    for(let i = 0; i <= (crudConfig.watchTrafficOptions.ipRequestsThreshold); i++){
       const prom = testMethod({ url: '/crud/many', method: 'GET', app, entityManager, payload, query, expectedCode: 200, crudConfig });
       promises.push(prom);
     }
     await Promise.all(promises);
 
     let res = 0;
-    while(res < (crudConfig.watchTrafficOptions.IP_REQUEST_THRESHOLD)){
+    while(res < (crudConfig.watchTrafficOptions.ipRequestsThreshold)){
       res = await authGuard.ipTrafficCache.get('127.0.0.1') || 0;
       await new Promise((r) => setTimeout(r, 200));
     }

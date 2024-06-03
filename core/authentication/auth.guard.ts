@@ -77,17 +77,17 @@ export class BasicTrafficCache implements TrafficCache {
 }
 
 export class WatchTrafficOptions{
-  MAX_TRACKED_USERS: number = 10000;
+  maxTrackedUsers: number = 10000;
 
-  MAX_TRACKED_IPS: number = 10000;
+  maxTrackedIPs: number = 10000;
 
-  USER_REQUEST_THRESHOLD: number = 350;
+  userRequestsThreshold: number = 350;
   
-  IP_REQUEST_THRESHOLD: number = 700;
+  ipRequestsThreshold: number = 700;
 
-  TIMEOUT_THRESHOLD_TOTAL: number = 5;
+  totalTimeoutThreshold: number = 5;
 
-  TIMEOUT_DURATION_MIN: number = 15;
+  timeoutDurationMinutes: number = 15;
 
   useForwardedIp: boolean = false;
   ddosProtection: boolean = false;
@@ -98,15 +98,6 @@ export class WatchTrafficOptions{
   ipTrafficCache: TrafficCache = null;
   ipTimeoutCache: TrafficCache = null;
 }
-
-export class ValidationOptions{
-  DEFAULT_MAX_SIZE = 50;
-  DEFAULT_MAX_LENGTH = 20;
-  DEFAULT_MAX_ITEMS_PER_USER = 1000;
-
-  BATCH_VALIDATION_YIELD_RATE = 300;
-};
-
 
 @Injectable()
 export class CrudAuthGuard implements CanActivate {
@@ -137,11 +128,11 @@ export class CrudAuthGuard implements CanActivate {
     onModuleInit() {
       this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY,{ strict: false })
       const { watchTrafficOptions } = this.crudConfig;
-      this.userTrafficCache = watchTrafficOptions.userTrafficCache || new BasicTrafficCache(watchTrafficOptions.MAX_TRACKED_USERS);
-      this.ipTrafficCache = watchTrafficOptions.ipTrafficCache || new BasicTrafficCache(watchTrafficOptions.MAX_TRACKED_IPS);
-      this.ipTimeoutCache = watchTrafficOptions.ipTimeoutCache || new BasicTrafficCache(watchTrafficOptions.MAX_TRACKED_IPS);
+      this.userTrafficCache = watchTrafficOptions.userTrafficCache || new BasicTrafficCache(watchTrafficOptions.maxTrackedUsers);
+      this.ipTrafficCache = watchTrafficOptions.ipTrafficCache || new BasicTrafficCache(watchTrafficOptions.maxTrackedIPs);
+      this.ipTimeoutCache = watchTrafficOptions.ipTimeoutCache || new BasicTrafficCache(watchTrafficOptions.maxTrackedIPs);
 
-      this.reciprocalRequestThreshold = 1 / this.crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD;
+      this.reciprocalRequestThreshold = 1 / this.crudConfig.watchTrafficOptions.userRequestsThreshold;
     }
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
@@ -295,14 +286,14 @@ export class CrudAuthGuard implements CanActivate {
     if (traffic === undefined) {
       traffic = 0;
     }
-    if(traffic > this.crudConfig.watchTrafficOptions.IP_REQUEST_THRESHOLD){
+    if(traffic > this.crudConfig.watchTrafficOptions.ipRequestsThreshold){
       if(!silent){
         this.crudConfig.logService?.log(LogType.SECURITY, 
           `High traffic event for ip with ${traffic} requests.`, 
           { ip } as CrudContext
           )
       }
-      const timeout_end = Date.now() + this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN * 60 * 1000;
+      const timeout_end = Date.now() + this.crudConfig.watchTrafficOptions.timeoutDurationMinutes * 60 * 1000;
       this.ipTimeoutCache.set(ip, timeout_end);
       return true;
     }
@@ -316,7 +307,7 @@ export class CrudAuthGuard implements CanActivate {
       traffic = 0;
     }
     const multiplier = user.allowedTrafficMultiplier || 1;
-    if(traffic >= (this.crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD * multiplier)){
+    if(traffic >= (this.crudConfig.watchTrafficOptions.userRequestsThreshold * multiplier)){
       const query: any = { [this.crudConfig.id_field]: userId };
 
       if(ctx.method != 'POST'){
@@ -326,15 +317,15 @@ export class CrudAuthGuard implements CanActivate {
       user.highTrafficCount = user.highTrafficCount || 0;
       let count;
       if(multiplier > 1){
-        count = traffic / (this.crudConfig.watchTrafficOptions.USER_REQUEST_THRESHOLD*multiplier);
+        count = traffic / (this.crudConfig.watchTrafficOptions.userRequestsThreshold*multiplier);
       }else{
         count = traffic * this.reciprocalRequestThreshold;
       }          
       const increment = Math.round(count);
 
       let addPatch: any = {}
-      if(user.highTrafficCount >= this.crudConfig.watchTrafficOptions.TIMEOUT_THRESHOLD_TOTAL){
-        this.crudConfig.userService.addTimeoutToUser(user as CrudUser, this.crudConfig.watchTrafficOptions.TIMEOUT_DURATION_MIN)
+      if(user.highTrafficCount >= this.crudConfig.watchTrafficOptions.totalTimeoutThreshold){
+        this.crudConfig.userService.addTimeoutToUser(user as CrudUser, this.crudConfig.watchTrafficOptions.timeoutDurationMinutes)
         addPatch.timeout = user.timeout
         addPatch.timeoutCount = user.timeoutCount
       }

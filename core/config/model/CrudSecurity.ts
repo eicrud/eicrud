@@ -46,7 +46,7 @@ export interface CmdSecurity {
      * Useful for search cmds that returns limited results (ex: search cmd).
      * @type {number}
      */
-    NON_ADMIN_LIMIT_QUERY?: number;
+    nonAdminQueryLimit?: number;
 
     /**
      * Max find limit for admin users
@@ -54,7 +54,7 @@ export interface CmdSecurity {
      * Useful for search cmds that returns limited results (ex: search cmd).
      * @type {number}
      */
-    ADMIN_LIMIT_QUERY?: number;
+    adminQueryLimit?: number;
 
     rolesRights?: Record<string, CmdSecurityRights>;
 

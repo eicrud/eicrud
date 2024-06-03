@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Inject, Injectable, forwardRef } from "@nestjs/common";
-import { AuthUtils } from "../authentification/auth.utils";
+import { AuthUtils } from "../authentication/auth.utils";
 import { CrudContext } from "./model/CrudContext";
 import { CrudRole } from "../config/model/CrudRole";
 import { CmdSecurity, CrudSecurity, CrudSecurityRights, httpAliasResolver } from "../config/model/CrudSecurity";
@@ -100,7 +100,7 @@ export class CrudAuthorizationService {
     }
 
     async computeMaxItemsPerUser(ctx: CrudContext, security: CrudSecurity, addCount: number = 0) {
-        let max = security.maxItemsPerUser || this.crudConfig.validationOptions.DEFAULT_MAX_ITEMS_PER_USER;;
+        let max = security.maxItemsPerUser || this.crudConfig.validationOptions.defaultMaxItemsPerUser;
         let add = security.additionalItemsInDbPerTrustPoints;
         if (add) {
             const trust = (await this.getOrComputeTrust(ctx.user, ctx));
@@ -117,7 +117,7 @@ export class CrudAuthorizationService {
             const dataMap = _utils.parseIfString(ctx.user?.crudUserCountMap || {});
             const count = (dataMap?.[ctx.serviceName] || 0) + addCount;
             const max = await this.computeMaxItemsPerUser(ctx, security, addCount);
-            if (count >= max) {
+            if (max && count >= max) {
                 throw new ForbiddenException(`You have reached the maximum number of items for this resource (${security.maxItemsPerUser})`);
             }
         }

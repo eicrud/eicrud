@@ -1,5 +1,5 @@
 nav: 
-  - config-service.md
+  - service.md
   - authentication.md
   - limits.md
   - traffic.md

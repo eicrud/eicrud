@@ -4,14 +4,15 @@ import { CrudUserService } from "./crud-user.service";
 import { LogService } from "../log/log.service";
 import { EntityClass, EntityManager, raw } from "@mikro-orm/core";
 import { CrudContext } from "../crud/model/CrudContext";
-import { WatchTrafficOptions, ValidationOptions } from "../authentification/auth.guard";
+import { WatchTrafficOptions } from "../authentication/auth.guard";
 import { CrudUser } from "./model/CrudUser";
 import { EmailService } from "./crud-email.service";
-import { AuthenticationOptions } from "../authentification/auth.service";
+import { AuthenticationOptions } from "../authentication/auth.service";
 import { MikroORM } from "@mikro-orm/core";
 import { LimitOptions } from "../crud/crud.controller";
 import { CrudDbAdapter } from "./dbAdapter/crudDbAdapter";
 import { LRUCache } from 'lru-cache'
+import { ValidationOptions } from "../validation";
 
 
 export class BasicMemoryCache implements CrudCache {
@@ -126,6 +127,7 @@ export class CrudConfigService {
     public dbType: 'mongo' | 'other' = 'mongo';
     isIsolated: any;
     public dbAdapter: CrudDbAdapter;
+    JWT_SECRET: string;
 
     constructor(config: {userService: CrudUserService<any>, 
         logService?: LogService,
@@ -165,7 +167,8 @@ export class CrudConfigService {
             this.defaultCacheOptions = { ...this.defaultCacheOptions, ...(config.defaultCacheOptions||{})};
             this.validationOptions = { ...this.validationOptions, ...(config.validationOptions||{})};
             this.cacheManager = config.cacheManager;
-            this.authenticationOptions.JWT_SECRET = config.jwtSecret;
+  
+            this.JWT_SECRET = config.jwtSecret;
 
             this.userService = config.userService;
             this.logService = config.logService;
@@ -248,9 +251,9 @@ export class CrudConfigService {
         }
         const role = this.rolesMap[newEntity.role];
         if(role.isAdminRole){
-          return this.authenticationOptions.SALT_ROUNDS_ADMIN;
+          return this.authenticationOptions.saltRoundsAdmin;
         }
-          return this.authenticationOptions.SALT_ROUNDS;
+          return this.authenticationOptions.saltRounds;
       }
 
 

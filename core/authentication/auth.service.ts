@@ -7,21 +7,19 @@ import { CrudAuthGuard } from './auth.guard';
 
 
 export class AuthenticationOptions {
-  SALT_ROUNDS = 11;
-  SALT_ROUNDS_ADMIN = 14;
-  VERIFICATION_EMAIL_TIMEOUT_HOURS = 6;
-  TWOFA_EMAIL_TIMEOUT_MIN = 15;
-  PASSWORD_RESET_EMAIL_TIMEOUT_HOURS = 6;
-  PASSWORD_MAX_LENGTH = 64;
-  JWT_SECRET = 'aeFzLsZAKL4153s9zsq2samXnv';
-  JWT_FIELD_IN_PAYLOAD = ['revokedCount'];
-  USERNAME_FIELD = 'email';
+  saltRounds = 11;
+  saltRoundsAdmin = 14;
+  verificationEmailTimeoutHours = 6;
+  twoFaEmailTimeoutMinutes = 15;
+  passwordResetEmailTimeoutHours = 6;
+  passwordMaxLength = 64;
+  jwtFieldInPayload = ['revokedCount'];
+  username_field = 'email';
   renewJwt = false;
   minTimeBetweenLoginAttempsMs: number = 600;
-  ALLOWED_JWT_EXPIRES_IN = ['1s', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '4d', '5d', '6d', '7d', '14d', '30d'];
-
+  allowedJwtExpiresIn = ['1s', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '4d', '5d', '6d', '7d', '14d', '30d'];
   extractUserOnRoutes: string[] = [];
-  TOKEN_LENGTH: number = 17;
+  resetTokenLength: number = 17;
 }
 
 @Injectable()
@@ -29,7 +27,7 @@ export class CrudAuthService {
   
   protected JWT_SECRET: string;
   protected FIELDS_IN_PAYLOAD: string[] = ['revokedCount'];
-  protected USERNAME_FIELD = 'email';
+  protected username_field = 'email';
   protected crudConfig: CrudConfigService;
   _authGuard: CrudAuthGuard;
 
@@ -41,13 +39,13 @@ export class CrudAuthService {
 
   onModuleInit() {
     this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY,{ strict: false })
-    this.JWT_SECRET = this.crudConfig.authenticationOptions.JWT_SECRET;
-    this.FIELDS_IN_PAYLOAD = this.crudConfig.authenticationOptions.JWT_FIELD_IN_PAYLOAD;
+    this.JWT_SECRET = this.crudConfig.JWT_SECRET;
+    this.FIELDS_IN_PAYLOAD = this.crudConfig.authenticationOptions.jwtFieldInPayload;
     this.FIELDS_IN_PAYLOAD.push(this.crudConfig.id_field);
     if(!this.FIELDS_IN_PAYLOAD.includes('revokedCount')){
       this.FIELDS_IN_PAYLOAD.push('revokedCount');
     }
-    this.USERNAME_FIELD = this.crudConfig.authenticationOptions.USERNAME_FIELD;
+    this.username_field = this.crudConfig.authenticationOptions.username_field;
   }
 
   async signTokenForUser(user, expiresIn: string | number = '30m'){

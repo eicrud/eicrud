@@ -73,7 +73,7 @@ You can extend it using [commands](#commands) (for complex operations).
 - Authorization
     * Secure by default (all operations are forbidden until allowed)
     * Based on roles with inheritance
-- Authentification
+- Authentication
     * JWT based
     * Bruteforce protection
     * Timeout system (ban)

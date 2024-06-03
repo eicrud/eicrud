@@ -8,8 +8,8 @@ export class CrudValidationPipe implements PipeTransform<any> {
     
     
     transformConfig: CrudTransformerConfig = {
-        DEFAULT_MAX_LENGTH: 20,
-        DEFAULT_MAX_SIZE: 50
+        defaultMaxLength: 20,
+        defaultMaxSize: 50
     }
 
     constructor(transformConfig?: CrudTransformerConfig) {

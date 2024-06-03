@@ -1,5 +1,5 @@
 import { Inject, Injectable, forwardRef } from "@nestjs/common";
-import { CrudAuthService } from "../core/authentification/auth.service";
+import { CrudAuthService } from "../core/authentication/auth.service";
 import { CrudAuthorizationService } from "../core/crud/crud.authorization.service";
 import { CrudService } from "../core/crud/crud.service";
 import { CmdSecurity, CrudSecurity } from "../core/config/model/CrudSecurity";

@@ -1,8 +1,8 @@
 import { DynamicModule, Module, Type, forwardRef } from '@nestjs/common';
 import { CrudController } from './crud/crud.controller';
 import { CrudAuthorizationService } from './crud/crud.authorization.service';
-import { CrudAuthService } from './authentification/auth.service';
-import { CrudAuthGuard } from './authentification/auth.guard';
+import { CrudAuthService } from './authentication/auth.service';
+import { CrudAuthGuard } from './authentication/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 

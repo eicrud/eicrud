@@ -27,6 +27,9 @@ Limit how many instances of an entity can be stored in DB. If `MaxItemsInDb` is 
 
 Limit how many instances of an entity a user can create.
 
+!!! note
+    You can set a default `maxItemsPerUser` for all your services in the [validation options](../configuration/validation.md). 
+
 #### **additionalItemsInDbPerTrustPoints**
 
 Add `x` additional allowed instances per user's [trust](../user/definition.md#trust) points.
@@ -61,8 +64,8 @@ const getCmdSecurity = (command, user): CmdSecurity => {
     additionalUsesPerTrustPoint: 1,
     minTimeBetweenCmdCallMs: 500, //ms
     secureOnly: true,
-    NON_ADMIN_LIMIT_QUERY: 50,
-    ADMIN_LIMIT_QUERY: 200
+    nonAdminQueryLimit: 50,
+    adminQueryLimit: 200
     //...
 
     }
@@ -81,10 +84,10 @@ Minimum time required between cmd calls (for a specific user).
 #### **secureOnly**
 Indicate that the command can only be called in secure mode (POST). Secure mode always fetches the `ctx.user` from the database and never from the cache.
 
-#### **NON_ADMIN_LIMIT_QUERY**
+#### **nonAdminQueryLimit**
 The default `CrudOptions`->`limit` set when calling the command (for non-admin users).
 
-#### **ADMIN_LIMIT_QUERY**
+#### **adminQueryLimit**
 The default `CrudOptions`->`limit` set when calling the command (for admin users).
 
 !!! note
@@ -96,10 +99,10 @@ The default `CrudOptions`->`limit` set when calling the command (for admin users
 
 ```typescript title="eicrud.config.service.ts"
 const limitOptions: LimitOptions = {
-    NON_ADMIN_LIMIT_QUERY: 40,
-    ADMIN_LIMIT_QUERY: 400,
-    NON_ADMIN_LIMIT_QUERY_IDS: 4000,
-    ADMIN_LIMIT_QUERY_IDS: 8000,
+    nonAdminQueryLimit: 40,
+    adminQueryLimit: 400,
+    nonAdminQueryLimit_IDS: 4000,
+    adminQueryLimit_IDS: 8000,
     MAX_GET_IN: 250,
 }
 

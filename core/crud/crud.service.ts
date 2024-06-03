@@ -572,7 +572,7 @@ export class CrudService<T extends CrudEntity> {
             const subType = field_metadata?.type;
             if (subType) {
                 if (Array.isArray(subType)) {
-                    subRet.maxLength = field_metadata?.maxLength || this.crudConfig.validationOptions.DEFAULT_MAX_LENGTH;
+                    subRet.maxLength = field_metadata?.maxLength || this.crudConfig.validationOptions.defaultMaxLength;
                     if (field_metadata?.addMaxLengthPerTrustPoint) {
                         subRet.maxLength += trust * field_metadata.addMaxLengthPerTrustPoint;
                     }
@@ -580,7 +580,7 @@ export class CrudService<T extends CrudEntity> {
                 const subCls = subType.class;
                 subRet.type = await this._recursiveGetRightsType(subCls, {}, trust);
             }else{
-                subRet.maxSize = field_metadata?.maxSize || this.crudConfig.validationOptions.DEFAULT_MAX_SIZE;
+                subRet.maxSize = field_metadata?.maxSize || this.crudConfig.validationOptions.defaultMaxSize;
                 if (field_metadata?.addMaxSizePerTrustPoint) {
                     subRet.maxSize += trust * field_metadata.addMaxSizePerTrustPoint;
                 }
