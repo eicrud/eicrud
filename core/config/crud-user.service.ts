@@ -537,7 +537,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
     const match = await bcrypt.compare(pass, user?.password);
     if (!match) {
-      const addPatch: Partial<CrudUser> = this.dbAdapter.getSetUpdate({ lastLoginAttempt: user.lastLoginAttempt});
+      const addPatch = { lastLoginAttempt: user.lastLoginAttempt};
       const query: any = { [this.crudConfig.id_field]: user[this.crudConfig.id_field] };
       const increments = {failedLoginCount: 1}
       this.$unsecure_incPatch({ query, increments, addPatch }, ctx);

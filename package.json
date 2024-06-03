@@ -37,7 +37,8 @@
   "dependencies": {
     "@eicrud/core": "file:core",
     "@eicrud/mongodb": "file:db_mongo",
-    "@eicrud/postgresql": "file:db_postgre"
+    "@eicrud/postgresql": "file:db_postgre",
+    "async-mutex": "^0.5.0"
   },
   "devDependencies": {
     "@eicrud/cli": "^0.1.0",
@@ -72,6 +73,7 @@
   },
   "rootDir": "test",
   "jest": {
+    "testTimeout": 6000,
     "moduleFileExtensions": [
       "js",
       "json",

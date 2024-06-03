@@ -360,16 +360,20 @@ export class CrudService<T extends CrudEntity> {
 
 
     async $unsecure_incPatch(args: { query: Partial<T>, increments: { [key: string]: number }, addPatch?: any }, ctx: CrudContext, inheritance: any = {}) {
-        this.checkObjectForIds(args.query);
-        const em = ctx?.em || this.entityManager.fork();
-        let update = this.dbAdapter.getIncrementUpdate(args.increments, this.entity, ctx);
-        if (args.addPatch) {
-            update = { ...update, ...args.addPatch };
-        }
-        const res = await em.nativeUpdate(this.entity, args.query, update as any);
-        ctx.em = em;
-
+        try{
+            this.checkObjectForIds(args.query);
+            const em = ctx?.em || this.entityManager.fork();
+            let update = this.dbAdapter.getIncrementUpdate(args.increments, this.entity, ctx);
+            if (args.addPatch) {
+                const addPatch = this.dbAdapter.getSetUpdate(args.addPatch)
+                update = { ...update, ...addPatch };
+            }
+            const res = await em.nativeUpdate(this.entity, args.query, update as any);
+            ctx.em = em;
         return res;
+        }catch(e){
+            throw e;
+        }
     }
 
     async $patchIn(ids: string[], query: Partial<T>, newEntity: Partial<T>, ctx: CrudContext, secure: boolean = true, inheritance: any = {}) {

@@ -583,8 +583,7 @@ export class CrudController {
             const query = { [this.crudConfig.id_field]: ctx.user[this.crudConfig.id_field] };
             let addPatch = {};
             if(timestamp){
-                const updates = { ['cmdUserLastUseMap.' + ctx.serviceName + '_' + ctx.cmdName] : (new Date()).getTime() }
-                addPatch = this.crudConfig.userService.dbAdapter.getSetUpdate(updates)
+                addPatch = { ['cmdUserLastUseMap.' + ctx.serviceName + '_' + ctx.cmdName] : (new Date()).getTime() }
             }
             this.crudConfig.userService.$unsecure_incPatch({ query, increments, addPatch }, ctx);
         }
