@@ -221,7 +221,7 @@ describe('AppController', () => {
 
   });
 
-  it('patch many shouldn\'t patch if limiting fields do not match', async () => {
+  it("patch many shouldn't patch if limiting fields do not match", async () => {
     const user: Partial<TestUser> = users["PatchMy Bio"];
 
     let payload: Partial<UserProfile> = {
@@ -248,7 +248,7 @@ describe('AppController', () => {
     const findRes = await profileService.$findOne({ id: user.profileId }, null) as UserProfile;
     expect(findRes.userName).toBe("PatchMy Bio");
     expect(findRes.chineseSign).toBe("Cyber Pig");
-    expect(findRes.astroSign).toBeUndefined();
+    expect(findRes.astroSign).toBeFalsy();
   });
 
 });

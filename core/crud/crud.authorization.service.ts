@@ -12,7 +12,7 @@ import { _utils } from "../utils";
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 
 
-const SKIPPABLE_OPTIONS = ['limit', 'offset', 'sort', 'fields', 'mockRole'];
+const SKIPPABLE_OPTIONS = ['limit', 'offset', 'sort', 'fields', 'mockRole', 'cached'];
 
 @Injectable()
 export class CrudAuthorizationService {

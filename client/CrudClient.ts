@@ -93,7 +93,7 @@ export class CrudClient<T> {
 
   logout() {
     this.storage.del(this.JWT_COOKIE_KEY);
-    this.onLogout();
+    this.onLogout?.();
   }
 
   async checkToken() {
