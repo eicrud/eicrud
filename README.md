@@ -1,11 +1,11 @@
 
 
-**Eicrud** is CRUD/Authorization framework meant to extend a [Nestjs](https://github.com/nestjs/nest) application. It works with [MikroOrm](https://mikro-orm.io/) entities  guarded with [CASL](https://casl.js.org) and [class-validator](https://github.com/typestack/class-validator).
+**Eicrud** is CRUD/Authorization framework meant to extend a [Nestjs](https://github.com/nestjs/nest) application. It works with [MikroOrm](https://mikro-orm.io/) entities guarded with [CASL](https://casl.js.org) and [class-validator](https://github.com/typestack/class-validator).
 
 
 ## How it works
 
-First define your entity with validations and transforms (what the data can be) :
+First, define your entity with validations and transforms (what the data can be) :
 
 ```typescript
 @Entity()
@@ -26,7 +26,7 @@ export class Profile {
 }
 ```
 
-Then define your security (who can access the data) :
+Then define your security (who can access the data):
 
 ```typescript
 const security: CrudSecurity = {
@@ -57,14 +57,14 @@ export class ProfileService extends CrudService<Profile> {
 }
 ```
 
-And **that's it**, `profile` is now a fully operational CRUD service than you can query with the [client](#client) :
+And **that's it**, `profile` is now a fully operational CRUD service that you can query with the [client](#client) :
 ```typescript
 const client = new CrudClient({serviceName: 'profile'})
 
 const res = await client.findOne({ userName: 'jon doe' })
 ```
 
-You can extends it using [commands](#commands) (for complex operations).
+You can extend it using [commands](#commands) (for complex operations).
 
 ## Features
 - Out of the box CRUD Services
@@ -76,7 +76,6 @@ You can extends it using [commands](#commands) (for complex operations).
 - Authentification
     * JWT based
     * Bruteforce protection
-    * Password hashing
     * Timeout system (ban)
     * Session kick
     * Extensible for 3rd party auth
@@ -90,13 +89,15 @@ You can extends it using [commands](#commands) (for complex operations).
     * Object size is always validated
 - Easy to use Client
     * Handle login and session
-    * Handle expired jwt (disconnect)
+    * Handle expired JWT (disconnect)
     * Handle limited results (auto-fetching)
-- Monolitic/Microservices structure
+- Monolithic/Microservices structure
     * Simple (dynamic) configuration
     * Group your CRUD services into microservices
-    * Application can be both monolitic and distributed
+    * Application can be both monolithic and distributed
 - And more!
     * Rate limiting
     * DDOS protection
     * ...
+
+Check out the [documentation]() to get started.

@@ -16,7 +16,7 @@ export class AuthenticationOptions {
   JWT_SECRET = 'aeFzLsZAKL4153s9zsq2samXnv';
   JWT_FIELD_IN_PAYLOAD = ['revokedCount'];
   USERNAME_FIELD = 'email';
-  renewJwt = true;
+  renewJwt = false;
   minTimeBetweenLoginAttempsMs: number = 600;
   ALLOWED_JWT_EXPIRES_IN = ['1s', '15m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '4d', '5d', '6d', '7d', '14d', '30d'];
 

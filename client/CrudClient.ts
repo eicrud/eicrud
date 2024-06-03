@@ -45,7 +45,13 @@ export class MemoryStorage implements ClientStorage {
 }
 
 
-export interface ClientConfig { serviceName: string, url: string, storage?: ClientStorage, id_field?: string };
+export interface ClientConfig { 
+  serviceName: string, 
+  url: string,
+  onLogout?: () => void,
+  storage?: ClientStorage, 
+  id_field?: string
+};
 
 export interface ClientOptions {
   batchSize?: number;
@@ -57,6 +63,8 @@ export interface ClientOptions {
 export class CrudClient<T> {
 
   JWT_COOKIE_KEY = "crud-client";
+
+  onLogout: () => void;
 
   serviceName: string;
   url: string;
@@ -71,6 +79,7 @@ export class CrudClient<T> {
     this.url = args.url;
     this.id_field = args.id_field || "id";
     this.storage = args.storage || (document ? new CookieStorage() : new MemoryStorage());
+    this.onLogout = args.onLogout;
   }
 
   private _getHeaders() {
@@ -84,6 +93,7 @@ export class CrudClient<T> {
 
   logout() {
     this.storage.del(this.JWT_COOKIE_KEY);
+    this.onLogout();
   }
 
   async checkToken() {
@@ -98,6 +108,8 @@ export class CrudClient<T> {
         }
         this.storage.set(this.JWT_COOKIE_KEY, res.accessToken, days, false);
       }
+
+      return res.userId;
 
     }catch(e){
       if(e.response && e.response.status === 401){
