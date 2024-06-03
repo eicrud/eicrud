@@ -1,6 +1,6 @@
 Eicrud provides various ways to control traffic to your application.
 
-```
+```typescript
 export class WatchTrafficOptions{
   maxTrackedUsers: number = 10000;
   maxTrackedIPs: number = 10000;
@@ -42,7 +42,7 @@ Limit user traffic to `userRequestsThreshold` request every 5 min. Exceeding tha
 
 After `totalTimeoutThreshold` incidents, the user will be timed out for `timeoutDurationMinutes` * `user.timeoutCount` on each consecutive incident.
 
-If you want a specific user to bypass these limits, you can set `user.allowedTrafficMultiplier` to **x** (is allowed the traffic of **x** users).
+If you want a specific user to bypass these limits, you can set [CrudRole](../security/roles.md)->`allowedTrafficMultiplier` to **x** (is allowed the traffic of **x** users).
 
 `maxTrackedUsers` indicates how many users your application will track in its RAM cache (users with lower traffic are deleted first). 
 
