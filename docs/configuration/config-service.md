@@ -46,7 +46,7 @@ override async errorCrudHook(error: Error, ctx: CrudContext){
 !!! note
     **Crud hooks** will only trigger on operations initiated form the [client](../client/setup.md). Internal service calls will not trigger.
 
-**Backdoor hooks** are called before and after a backdoor request is received in a [microservice]().
+**Backdoor hooks** are called before and after a backdoor request is received in a [microservice](../microservices/configuration.md).
 ```typescript
 override async afterBackdoorHook(res: any, ctx: CrudContext) {
     return Promise.resolve();

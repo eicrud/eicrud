@@ -19,19 +19,19 @@ export function getSecurity(entity: string): CrudSecurity {
 }
 ```
 
-### **maxItemsInDb** 
+#### **maxItemsInDb** 
 
 Limit how many instances of an entity can be stored in DB. If `MaxItemsInDb` is exceeded, calls to [CrudService](../services/definition.md)->`$create` will throw an error.
 
-### **maxItemsPerUser**
+#### **maxItemsPerUser**
 
 Limit how many instances of an entity a user can create.
 
-### **additionalItemsInDbPerTrustPoints**
+#### **additionalItemsInDbPerTrustPoints**
 
 Add `x` additional allowed instances per user's [trust](../user/definition.md#trust) points.
 
-### **alwaysExcludeFields**
+#### **alwaysExcludeFields**
 Always exclude specified entity fields from find [operations](../services/operations.md). 
 
 ## CrudSecurityRights
@@ -44,12 +44,12 @@ rolesRights: {
     }
 }
 ```
-### **maxBatchSize**
+#### **maxBatchSize**
 Allow a specific role to perform batch [operations](../services/operations.md).
 !!! note
     You might want to keep batch size low for large entities. A large batch size will cause your server to use more RAM to operate.
     
-### **fields**
+#### **fields**
 Limit the entity fields returned in find [operations](../services/operations.md) (to users of specified role).
 
 ## [CmdSecurity](../services/commands.md)
@@ -68,23 +68,23 @@ const getCmdSecurity = (command, user): CmdSecurity => {
     }
 }
 ```
-### **maxUsesPerUser** 
+#### **maxUsesPerUser** 
 Limit how many times a user can call the command.
 
-### **additionalUsesPerTrustPoint**
+#### **additionalUsesPerTrustPoint**
 
 Add `x` additional uses per user's [trust](../user/definition.md#trust) points.
 
-### **minTimeBetweenCmdCallMs**
+#### **minTimeBetweenCmdCallMs**
 Minimum time required between cmd calls (for a specific user).
 
-### **secureOnly**
+#### **secureOnly**
 Indicate that the command can only be called in secure mode (POST). Secure mode always fetches the `ctx.user` from the database and never from the cache.
 
-### **NON_ADMIN_LIMIT_QUERY**
+#### **NON_ADMIN_LIMIT_QUERY**
 The default `CrudOptions`->`limit` set when calling the command (for non-admin users).
 
-### **ADMIN_LIMIT_QUERY**
+#### **ADMIN_LIMIT_QUERY**
 The default `CrudOptions`->`limit` set when calling the command (for admin users).
 
 !!! note
