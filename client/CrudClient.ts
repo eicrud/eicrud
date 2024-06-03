@@ -50,7 +50,7 @@ export interface ClientConfig {
   onLogout?: () => void,
   storage?: ClientStorage, 
   id_field?: string,
-  defaultMockRole: string,
+  globalMockRole: string,
   defaultBatchSize?: number,
   cmdDefaultBatchMap?: { [key: string]: { batchField, batchSize: number} },
   defaultProgressCallBack?: (progress: number, total: number, type: 'limit' | 'batch') => Promise<void>,
@@ -180,7 +180,7 @@ export class CrudClient<T> {
   }
 
   async findOne(query: any, options: ICrudOptions = {}): Promise<T> {
-    options.mockRole = this.config.defaultMockRole;
+    options.mockRole = this.config.globalMockRole;
     const ICrudQuery: ICrudQuery = {
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query)

@@ -9,7 +9,7 @@ const { CrudClient, ClientConfig } = require('@eicrud/client')
 
 const config: ClientConfig = {
   serviceName: 'profile',
-  url: "https://<ecirud_app_host>"
+  url: "https://<eicrud_app_host>"
 }
 const profileClient = new CrudClient(config)
 ```
@@ -20,7 +20,7 @@ export interface ClientConfig {
   onLogout?: () => void,
   storage?: ClientStorage, 
   id_field?: string,
-  defaultMockRole: string,
+  globalMockRole: string,
   defaultBatchSize?: number,
   cmdDefaultBatchMap?: { [key: string]: { batchField, batchSize: number} },
   limitingFields: string[],

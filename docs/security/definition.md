@@ -71,7 +71,7 @@ moderator: {
 }
 ```
 ## Options abilities
-Service security also defines abilities for options.
+Service security also defines abilities for [CrudOptions](../services/options.md).
 Ability syntax is `can(<option_field>, <service_name>, ...args)`, for example: 
 ```typescript title="services/profile/profile.security.ts"
 user: {
