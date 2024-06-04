@@ -16,10 +16,14 @@ export interface CmdSecurity {
 
   /**
    * Min required time between cmd calls (for a specific user)
+   * @usageNotes
+   * Must be used with {@link secureOnly} to be effective.
+   * This is not very accurate and may allow multiple cmd call under extreme conditions (DDOS), implement your own rate limiting if time between cmd call is critical.
    * @type {number}
    * @public
    */
   minTimeBetweenCmdCallMs?: number;
+
   /**
    * Max number of times a user can call the cmd
    * @type {number}

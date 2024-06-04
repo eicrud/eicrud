@@ -47,9 +47,22 @@ export function testMethod(arg: {
     headers['Authorization'] =
       `Basic ${Buffer.from(`${arg.basicAuth.username}:${arg.basicAuth.password}`).toString('base64')}`;
   }
-  let url = ['/auth', '/backdoor'].some((r) => arg.url.includes(r))
+  let url = ['/backdoor', '/auth'].some((r) => arg.url.includes(r))
     ? arg.url
     : '/crud/s/' + arg.query.service + arg.url.replace('/crud', '');
+
+  let method = arg.method;
+  let payload = arg.payload;
+  if (['/auth'].some((r) => arg.url.includes(r))) {
+    if (method === 'GET') {
+      url = '/crud/s/my-user/cmd/check_jwt';
+      method = 'PATCH';
+      payload = undefined;
+    } else if (method === 'POST') {
+      url = '/crud/s/my-user/cmd/login';
+    }
+  }
+
   if (arg.query.cmd) {
     url = url + '/' + arg.query.cmd;
   }
@@ -60,10 +73,10 @@ export function testMethod(arg: {
 
   return arg.app
     .inject({
-      method: arg.method as any,
+      method: method as any,
       url,
       headers,
-      payload: arg.payload,
+      payload,
       query,
     })
     .then(async (result) => {

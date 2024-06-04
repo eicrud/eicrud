@@ -132,6 +132,8 @@ export class Setup {
       'resetPassword',
       'createAccount',
       'logoutEverywhere',
+      'login',
+      'checkJwt',
     ];
 
     const bKeysArray = [];

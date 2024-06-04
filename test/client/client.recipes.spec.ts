@@ -65,6 +65,16 @@ const users: Record<string, TestUser> = {
     role: 'moderator',
     bio: 'I am a discord mod.',
   },
+  'Moderator Funky': {
+    email: 'Moderator.Funky@mail.com',
+    role: 'moderator',
+    bio: 'I am a discord mod.',
+  },
+  'Moderator Buddy': {
+    email: 'Moderator.Buddy@mail.com',
+    role: 'moderator',
+    bio: 'I am a discord mod.',
+  },
   'Moderator Pal': {
     email: 'Moderator.Pal@mail.com',
     role: 'moderator',
@@ -91,16 +101,15 @@ describe('AppController', () => {
   let crudConfig: CrudConfigService;
   const baseName = require('path').basename(__filename);
 
-  const globalPrefix = baseName.replace('.spec.ts', '').replaceAll('.', '-');
-
   const port = 3003;
 
   const clientConfig = (): ClientConfig => {
     return {
-      url: 'http://127.0.0.1:' + port + '/' + globalPrefix,
+      url: 'http://127.0.0.1:' + port,
       serviceName: 'user-profile',
       storage: new MemoryStorage(),
-    };
+      userServiceName: 'my-user',
+    } as ClientConfig;
   };
 
   const getProfileClient = (): CrudClient<UserProfile> =>
@@ -116,7 +125,6 @@ describe('AppController', () => {
     await dropDatabases(moduleRef);
 
     app = createNestApplication(moduleRef);
-    app.setGlobalPrefix(globalPrefix);
 
     await app.init();
     await readyApp(app);
@@ -135,12 +143,6 @@ describe('AppController', () => {
     await createAccountsAndProfiles(users, userService, crudConfig, {
       testAdminCreds,
     });
-
-    // @Module(module)
-    // class NewTestModule {}
-
-    // const newApp = await NestFactory.create(NewTestModule, new FastifyAdapter());
-    // newApp.setGlobalPrefix(globalPrefix);
 
     await app.listen(port);
   });
@@ -208,7 +210,7 @@ describe('AppController', () => {
   });
 
   it('should apply find limit to search cmd', async () => {
-    const user = users['Moderator Dude'];
+    const user = users['Moderator Buddy'];
 
     const dto: LoginDto = {
       email: user.email,
@@ -241,7 +243,7 @@ describe('AppController', () => {
   });
 
   it('should auto fetch melon search cmd (limit & batch)', async () => {
-    const user = users['Moderator Dude'];
+    const user = users['Moderator Funky'];
 
     const michael = users['Michael Doe'];
 

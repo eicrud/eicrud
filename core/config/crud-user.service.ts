@@ -3,13 +3,12 @@ import {
   ForbiddenException,
   HttpException,
   HttpStatus,
-  Inject,
   Injectable,
   UnauthorizedException,
-  forwardRef,
 } from '@nestjs/common';
+import { LRUCache } from 'mnemonist';
 import { CrudService } from '../crud/crud.service';
-import { CmdSecurity, CrudSecurity } from './model/CrudSecurity';
+import { CrudSecurity } from './model/CrudSecurity';
 import { _utils } from '../utils';
 import { CrudUser } from './model/CrudUser';
 import { CrudContext } from '../crud/model/CrudContext';
@@ -27,7 +26,7 @@ import {
 } from 'class-validator';
 import { ModuleRef } from '@nestjs/core';
 import { $Transform } from '../validation/decorators';
-import { UserIdDto } from '../crud/model/dtos';
+import { LoginDto, UserIdDto } from '../crud/model/dtos';
 import {
   LoginResponseDto,
   IResetPasswordDto,
@@ -38,6 +37,8 @@ import {
   IVerifyTokenDto,
 } from '@eicrud/shared/interfaces';
 import * as bcrypt from 'bcrypt';
+import { CrudRole } from './model/CrudRole';
+import { access } from 'fs';
 
 export class CreateAccountDto implements ICreateAccountDto {
   @IsString()
@@ -94,7 +95,21 @@ export class SendPasswordResetEmailDto implements ISendPasswordResetEmailDto {
   email: string;
 }
 
+export class EmptyDto {
+  @IsOptional()
+  value: string;
+}
+
 export const baseCmds = {
+  login: {
+    name: 'login',
+    dto: LoginDto,
+  },
+  checkJwt: {
+    name: 'check_jwt',
+    dto: EmptyDto,
+    nonSecure: true,
+  },
   sendVerificationEmail: {
     name: 'send_verification_email',
     dto: SendVerificationEmailDto,
@@ -127,6 +142,7 @@ export const baseCmds = {
 @Injectable()
 export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   protected username_field = 'email';
+  userLastLoginAttemptMap: LRUCache<string, Date>;
 
   protected authorizationService: CrudAuthorizationService;
   protected authService: CrudAuthService;
@@ -147,7 +163,11 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       security.cmdSecurityMap = security.cmdSecurityMap || ({} as any);
       security.cmdSecurityMap[cmdName] =
         security.cmdSecurityMap?.[cmdName] || ({} as any);
-      security.cmdSecurityMap[cmdName].secureOnly = true;
+      if (security.cmdSecurityMap[cmdName].secureOnly == null) {
+        security.cmdSecurityMap[cmdName].secureOnly = cmd.nonSecure
+          ? false
+          : true;
+      }
       if (!security.cmdSecurityMap[cmdName].dto) {
         security.cmdSecurityMap[cmdName].dto = cmd.dto;
       }
@@ -162,6 +182,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
     super.onModuleInit();
 
+    this.userLastLoginAttemptMap = new LRUCache(
+      this.crudConfig.watchTrafficOptions.maxTrackedUsers / 2,
+    );
     this.username_field = this.crudConfig.authenticationOptions.username_field;
   }
 
@@ -770,16 +793,46 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     } as LoginResponseDto;
   }
 
-  async $signIn(
-    ctx: CrudContext,
-    email,
-    pass,
-    expiresIn = '30m',
-    twoFA_code?,
-  ): Promise<LoginResponseDto> {
-    email = email.toLowerCase().trim();
+  async $login(dto: LoginDto, ctx: CrudContext, inheritance: any = {}) {
+    const lastLogingAttempt: Date = this.userLastLoginAttemptMap.get(dto.email);
+    const now = new Date();
+    if (
+      lastLogingAttempt &&
+      _utils.diffBetweenDatesMs(now, lastLogingAttempt) <
+        this.crudConfig.authenticationOptions.minTimeBetweenLoginAttempsMs
+    ) {
+      throw new HttpException(
+        {
+          statusCode: 425,
+          error: 'Too early',
+          message: CrudErrors.TOO_MANY_LOGIN_ATTEMPTS.str(),
+        },
+        425,
+      );
+    }
+
+    this.userLastLoginAttemptMap.set(dto.email, now);
+
+    const allowedJwtExpiresIn =
+      this.crudConfig.authenticationOptions.allowedJwtExpiresIn;
+    if (dto.expiresIn && !allowedJwtExpiresIn.includes(dto.expiresIn)) {
+      throw new BadRequestException(
+        'Invalid expiresIn: ' +
+          dto.expiresIn +
+          ' allowed: ' +
+          allowedJwtExpiresIn.join(', '),
+      );
+    }
+
+    if (
+      dto.password?.length >
+      this.crudConfig.authenticationOptions.passwordMaxLength
+    ) {
+      throw new UnauthorizedException(CrudErrors.PASSWORD_TOO_LONG.str());
+    }
+
     const entity = {};
-    entity[this.username_field] = email;
+    entity[this.username_field] = dto.email;
     const user: CrudUser = await this.$findOne(entity, ctx);
     if (!user) {
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
@@ -790,7 +843,13 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         CrudErrors.TIMED_OUT.str(new Date(user.timeout).toISOString()),
       );
     }
-    return await this.$authUser(ctx, user, pass, expiresIn, twoFA_code);
+    return await this.$authUser(
+      ctx,
+      user,
+      dto.password,
+      dto.expiresIn,
+      dto.twoFA_code,
+    );
   }
 
   async $logout_everywhere(
@@ -811,5 +870,45 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       this.$unsecure_fastPatch(query, patch, ctx),
       this.$setCached(user as any, ctx),
     ]);
+  }
+
+  async $renewJwt(
+    ctx: CrudContext,
+    addToPayload?,
+  ): Promise<{ accessToken: string; refreshTokenSec: number }> {
+    const userRole = this.crudAuthorization.getUserRole(ctx.user);
+    let ret = { accessToken: null, refreshTokenSec: null };
+    if (
+      this.crudConfig.authenticationOptions.renewJwt &&
+      !userRole.noTokenRefresh &&
+      !ctx?.user?.noTokenRefresh
+    ) {
+      const totalSec = ctx.jwtPayload.exp - ctx.jwtPayload.iat;
+      const elapsedMs = new Date().getTime() - ctx.jwtPayload.iat * 1000;
+      const thresholdMs = totalSec * 1000 * this.reciprocal20percent; // 20% of total time
+      if (elapsedMs >= thresholdMs) {
+        const newToken = await this.authService.signTokenForUser(
+          ctx.user,
+          totalSec,
+          addToPayload,
+        );
+        ret.accessToken = newToken;
+        ret.refreshTokenSec = totalSec;
+      }
+    }
+    return ret;
+  }
+
+  reciprocal20percent = 1 / 20;
+  async $check_jwt(dto: any, ctx: CrudContext) {
+    const userId = ctx.user[this.crudConfig.id_field];
+    if (!userId) {
+      throw new UnauthorizedException('User not found.');
+    }
+    const ret: LoginResponseDto = { userId };
+    const { accessToken, refreshTokenSec } = await this.$renewJwt(ctx);
+    ret.accessToken = accessToken;
+    ret.refreshTokenSec = refreshTokenSec;
+    return ret as LoginResponseDto;
   }
 }

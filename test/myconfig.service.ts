@@ -59,7 +59,6 @@ msOptions.microServices = {
     url: 'http://localhost:3004',
     allowNonSecureUrl: true,
     proxyCrudController: PROXY_TEST ? true : false,
-    proxyAuthTo: PROXY_TEST ? 'user' : undefined,
   },
   user: {
     services: [MyUser],

@@ -44,6 +44,44 @@ const { userId, accessToken } = await userClient.cmd('create_account', dto);
 userClient.setJwt(accessToken);
 ```
 
+## Authentication
+
+### $login
+```typescript title="login.security.ts"
+guest: {
+    async defineCMDAbility(can, cannot, ctx) {
+        can('login', 'user');
+        // guest can login
+    }
+}
+```
+```typescript 
+import { ILoginDto } from '@eicrud/shared/interfaces';
+
+const dto: ILoginDto = {
+    email: 'new.user@mail.com';
+    password: 'p4ssw0rd';
+};
+
+await userClient.login(dto);
+```
+
+### $check_jwt
+```typescript title="login.check_jwt.ts"
+guest: {
+    async defineCMDAbility(can, cannot, ctx) {
+        can('check_jwt', 'user');
+        // guest can login
+    }
+}
+```
+```typescript 
+await userClient.checkJwt();
+```
+
+!!! note
+    Authentication commands have their own methods in the client for ease of use. Check out the [client page](../client/setup.md) for more information.
+
 ## Email management
 
 ### $send_verification_email

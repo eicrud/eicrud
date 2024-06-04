@@ -71,7 +71,6 @@ export const microServices: Record<string, MicroServiceConfig>  = {
         openController: true,
         url: "http(s)://<entry_ms_host>",
         proxyCrudController: true,
-        proxyAuthTo: 'user'
     },
     "store": {
         services: [Store],

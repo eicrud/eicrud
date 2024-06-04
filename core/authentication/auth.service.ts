@@ -66,11 +66,16 @@ export class CrudAuthService {
     this.username_field = this.crudConfig.authenticationOptions.username_field;
   }
 
-  async signTokenForUser(user, expiresIn: string | number = '30m') {
-    const payload = {};
+  async signTokenForUser(
+    user,
+    expiresIn: string | number = '30m',
+    addToPayload = {},
+  ) {
+    let payload = {};
     this.FIELDS_IN_PAYLOAD.forEach((field) => {
       payload[field] = user[field];
     });
+    payload = { ...payload, ...addToPayload };
     return await this.jwtService.signAsync(payload, {
       secret: this.JWT_SECRET,
       expiresIn,
