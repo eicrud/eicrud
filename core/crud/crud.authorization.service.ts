@@ -12,6 +12,7 @@ import { CrudContext } from './model/CrudContext';
 import { CrudRole } from '../config/model/CrudRole';
 import {
   CmdSecurity,
+  CmdSecurityRights,
   CrudSecurity,
   CrudSecurityRights,
   httpAliasResolver,
@@ -25,7 +26,10 @@ import { ModuleRef } from '@nestjs/core';
 import { defineAbility, subject } from '@casl/ability';
 
 import { _utils } from '../utils';
-import { CrudErrors } from '@eicrud/shared/CrudErrors';
+import {
+  CrudErrors,
+  MAX_BATCH_SIZE_EXCEEDED_DTO,
+} from '@eicrud/shared/CrudErrors';
 
 const SKIPPABLE_OPTIONS = [
   'limit',
@@ -60,9 +64,9 @@ export class CrudAuthorizationService {
   getMatchBatchSizeFromCrudRoleAndParents(
     ctx: CrudContext,
     userRole: CrudRole,
-    security: CrudSecurity,
+    security: CrudSecurity | CmdSecurity,
   ) {
-    const roleRights: CrudSecurityRights =
+    const roleRights: CrudSecurityRights | CmdSecurityRights =
       security.rolesRights?.[userRole.name] || ({} as any);
 
     let maxBatchSize = roleRights?.maxBatchSize || 0;
@@ -83,7 +87,11 @@ export class CrudAuthorizationService {
     return maxBatchSize;
   }
 
-  authorizeBatch(ctx: CrudContext, batchSize: number, security: CrudSecurity) {
+  authorizeBatch(
+    ctx: CrudContext,
+    batchSize: number,
+    security: CrudSecurity | CmdSecurity,
+  ) {
     if ((batchSize || 0) < 1) {
       throw new BadRequestException(`Batchsize must be at least 1`);
     }
@@ -97,8 +105,12 @@ export class CrudAuthorizationService {
     );
 
     if (batchSize > maxBatchSize) {
+      const msg: MAX_BATCH_SIZE_EXCEEDED_DTO = { maxBatchSize, batchSize };
+      if (ctx.origin == 'cmd' && (security as CmdSecurity).batchField) {
+        msg.field = (security as CmdSecurity).batchField;
+      }
       throw new BadRequestException(
-        CrudErrors.MAX_BATCH_SIZE_EXCEEDED.str({ maxBatchSize, batchSize }),
+        CrudErrors.MAX_BATCH_SIZE_EXCEEDED.str(msg),
       );
     }
 

@@ -54,9 +54,9 @@ const users: Record<string, TestUser> = {
     bio: 'I am a cool guy.',
     melons: 5,
   },
-  'Admin Dude': {
-    email: 'admin.dude@mail.com',
-    role: 'admin',
+  'Super Admin Dude': {
+    email: 'sadmin.dude@mail.com',
+    role: 'super_admin',
     bio: 'I am a sys admin.',
     profileType: 'admin',
   },
@@ -64,6 +64,11 @@ const users: Record<string, TestUser> = {
     email: 'Moderator.dude@mail.com',
     role: 'moderator',
     bio: 'I am a discord mod.',
+  },
+  'Moderator Pal': {
+    email: 'Moderator.Pal@mail.com',
+    role: 'moderator',
+    bio: 'I am a reddit mod.',
   },
   'Melon Many': {
     email: 'melon.many@test.com',
@@ -125,6 +130,7 @@ describe('AppController', () => {
     crudConfig = app.get<CrudConfigService>(CRUD_CONFIG_KEY, { strict: false });
 
     crudConfig.authenticationOptions.minTimeBetweenLoginAttempsMs = 0;
+    crudConfig.watchTrafficOptions.ddosProtection = false;
 
     await createAccountsAndProfiles(users, userService, crudConfig, {
       testAdminCreds,
@@ -139,8 +145,8 @@ describe('AppController', () => {
     await app.listen(port);
   });
 
-  it.skip('should search doe profiles', async () => {
-    const user = users['Admin Dude'];
+  it('should search doe profiles', async () => {
+    const user = users['Super Admin Dude'];
 
     const dto: LoginDto = {
       email: user.email,
@@ -165,7 +171,7 @@ describe('AppController', () => {
     expect(res.data?.length).toBe(filteredProfiles.length);
   });
 
-  it.skip('should apply find security to search cmd', async () => {
+  it('should apply find security to search cmd', async () => {
     const user = users['Moderator Dude'];
 
     const dto: LoginDto = {
@@ -201,7 +207,7 @@ describe('AppController', () => {
     expect(res.data?.length).toBe(filteredProfiles.length);
   });
 
-  it.skip('should apply find limit to search cmd', async () => {
+  it('should apply find limit to search cmd', async () => {
     const user = users['Moderator Dude'];
 
     const dto: LoginDto = {
@@ -290,5 +296,69 @@ describe('AppController', () => {
     for (let i = 0; i < res3.data?.length; i++) {
       expect(res3.data[i].name).toContain(`${i}`);
     }
+  }, 15000);
+
+  it('should auto fetch melon search cmd (specified batch)', async () => {
+    const user = users['Moderator Pal'];
+
+    const michael = users['Michael Doe'];
+
+    const dto: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password,
+    };
+    const myClient = getMelonClient();
+    myClient.config.cmdDefaultBatchMap = {
+      search: { batchField: 'ids', batchSize: 2500 },
+    };
+
+    await myClient.login(dto);
+
+    const searchDto: SearchMelonDto = {
+      nameLike: 'melon',
+      ownerEmail: michael.email,
+    };
+
+    const option: CrudOptions = {};
+
+    const res2: FindResponseDto<Melon> = await myClient.cmdL(
+      'search',
+      searchDto,
+      option,
+    );
+
+    expect(res2.data?.length).toBe(michael.melons);
+
+    const ids = res2.data?.map((m) => m.id);
+
+    delete searchDto.nameLike;
+    searchDto.ids = ids;
+    myClient.fetchNb = 0;
+
+    const res3: FindResponseDto<Melon> = await myClient.cmdL(
+      'search',
+      searchDto,
+      option,
+    );
+
+    const lastFetch = myClient.fetchNb;
+    expect(res3.data?.length).toBe(michael.melons);
+
+    for (let i = 0; i < res3.data?.length; i++) {
+      expect(res3.data[i].name).toContain(`${i}`);
+    }
+
+    myClient.config.cmdDefaultBatchMap = {
+      search: { batchField: 'ids', batchSize: 100 },
+    };
+    myClient.fetchNb = 0;
+    const res4: FindResponseDto<Melon> = await myClient.cmdL(
+      'search',
+      searchDto,
+      option,
+    );
+
+    expect(myClient.fetchNb).toBeGreaterThan(lastFetch);
+    expect(res4.data?.length).toBe(michael.melons);
   }, 15000);
 });

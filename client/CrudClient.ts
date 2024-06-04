@@ -59,7 +59,9 @@ export interface ClientConfig {
   id_field?: string;
   globalMockRole?: string;
   defaultBatchSize?: number;
-  cmdDefaultBatchMap?: { [key: string]: { batchField; batchSize: number } };
+  cmdDefaultBatchMap?: {
+    [key: string]: { batchField: string; batchSize?: number };
+  };
   defaultProgressCallBack?: (
     progress: number,
     total: number,
@@ -83,6 +85,7 @@ export interface ClientOptions {
  */
 export class CrudClient<T> {
   JWT_COOKIE_KEY = 'crud-client';
+  fetchNb = 0;
 
   constructor(public config: ClientConfig) {
     this.config.id_field = this.config.id_field || 'id';
@@ -159,6 +162,7 @@ export class CrudClient<T> {
     let res;
     try {
       res = await method(...args);
+      this.fetchNb++;
     } catch (e) {
       if (e.response && e.response.status === 401) {
         this.logout();
@@ -356,7 +360,7 @@ export class CrudClient<T> {
     copts: ClientOptions,
   ) {
     try {
-      if (copts.batchField) {
+      if (copts.batchField && dto[copts.batchField]) {
         const batchFunc = async (chunk: any[]) => {
           const newDto = { ...dto, [copts.batchField]: chunk };
           return await this._subDoCmd(
@@ -645,7 +649,7 @@ export class CrudClient<T> {
       const detected = this._detectMatchBatchSize(e, copts);
       if (detected) {
         const newOpts = { ...copts, batchSize: detected.maxBatchSize };
-        return await this._doBatch(batchFunc, datas, newOpts);
+        return await this._doBatch(batchFunc, datas, newOpts, limited);
       }
       throw e;
     }
@@ -670,6 +674,7 @@ export class CrudClient<T> {
           maxBatchSize &&
           (!copts.batchSize || maxBatchSize < copts.batchSize)
         ) {
+          //console.warn("Batch size exceeded, reducing batch size to", maxBatchSize);
           return parsedMessage.data;
         }
       }

@@ -35,9 +35,11 @@ const melonSecurity = (MELON) => {
   return {
     cmdSecurityMap: {
       search: {
+        batchField: 'ids',
         dto: SearchMelonDto,
         rolesRights: {
           guest: {
+            maxBatchSize: 200,
             async defineCMDAbility(can, cannot, ctx) {
               can('search', MELON);
             },
@@ -92,19 +94,6 @@ export class MelonService extends CrudService<Melon> {
 
     if (dto.nameLike) {
       query.name = new RegExp(dto.nameLike, 'i') as any;
-    }
-
-    if (dto.ids) {
-      const maxBatchSize = 199;
-      if (dto.ids.length > maxBatchSize) {
-        throw new BadRequestException(
-          CrudErrors.MAX_BATCH_SIZE_EXCEEDED.str({
-            maxBatchSize,
-            batchSize: dto.ids.length,
-            field: 'ids',
-          }),
-        );
-      }
     }
 
     if (dto.ownerEmail) {

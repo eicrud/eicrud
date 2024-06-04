@@ -51,3 +51,9 @@ export class CrudErrors {
   );
   static readonly WAIT_UNTIL = new CrudError('Wait until', 14);
 }
+
+export interface MAX_BATCH_SIZE_EXCEEDED_DTO {
+  maxBatchSize: number;
+  batchSize: number;
+  field?: string;
+}
