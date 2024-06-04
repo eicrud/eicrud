@@ -38,11 +38,19 @@ Corresponds to [MikroOrm's populate option](https://mikro-orm.io/docs/populating
 ### mockRole
 Requests that include this option will perform as if the logged user has the role `mockRole`. To activate, [CrudRole](../security/roles.md)->`canMock` must be set.
 
-!!! note 
+!!! note
     `mockRole` is useful for testing authorizations without switching accounts. You can set [ClientConfig](../client/setup.md)->`globalMockRole` to mock roles from the client.
 
 ### fields
 Corresponds to [MikroOrm's fields option](https://mikro-orm.io/docs/entity-manager#partial-loading){:target="_blank"}.
 
-### 
+### limit
+Corresponds to [MikroOrm's limit option](https://mikro-orm.io/docs/entity-manager#fetching-paginated-results){:target="_blank"}.
 
+### offset
+Corresponds to [MikroOrm's offset option](https://mikro-orm.io/docs/entity-manager#fetching-paginated-results){:target="_blank"}.
+
+### cached
+Indicate if `findOne` results should be fetched from the cache.
+!!! note
+    `cached` only works in client calls.

@@ -1,9 +1,9 @@
 import { IsString, IsOptional, IsBoolean } from "class-validator";
 import { $Transform } from "../../validation/decorators";
-import { ILoginDto } from '@eicrud/shared/interfaces';
+import { ILoginDto, IUserIdDto } from '@eicrud/shared/interfaces';
 
 
-export class UserIdDto {
+export class UserIdDto implements IUserIdDto {
     @IsString()
     userId: string;
 }
