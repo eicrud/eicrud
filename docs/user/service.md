@@ -21,7 +21,9 @@ export class EmailService extends CrudService<Email> implements EmailService {
 ```
 Each command must be allowed in the [security](../security/definition.md) before usage.  
 
-## $create_account
+## Account creation
+
+### $create_account
 ```typescript title="create_account.security.ts"
 guest: {
     async defineCMDAbility(can, cannot, ctx) {
@@ -42,7 +44,9 @@ const { userId, accessToken } = await userClient.cmd('create_account', dto);
 userClient.setJwt(accessToken);
 ```
 
-## $send_verification_email
+## Email management
+
+### $send_verification_email
 ```typescript title="send_verification_email.security.ts"
 user: {
     async defineCMDAbility(can, cannot, ctx) {
@@ -64,3 +68,114 @@ const dto: ISendVerificationEmailDto = {
 };
 await userClient.cmd('send_verification_email', dto);
 ```
+### $verify_email
+
+```typescript title="verify_email.security.ts"
+guest: {
+    async defineCMDAbility(can, cannot, ctx) {
+        can('verify_email', 'user');
+        // guest can verify_email
+    }
+}
+```
+```typescript 
+import { IVerifyTokenDto } from '@eicrud/shared/interfaces';
+
+const dto: IVerifyTokenDto = {
+    token_id: "k2Urz2b703aP6zQ_4d3ed089fb60ab534684b7ff"
+    // email received token 
+};
+await userClient.cmd('verify_email', dto);
+```
+
+## Password management
+
+### $send_password_reset_email
+
+```typescript title="send_password_reset_email.security.ts"
+guest: {
+    async defineCMDAbility(can, cannot, ctx) {
+        can('send_password_reset_email', 'user');
+        // guest can send_password_reset_email
+    }
+}
+```
+```typescript 
+import { ISendPasswordResetEmailDto } from '@eicrud/shared/interfaces';
+
+const dto: ISendPasswordResetEmailDto = {
+    email: "my-email@mail.com"
+    // user email 
+};
+await userClient.cmd('send_password_reset_email', dto);
+```
+
+### $reset_password
+
+```typescript title="reset_password.security.ts"
+guest: {
+    async defineCMDAbility(can, cannot, ctx) {
+        can('reset_password', 'user');
+        // guest can reset_password
+    }
+}
+```
+```typescript 
+import { IResetPasswordDto } from '@eicrud/shared/interfaces';
+
+const dto: IResetPasswordDto = {
+    token_id: "k2Urz2b703aP6zQ_4d3ed089fb60ab534684b7ff",
+    // email received token 
+    newPassword: "w0rdp4ss",
+    expiresIn: "30min"
+    // log user for 30 min
+};
+const { accessToken } = await userClient.cmd('reset_password', dto);
+userClient.setJwt(accessToken, 1); // save token for 1 day
+```
+
+### $change_password
+
+```typescript title="change_password.security.ts"
+user: {
+    async defineCMDAbility(can, cannot, ctx) {
+        can('change_password', 'user');
+        // user can change_password
+    }
+}
+```
+```typescript 
+import { IChangePasswordDto } from '@eicrud/shared/interfaces';
+
+const dto: IChangePasswordDto = {
+    oldPassword: "p4ssw0rd",
+    newPassword: "w0rdp4ss",
+    expiresIn: "30min"
+    // log user for 30 min
+};
+const { accessToken } = await userClient.cmd('change_password', dto);
+userClient.setJwt(accessToken, 1); // save token for 1 day
+```
+
+## Session kick
+
+### $logout_everywhere
+```typescript title="logout_everywhere.security.ts"
+user: {
+    async defineCMDAbility(can, cannot, ctx) {
+        can('logout_everywhere', 'user', { userId: ctx.userId });
+        // user can logout_everywhere for own userId
+    }
+}
+```
+```typescript 
+import { IChangePasswordDto } from '@eicrud/shared/interfaces';
+
+const dto: IUserIdDto = {
+    userId
+};
+await userClient.cmd('logout_everywhere', dto);
+```
+
+!!! note 
+    Calling `logout_everywhere` will invalidate all issued tokens for a user. It is automatically called when updating fields included in [AuthenticationOptions](../configuration/authentication.md)->`fieldsThatResetRevokedCount`.

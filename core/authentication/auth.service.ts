@@ -14,6 +14,7 @@ export class AuthenticationOptions {
   passwordResetEmailTimeoutHours = 6;
   passwordMaxLength = 64;
   jwtFieldInPayload = ['revokedCount'];
+  fieldsThatResetRevokedCount = ['password', 'email'];
   username_field = 'email';
   renewJwt = false;
   minTimeBetweenLoginAttempsMs: number = 600;

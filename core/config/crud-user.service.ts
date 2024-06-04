@@ -13,7 +13,7 @@ import { IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-valid
 import { ModuleRef } from '@nestjs/core';
 import { $Transform } from '../validation/decorators';
 import { UserIdDto } from '../crud/model/dtos';
-import { LoginResponseDto, IResetPasswordDto, ISendPasswordResetEmailDto, IChangePasswordDto, ICreateAccountDto, ISendVerificationEmailDto } from '@eicrud/shared/interfaces';
+import { LoginResponseDto, IResetPasswordDto, ISendPasswordResetEmailDto, IChangePasswordDto, ICreateAccountDto, ISendVerificationEmailDto, IVerifyTokenDto } from '@eicrud/shared/interfaces';
 import * as bcrypt from 'bcrypt';
 
 
@@ -52,7 +52,7 @@ export class ChangePasswordDto implements IChangePasswordDto {
   expiresIn: string;
 }
 
-export class VerifyTokenDto {
+export class VerifyTokenDto implements IVerifyTokenDto {
   @IsString()
   token_id: string;
 }
@@ -172,7 +172,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   }
 
   checkFieldsThatIncrementRevokedCount(newEntity: T){
-    const fieldsThatResetRevokedCount = ['email', 'password'];
+    const fieldsThatResetRevokedCount = this.crudConfig.authenticationOptions.fieldsThatResetRevokedCount;
     if(fieldsThatResetRevokedCount.some(field => newEntity[field])){
       if(newEntity.revokedCount == null){
         throw new BadRequestException("revokedCount is required when updating " + fieldsThatResetRevokedCount.join(', '));
