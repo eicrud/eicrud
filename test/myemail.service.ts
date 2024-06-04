@@ -1,46 +1,52 @@
-import { Inject, Injectable, forwardRef } from "@nestjs/common";
-import { CrudService } from "../core/crud/crud.service";
-import { CrudSecurity } from "../core/config/model/CrudSecurity";
-import { EmailService } from "../core/config/crud-email.service";
-import { FakeEmail } from "./entities/FakeEmail";
-import { MyConfigService } from "./myconfig.service";
-import { ModuleRef } from "@nestjs/core";
-import { CrudContext } from "@eicrud/core/crud";
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { CrudService } from '../core/crud/crud.service';
+import { CrudSecurity } from '../core/config/model/CrudSecurity';
+import { EmailService } from '../core/config/crud-email.service';
+import { FakeEmail } from './entities/FakeEmail';
+import { MyConfigService } from './myconfig.service';
+import { ModuleRef } from '@nestjs/core';
+import { CrudContext } from '@eicrud/core/crud';
 
-
-const emailSecurity: CrudSecurity = {
-
-}
+const emailSecurity: CrudSecurity = {};
 
 @Injectable()
-export class MyEmailService extends CrudService<FakeEmail> implements EmailService {
-    constructor(
-        protected moduleRef: ModuleRef
-    ) {
-        super(moduleRef, FakeEmail, emailSecurity);
-    }
-    sendVerificationEmail(to: string, token: string, ctx: CrudContext): Promise<any> {
-        const email: Partial<FakeEmail> = {
-            to,
-            message: token,
-            type: 'verification',
-        }
-        return this.$create(email, null);
-    }
-    sendTwoFactorEmail(to: string, code: string, ctx: CrudContext): Promise<any> {
-        const email: Partial<FakeEmail> = {
-            to,
-            message: code,
-            type: 'twoFactor',
-        }
-        return this.$create(email, null);
-    }
-    sendPasswordResetEmail(to: string, token: string, ctx: CrudContext): Promise<any> {
-        const email: Partial<FakeEmail> = {
-            to,
-            message: token,
-            type: 'passwordReset',
-        }
-        return this.$create(email, null);
-    }
+export class MyEmailService
+  extends CrudService<FakeEmail>
+  implements EmailService
+{
+  constructor(protected moduleRef: ModuleRef) {
+    super(moduleRef, FakeEmail, emailSecurity);
+  }
+  sendVerificationEmail(
+    to: string,
+    token: string,
+    ctx: CrudContext,
+  ): Promise<any> {
+    const email: Partial<FakeEmail> = {
+      to,
+      message: token,
+      type: 'verification',
+    };
+    return this.$create(email, null);
+  }
+  sendTwoFactorEmail(to: string, code: string, ctx: CrudContext): Promise<any> {
+    const email: Partial<FakeEmail> = {
+      to,
+      message: code,
+      type: 'twoFactor',
+    };
+    return this.$create(email, null);
+  }
+  sendPasswordResetEmail(
+    to: string,
+    token: string,
+    ctx: CrudContext,
+  ): Promise<any> {
+    const email: Partial<FakeEmail> = {
+      to,
+      message: token,
+      type: 'passwordReset',
+    };
+    return this.$create(email, null);
+  }
 }

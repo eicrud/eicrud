@@ -1,49 +1,31 @@
-import { Inject, Injectable, forwardRef } from "@nestjs/common";
-import { CrudAuthService } from "../core/authentication/auth.service";
-import { CrudAuthorizationService } from "../core/crud/crud.authorization.service";
-import { CrudService } from "../core/crud/crud.service";
-import { CmdSecurity, CrudSecurity } from "../core/config/model/CrudSecurity";
-import { MyConfigService } from "./myconfig.service";
-import { ModuleRef } from "@nestjs/core";
-import { Picture } from "./entities/Picture";
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { CrudAuthService } from '../core/authentication/auth.service';
+import { CrudAuthorizationService } from '../core/crud/crud.authorization.service';
+import { CrudService } from '../core/crud/crud.service';
+import { CmdSecurity, CrudSecurity } from '../core/config/model/CrudSecurity';
+import { MyConfigService } from './myconfig.service';
+import { ModuleRef } from '@nestjs/core';
+import { Picture } from './entities/Picture';
 
-
-const myPictureSecurity = (USER_PROFILE) => { return {
-
-    cmdSecurityMap: {
-
-    },
+const myPictureSecurity = (USER_PROFILE) => {
+  return {
+    cmdSecurityMap: {},
 
     rolesRights: {
-        super_admin: {
+      super_admin: {},
+      admin: {},
+      moderator: {},
+      user: {},
 
-        },
-        admin: {
-  
-        },
-        moderator: {
-  
-        },
-        user: {
-  
-    
-        },
-
-        guest: {
-
-        }
+      guest: {},
     },
-
-} as CrudSecurity}
+  } as CrudSecurity;
+};
 
 @Injectable()
 export class MyPictureService extends CrudService<Picture> {
-
-    constructor(
-        protected moduleRef: ModuleRef,
-    ) {
-        const serviceName = CrudService.getName(Picture);
-        super(moduleRef, Picture, myPictureSecurity(serviceName));
-    }
-
+  constructor(protected moduleRef: ModuleRef) {
+    const serviceName = CrudService.getName(Picture);
+    super(moduleRef, Picture, myPictureSecurity(serviceName));
+  }
 }
