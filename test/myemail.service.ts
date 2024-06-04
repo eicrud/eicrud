@@ -25,7 +25,7 @@ export class MyEmailService
     const email: Partial<FakeEmail> = {
       to,
       message: token,
-      type: 'verification',
+      type: 'emailVerification',
     };
     return this.$create(email, null);
   }

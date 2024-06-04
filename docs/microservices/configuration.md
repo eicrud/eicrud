@@ -66,7 +66,7 @@ export interface MicroServiceConfig {
 
 Tells your application instance to behave as a proxy and to directly forward requests to other microservices.
 
-If the target of a request is present in its services list it will not proxy the request but will run the controls and implementation instead.
+If the target of a request is present in its services list, the application will not proxy the request but will run the controls and implementation instead.
 
 #### proxyAuthTo
 

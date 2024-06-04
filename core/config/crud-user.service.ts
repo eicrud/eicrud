@@ -471,13 +471,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       ctx,
       keys[0],
       keys[1],
-      this.getVerificationEmailTimeoutHours,
+      (user) => this.getVerificationEmailTimeoutHours(user),
       (user: CrudUser) => {
         const patch: Partial<CrudUser> = {
           verifiedEmail: true,
           verifiedEmailAttempCount: 0,
         };
         if (user.nextEmail) {
+          patch.revokedCount = user.revokedCount ?? 0;
           patch.email = user.nextEmail;
           patch.nextEmail = null;
         }

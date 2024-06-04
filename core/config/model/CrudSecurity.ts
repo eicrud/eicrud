@@ -8,7 +8,7 @@ export interface CmdSecurity {
   /**
    * Allow guest to use command always
    * @usageNotes
-   * Use when command has no security, increase performance
+   * Use when command has no security, increase authorization performance.
    * @type {boolean}
    * @public
    */

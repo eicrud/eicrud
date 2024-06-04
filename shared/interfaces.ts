@@ -48,7 +48,7 @@ export interface IChangePasswordDto {
   newPassword: string;
 }
 export class ISendVerificationEmailDto {
-  newEmail: string;
+  newEmail?: string;
   password: string;
 }
 export interface ISendPasswordResetEmailDto {
