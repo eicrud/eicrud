@@ -6,6 +6,15 @@ import { AbilityBuilder, createAliasResolver } from '@casl/ability';
  */
 export interface CmdSecurity {
   /**
+   * Allow guest to use command always
+   * @usageNotes
+   * Use when command has no security, increase performance
+   * @type {boolean}
+   * @public
+   */
+  guestCanUseAll?: boolean;
+
+  /**
    * Min required time between cmd calls (for a specific user)
    * @type {number}
    * @public
@@ -90,7 +99,7 @@ export class CrudSecurity {
    * @type {boolean}
    * @public
    */
-  guest_can_read_all?: boolean;
+  guestCanReadAll?: boolean;
 
   /**
    * Max number of entities allowed in the db

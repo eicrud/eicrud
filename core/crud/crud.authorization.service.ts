@@ -38,6 +38,7 @@ const SKIPPABLE_OPTIONS = [
   'fields',
   'mockRole',
   'cached',
+  'exclude',
 ];
 
 @Injectable()
@@ -183,16 +184,12 @@ export class CrudAuthorizationService {
   }
 
   async authorize(ctx: CrudContext, security: CrudSecurity) {
-    if (security.guest_can_read_all && ctx.method == 'GET') {
-      return true;
-    }
-
     const fields = AuthUtils.getObjectFields(ctx.data);
-
+    let cmdSec: CmdSecurity;
     if (ctx.origin == 'crud' && !ctx.isBatch) {
       await this.checkmaxItemsPerUser(ctx, security);
     } else if (ctx.origin == 'cmd') {
-      const cmdSec = security.cmdSecurityMap?.[ctx.cmdName];
+      cmdSec = security.cmdSecurityMap?.[ctx.cmdName];
       if (!cmdSec) {
         throw new ForbiddenException(
           `Command ${ctx.cmdName} not found in security map`,
@@ -239,6 +236,18 @@ export class CrudAuthorizationService {
       }
     }
 
+    if (security.alwaysExcludeFields && ctx.method == 'GET') {
+      ctx.options.exclude = security.alwaysExcludeFields as any;
+    }
+
+    // Authorization
+    const crudCanReadAll =
+      ctx.origin == 'crud' && security.guestCanReadAll && ctx.method == 'GET';
+    const cmdCanUseAll = ctx.origin == 'cmd' && cmdSec.guestCanUseAll;
+    if (crudCanReadAll || cmdCanUseAll) {
+      return true;
+    }
+
     const crudRole: CrudRole = this.getCtxUserRole(ctx);
 
     const checkRes: SecurityResult = await this.recursCheckRolesAndParents(
@@ -255,10 +264,6 @@ export class CrudAuthorizationService {
         msg += `- ${roleName} failed on ${r.problemField} `;
       }
       throw new ForbiddenException(msg);
-    }
-
-    if (security.alwaysExcludeFields && ctx.method == 'GET') {
-      ctx.options.exclude = security.alwaysExcludeFields as any;
     }
 
     return true;
