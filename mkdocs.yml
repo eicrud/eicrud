@@ -16,6 +16,8 @@ plugins:
   - search
   - awesome-pages
 
+copyright: "3"
+
 extra:
   homepage: https://example.com
   social:
@@ -51,3 +53,4 @@ markdown_extensions:
       alternate_style: true
   - admonition
   - pymdownx.details
+ 
