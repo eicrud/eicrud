@@ -34,10 +34,13 @@ import { LoginDto } from '../../core/crud/model/dtos';
 import {
   IResetPasswordDto,
   ISendPasswordResetEmailDto,
+  ISendVerificationEmailDto,
+  IVerifyTokenDto,
   LoginResponseDto,
 } from '../../shared/interfaces';
 import { FakeEmail } from '../entities/FakeEmail';
 import { MyEmailService } from '../myemail.service';
+import { CrudUser } from '@eicrud/core/config';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -97,6 +100,16 @@ describe('AppController', () => {
       bio: 'My bio.',
       store: profiles,
       favoriteColor: 'red',
+    },
+    'Noverif Email': {
+      email: 'Noverif.Email@test.com',
+      role: 'user',
+      bio: 'My bio.',
+    },
+    'Changemy Email': {
+      email: 'Changemy.Email@test.com',
+      role: 'user',
+      bio: 'My bio.',
     },
   };
 
@@ -575,4 +588,169 @@ describe('AppController', () => {
 
     expect(userDb.email).toEqual(payload.email.trim().toLowerCase());
   });
+
+  it('should verify user email', async () => {
+    const user = users['Noverif Email'];
+    user.email = user.email.toLocaleLowerCase();
+    const payload: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password,
+    };
+    const query = {};
+
+    let jwt = null;
+
+    const res0: LoginResponseDto = await testMethod({
+      url: '/crud/auth',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    jwt = res0.accessToken;
+
+    // password reset should allow login even if rate limited
+    const resetPassEmailDto: ISendVerificationEmailDto = {
+      password: testAdminCreds.password,
+    };
+
+    const resetPassQuery: CrudQuery = {
+      service: 'my-user',
+      cmd: 'send_verification_email',
+    };
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload: resetPassEmailDto,
+      query: resetPassQuery,
+      crudConfig,
+    });
+
+    //check email not verified yet
+    const currentUser: CrudUser = await userService.$findOne(
+      { id: user.id },
+      null,
+    );
+    expect(currentUser.verifiedEmail).toBeFalsy();
+
+    const email: FakeEmail = await emailService.$findOne(
+      { to: user.email, type: 'emailVerification' },
+      null,
+    );
+    expect(email).toBeTruthy();
+    const resetPassDto: IVerifyTokenDto = {
+      token_id: email.message + '_' + user.id,
+    };
+    resetPassQuery.cmd = 'verify_email';
+    const res = await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload: resetPassDto,
+      query: resetPassQuery,
+      crudConfig,
+    });
+
+    const currentUser2: CrudUser = await userService.$findOne(
+      { id: user.id },
+      null,
+    );
+    expect(currentUser2.verifiedEmail).toBeTruthy();
+  }, 7000);
+
+  it('should change user email', async () => {
+    const user = users['Changemy Email'];
+    user.email = user.email.toLocaleLowerCase();
+    const payload: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password,
+    };
+    const query = {};
+
+    let jwt = null;
+
+    const res0: LoginResponseDto = await testMethod({
+      url: '/crud/auth',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    jwt = res0.accessToken;
+
+    // password reset should allow login even if rate limited
+    const resetPassEmailDto: ISendVerificationEmailDto = {
+      password: testAdminCreds.password,
+      newEmail: 'changed@email.com',
+    };
+
+    const resetPassQuery: CrudQuery = {
+      service: 'my-user',
+      cmd: 'send_verification_email',
+    };
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload: resetPassEmailDto,
+      query: resetPassQuery,
+      crudConfig,
+    });
+
+    //check email not verified yet
+    const currentUser: CrudUser = await userService.$findOne(
+      { id: user.id },
+      null,
+    );
+    expect(currentUser.verifiedEmail).toBeFalsy();
+    expect(currentUser.email).toBe(user.email);
+
+    const email: FakeEmail = await emailService.$findOne(
+      { to: 'changed@email.com', type: 'emailVerification' },
+      null,
+    );
+    expect(email).toBeTruthy();
+    const resetPassDto: IVerifyTokenDto = {
+      token_id: email.message + '_' + user.id,
+    };
+    resetPassQuery.cmd = 'verify_email';
+    const res = await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload: resetPassDto,
+      query: resetPassQuery,
+      crudConfig,
+    });
+
+    const currentUser2: CrudUser = await userService.$findOne(
+      { id: user.id },
+      null,
+    );
+    expect(currentUser2.verifiedEmail).toBeTruthy();
+    expect(currentUser2.email).toBe('changed@email.com');
+  }, 7000);
 });

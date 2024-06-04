@@ -41,6 +41,8 @@ const cmdSecurityMap: Record<string, CmdSecurity> = {
     },
   },
   ...[
+    baseCmds.sendVerificationEmail,
+    baseCmds.verifyEmail,
     baseCmds.sendPasswordResetEmail,
     baseCmds.changePassword,
     baseCmds.resetPassword,
