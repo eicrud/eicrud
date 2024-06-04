@@ -31,6 +31,8 @@ import {
   CrudConfigService,
 } from '../../core/config/crud.config.service';
 import { format } from 'path';
+import { SearchMelonDto } from '../melon.service';
+import exp from 'constants';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -75,6 +77,13 @@ describe('AppController', () => {
       role: 'user',
       profileType: 'admin',
       bio: 'I am a cool guy.',
+    },
+    'Michael Array': {
+      email: 'michael.Array@test.com',
+      role: 'user',
+      profileType: 'admin',
+      bio: 'I am a cool guy.',
+      melons: 10,
     },
     'Sarah Doe': {
       email: 'sarah.doe@test.com',
@@ -1035,5 +1044,63 @@ describe('AppController', () => {
       crudConfig,
       payload,
     });
+  });
+
+  it('should validate native string array', async () => {
+    const user = users['Moderator Joe'];
+    const michael = users['Michael Array'];
+    const payload: SearchMelonDto = {
+      nameLike: 'melon',
+      ownerEmail: michael.email,
+    };
+
+    const query: CrudQuery = {
+      service: 'melon',
+      cmd: 'search',
+    };
+
+    const res = await testMethod({
+      url: '/crud/cmd',
+      method: 'PATCH',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    expect(res.data?.length).toBe(michael.melons);
+
+    payload.ids = [...res.data?.map((m) => m.id), 555];
+
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 400,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    payload.ids.pop();
+
+    const res2 = await testMethod({
+      url: '/crud/cmd',
+      method: 'PATCH',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    expect(res2.data?.length).toBe(michael.melons);
   });
 });

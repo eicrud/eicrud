@@ -367,6 +367,13 @@ export class CrudController {
     try {
       const cmdSecurity: CmdSecurity =
         currentService.security?.cmdSecurityMap?.[ctx.cmdName];
+      if (cmdSecurity.batchField && data?.[cmdSecurity.batchField]) {
+        await this.crudAuthorization.authorizeBatch(
+          ctx,
+          data[cmdSecurity.batchField].length,
+          cmdSecurity,
+        );
+      }
       this.limitQuery(
         ctx,
         cmdSecurity?.nonAdminQueryLimit ||

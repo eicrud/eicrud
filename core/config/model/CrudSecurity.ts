@@ -56,10 +56,22 @@ export interface CmdSecurity {
    */
   adminQueryLimit?: number;
 
+  /**
+   *  The batch field name in the dto if present.
+   *  @type {number}
+   */
+  batchField?: string;
+
   rolesRights?: Record<string, CmdSecurityRights>;
 }
 
 export interface CmdSecurityRights {
+  /**
+   *  The max allowed length of the batch array (specified with the batchField)
+   *  @type {number}
+   */
+  maxBatchSize?: number;
+
   defineCMDAbility?(
     can: AbilityBuilder<any>['can'],
     cannot: AbilityBuilder<any>['cannot'],
