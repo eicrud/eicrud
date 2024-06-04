@@ -1,1 +1,1 @@
-export * from "./mongoDbAdapter"
+export * from './mongoDbAdapter';

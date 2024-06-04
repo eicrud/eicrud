@@ -1,6 +1,6 @@
-import { BaseEntity, Entity, EntityClass } from "@mikro-orm/core";
+import { BaseEntity, Entity, EntityClass } from '@mikro-orm/core';
 
-export interface CrudEntity extends Partial<BaseEntity>{
-    createdAt: Date;
-    updatedAt: Date;
+export interface CrudEntity extends Partial<BaseEntity> {
+  createdAt: Date;
+  updatedAt: Date;
 }

@@ -1,114 +1,115 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test",
-            "command": "npm run test",
-        },   
-        
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test client",
-            "command": "npm run test client.",
-        },   
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test",
+      "command": "npm run test"
+    },
 
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test populate",
-            "command": "npm run test populate",
-        },  
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test postgre",
-            "command": "npm run test:postgre",
-        },    
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test basic",
-            "command": "npm run test core.basic.spec.ts",
-        },
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test basic nested",
-            "command": "npm run test core.basic-nested.spec.ts",
-        },
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test security",
-            "command": "npm run test core.security.spec.ts",
-        },
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test orm",
-            "command": "npm run test core.orm.spec.ts",
-        },
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test account",
-            "command": "npm run test core.account.spec.ts",
-        },{
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test postgre account",
-            "command": "npm run test:postgre core.account.spec.ts",
-        },
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test validation/transform",
-            "command": "npm run test core.validation-transform.spec.ts",
-        },
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test traffic-ip",
-            "command": "npm run test traffic-ip",
-        },
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test limits",
-            "command": "npm run test limits",
-        },
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test postgre limits",
-            "command": "npm run test:postgre limits",
-        },
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test cmd",
-            "command": "npm run test cmd",
-        },
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run test options",
-            "command": "npm run test options",
-        },
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run start:test-ms",
-            "command": "npm run start:test-ms",
-        },
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "npm run start:test-ms:proxy",
-            "command": "npm run start:test-ms:proxy",
-        }
-    ]
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test client",
+      "command": "npm run test client."
+    },
+
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test populate",
+      "command": "npm run test populate"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test postgre",
+      "command": "npm run test:postgre"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test basic",
+      "command": "npm run test core.basic.spec.ts"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test basic nested",
+      "command": "npm run test core.basic-nested.spec.ts"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test security",
+      "command": "npm run test core.security.spec.ts"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test orm",
+      "command": "npm run test core.orm.spec.ts"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test account",
+      "command": "npm run test core.account.spec.ts"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test postgre account",
+      "command": "npm run test:postgre core.account.spec.ts"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test validation/transform",
+      "command": "npm run test core.validation-transform.spec.ts"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test traffic-ip",
+      "command": "npm run test traffic-ip"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test limits",
+      "command": "npm run test limits"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test postgre limits",
+      "command": "npm run test:postgre limits"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test cmd",
+      "command": "npm run test cmd"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test options",
+      "command": "npm run test options"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run start:test-ms",
+      "command": "npm run start:test-ms"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run start:test-ms:proxy",
+      "command": "npm run start:test-ms:proxy"
+    }
+  ]
 }

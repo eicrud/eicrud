@@ -4,8 +4,8 @@ import { FastifyAdapter } from '@nestjs/platform-fastify';
 
 async function bootstrap() {
   const app = await NestFactory.create(TestModule, new FastifyAdapter());
-  const PORT = process.env.PORT || 3000
-  console.log(`Listening on port ${PORT}`)
+  const PORT = process.env.PORT || 3000;
+  console.log(`Listening on port ${PORT}`);
 
   await app.listen(PORT);
 }

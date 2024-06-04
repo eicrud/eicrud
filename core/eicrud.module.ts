@@ -9,13 +9,13 @@ import { JwtService } from '@nestjs/jwt';
 @Module({})
 export class EICRUDModule {
   static forRoot(): DynamicModule {
-    
     return {
       module: EICRUDModule,
       imports: [],
       providers: [
         JwtService,
-        CrudAuthorizationService, CrudAuthService, 
+        CrudAuthorizationService,
+        CrudAuthService,
         {
           provide: APP_GUARD,
           useClass: CrudAuthGuard,
@@ -23,7 +23,6 @@ export class EICRUDModule {
       ],
       controllers: [CrudController],
       exports: [],
-      
     };
   }
 }

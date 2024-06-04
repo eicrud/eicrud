@@ -1,40 +1,41 @@
-import { Allow, IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
-import { CrudOptions } from "./CrudOptions";
-import { $Type, $Transform, $MaxSize } from "../../validation/decorators";
-import { _utils } from "../../utils";
+import {
+  Allow,
+  IsInt,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { CrudOptions } from './CrudOptions';
+import { $Type, $Transform, $MaxSize } from '../../validation/decorators';
+import { _utils } from '../../utils';
 import { ICrudQuery } from '@eicrud/shared/interfaces';
 
-
 export class CrudQuery implements ICrudQuery {
+  service: string;
 
-    service: string;
+  @IsOptional()
+  @$Type(CrudOptions)
+  @$Transform(_utils.parseIfString)
+  @ValidateNested()
+  options?: CrudOptions;
 
-    @IsOptional()
-    @$Type(CrudOptions)
-    @$Transform(_utils.parseIfString)
-    @ValidateNested()
-    options?: CrudOptions;
-    
-    @IsOptional()
-    @$Transform(_utils.parseIfString)
-    @$MaxSize(-1)
-    query?: any;
+  @IsOptional()
+  @$Transform(_utils.parseIfString)
+  @$MaxSize(-1)
+  query?: any;
 
-    cmd?: string;
-
+  cmd?: string;
 }
 
 export class BackdoorQuery {
+  service: string;
 
-    service: string;
+  methodName: string;
 
-    methodName: string;
-  
-    ctxPos?: number;
+  ctxPos?: number;
 
-    inheritancePos?: number;
+  inheritancePos?: number;
 
-    @$Transform(_utils.parseIfString)
-    undefinedArgs?: string | number[];
-
+  @$Transform(_utils.parseIfString)
+  undefinedArgs?: string | number[];
 }

@@ -1,25 +1,25 @@
 {
-    "name": "@eicrud/cli",
-    "version": "0.0.37",
-    "description": "cli for @eicrud framework",
-    "author": "acrosett",
-    "license": "UNLICENSED",
-    "type": "module",
-    "bin": {
-        "eicrud": "./commands/index.js"
-    },
-    "scripts": {
-        "compile": "npm run clean && tsc",
-        "publish:package": "npm i && npm run compile && npm publish",
-        "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
-      },
-    "devDependencies": {
-        "del-cli": "^5.1.0"
-    },
-    "dependencies": {
-        "commander": "^12.0.0"
-    },
-    "peerDependencies": {
-        "@eicrud/shared": "^0.1.4"
-    }
+  "name": "@eicrud/cli",
+  "version": "0.0.37",
+  "description": "cli for @eicrud framework",
+  "author": "acrosett",
+  "license": "UNLICENSED",
+  "type": "module",
+  "bin": {
+    "eicrud": "./commands/index.js"
+  },
+  "scripts": {
+    "compile": "npm run clean && tsc",
+    "publish:package": "npm i && npm run compile && npm publish",
+    "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
+  },
+  "devDependencies": {
+    "del-cli": "^5.1.0"
+  },
+  "dependencies": {
+    "commander": "^12.0.0"
+  },
+  "peerDependencies": {
+    "@eicrud/shared": "^0.1.4"
+  }
 }

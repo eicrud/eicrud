@@ -1,185 +1,228 @@
-import { BadRequestException } from "@nestjs/common";
-import { CrudConfigService } from "../config/crud.config.service";
-import { ICrudTransformOptions } from "./decorators";
-import { CrudContext } from "../crud/model/CrudContext";
-import { IsEmail, IsOptional, IsString, MaxLength, validateOrReject } from 'class-validator';
-import { CrudController } from "../crud/crud.controller";
-import { CrudAuthorizationService } from "../crud/crud.authorization.service";
+import { BadRequestException } from '@nestjs/common';
+import { CrudConfigService } from '../config/crud.config.service';
+import { ICrudTransformOptions } from './decorators';
+import { CrudContext } from '../crud/model/CrudContext';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  MaxLength,
+  validateOrReject,
+} from 'class-validator';
+import { CrudController } from '../crud/crud.controller';
+import { CrudAuthorizationService } from '../crud/crud.authorization.service';
 
-export const crudClassMetadataMap: Record<string, Record<string, IFieldMetadata>> = {};
+export const crudClassMetadataMap: Record<
+  string,
+  Record<string, IFieldMetadata>
+> = {};
 
 export interface IFieldMetadata {
-    transforms: {func:((value: any) => any), opts: ICrudTransformOptions}[],
-    type?: { class: any, opts?: ICrudTransformOptions },
-    maxSize?: number,  
-    addMaxSizePerTrustPoint?: number,
-    maxLength?: number,
-    addMaxLengthPerTrustPoint?: number,
-    delete?: boolean
+  transforms: { func: (value: any) => any; opts: ICrudTransformOptions }[];
+  type?: { class: any; opts?: ICrudTransformOptions };
+  maxSize?: number;
+  addMaxSizePerTrustPoint?: number;
+  maxLength?: number;
+  addMaxLengthPerTrustPoint?: number;
+  delete?: boolean;
 }
 
 export interface CrudTransformerConfig {
-
-    defaultMaxLength?: number,
-    defaultMaxSize?: number,
-    checkMissingProperties?: boolean,
-    skipValidation?: boolean
-
+  defaultMaxLength?: number;
+  defaultMaxSize?: number;
+  checkMissingProperties?: boolean;
+  skipValidation?: boolean;
 }
 
 export class CrudTransformer {
+  private readonly crudConfig?: CrudConfigService;
+  private readonly crudAuthorization?: CrudAuthorizationService;
+  constructor(
+    private readonly crudController?: CrudController,
+    private ctx?: CrudContext,
+    protected config?: CrudTransformerConfig,
+  ) {
+    this.crudConfig = crudController?.crudConfig;
+    this.crudAuthorization = crudController?.crudAuthorization;
+  }
 
-    private readonly crudConfig?: CrudConfigService;
-    private readonly crudAuthorization?: CrudAuthorizationService;
-    constructor(private readonly crudController?: CrudController, private ctx?: CrudContext, protected config?: CrudTransformerConfig) {
-        this.crudConfig = crudController?.crudConfig;
-        this.crudAuthorization = crudController?.crudAuthorization;
+  async validateOrReject(obj, skipUndefinedProperties, label) {
+    try {
+      await validateOrReject(obj, {
+        stopAtFirstError: true,
+        skipUndefinedProperties,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      });
+    } catch (errors) {
+      const msg = label + ' ' + errors.toString();
+      throw new BadRequestException('Validation error ' + msg);
     }
-    
-    async validateOrReject(obj, skipUndefinedProperties, label) {
-        try {
-            await validateOrReject(obj, {
-                stopAtFirstError: true,
-                skipUndefinedProperties,
-                whitelist: true,
-                forbidNonWhitelisted: true,
-            });
-        } catch (errors) {
-            const msg = label + ' ' + errors.toString();
-            throw new BadRequestException("Validation error " + msg);
+  }
+
+  async transformTypes(obj: any, cls: any, checkSize = false) {
+    return await this.transform(obj, cls, true, checkSize);
+  }
+
+  async transform(obj: any, cls: any, convertTypes = false, checkSize = true) {
+    const classKey = CrudTransformer.subGetClassKey(cls);
+
+    const metadata = crudClassMetadataMap[classKey];
+    if (!metadata) return obj;
+
+    for (const key in obj) {
+      const field_metadata = metadata[key] || { transforms: [] };
+      if (field_metadata.delete) {
+        delete obj[key];
+        continue;
+      }
+      if (!convertTypes) {
+        field_metadata.transforms.forEach((transform) => {
+          if (Array.isArray(obj[key]) && transform.opts?.each) {
+            obj[key] = obj[key].map((value: any) => transform.func(value));
+          } else {
+            obj[key] = transform.func(obj[key]);
+          }
+        });
+      }
+      const type = field_metadata.type;
+      if (type) {
+        if (Array.isArray(obj[key]) && checkSize) {
+          const length = obj[key].length;
+          let maxLength =
+            field_metadata.maxLength ||
+            this.crudConfig?.validationOptions.defaultMaxLength ||
+            this.config.defaultMaxLength;
+          let add = field_metadata.addMaxLengthPerTrustPoint || 0;
+          if (add && this.ctx && this.crudConfig) {
+            const trust = await this.crudAuthorization.getOrComputeTrust(
+              this.ctx.user,
+              this.ctx,
+            );
+            if (trust >= 1) {
+              maxLength += add * trust;
+            }
+          }
+          if (length > maxLength) {
+            throw new BadRequestException(
+              `Array ${key} length is too big (max: ${maxLength})`,
+            );
+          }
         }
-    }
-
-    async transformTypes(obj: any, cls: any, checkSize = false) {
-        return await this.transform(obj, cls, true, checkSize);
-    }
-
-    async transform(obj: any, cls: any, convertTypes = false, checkSize = true) {
-        const classKey =  CrudTransformer.subGetClassKey(cls);
-
-        const metadata = crudClassMetadataMap[classKey];
-        if(!metadata) return obj;
-        
-        for (const key in obj) {
-            const field_metadata = metadata[key] || { transforms: []};
-                if(field_metadata.delete){
-                    delete obj[key];
-                    continue;
-                }
-                if(!convertTypes){
-                    field_metadata.transforms.forEach((transform) => {
-                        if(Array.isArray(obj[key]) && transform.opts?.each) {
-                            obj[key] = obj[key].map((value: any) => transform.func(value));
-                        }
-                        else{
-                            obj[key] = transform.func(obj[key]);
-                        }
-                    });
-                }
-                const type = field_metadata.type;
-                if(type) {
-                    if(Array.isArray(obj[key]) && checkSize){
-                        const length = obj[key].length;
-                        let maxLength = field_metadata.maxLength || this.crudConfig?.validationOptions.defaultMaxLength || this.config.defaultMaxLength;
-                        let add = field_metadata.addMaxLengthPerTrustPoint || 0;
-                        if (add && this.ctx && this.crudConfig) {
-                            const trust = (await this.crudAuthorization.getOrComputeTrust(this.ctx.user, this.ctx));
-                            if(trust >= 1){
-                                maxLength += add * trust;
-                            }
-                        }
-                        if ((length > maxLength)) {
-                            throw new BadRequestException(`Array ${key} length is too big (max: ${maxLength})`);
-                        }
-                    }
-                    if(Array.isArray(obj[key])) {
-                        obj[key] = await Promise.all(obj[key].map(async (value: any) => {
-                            const res = await this.transform(value, type.class, convertTypes, checkSize);
-                            if(convertTypes){
-                                Object.setPrototypeOf(res, type.class.prototype);
-                            }
-                            return res;
-                        }));
-                    }else{
-                        obj[key] = await this.transform(obj[key], type.class, convertTypes, checkSize);
-                        if(convertTypes){
-                            Object.setPrototypeOf(obj[key], type.class.prototype);
-                        }
-                    }
-                }else if (checkSize){
-                    const entitySize = JSON.stringify(obj[key]).length;
-                    let maxSize = field_metadata.maxSize || this.crudConfig?.validationOptions.defaultMaxSize || this.config.defaultMaxSize;
-                    if(maxSize > 0){
-                        let add = field_metadata.addMaxSizePerTrustPoint || 0;
-                        if (add && this.ctx && this.crudConfig) {
-                            const trust = (await this.crudAuthorization.getOrComputeTrust(this.ctx.user, this.ctx));
-                            add = add * trust;
-                            maxSize += Math.max(add, 0);;
-                        }
-                        if ((entitySize > maxSize)) {
-                            throw new BadRequestException(`Field ${key} size is too big (max: ${maxSize})`);
-                        }
-                    }
-                }
-            
+        if (Array.isArray(obj[key])) {
+          obj[key] = await Promise.all(
+            obj[key].map(async (value: any) => {
+              const res = await this.transform(
+                value,
+                type.class,
+                convertTypes,
+                checkSize,
+              );
+              if (convertTypes) {
+                Object.setPrototypeOf(res, type.class.prototype);
+              }
+              return res;
+            }),
+          );
+        } else {
+          obj[key] = await this.transform(
+            obj[key],
+            type.class,
+            convertTypes,
+            checkSize,
+          );
+          if (convertTypes) {
+            Object.setPrototypeOf(obj[key], type.class.prototype);
+          }
         }
-        return obj;
-    }
-    
-    static hashString(s: string) {
-        let hash = 0;
-        if (s.length == 0) return hash;
-        for (let i = 0; i < s.length; i++) {
-            let char = s.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32bit integer
+      } else if (checkSize) {
+        const entitySize = JSON.stringify(obj[key]).length;
+        let maxSize =
+          field_metadata.maxSize ||
+          this.crudConfig?.validationOptions.defaultMaxSize ||
+          this.config.defaultMaxSize;
+        if (maxSize > 0) {
+          let add = field_metadata.addMaxSizePerTrustPoint || 0;
+          if (add && this.ctx && this.crudConfig) {
+            const trust = await this.crudAuthorization.getOrComputeTrust(
+              this.ctx.user,
+              this.ctx,
+            );
+            add = add * trust;
+            maxSize += Math.max(add, 0);
+          }
+          if (entitySize > maxSize) {
+            throw new BadRequestException(
+              `Field ${key} size is too big (max: ${maxSize})`,
+            );
+          }
         }
-        return hash;
+      }
     }
-    
-    static hashClass(classObj: Function) {
-        // Convert the class to a string and hash the string
-        const classHash = CrudTransformer.hashString(classObj.toString());
-        return classHash;
-    }
+    return obj;
+  }
 
-    static getCrudMetadataMap() {
-        return crudClassMetadataMap;
+  static hashString(s: string) {
+    let hash = 0;
+    if (s.length == 0) return hash;
+    for (let i = 0; i < s.length; i++) {
+      let char = s.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash; // Convert to 32bit integer
     }
-    
-    static getClassKey(target: any) {
-        return CrudTransformer.subGetClassKey(target.constructor);
-    }
+    return hash;
+  }
 
-    static subGetClassKey(target: any) {
-        return target.name + '_' + CrudTransformer.hashClass(target);
-    }
-    
-    static getClassMetadata(target: any): Record<string, IFieldMetadata> {
-        const classKey = CrudTransformer.getClassKey(target);
-        return crudClassMetadataMap[classKey];
-    }
+  static hashClass(classObj: any) {
+    // Convert the class to a string and hash the string
+    const classHash = CrudTransformer.hashString(classObj.toString());
+    return classHash;
+  }
 
-    static getFieldMetadata(target: any, propertyKey: string): IFieldMetadata {
-        const classKey = CrudTransformer.getClassKey(target);
-        return crudClassMetadataMap[classKey]?.[propertyKey];
+  static getCrudMetadataMap() {
+    return crudClassMetadataMap;
+  }
+
+  static getClassKey(target: any) {
+    return CrudTransformer.subGetClassKey(target.constructor);
+  }
+
+  static subGetClassKey(target: any) {
+    return target.name + '_' + CrudTransformer.hashClass(target);
+  }
+
+  static getClassMetadata(target: any): Record<string, IFieldMetadata> {
+    const classKey = CrudTransformer.getClassKey(target);
+    return crudClassMetadataMap[classKey];
+  }
+
+  static getFieldMetadata(target: any, propertyKey: string): IFieldMetadata {
+    const classKey = CrudTransformer.getClassKey(target);
+    return crudClassMetadataMap[classKey]?.[propertyKey];
+  }
+
+  static getOrCreateFieldMetadata(
+    target: any,
+    propertyKey: string,
+  ): IFieldMetadata {
+    const classKey = CrudTransformer.getClassKey(target);
+    if (!crudClassMetadataMap[classKey]) {
+      crudClassMetadataMap[classKey] = {};
     }
-    
-    static getOrCreateFieldMetadata(target: any, propertyKey: string): IFieldMetadata {
-        const classKey = CrudTransformer.getClassKey(target);
-        if (!crudClassMetadataMap[classKey]) {
-            crudClassMetadataMap[classKey] = {};
-        }
-        if (!crudClassMetadataMap[classKey][propertyKey]) {
-            crudClassMetadataMap[classKey][propertyKey] = {
-                transforms: []
-            };
-        }
-        return crudClassMetadataMap[classKey][propertyKey];
+    if (!crudClassMetadataMap[classKey][propertyKey]) {
+      crudClassMetadataMap[classKey][propertyKey] = {
+        transforms: [],
+      };
     }
-    
-    static setFieldMetadata(target: any, propertyKey: string, metadata: IFieldMetadata) {
-        const classKey = CrudTransformer.getClassKey(target);
-        crudClassMetadataMap[classKey][propertyKey] = metadata;
-    }
+    return crudClassMetadataMap[classKey][propertyKey];
+  }
+
+  static setFieldMetadata(
+    target: any,
+    propertyKey: string,
+    metadata: IFieldMetadata,
+  ) {
+    const classKey = CrudTransformer.getClassKey(target);
+    crudClassMetadataMap[classKey][propertyKey] = metadata;
+  }
 }

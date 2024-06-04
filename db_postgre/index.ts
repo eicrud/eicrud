@@ -1,1 +1,1 @@
-export * from "./postgreDbAdapter"
+export * from './postgreDbAdapter';
