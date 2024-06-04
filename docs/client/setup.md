@@ -44,6 +44,9 @@ await profileClient.login(dto);
 
 !!! note
     Clients sharing their `ClientStorage` are logged together. 
+
+!!! note
+    Make sure to allow the `login` and `check_jwt` commands in your user service security. See [this example](../user/service.md#authentication).
     
 ### expiresIn  
 Indicates how long until the authentication token expires.
@@ -52,12 +55,12 @@ Allowed `expiresIn` values are listed in the `allowedJwtExpiresIn` [authenticati
 !!! info
     If one of the clients encounters a `401` error, it will delete the JWT from storage, call the `onLogout` callback and retry the request as a [guest](../security/roles.md).
 
-### checkToken
+### checkJwt
 
-You can call `checkToken` to check if a user is currently logged in. It will extend the authentication duration if the `renewJwt` [option](../configuration/authentication.md) is set.
+You can call `checkJwt` to check if a user is currently logged in. It will extend the authentication duration if the `renewJwt` [option](../configuration/authentication.md) is set.
 
 ```typescript
-const loggedUserId = await profileClient.checkToken();
+const loggedUserId = await profileClient.checkJwt();
 ```
 ### logout
 

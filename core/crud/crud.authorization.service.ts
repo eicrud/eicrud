@@ -255,7 +255,7 @@ export class CrudAuthorizationService {
     );
 
     if (!checkRes.authorized) {
-      let msg = `Role ${ctx.user.role} is not allowed to ${ctx.method} ${ctx.serviceName} ${ctx.cmdName || ''}`;
+      let msg = `Role ${ctx.user.role} is not allowed to ${ctx.method} ${ctx.serviceName} ${ctx.cmdName ? ctx.cmdName + ' ' : ''}`;
       for (let roleName in checkRes.checkedRoles) {
         const r = checkRes.checkedRoles[roleName];
         msg += `- ${roleName} failed on ${r.problemField} `;
@@ -268,7 +268,7 @@ export class CrudAuthorizationService {
 
   loopFieldAndCheckCannot(
     method,
-    query,
+    query = {},
     fields,
     userAbilities,
     ctx: CrudContext,

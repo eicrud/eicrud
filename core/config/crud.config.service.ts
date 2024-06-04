@@ -55,7 +55,6 @@ export interface MicroServiceConfig {
   openBackDoor: boolean;
   openController: boolean;
   proxyCrudController?: boolean;
-  proxyAuthTo?: string;
   url: string;
   username?: string;
   password?: string;

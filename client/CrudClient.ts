@@ -54,6 +54,7 @@ export class MemoryStorage implements ClientStorage {
 export interface ClientConfig {
   serviceName: string;
   url: string;
+  userServiceName?: string;
   onLogout?: () => void;
   storage?: ClientStorage;
   id_field?: string;
@@ -94,6 +95,7 @@ export class CrudClient<T> {
       (document ? new CookieStorage() : new MemoryStorage());
     this.config.defaultBatchSize = this.config.defaultBatchSize || 200;
     this.config.cmdDefaultBatchMap = this.config.cmdDefaultBatchMap || {};
+    this.config.userServiceName = this.config.userServiceName || 'user';
   }
 
   private _getHeaders() {
@@ -110,12 +112,20 @@ export class CrudClient<T> {
     this.config.onLogout?.();
   }
 
-  async checkToken() {
-    const url = this.config.url + '/crud/auth';
+  async checkJwt() {
+    const url =
+      this.config.url +
+      '/crud/s/' +
+      this.config.userServiceName +
+      '/cmd/check_jwt';
     try {
-      const res: LoginResponseDto = await axios.get(url, {
-        headers: this._getHeaders(),
-      });
+      const res: LoginResponseDto = await axios.patch(
+        url,
+        {},
+        {
+          headers: this._getHeaders(),
+        },
+      );
 
       if (res.refreshTokenSec) {
         let days = Math.round(res.refreshTokenSec / 60 / 60 / 24);
@@ -139,9 +149,18 @@ export class CrudClient<T> {
   }
 
   async login(dto: ILoginDto): Promise<LoginResponseDto> {
-    const url = this.config.url + '/crud/auth';
+    const url =
+      this.config.url + '/crud/s/' + this.config.userServiceName + '/cmd/login';
 
-    let res: LoginResponseDto = (await axios.post(url, dto)).data;
+    let res: LoginResponseDto;
+    try {
+      res = (await axios.post(url, dto)).data;
+    } catch (e) {
+      if (e.response && e.response.status === 401) {
+        this.logout();
+      }
+      throw e;
+    }
     let days = 1;
     if (dto.expiresIn?.includes('d')) {
       const dayStr = dto.expiresIn.replace('d', '');

@@ -5,16 +5,12 @@ import {
   Delete,
   ForbiddenException,
   Get,
-  HttpException,
   HttpStatus,
-  Inject,
   Param,
   Patch,
   Post,
-  Put,
   Query,
   UnauthorizedException,
-  forwardRef,
 } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudService } from './crud.service';
@@ -62,8 +58,6 @@ export class LimitOptions {
   version: '1',
 })
 export class CrudController {
-  userLastLoginAttemptMap: LRUCache<string, Date>;
-
   public crudConfig: CrudConfigService;
   constructor(
     private crudAuthService: CrudAuthService,
@@ -74,9 +68,7 @@ export class CrudController {
 
   onModuleInit() {
     this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY, { strict: false });
-    this.userLastLoginAttemptMap = new LRUCache(
-      this.crudConfig.watchTrafficOptions.maxTrackedUsers / 2,
-    );
+
     this._initProxyController();
   }
 
@@ -96,7 +88,7 @@ export class CrudController {
       return;
     }
 
-    if (!currentMsConfig.proxyCrudController && !currentMsConfig.proxyAuthTo) {
+    if (!currentMsConfig.proxyCrudController) {
       return;
     }
 
@@ -131,21 +123,10 @@ export class CrudController {
           const serviceName = request.url.split('/crud/s/')[1].split('/')[0];
           const url = registered[serviceName];
           if (url) {
-            const rest = request.url.replace('/client-basic', '');
+            const rest = request.url;
             request.headers['x-forwarded-for'] = request.ip;
             return await reply.from(url + rest);
           }
-        }
-        const proxyAuthTo = currentMsConfig.proxyAuthTo;
-        if (
-          proxyAuthTo &&
-          proxyAuthTo != currentMs &&
-          request.url.includes('crud/auth')
-        ) {
-          const url = msOptions.microServices[proxyAuthTo].url;
-          const rest = request.url.replace('/client-basic', '');
-          request.headers['x-forwarded-for'] = request.ip;
-          return await reply.from(url + rest);
         }
       });
     }
@@ -786,89 +767,6 @@ export class CrudController {
     } catch (e) {
       await this.errorHooks(currentService, e, ctx);
     }
-  }
-
-  reciprocal20percent = 1 / 20;
-
-  @Get('auth')
-  async getConnectedUser(@Context() ctx: CrudContext) {
-    const userId = ctx.user[this.crudConfig.id_field];
-    if (!userId) {
-      throw new UnauthorizedException('User not found.');
-    }
-    const ret: LoginResponseDto = { userId };
-    const userRole = this.crudAuthorization.getUserRole(ctx.user);
-    if (
-      this.crudConfig.authenticationOptions.renewJwt &&
-      !userRole.noTokenRefresh &&
-      !ctx?.user?.noTokenRefresh
-    ) {
-      const totalSec = ctx.jwtPayload.exp - ctx.jwtPayload.iat;
-      const elapsedMs = new Date().getTime() - ctx.jwtPayload.iat * 1000;
-      const thresholdMs = totalSec * 1000 * this.reciprocal20percent; // 20% of total time
-      if (elapsedMs >= thresholdMs) {
-        const newToken = await this.crudAuthService.signTokenForUser(
-          ctx.user,
-          totalSec,
-        );
-        ret.accessToken = newToken;
-        ret.refreshTokenSec = totalSec;
-      }
-    }
-    return ret as LoginResponseDto;
-  }
-
-  @Post('auth')
-  async login(
-    @Body(new CrudValidationPipe()) data: LoginDto,
-    @Context() ctx: CrudContext,
-  ) {
-    const lastLogingAttempt: Date = this.userLastLoginAttemptMap.get(
-      data.email,
-    );
-    const now = new Date();
-    if (
-      lastLogingAttempt &&
-      _utils.diffBetweenDatesMs(now, lastLogingAttempt) <
-        this.crudConfig.authenticationOptions.minTimeBetweenLoginAttempsMs
-    ) {
-      throw new HttpException(
-        {
-          statusCode: 425,
-          error: 'Too early',
-          message: CrudErrors.TOO_MANY_LOGIN_ATTEMPTS.str(),
-        },
-        425,
-      );
-    }
-
-    this.userLastLoginAttemptMap.set(data.email, now);
-
-    const allowedJwtExpiresIn =
-      this.crudConfig.authenticationOptions.allowedJwtExpiresIn;
-    if (data.expiresIn && !allowedJwtExpiresIn.includes(data.expiresIn)) {
-      throw new BadRequestException(
-        'Invalid expiresIn: ' +
-          data.expiresIn +
-          ' allowed: ' +
-          allowedJwtExpiresIn.join(', '),
-      );
-    }
-
-    if (
-      data.password?.length >
-      this.crudConfig.authenticationOptions.passwordMaxLength
-    ) {
-      throw new UnauthorizedException(CrudErrors.PASSWORD_TOO_LONG.str());
-    }
-
-    return this.crudConfig.userService.$signIn(
-      ctx,
-      data.email,
-      data.password,
-      data.expiresIn,
-      data.twoFA_code,
-    );
   }
 
   async performValidationAuthorizationAndHooks(
