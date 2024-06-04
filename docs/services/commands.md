@@ -11,7 +11,7 @@ eicrud generate cmd profile sayHello
     Command names are converted to `snake_case` by the CLI
 
 
-Like [services](/services/definition), CMDs have 3 main components:
+Like [services](./definition.md), CMDs have 3 main components:
 
 ### A Dto:
 
@@ -25,9 +25,9 @@ export default class SayHelloDto {
 }
 ```
 
-Command DTOs follow the same [validation](/services/validation)/[transform](/services/transform) rules as [entities](/services/entity).
+Command DTOs follow the same [validation](../validation/definition.md)/[transform](../validation/transform.md) rules as [entities](./entity.md).
 
-### A [Security](/../security/definition):
+### A [Security](../security/definition.md):
 
 ```typescript title="say_hello.security.ts"
 const getCmdSecurity = (say_hello, profile): CmdSecurity => { 

@@ -37,7 +37,7 @@ npm install
 
 ## Post Installation
 
-Eicrud needs a secret key in order to sign JWT tokens, those are used during [authentication](){:target="_blank"}. You can generate a new one using the `node:crypto` module.
+Eicrud needs a secret key to sign JWT tokens, which are used during [authentication](./configuration/authentication.md). You can generate a new one using the `node:crypto` module.
 ```
 node -e "console.log(require('crypto').randomBytes(256).toString('base64'));"
 ```

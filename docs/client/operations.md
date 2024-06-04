@@ -33,7 +33,7 @@ await profileClient.createBatch(newProfiles);
 ```
 
 !!! info 
-    Non-admin [roles](roles.md) are not allowed to perform batch operations unless [maxBatchSize](../configuration/limits.md#crudsecurityrights) is specified in the service security. 
+    Non-admin [roles](../security/roles.md) are not allowed to perform batch operations unless [maxBatchSize](../configuration/limits.md#crudsecurityrights) is specified in the service security. 
 
 !!! note
     Batch operations make use of the [ClientOptions](./options.md)->`batchSize`. If the provided array exceeds that limit, the client will split it and perform multiple requests. 
