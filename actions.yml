@@ -1,0 +1,38 @@
+name: ci
+on:
+  pull_request:
+    branches: ['develop']
+  push:
+    branches: ['develop']
+  paths:
+      - 'client/**'
+      - 'core/**'
+      - 'shared/**'
+      - 'test/**'
+      - 'db_*/**'
+
+jobs:
+  test:
+    runs-on: node:18
+
+    steps:
+      - name: Copy repository
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Mongodb tests
+        run: npm run test
+
+      - name: PostgreSQL tests
+        run: npm run test:postgre
+
+      - name: Microservices tests
+        run: npm run start:test-ms 
+        
+      - name: Microservices proxy tests
+        run: npm run start:test-ms:proxy

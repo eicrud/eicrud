@@ -1,28 +1,43 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { getModule, createNestApplication, readyApp, dropDatabases } from '../test.module';
+import {
+  getModule,
+  createNestApplication,
+  readyApp,
+  dropDatabases,
+} from '../test.module';
 import { CrudController } from '../../core/crud/crud.controller';
 import { MyUserService } from '../myuser.service';
 import { CrudAuthService } from '../../core/authentication/auth.service';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
-import { createAccountsAndProfiles, createMelons, createNewProfileTest, testMethod } from '../test.utils';
+import {
+  createAccountsAndProfiles,
+  createMelons,
+  createNewProfileTest,
+  testMethod,
+} from '../test.utils';
 import { MyProfileService, TestCmdDto } from '../profile.service';
 import { Melon } from '../entities/Melon';
 import { CrudService } from '../../core/crud/crud.service';
 import { TestUser } from '../test.utils';
-import { CRUD_CONFIG_KEY, CrudConfigService } from '../../core/config/crud.config.service';
+import {
+  CRUD_CONFIG_KEY,
+  CrudConfigService,
+} from '../../core/config/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
 import { CrudOptions } from '../../core/crud/model/CrudOptions';
 
-
 const testAdminCreds = {
-  email: "admin@testmail.com",
-  password: "testpassword"
-}
+  email: 'admin@testmail.com',
+  password: 'testpassword',
+};
 
 describe('AppController', () => {
   let appController: CrudController;
@@ -35,40 +50,33 @@ describe('AppController', () => {
 
   let crudConfig: CrudConfigService;
 
-
-
-
-
   const users: Record<string, TestUser> = {
-
-    "Michael Doe": {
-      email: "michael.doe@test.com",
-      role: "user",
+    'Michael Doe': {
+      email: 'michael.doe@test.com',
+      role: 'user',
       bio: 'I am a cool guy.',
-      melons: 10000
-    },    
-    "Jon Doe": {
-      email: "jon.doe@test.com",
-      role: "user",
+      melons: 10000,
+    },
+    'Jon Doe': {
+      email: 'jon.doe@test.com',
+      role: 'user',
       bio: 'I am a cool guy.',
     },
-    "Admin Dude": {
-      email: "admin.dude@mail.com",
-      role: "admin",
+    'Admin Dude': {
+      email: 'admin.dude@mail.com',
+      role: 'admin',
       bio: 'I am a sys admin.',
-      profileType: "admin",
+      profileType: 'admin',
     },
-
-  }
+  };
 
   beforeAll(async () => {
-
     const moduleRef: TestingModule = await Test.createTestingModule(
-      getModule(require('path').basename(__filename))
+      getModule(require('path').basename(__filename)),
     ).compile();
     await dropDatabases(moduleRef);
 
-    app = createNestApplication(moduleRef)
+    app = createNestApplication(moduleRef);
 
     await app.init();
     await readyApp(app);
@@ -80,63 +88,89 @@ describe('AppController', () => {
     entityManager = app.get<EntityManager>(EntityManager);
     crudConfig = app.get<CrudConfigService>(CRUD_CONFIG_KEY, { strict: false });
 
-    await createAccountsAndProfiles(users, userService, crudConfig, { testAdminCreds });
-
+    await createAccountsAndProfiles(users, userService, crudConfig, {
+      testAdminCreds,
+    });
   });
 
-
-  it('should perform cmd & transform dto' , async () => {
-    const user = users["Jon Doe"];
+  it('should perform cmd & transform dto', async () => {
+    const user = users['Jon Doe'];
 
     const payload: TestCmdDto = {
-      returnMessage: "Hello World"
-    }
+      returnMessage: 'Hello World',
+    };
 
     const query: CrudQuery = {
-      service: "user-profile",
-      cmd: "testCmd",
-    }
+      service: 'user-profile',
+      cmd: 'testCmd',
+    };
 
-    const res = await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
+    const res = await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
 
     expect(res).toEqual(payload.returnMessage?.toUpperCase());
-
   });
 
   it('should validate crudOptions', async () => {
+    const user = users['Michael Doe'];
 
-    const user = users["Michael Doe"];
-
-    const payload = {}
+    const payload = {};
 
     let query = {
-      service: "melon",
-      query: "{}",
+      service: 'melon',
+      query: '{}',
       options: JSON.stringify({
-        limit: 5 as any
-      } as CrudOptions) as any
-    }
+        limit: 5 as any,
+      } as CrudOptions) as any,
+    };
 
-    await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
+    await testMethod({
+      url: '/crud/many',
+      method: 'GET',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+      returnLimitAndTotal: true,
+    });
 
     query = {
-      service: "melon",
-      query: "{}",
+      service: 'melon',
+      query: '{}',
       options: JSON.stringify({
-        limit: "string" as any
-      } as CrudOptions) as any
-    }
+        limit: 'string' as any,
+      } as CrudOptions) as any,
+    };
 
-    await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 400, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
-
+    await testMethod({
+      url: '/crud/many',
+      method: 'GET',
+      expectedCode: 400,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+      returnLimitAndTotal: true,
+    });
   });
 
- it('should apply security to crudOptions', async () => {
- 
+  it('should apply security to crudOptions', async () => {
     // const user = users["Michael Doe"];
-
     // const payload = {}
-
     // let query = {
     //   service: "melon",
     //   query: "{}",
@@ -144,9 +178,7 @@ describe('AppController', () => {
     //     limit: 5 as any
     //   } as CrudOptions) as any
     // }
-
     // await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 200, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
-
     // query = {
     //   service: "melon",
     //   query: "{}",
@@ -154,11 +186,8 @@ describe('AppController', () => {
     //     limit: "string" as any
     //   } as CrudOptions) as any
     // }
-
     // await testMethod({ url: '/crud/many', method: 'GET', expectedCode: 400, app, jwt: user.jwt, entityManager, payload, query, crudConfig, returnLimitAndTotal: true});
-
   });
-
 
   // it('should inherit cmd rights', async () => {
   //   const user = users["Admin Dude"];
@@ -175,6 +204,4 @@ describe('AppController', () => {
   //   await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});
 
   // });
-
-
 });
