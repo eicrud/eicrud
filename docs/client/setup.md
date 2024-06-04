@@ -54,7 +54,7 @@ Allowed `expiresIn` values are listed in the `allowedJwtExpiresIn` [authenticati
 
 ### checkToken
 
-You can call `checkToken` to check if a user is currently logged in. It will extend the authentication duration if the `renewJwt` [option](../user/authentication.md) is set.
+You can call `checkToken` to check if a user is currently logged in. It will extend the authentication duration if the `renewJwt` [option](../configuration/authentication.md) is set.
 
 ```typescript
 const loggedUserId = await profileClient.checkToken();

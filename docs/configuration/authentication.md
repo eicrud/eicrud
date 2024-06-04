@@ -1,4 +1,4 @@
-Eicrud handles the authentication of [users](./definition.md) in a global [NestJS guard](https://docs.nestjs.com/guards#guards){:target="_blank"}.
+Eicrud handles the authentication of [users](../user/definition.md) in a global [NestJS guard](https://docs.nestjs.com/guards#guards){:target="_blank"}.
 
 ```typescript
 export class AuthenticationOptions {

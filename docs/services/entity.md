@@ -32,7 +32,7 @@ export default class Profile implements CrudEntity {
 
 Learn how to define entities with [Mikro-orm's documentation](https://mikro-orm.io/docs/defining-entities){:target="_blank"}.
 
-## [Validation](/services/validation)
+## [Validation](../validation/definition.md)
 Fields that you annotate with [class-validator](https://mikro-orm.io){:target="_blank"}'s decorators are part of your DTO.
 
 ```typescript title="services/profile/profile.entity.ts"
@@ -58,8 +58,8 @@ export default class Profile implements CrudEntity {
     Non annotated fields are not allowed in the DTO
 
 
-## [Transform](/services/transform)
-Fields that you annotate with Eicrud's [transform decorators](/services/transform#decorators) will be transformed at the controller level.
+## [Transform](../validation/transform.md)
+Fields that you annotate with Eicrud's [transform decorators](../validation/transform.md) will be transformed at the controller level.
 
 ```typescript title="services/profile/profile.entity.ts"
 import { $Transform } from '@eicrud/core/validation';
@@ -81,7 +81,7 @@ export default class Profile implements CrudEntity {
 ```
 
 !!! warning
-    The `class-transformer` package isn't compatible with Eicrud's validation, make sure to use Eicrud's [decorators](/services/transform#decorators).
+    The `class-transformer` package isn't compatible with Eicrud's validation, make sure to use Eicrud's [decorators](../validation/transform.md).
 
 ## Mix and match
 

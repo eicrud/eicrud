@@ -91,7 +91,7 @@ The default `CrudOptions`->`limit` set when calling the command (for non-admin u
 The default `CrudOptions`->`limit` set when calling the command (for admin users).
 
 !!! note
-    `CrudOptions`->`limit` can be used in commands to return limited results. See this [tutorial](../recipes/search-command) for more info.
+    `CrudOptions`->`limit` can be used in commands to return limited results. See this [tutorial]() for more info.
 
 
 
