@@ -10,60 +10,65 @@ import { CrudContext } from '../crud/model/CrudContext';
 import { ModuleRef } from '@nestjs/core';
 
 export const logSecurity: CrudSecurity = {
-    maxItemsInDb: 50000,
-}
+  maxItemsInDb: 50000,
+};
 @Injectable()
 export class LogService extends CrudService<Log> {
-    
-    constructor(
-        protected moduleRef: ModuleRef,
-        private readonly notificationService: NotificationsService,
-        ){
-        super(moduleRef, Log, logSecurity);
+  constructor(
+    protected moduleRef: ModuleRef,
+    private readonly notificationService: NotificationsService,
+  ) {
+    super(moduleRef, Log, logSecurity);
+  }
+
+  async log(
+    type: LogType,
+    message: string,
+    ctx: CrudContext,
+    level: number = 1,
+  ) {
+    const log = new Log();
+    log.type = type;
+    log.message = message;
+    log.serviceName = ctx.serviceName;
+    log.userId = ctx.userId;
+    log.cmdName = ctx.cmdName;
+    log.level = level;
+    try {
+      await this.notificationService?.checkNotification(log);
+    } catch (error) {
+      log.failNotif = true;
+    }
+    return this.$create(log, ctx);
+  }
+
+  override async $create(newEntity: Log, ctx: CrudContext): Promise<any> {
+    let res = newEntity;
+    if (
+      newEntity.type?.includes[
+        (LogType.CRITICAL, LogType.ERROR, LogType.SECURITY)
+      ]
+    ) {
+      res = await super.$create(newEntity, ctx);
+    }
+    switch (newEntity.type) {
+      case LogType.CRITICAL:
+      case LogType.ERROR:
+        console.error(newEntity.message);
+        break;
+      case LogType.SECURITY:
+      case LogType.WARNING:
+        console.warn(newEntity.message);
+        break;
+      case LogType.DEBUG:
+        console.debug(newEntity.message);
+        break;
+      default:
+      case LogType.INFO:
+        console.log(newEntity.message);
+        break;
     }
 
-    async log(type: LogType, message: string, ctx: CrudContext, level: number = 1){
-        const log = new Log();
-        log.type = type;
-        log.message = message;
-        log.serviceName = ctx.serviceName;
-        log.userId = ctx.userId;
-        log.cmdName = ctx.cmdName;
-        log.level = level;
-        try {
-            await this.notificationService?.checkNotification(log);
-        } catch (error) {
-            log.failNotif = true;
-        }
-        return this.$create(log, ctx);
-    }
-
-    override async $create(newEntity: Log, ctx: CrudContext): Promise<any> {
- 
-        let res = newEntity; 
-        if(newEntity.type?.includes[LogType.CRITICAL, LogType.ERROR, LogType.SECURITY]) {
-            res = await super.$create(newEntity, ctx);
-        }    
-        switch (newEntity.type) {
-            case LogType.CRITICAL:
-            case LogType.ERROR:
-                console.error(newEntity.message);
-                break;
-            case LogType.SECURITY:
-            case LogType.WARNING:
-                console.warn(newEntity.message);
-                break;
-            case LogType.DEBUG:
-                console.debug(newEntity.message);
-                break;
-            default:
-            case LogType.INFO:
-                console.log(newEntity.message);
-                break;
-        }
-        
-        return res;
-    }
-
-
+    return res;
+  }
 }

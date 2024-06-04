@@ -1,4 +1,3 @@
-
 import { SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
@@ -7,10 +6,8 @@ import { CrudContext } from '../crud/model/CrudContext';
 import { CrudCache } from '../config/crud.config.service';
 import { CrudUser } from '../config/model/CrudUser';
 
-
 export const IS_PUBLIC_KEY = 'isPublic';
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
-
 
 export const Context = createParamDecorator(
   (data: unknown, exctx: ExecutionContext) => {
@@ -30,7 +27,7 @@ export class AuthUtils {
   }
 
   //returns the fields of an object
-  static getObjectFields(data: Object, head = null) {
+  static getObjectFields(data: object, head = null) {
     let fields = ['all'];
     if (!data) return fields;
     fields = Object.keys(data).reduce((acc, key) => {
@@ -42,5 +39,4 @@ export class AuthUtils {
     }, []);
     return fields;
   }
-
 }

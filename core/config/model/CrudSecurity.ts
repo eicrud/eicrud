@@ -1,172 +1,176 @@
-import { CrudContext } from "../../crud/model/CrudContext";
-import { AbilityBuilder, createAliasResolver } from "@casl/ability";
+import { CrudContext } from '../../crud/model/CrudContext';
+import { AbilityBuilder, createAliasResolver } from '@casl/ability';
 
 /**
  * Security applied to a cmd.
  */
 export interface CmdSecurity {
-    /**
-    * Min required time between cmd calls (for a specific user)
-    * @type {number}
-    * @public
-    */
-    minTimeBetweenCmdCallMs?: number;
-    /**
-    * Max number of times a user can call the cmd
-    * @type {number}
-    * @public
-    */
-    maxUsesPerUser?: number;
-    /**
-    * Adds (X * user.trust) to {@link maxUsesPerUser} when checking create permissions
-    * @usageNotes
-    * Use when you want to gradually increase the number of uses for trusted users.
-    * @type {number}
-    * @public
-    */
-    additionalUsesPerTrustPoint?: number;
-    /**
-     * If true, cmd can only be called in secure mode (POST)
-     * @usageNotes
-     * Use when you need a non-cached ctx.user inside your cmd.
-     * @type {boolean}
-     */
-    secureOnly?: boolean;
-    /**
-     * DTO class to use for the cmd arguments (ctx.data).
-     * @usageNotes
-     * - Cannot use `class-transformer` decorators in the DTO class.
-     * - Can use `class-validator` & `eicrud` decorators.
-     */
-    dto: { new(): any };
+  /**
+   * Min required time between cmd calls (for a specific user)
+   * @type {number}
+   * @public
+   */
+  minTimeBetweenCmdCallMs?: number;
+  /**
+   * Max number of times a user can call the cmd
+   * @type {number}
+   * @public
+   */
+  maxUsesPerUser?: number;
+  /**
+   * Adds (X * user.trust) to {@link maxUsesPerUser} when checking create permissions
+   * @usageNotes
+   * Use when you want to gradually increase the number of uses for trusted users.
+   * @type {number}
+   * @public
+   */
+  additionalUsesPerTrustPoint?: number;
+  /**
+   * If true, cmd can only be called in secure mode (POST)
+   * @usageNotes
+   * Use when you need a non-cached ctx.user inside your cmd.
+   * @type {boolean}
+   */
+  secureOnly?: boolean;
+  /**
+   * DTO class to use for the cmd arguments (ctx.data).
+   * @usageNotes
+   * - Cannot use `class-transformer` decorators in the DTO class.
+   * - Can use `class-validator` & `eicrud` decorators.
+   */
+  dto: { new (): any };
 
-    /**
-     * Max find limit for non admin users
-     * @usageNotes
-     * Useful for search cmds that returns limited results (ex: search cmd).
-     * @type {number}
-     */
-    nonAdminQueryLimit?: number;
+  /**
+   * Max find limit for non admin users
+   * @usageNotes
+   * Useful for search cmds that returns limited results (ex: search cmd).
+   * @type {number}
+   */
+  nonAdminQueryLimit?: number;
 
-    /**
-     * Max find limit for admin users
-     * @usageNotes
-     * Useful for search cmds that returns limited results (ex: search cmd).
-     * @type {number}
-     */
-    adminQueryLimit?: number;
+  /**
+   * Max find limit for admin users
+   * @usageNotes
+   * Useful for search cmds that returns limited results (ex: search cmd).
+   * @type {number}
+   */
+  adminQueryLimit?: number;
 
-    rolesRights?: Record<string, CmdSecurityRights>;
-
+  rolesRights?: Record<string, CmdSecurityRights>;
 }
 
 export interface CmdSecurityRights {
-    defineCMDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext): Promise<any>;
+  defineCMDAbility?(
+    can: AbilityBuilder<any>['can'],
+    cannot: AbilityBuilder<any>['cannot'],
+    ctx: CrudContext,
+  ): Promise<any>;
 }
 
 /**
  * Security applied to a service
  */
 export class CrudSecurity {
+  /**
+   * Allow guest to read all entities
+   * @usageNotes
+   * Use when all entities in the service are public, increase read performance
+   * @type {boolean}
+   * @public
+   */
+  guest_can_read_all?: boolean;
 
-    /**
-    * Allow guest to read all entities
-    * @usageNotes
-    * Use when all entities in the service are public, increase read performance
-    * @type {boolean}
-    * @public
-    */
-    guest_can_read_all?: boolean;
+  /**
+   * Max number of entities allowed in the db
+   * @type {number}
+   * @public
+   */
+  maxItemsInDb?: number;
 
-    /**
-    * Max number of entities allowed in the db
-    * @type {number}
-    * @public
-    */
-    maxItemsInDb?: number;
+  /**
+   * List of fields that are always excluded from the response
+   * @type {string[]}
+   * @public
+   */
+  alwaysExcludeFields?: string[];
 
-    /**
-    * List of fields that are always excluded from the response
-    * @type {string[]}
-    * @public
-    */
-    alwaysExcludeFields?: string[];
+  /**
+   * Max number of entities a user can create in the db
+   * @type {number}
+   * @public
+   */
+  maxItemsPerUser?: number;
 
-    /**
-    * Max number of entities a user can create in the db
-    * @type {number}
-    * @public
-    */
-    maxItemsPerUser?: number;
+  /**
+   * Adds (X * user.trust) to {@link maxItemsPerUser} when checking create permissions
+   * @usageNotes
+   * Use when you want to gradually increase the number of max entities allowed for trusted users.
+   * @type {number}
+   * @public
+   */
+  additionalItemsInDbPerTrustPoints?: number;
 
-    /**
-    * Adds (X * user.trust) to {@link maxItemsPerUser} when checking create permissions
-    * @usageNotes
-    * Use when you want to gradually increase the number of max entities allowed for trusted users.
-    * @type {number}
-    * @public
-    */
-    additionalItemsInDbPerTrustPoints?: number;
+  /**
+   * Map of {@link CmdSecurity}.
+   * @example
+   * { 'cmd_name': { secureOnly: true, dto: CmdDto } }
+   *
+   * @type {Record<string, CmdSecurity>}
+   * @public
+   */
+  cmdSecurityMap?: Record<string, CmdSecurity> = {};
 
-    /**
-     * Map of {@link CmdSecurity}.
-     * @example
-     * { 'cmd_name': { secureOnly: true, dto: CmdDto } }
-     * 
-     * @type {Record<string, CmdSecurity>}
-     * @public
-     */
-    cmdSecurityMap?: Record<string, CmdSecurity> = {};
-
-
-     /**
-     * Map of {@link CrudSecurityRights}.
-     * @example
-     * { 
-     *   'super_admin': {
-     *       async defineCRUDAbility(can, cannot, ctx) {
-     *          can('crud', 'service_name');
-     *       },
-     *   },
-     * }
-     * @type {Record<string, CrudSecurityRights>}
-     * @public
-     */
-    rolesRights?: Record<string, CrudSecurityRights> = {};
-
+  /**
+   * Map of {@link CrudSecurityRights}.
+   * @example
+   * {
+   *   'super_admin': {
+   *       async defineCRUDAbility(can, cannot, ctx) {
+   *          can('crud', 'service_name');
+   *       },
+   *   },
+   * }
+   * @type {Record<string, CrudSecurityRights>}
+   * @public
+   */
+  rolesRights?: Record<string, CrudSecurityRights> = {};
 }
 
 export const httpAliasResolver = createAliasResolver({
-    create: ['POST'],
-    read: ['GET'],
-    update: ['PATCH'],
-    delete: ['DELETE'],
-    crud: ['POST', 'GET', 'PATCH', 'DELETE'],
-    cru: ['POST', 'GET', 'PATCH'],
-    crd: ['POST', 'GET', 'DELETE'],
-    cud: ['POST', 'PATCH', 'DELETE'],
-    rud: ['GET', 'PATCH', 'DELETE'],
-    cr: ['POST', 'GET'],
-    cu: ['POST', 'PATCH'],
-    cd: ['POST', 'DELETE'],
-    ru: ['GET', 'PATCH'],
-    rd: ['GET', 'DELETE'],
-    ud: [ 'PATCH', 'DELETE'],
+  create: ['POST'],
+  read: ['GET'],
+  update: ['PATCH'],
+  delete: ['DELETE'],
+  crud: ['POST', 'GET', 'PATCH', 'DELETE'],
+  cru: ['POST', 'GET', 'PATCH'],
+  crd: ['POST', 'GET', 'DELETE'],
+  cud: ['POST', 'PATCH', 'DELETE'],
+  rud: ['GET', 'PATCH', 'DELETE'],
+  cr: ['POST', 'GET'],
+  cu: ['POST', 'PATCH'],
+  cd: ['POST', 'DELETE'],
+  ru: ['GET', 'PATCH'],
+  rd: ['GET', 'DELETE'],
+  ud: ['PATCH', 'DELETE'],
 });
- 
+
 /**
  * Security rights for a specific role
  */
 export interface CrudSecurityRights {
+  maxBatchSize?: number;
 
-    maxBatchSize?: number;
-    
-    fields?: string[];
+  fields?: string[];
 
-    defineCRUDAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext): Promise<any>;
-    
-    defineOPTAbility?(can: AbilityBuilder<any>['can'], cannot: AbilityBuilder<any>['cannot'], ctx: CrudContext): Promise<any>;
-    
+  defineCRUDAbility?(
+    can: AbilityBuilder<any>['can'],
+    cannot: AbilityBuilder<any>['cannot'],
+    ctx: CrudContext,
+  ): Promise<any>;
+
+  defineOPTAbility?(
+    can: AbilityBuilder<any>['can'],
+    cannot: AbilityBuilder<any>['cannot'],
+    ctx: CrudContext,
+  ): Promise<any>;
 }
-
-

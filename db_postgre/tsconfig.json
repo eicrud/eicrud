@@ -4,10 +4,8 @@
   "compilerOptions": {
     "paths": {
       "@eicrud/core": ["../core"],
-      "@eicrud/core/*": ["../core/*"],
+      "@eicrud/core/*": ["../core/*"]
     },
     "baseUrl": "."
-
-  },
-
+  }
 }

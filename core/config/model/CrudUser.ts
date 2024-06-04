@@ -1,65 +1,64 @@
-import { CrudEntity } from "../../crud/model/CrudEntity";
+import { CrudEntity } from '../../crud/model/CrudEntity';
 
 // This should be a real class/interface representing a user entity
-
 
 /**
  * User entity base interface.
  * @interface
  * @public
  */
-export interface CrudUser extends CrudEntity{
-    saltRounds: number;
-  
-    email: string;
-    password: string; 
+export interface CrudUser extends CrudEntity {
+  saltRounds: number;
 
-    lastLoginAttempt: Date;
-    failedLoginCount: number;
+  email: string;
+  password: string;
 
-    lastResetEmailSent: Date;
-    
-    role: string;
-  
-    revokedCount: number;
+  lastLoginAttempt: Date;
+  failedLoginCount: number;
 
-    nextEmail: string;
-    verifiedEmail: boolean;
-    emailVerificationToken: string;
-    lastEmailVerificationSent: Date;
-    verifiedEmailAttempCount: number;
+  lastResetEmailSent: Date;
 
-    lastPasswordResetSent: Date;
-    passwordResetToken: string;
-    passwordResetAttempCount: number;
+  role: string;
 
-    crudUserCountMap?: Record<string, number> | string;
-    cmdUserCountMap?: Record<string, number> | string;
-    
-    cmdUserLastUseMap?: Record<string, Date> | string;
+  revokedCount: number;
 
-    errorCount: number;
-    incidentCount: number;
-    highTrafficCount: number;
+  nextEmail: string;
+  verifiedEmail: boolean;
+  emailVerificationToken: string;
+  lastEmailVerificationSent: Date;
+  verifiedEmailAttempCount: number;
 
-    /**
-     * Computed trust score for a user
-     * @type {number}
-     * @public
-     */
-    trust: number;
-    lastComputedTrust: Date;
+  lastPasswordResetSent: Date;
+  passwordResetToken: string;
+  passwordResetAttempCount: number;
 
-    timeout: Date;
-    timeoutCount: number;
+  crudUserCountMap?: Record<string, number> | string;
+  cmdUserCountMap?: Record<string, number> | string;
 
-    didCaptcha: boolean;
-    captchaRequested: boolean;
+  cmdUserLastUseMap?: Record<string, Date> | string;
 
-    twoFA: boolean;
-    lastTwoFACode: string;
-    lastTwoFACodeSent: Date;
-    twoFACodeCount: number;
+  errorCount: number;
+  incidentCount: number;
+  highTrafficCount: number;
 
-    noTokenRefresh?: boolean;
-  };
+  /**
+   * Computed trust score for a user
+   * @type {number}
+   * @public
+   */
+  trust: number;
+  lastComputedTrust: Date;
+
+  timeout: Date;
+  timeoutCount: number;
+
+  didCaptcha: boolean;
+  captchaRequested: boolean;
+
+  twoFA: boolean;
+  lastTwoFACode: string;
+  lastTwoFACodeSent: Date;
+  twoFACodeCount: number;
+
+  noTokenRefresh?: boolean;
+}

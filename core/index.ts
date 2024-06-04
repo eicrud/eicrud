@@ -1,1 +1,1 @@
-export * from "./eicrud.module"
+export * from './eicrud.module';

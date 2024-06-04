@@ -5,11 +5,11 @@ on:
   push:
     branches: ['develop']
   paths:
-      - 'client/**'
-      - 'core/**'
-      - 'shared/**'
-      - 'test/**'
-      - 'db_*/**'
+    - 'client/**'
+    - 'core/**'
+    - 'shared/**'
+    - 'test/**'
+    - 'db_*/**'
 
 jobs:
   test:
@@ -32,7 +32,7 @@ jobs:
         run: npm run test:postgre
 
       - name: Microservices tests
-        run: npm run start:test-ms 
-        
+        run: npm run start:test-ms
+
       - name: Microservices proxy tests
         run: npm run start:test-ms:proxy
