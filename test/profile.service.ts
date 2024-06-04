@@ -52,13 +52,8 @@ const myProfileSecurity = (USER_PROFILE) => {
     cmdSecurityMap: {
       search: {
         dto: SearchCmdDto,
-        rolesRights: {
-          guest: {
-            async defineCMDAbility(can, cannot, ctx) {
-              can('search', USER_PROFILE);
-            },
-          },
-        },
+        rolesRights: {},
+        guestCanUseAll: true,
       },
       testCmd: {
         maxUsesPerUser: 10,
