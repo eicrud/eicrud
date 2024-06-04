@@ -35,6 +35,8 @@
 
 [ ] test account & emails (user service methods)
 
+[ ] 2fa tests
+
 [x] cli generate cmds
 
 [x] move defineCMDAbility

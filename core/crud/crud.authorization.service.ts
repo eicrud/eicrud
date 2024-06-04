@@ -26,10 +26,7 @@ import { ModuleRef } from '@nestjs/core';
 import { defineAbility, subject } from '@casl/ability';
 
 import { _utils } from '../utils';
-import {
-  CrudErrors,
-  MAX_BATCH_SIZE_EXCEEDED_DTO,
-} from '@eicrud/shared/CrudErrors';
+import { CrudErrors, MaxBatchSizeExceededDto } from '@eicrud/shared/CrudErrors';
 
 const SKIPPABLE_OPTIONS = [
   'limit',
@@ -106,7 +103,7 @@ export class CrudAuthorizationService {
     );
 
     if (batchSize > maxBatchSize) {
-      const msg: MAX_BATCH_SIZE_EXCEEDED_DTO = { maxBatchSize, batchSize };
+      const msg: MaxBatchSizeExceededDto = { maxBatchSize, batchSize };
       if (ctx.origin == 'cmd' && (security as CmdSecurity).batchField) {
         msg.field = (security as CmdSecurity).batchField;
       }

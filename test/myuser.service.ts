@@ -40,6 +40,18 @@ const cmdSecurityMap: Record<string, CmdSecurity> = {
       },
     },
   },
+  [baseCmds.logoutEverywhere.name]: {
+    dto: baseCmds.logoutEverywhere.dto,
+    rolesRights: {
+      user: {
+        async defineCMDAbility(can, cannot, ctx) {
+          can(baseCmds.logoutEverywhere.name, 'my-user', {
+            userId: ctx.userId,
+          });
+        },
+      },
+    },
+  },
   ...[
     baseCmds.sendVerificationEmail,
     baseCmds.verifyEmail,
