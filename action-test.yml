@@ -1,15 +1,16 @@
 name: ci
 on:
-  pull_request:
-    branches: ['develop']
-  push:
-    branches: ['develop']
-  paths:
-    - 'client/**'
-    - 'core/**'
-    - 'shared/**'
-    - 'test/**'
-    - 'db_*/**'
+  workflow_dispatch: 
+  # pull_request:
+  #   branches: ['develop']
+  # push:
+  #   branches: ['develop']
+  # paths:
+  #   - 'client/**'
+  #   - 'core/**'
+  #   - 'shared/**'
+  #   - 'test/**'
+  #   - 'db_*/**'
 
 jobs:
   test:

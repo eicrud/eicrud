@@ -33,10 +33,10 @@
 
 [ ] test maxItemsInDb
 
-[ ] test account & emails
+[ ] test account & emails (user service methods)
 
 [x] cli generate cmds
 
 [x] move defineCMDAbility
 
-[ ] change controller route (:service) & proxy request
+[x] change controller route (:service) & proxy request
