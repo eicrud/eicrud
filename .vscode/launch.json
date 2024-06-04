@@ -18,6 +18,13 @@
     {
       "type": "node-terminal",
       "request": "launch",
+      "name": "npm run test recipes",
+      "command": "npm run test recipes."
+    },
+
+    {
+      "type": "node-terminal",
+      "request": "launch",
       "name": "npm run test populate",
       "command": "npm run test populate"
     },

@@ -317,7 +317,7 @@ export class CrudClient<T> {
     options: ICrudOptions,
     secure: boolean,
     limited: boolean,
-    copts: ClientOptions,
+    copts: ClientOptions = {},
   ): Promise<any> {
     const crudQuery: ICrudQuery = {
       options: options,
@@ -329,7 +329,7 @@ export class CrudClient<T> {
       '/cmd/' +
       cmdName;
 
-    const method = secure ? axios.post : axios.get;
+    const method = secure ? axios.post : axios.patch;
 
     const mapped = this.config.cmdDefaultBatchMap?.[cmdName];
     copts.batchField = copts.batchField || mapped?.batchField;
@@ -655,12 +655,15 @@ export class CrudClient<T> {
 
   private _detectMatchBatchSize(e, copts: ClientOptions) {
     if (e.response && e.response.status == 400) {
-      const parsedMessage = JSON.parse(e.response.data);
+      let parsedMessage = e.response.data?.message;
+      if (typeof parsedMessage == 'string') {
+        parsedMessage = JSON.parse(parsedMessage);
+      }
       if (
         [
           CrudErrors.MAX_BATCH_SIZE_EXCEEDED.code,
           CrudErrors.IN_REQUIRED_LENGTH.code,
-        ].includes(parsedMessage.code)
+        ].includes(parsedMessage?.code)
       ) {
         const maxBatchSize = parsedMessage.data?.maxBatchSize;
         if (
@@ -787,7 +790,7 @@ export class CrudClient<T> {
     dto: any,
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
-  ): Promise<any> {
+  ): Promise<FindResponseDto<T>> {
     return await this._doCmd(cmdName, dto, options, false, true, copts);
   }
 
@@ -805,7 +808,7 @@ export class CrudClient<T> {
     dto: any,
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
-  ): Promise<any> {
+  ): Promise<FindResponseDto<T>> {
     return await this._doCmd(cmdName, dto, options, true, true, copts);
   }
 }
