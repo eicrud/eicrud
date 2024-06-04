@@ -35,6 +35,7 @@ import {
   IResetPasswordDto,
   ISendPasswordResetEmailDto,
   ISendVerificationEmailDto,
+  IUserIdDto,
   IVerifyTokenDto,
   LoginResponseDto,
 } from '../../shared/interfaces';
@@ -108,6 +109,11 @@ describe('AppController', () => {
     },
     'Changemy Email': {
       email: 'Changemy.Email@test.com',
+      role: 'user',
+      bio: 'My bio.',
+    },
+    'Logme Out': {
+      email: 'Logme.Out@test.com',
       role: 'user',
       bio: 'My bio.',
     },
@@ -752,5 +758,65 @@ describe('AppController', () => {
     );
     expect(currentUser2.verifiedEmail).toBeTruthy();
     expect(currentUser2.email).toBe('changed@email.com');
-  }, 7000);
+  });
+
+  it('should logout_everywhere', async () => {
+    const user = users['Logme Out'];
+    user.email = user.email.toLocaleLowerCase();
+    const payload: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password,
+    };
+    const query = {};
+
+    let jwt = null;
+
+    const res0: LoginResponseDto = await testMethod({
+      url: '/crud/auth',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    jwt = res0.accessToken;
+
+    // password reset should allow login even if rate limited
+    const resetPassEmailDto: IUserIdDto = {
+      userId: user.id,
+    };
+
+    const resetPassQuery: CrudQuery = {
+      service: 'my-user',
+      cmd: 'logout_everywhere',
+    };
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload: resetPassEmailDto,
+      query: resetPassQuery,
+      crudConfig,
+    });
+
+    resetPassQuery.cmd = 'verify_email';
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 401,
+      app,
+      jwt,
+      entityManager,
+      payload: {},
+      query: resetPassQuery,
+      crudConfig,
+    });
+  });
 });
