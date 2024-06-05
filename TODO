@@ -42,3 +42,5 @@
 [x] move defineCMDAbility
 
 [x] change controller route (:service) & proxy request
+
+[ ] third party auth client part

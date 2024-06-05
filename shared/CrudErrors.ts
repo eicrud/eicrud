@@ -28,7 +28,7 @@ export class CrudErrors {
     3,
   );
   static readonly TOKEN_MISMATCH = new CrudError(
-    'Token revokedCount mismatch',
+    'Token rvkd count mismatch',
     4,
   );
   static readonly INVALID_CREDENTIALS = new CrudError('Invalid credentials', 5);

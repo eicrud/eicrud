@@ -8,7 +8,7 @@ export class AuthenticationOptions {
   twoFaEmailTimeoutMinutes = 15;
   passwordResetEmailTimeoutHours = 6;
   passwordMaxLength = 64;
-  jwtFieldInPayload = ['revokedCount'];
+  userFieldsInJwtPayload = ['rvkd'];
   fieldsThatResetRevokedCount = ['password', 'email'];
   username_field = 'email';
   renewJwt = false;
