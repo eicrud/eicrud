@@ -291,23 +291,28 @@ export class CrudAuthorizationService {
     security: CrudSecurity,
     result: SecurityResult = { checkedRoles: {}, authorized: false },
   ): Promise<SecurityResult> {
-    const roleRights = security.rolesRights[role.name];
+    let roleRights: CrudSecurityRights | CmdSecurityRights;
+    let defineMethod;
     let currentResult: RoleResult = null;
+    if (ctx.origin == 'crud') {
+      roleRights = security.rolesRights[role.name];
+      defineMethod = (roleRights as CrudSecurityRights)?.defineCRUDAbility;
+    } else {
+      roleRights =
+        security.cmdSecurityMap?.[ctx.cmdName]?.rolesRights?.[role.name];
+      defineMethod = (roleRights as CmdSecurityRights)?.defineCMDAbility;
+    }
     if (!roleRights) {
       if (!this.crudConfig.rolesMap[role.name]) {
         console.warn(`Unknown role: ${role.name}.`);
+        currentResult = { problemField: 'unknown role' };
+      } else {
+        currentResult = { problemField: 'all' };
       }
-      currentResult = { problemField: 'all' };
     } else {
       const userAbilities = await defineAbility(
         async (can, cannot) => {
-          if (ctx.origin == 'crud') {
-            await roleRights.defineCRUDAbility?.(can, cannot, ctx);
-          } else {
-            const cmdRights =
-              security.cmdSecurityMap?.[ctx.cmdName]?.rolesRights?.[role.name];
-            await cmdRights?.defineCMDAbility?.(can, cannot, ctx);
-          }
+          await defineMethod?.(can, cannot, ctx);
         },
         { resolveAction: httpAliasResolver },
       );

@@ -43,6 +43,12 @@ export interface ICreateAccountDto {
   password: string;
   role: string;
 }
+
+export interface ITimeoutUserDto {
+  userId: string;
+  timeoutDurationMinutes: number;
+  allowedRoles: string[];
+}
 export interface IChangePasswordDto {
   oldPassword: string;
   newPassword: string;

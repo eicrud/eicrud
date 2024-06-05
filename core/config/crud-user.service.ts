@@ -19,6 +19,7 @@ import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { CrudAuthService } from '../authentication/auth.service';
 import {
   IsEmail,
+  IsInt,
   IsOptional,
   IsString,
   MaxLength,
@@ -35,6 +36,7 @@ import {
   ICreateAccountDto,
   ISendVerificationEmailDto,
   IVerifyTokenDto,
+  ITimeoutUserDto,
 } from '@eicrud/shared/interfaces';
 import * as bcrypt from 'bcrypt';
 import { CrudRole } from './model/CrudRole';
@@ -63,6 +65,17 @@ export class ResetPasswordDto implements IResetPasswordDto {
 
   @IsString()
   expiresIn: string;
+}
+
+export class TimeoutUserDto implements ITimeoutUserDto {
+  @IsString()
+  userId: string;
+
+  @IsInt()
+  timeoutDurationMinutes: number;
+
+  @IsString({ each: true })
+  allowedRoles: string[];
 }
 export class ChangePasswordDto implements IChangePasswordDto {
   @IsString()
@@ -109,6 +122,10 @@ export const baseCmds = {
     name: 'check_jwt',
     dto: EmptyDto,
     nonSecure: true,
+  },
+  timeoutUser: {
+    name: 'timeout_user',
+    dto: TimeoutUserDto,
   },
   sendVerificationEmail: {
     name: 'send_verification_email',
@@ -240,8 +257,20 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     );
   }
 
-  async timeoutUser(user: CrudUser, timeoutDurationMinutes: number) {
-    this.addTimeoutToUser(user, timeoutDurationMinutes);
+  async $timeout_user(dto: TimeoutUserDto, ctx: CrudContext) {
+    const user = await this.$findOne(
+      { [this.crudConfig.id_field]: dto.userId } as any,
+      ctx,
+    );
+    if (!user) {
+      throw new BadRequestException('User not found.');
+    }
+    if (dto.allowedRoles && !dto.allowedRoles.includes(user.role)) {
+      throw new UnauthorizedException(
+        'Not allowed to timeout user of role ' + user.role,
+      );
+    }
+    this.addTimeoutToUser(user, dto.timeoutDurationMinutes);
     const patch: any = {
       timeout: user.timeout,
       timeoutCount: user.timeoutCount,

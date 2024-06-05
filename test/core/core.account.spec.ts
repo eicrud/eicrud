@@ -35,6 +35,7 @@ import {
   IResetPasswordDto,
   ISendPasswordResetEmailDto,
   ISendVerificationEmailDto,
+  ITimeoutUserDto,
   IUserIdDto,
   IVerifyTokenDto,
   LoginResponseDto,
@@ -42,6 +43,7 @@ import {
 import { FakeEmail } from '../entities/FakeEmail';
 import { MyEmailService } from '../myemail.service';
 import { CrudUser } from '@eicrud/core/config';
+import { CrudErrors } from '../../shared/CrudErrors';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -114,6 +116,16 @@ describe('AppController', () => {
     },
     'Logme Out': {
       email: 'Logme.Out@test.com',
+      role: 'user',
+      bio: 'My bio.',
+    },
+    'Moderator Joe': {
+      email: 'Moderator.Joe@test.com',
+      role: 'moderator',
+      bio: 'My bio.',
+    },
+    'Time Meout': {
+      email: 'Time.Meout@test.com',
       role: 'user',
       bio: 'My bio.',
     },
@@ -819,4 +831,117 @@ describe('AppController', () => {
       crudConfig,
     });
   });
+
+  it(
+    'should timeout_user',
+    async () => {
+      const userToTimeOut = users['Time Meout'];
+      userToTimeOut.email = userToTimeOut.email.toLocaleLowerCase();
+      const loginPayload: LoginDto = {
+        email: userToTimeOut.email,
+        password: testAdminCreds.password,
+      };
+      const query = {};
+
+      let jwt = null;
+
+      await testMethod({
+        url: '/crud/auth',
+        method: 'POST',
+        expectedCode: 201,
+        app,
+        jwt,
+        entityManager,
+        payload: loginPayload,
+        query,
+        crudConfig,
+      });
+
+      const moderator = users['Moderator Joe'];
+      moderator.email = moderator.email.toLocaleLowerCase();
+      loginPayload.email = moderator.email;
+
+      const res0: LoginResponseDto = await testMethod({
+        url: '/crud/auth',
+        method: 'POST',
+        expectedCode: 201,
+        app,
+        jwt,
+        entityManager,
+        payload: loginPayload,
+        query,
+        crudConfig,
+      });
+
+      jwt = res0.accessToken;
+
+      // password reset should allow login even if rate limited
+      const timeoutUserDto: ITimeoutUserDto = {
+        userId: userToTimeOut.id,
+        timeoutDurationMinutes: 10,
+        allowedRoles: undefined,
+      };
+
+      const timeoutUserQuery: CrudQuery = {
+        service: 'my-user',
+        cmd: 'timeout_user',
+      };
+      await testMethod({
+        url: '/crud/cmd',
+        method: 'POST',
+        expectedCode: 403,
+        app,
+        jwt,
+        entityManager,
+        payload: timeoutUserDto,
+        query: timeoutUserQuery,
+        crudConfig,
+      });
+
+      timeoutUserDto.allowedRoles = ['user'];
+      await testMethod({
+        url: '/crud/cmd',
+        method: 'POST',
+        expectedCode: 201,
+        app,
+        jwt,
+        entityManager,
+        payload: timeoutUserDto,
+        query: timeoutUserQuery,
+        crudConfig,
+      });
+
+      //wait 600ms
+      await new Promise((r) => setTimeout(r, 600));
+
+      loginPayload.email = userToTimeOut.email;
+      await testMethod({
+        url: '/crud/auth',
+        method: 'POST',
+        expectedCode: 401,
+        expectedCrudCode: CrudErrors.TIMED_OUT.code,
+        app,
+        jwt: null,
+        entityManager,
+        payload: loginPayload,
+        query,
+        crudConfig,
+      });
+
+      timeoutUserDto.allowedRoles = ['super_admin', 'user'];
+      timeoutUserDto.userId = users['Michael Doe'].id;
+      await testMethod({
+        url: '/crud/cmd',
+        method: 'POST',
+        expectedCode: 403,
+        app,
+        jwt,
+        entityManager,
+        payload: timeoutUserDto,
+        query: timeoutUserQuery,
+        crudConfig,
+      });
+    },
+    6000 * 100,
+  );
 });
