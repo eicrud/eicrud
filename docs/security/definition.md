@@ -42,8 +42,8 @@ moderator: {
   async defineCRUDAbility(can, cannot, ctx) {
     can('update', 'profile', ['bio']); // can update all profiles, but only their bio
     
-    can('create', 'ticket'); // can create any ticket
-    cannot('create', 'ticket', ['priority']) // but not with priority specified
+    can('create', 'profile'); // can create any profile
+    cannot('create', 'profile', ['priority']) // but not with priority specified
   }
 }
 ```
@@ -191,7 +191,7 @@ However, doing so may increase your operations' response time **significantly**.
 
 
 ## Comparing arrays
-[CASL's array comparison operators](https://casl.js.org/v6/en/guide/conditions-in-depth#supported-operators){:target="_blank"} can be misleading in Eicrud's context (checks for **intersection**, not inclusion/exclusion). You can verify arrays using JS functions when in doubt.
+[CASL's array comparison operators](https://casl.js.org/v6/en/guide/conditions-in-depth#supported-operators){:target="_blank"} can be misleading in Eicrud's context (it checks for **intersection**, not inclusion/exclusion). You can verify arrays using JS functions when in doubt.
 ```typescript
 moderator: {
   async defineCRUDAbility(can, cannot, ctx) {

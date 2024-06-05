@@ -40,7 +40,7 @@ export class LinkGoogleAccountDto {
 }
 ```
 
-Then, let's allow guests to use the `linkGoogleAccount` command in the security.
+Then, let's allow guests to use the `link_google_account` command in the security.
 ```typescript title="link_google_account.security.ts"
 const getCmdSecurity = (link_google_account, profile): CmdSecurity => { 
     return {
@@ -57,7 +57,7 @@ const getCmdSecurity = (link_google_account, profile): CmdSecurity => {
 }
 ```
 
-You can now use your authentication provider's SDK to validate the received token and obtain the user unique ID.
+You can now use your authentication provider's SDK to validate the received token and obtain the user's unique ID.
 
 ```typescript title="link_google_account.action.ts"
 import { UnauthorizedException } from '@nestjs/common';
@@ -105,7 +105,7 @@ const { userId, accessToken } = await userClient.cmd('link_google_account', dto)
 userClient.setJwt(accessToken, 15); // expires in 15 days
 ```
 !!! note
-    The [client](../client/setup.md)->`setJwt` method stores the provided token in storage to be used with every client request.
+    The [client](../client/setup.md)->`setJwt` method stores the provided token so that it can be used with every client request.
 
 ## Disable regular login
 
