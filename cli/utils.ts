@@ -11,6 +11,28 @@ export class _utils_cli {
     return content;
   }
 
+  static writeImportsAndReplacesToFile(importLines, replaces, file, fs) {
+    let content = fs.readFileSync(file, 'utf8');
+
+    importLines.forEach((importLine) => {
+      content = importLine + '\n' + content;
+    });
+
+    for (let replace of replaces) {
+      content = _utils_cli.addNewLineToMatched(
+        content,
+        replace.regex,
+        replace.getReplaceString,
+        replace.error,
+      );
+    }
+
+    //write content
+    fs.writeFileSync(file, content);
+
+    console.log('UPDATED:', file);
+  }
+
   static addSecurityToCmdIndex(
     fs,
     path,

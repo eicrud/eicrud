@@ -29,6 +29,10 @@ program
   .argument('<serviceName>')
   .argument('[cmdName]')
   .option('-n, --non-crud', 'will not create a DB table for this service')
+  .option(
+    '-ms, --ms <string>',
+    'a subfolder for the service to be created/modified in',
+  )
   .action(function () {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -40,6 +44,11 @@ program
   .description('Setup new project (adapt an existing nestjs application)')
   .argument('<type>', 'mongo | postgre')
   .argument('<name>', 'project name (will be used for db)')
-  .action(Setup.action);
+  .option('-si, --skip-install', 'will not run npm install after setup')
+  .action(function () {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    return Setup.action.apply(this, this.args);
+  });
 
 program.parse(process.argv);

@@ -1,6 +1,6 @@
 {
   "name": "@eicrud/cli",
-  "version": "0.0.37",
+  "version": "0.0.38",
   "description": "cli for @eicrud framework",
   "author": "acrosett",
   "license": "UNLICENSED",
@@ -17,9 +17,8 @@
     "del-cli": "^5.1.0"
   },
   "dependencies": {
-    "commander": "^12.0.0"
-  },
-  "peerDependencies": {
+    "commander": "^12.0.0",
     "@eicrud/shared": "^0.1.4"
   }
+
 }
