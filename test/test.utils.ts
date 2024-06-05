@@ -5,6 +5,9 @@ import { Melon } from './entities/Melon';
 import { CrudConfigService } from '../core/config/crud.config.service';
 import { CrudUserService } from '../core/config/crud-user.service';
 import { CrudUser } from '../core/config/model/CrudUser';
+import { Picture } from './entities/Picture';
+import { DragonFruit } from './entities/Dragonfruit';
+import { create } from 'domain';
 
 export interface TestUser {
   email: string;
@@ -17,6 +20,8 @@ export interface TestUser {
   skipProfile?: boolean;
   store?: any;
   melons?: number;
+  dragonfruits?: number;
+  pictures?: number;
   favoriteColor?: string;
   password?: string;
   lowercaseTrimmedField?: string;
@@ -199,6 +204,43 @@ export function createMelons(
   return payloadArray;
 }
 
+export function createDragonFruits(
+  NB_DF,
+  owner: TestUser,
+  crudConfig: CrudConfigService,
+) {
+  const payloadArray = [];
+  for (let i = 0; i < NB_DF; i++) {
+    const newMelon: Partial<DragonFruit> = {
+      name: `DragonFruit ${i}`,
+      owner: owner[crudConfig.id_field],
+      ownerEmail: owner.email,
+      secretCode: `secret${i}`,
+    };
+    payloadArray.push(newMelon);
+  }
+  return payloadArray;
+}
+
+export function createPictures(
+  NB_PICTURES,
+  owner: TestUser,
+  crudConfig: CrudConfigService,
+) {
+  const payloadArray = [];
+  for (let i = 0; i < NB_PICTURES; i++) {
+    const newPic: Partial<Picture> = {
+      profile: owner.profileId,
+      width: i,
+      height: i,
+      src: `https://example.com/${i}`,
+      alt: `Alt ${i}`,
+    };
+    payloadArray.push(newPic);
+  }
+  return payloadArray;
+}
+
 export async function createAccountsAndProfiles(
   users: Record<string, TestUser>,
   userService: CrudUserService<CrudUser>,
@@ -252,19 +294,51 @@ export async function createAccountsAndProfiles(
         } else {
           config.usersWithoutProfiles?.push(users[key][crudConfig.id_field]);
         }
-        if (user.melons) {
-          const melons = createMelons(user.melons, user, crudConfig);
-          for (const melon of melons) {
-            melon.id = userService.dbAdapter.createNewId() as any;
-            melon.createdAt = new Date();
-            melon.updatedAt = new Date();
-            const newMelon = em.create(Melon, melon);
-            em.persist(newMelon);
-          }
-        }
+
+        createEntities(
+          em,
+          user,
+          user.melons,
+          Melon,
+          createMelons,
+          crudConfig,
+          userService,
+        );
+        createEntities(
+          em,
+          user,
+          user.dragonfruits,
+          DragonFruit,
+          createDragonFruits,
+          crudConfig,
+          userService,
+        );
+        createEntities(
+          em,
+          user,
+          user.pictures,
+          Picture,
+          createPictures,
+          crudConfig,
+          userService,
+        );
+
         await em.flush();
       });
     promises.push(prom);
   }
   await Promise.all(promises);
+}
+
+function createEntities(em, user, nb, Entity, method, crudConfig, userService) {
+  if (nb) {
+    const entities = method(nb, user, crudConfig);
+    for (const entity of entities) {
+      entity.id = userService.dbAdapter.createNewId() as any;
+      entity.createdAt = new Date();
+      entity.updatedAt = new Date();
+      const newEntity = em.create(Entity, entity);
+      em.persist(newEntity);
+    }
+  }
 }

@@ -32,6 +32,8 @@ import {
 } from '../../core/config/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
+import { Picture } from '../entities/Picture';
+import { CrudErrors } from '../../shared/CrudErrors';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -66,6 +68,12 @@ describe('AppController', () => {
       role: 'admin',
       bio: 'I am a sys admin.',
       profileType: 'admin',
+      pictures: 10,
+    },
+    'Super Admin Dude': {
+      email: 'superadmin.dude@mail.com',
+      role: 'super_admin',
+      bio: 'I am a super sys admin.',
     },
   };
 
@@ -498,4 +506,33 @@ describe('AppController', () => {
 
     expect(res2.data.length).toBe(0);
   });
+
+  it('should limit maximum number of items in DB', async () => {
+    const user = users['Super Admin Dude'];
+
+    const payload: Partial<Picture> = {
+      src: 'https://www.google.com',
+      width: 100,
+      height: 100,
+      alt: 'A picture',
+      profile: user.profileId,
+    };
+
+    const query: CrudQuery = {
+      service: 'picture',
+    };
+
+    await testMethod({
+      url: '/crud/one',
+      method: 'POST',
+      expectedCode: 507,
+      expectedCrudCode: CrudErrors.MAX_ITEMS_IN_DB.code,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+  }, 7000);
 });

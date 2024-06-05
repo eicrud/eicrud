@@ -919,118 +919,114 @@ describe('AppController', () => {
     });
   });
 
-  it(
-    'should timeout_user',
-    async () => {
-      const userToTimeOut = users['Time Meout'];
-      userToTimeOut.email = userToTimeOut.email.toLocaleLowerCase();
-      const loginPayload: LoginDto = {
-        email: userToTimeOut.email,
-        password: testAdminCreds.password,
-      };
-      const query = {};
+  it('should timeout_user', async () => {
+    const userToTimeOut = users['Time Meout'];
+    userToTimeOut.email = userToTimeOut.email.toLocaleLowerCase();
+    const loginPayload: LoginDto = {
+      email: userToTimeOut.email,
+      password: testAdminCreds.password,
+    };
+    const query = {};
 
-      let jwt = null;
+    let jwt = null;
 
-      await testMethod({
-        url: '/crud/auth',
-        method: 'POST',
-        expectedCode: 201,
-        app,
-        jwt,
-        entityManager,
-        payload: loginPayload,
-        query,
-        crudConfig,
-      });
+    await testMethod({
+      url: '/crud/auth',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload: loginPayload,
+      query,
+      crudConfig,
+    });
 
-      const moderator = users['Moderator Joe'];
-      moderator.email = moderator.email.toLocaleLowerCase();
-      loginPayload.email = moderator.email;
+    const moderator = users['Moderator Joe'];
+    moderator.email = moderator.email.toLocaleLowerCase();
+    loginPayload.email = moderator.email;
 
-      const res0: LoginResponseDto = await testMethod({
-        url: '/crud/auth',
-        method: 'POST',
-        expectedCode: 201,
-        app,
-        jwt,
-        entityManager,
-        payload: loginPayload,
-        query,
-        crudConfig,
-      });
+    const res0: LoginResponseDto = await testMethod({
+      url: '/crud/auth',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload: loginPayload,
+      query,
+      crudConfig,
+    });
 
-      jwt = res0.accessToken;
+    jwt = res0.accessToken;
 
-      // password reset should allow login even if rate limited
-      const timeoutUserDto: ITimeoutUserDto = {
-        userId: userToTimeOut.id,
-        timeoutDurationMinutes: 10,
-        allowedRoles: undefined,
-      };
+    // password reset should allow login even if rate limited
+    const timeoutUserDto: ITimeoutUserDto = {
+      userId: userToTimeOut.id,
+      timeoutDurationMinutes: 10,
+      allowedRoles: undefined,
+    };
 
-      const timeoutUserQuery: CrudQuery = {
-        service: 'my-user',
-        cmd: 'timeout_user',
-      };
-      await testMethod({
-        url: '/crud/cmd',
-        method: 'POST',
-        expectedCode: 403,
-        app,
-        jwt,
-        entityManager,
-        payload: timeoutUserDto,
-        query: timeoutUserQuery,
-        crudConfig,
-      });
+    const timeoutUserQuery: CrudQuery = {
+      service: 'my-user',
+      cmd: 'timeout_user',
+    };
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 403,
+      app,
+      jwt,
+      entityManager,
+      payload: timeoutUserDto,
+      query: timeoutUserQuery,
+      crudConfig,
+    });
 
-      timeoutUserDto.allowedRoles = ['user'];
-      await testMethod({
-        url: '/crud/cmd',
-        method: 'POST',
-        expectedCode: 201,
-        app,
-        jwt,
-        entityManager,
-        payload: timeoutUserDto,
-        query: timeoutUserQuery,
-        crudConfig,
-      });
+    timeoutUserDto.allowedRoles = ['user'];
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload: timeoutUserDto,
+      query: timeoutUserQuery,
+      crudConfig,
+    });
 
-      //wait 600ms
-      await new Promise((r) => setTimeout(r, 600));
+    //wait 600ms
+    await new Promise((r) => setTimeout(r, 600));
 
-      loginPayload.email = userToTimeOut.email;
-      await testMethod({
-        url: '/crud/auth',
-        method: 'POST',
-        expectedCode: 401,
-        expectedCrudCode: CrudErrors.TIMED_OUT.code,
-        app,
-        jwt: null,
-        entityManager,
-        payload: loginPayload,
-        query,
-        crudConfig,
-      });
+    loginPayload.email = userToTimeOut.email;
+    await testMethod({
+      url: '/crud/auth',
+      method: 'POST',
+      expectedCode: 401,
+      expectedCrudCode: CrudErrors.TIMED_OUT.code,
+      app,
+      jwt: null,
+      entityManager,
+      payload: loginPayload,
+      query,
+      crudConfig,
+    });
 
-      timeoutUserDto.allowedRoles = ['super_admin', 'user'];
-      timeoutUserDto.userId = users['Michael Doe'].id;
-      await testMethod({
-        url: '/crud/cmd',
-        method: 'POST',
-        expectedCode: 403,
-        app,
-        jwt,
-        entityManager,
-        payload: timeoutUserDto,
-        query: timeoutUserQuery,
-        crudConfig,
-      });
-    },
-    6000 * 100,
-  );
+    timeoutUserDto.allowedRoles = ['super_admin', 'user'];
+    timeoutUserDto.userId = users['Michael Doe'].id;
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 403,
+      app,
+      jwt,
+      entityManager,
+      payload: timeoutUserDto,
+      query: timeoutUserQuery,
+      crudConfig,
+    });
+  }, 6000);
 
   it('should log with 2fa', async () => {
     const user = users['2Fa Dude'];

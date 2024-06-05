@@ -1,4 +1,8 @@
-import { BadRequestException, HttpException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudSecurity } from '../config/model/CrudSecurity';
 import { CrudContext } from './model/CrudContext';
@@ -28,6 +32,7 @@ import {
 } from '../crud/model/dtos';
 import { EntityClass, EntityManager, wrap } from '@mikro-orm/core';
 import { CrudOptions } from '.';
+import { CrudErrors } from '@eicrud/shared/CrudErrors';
 
 const NAMES_REGEX = /([^\s,]+)/g;
 const COMMENTS_REGEX = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm;
@@ -596,8 +601,15 @@ export class CrudService<T extends CrudEntity> {
   async checkItemDbCount(em: EntityManager, ctx: CrudContext) {
     if (this.security.maxItemsInDb) {
       const count = await em.count(this.entity);
-      if (count > this.security.maxItemsInDb) {
-        throw new Error('Too many items in DB.');
+      if (count >= this.security.maxItemsInDb) {
+        throw new HttpException(
+          {
+            statusCode: 507,
+            error: 'Insufficient Storage',
+            message: CrudErrors.MAX_ITEMS_IN_DB.str(),
+          },
+          507,
+        );
       }
     }
   }
