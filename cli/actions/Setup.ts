@@ -221,11 +221,9 @@ export class Setup {
     fs.writeFileSync(mainFile, mainFileContent);
     console.log('UPDATED:', mainFile);
 
-    if (!opts.skipInstall) {
-      child_process.execSync('npm install ' + packages.join(' '), {
-        stdio: 'inherit',
-      });
-    }
+    child_process.execSync('npm install ' + packages.join(' '), {
+      stdio: 'inherit',
+    });
 
     return null;
   }

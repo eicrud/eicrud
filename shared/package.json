@@ -1,12 +1,16 @@
 {
   "name": "@eicrud/shared",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "shared interfaces between @eicrud packages",
   "author": "acrosett",
   "license": "UNLICENSED",
-  "dependencies": {},
   "scripts": {
-    "compile": "rimraf dist && tsc",
-    "publish:package": "npm run compile && npm publish"
+    "compile": "npm run clean && tsc",
+    "publish:package": "npm i && npm run compile && npm publish",
+    "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "del-cli": "^5.1.0"
   }
 }

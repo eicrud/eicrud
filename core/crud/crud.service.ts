@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  HttpException,
-  Inject,
-  Injectable,
-  forwardRef,
-} from '@nestjs/common';
+import { BadRequestException, HttpException } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudSecurity } from '../config/model/CrudSecurity';
 import { CrudContext } from './model/CrudContext';
@@ -19,7 +13,6 @@ import {
   CrudCache,
 } from '../config/crud.config.service';
 import { ModuleRef } from '@nestjs/core';
-import { ObjectId } from '@mikro-orm/mongodb';
 import { CrudTransformer } from '../validation/CrudTransformer';
 import { BackdoorQuery } from '../crud/model/CrudQuery';
 import axios from 'axios';
@@ -33,14 +26,7 @@ import {
   ICrudRightsFieldInfo,
   ICrudRightsInfo,
 } from '../crud/model/dtos';
-import { IsBoolean, IsOptional } from 'class-validator';
-import {
-  BaseEntity,
-  EntityClass,
-  EntityManager,
-  EntityName,
-  wrap,
-} from '@mikro-orm/core';
+import { EntityClass, EntityManager, wrap } from '@mikro-orm/core';
 import { CrudOptions } from '.';
 
 const NAMES_REGEX = /([^\s,]+)/g;
@@ -667,28 +653,6 @@ export class CrudService<T extends CrudEntity> {
     for (let key in obj || {}) {
       obj[key] = this.dbAdapter.checkId(obj[key]);
     }
-  }
-
-  convertMongoPrimaryKey(key) {
-    if (key && typeof key == 'string') {
-      return new ObjectId(key as string);
-    }
-    return key;
-  }
-
-  checkMongoId(id: any) {
-    if (
-      typeof id == 'string' &&
-      id.length === 24 &&
-      id.match(/^[0-9a-fA-F]{24}$/)
-    ) {
-      let oldValue = id;
-      const newValue = new ObjectId(id as string);
-      if (newValue.toString() === oldValue) {
-        return newValue;
-      }
-    }
-    return id;
   }
 
   async $getRights(dto: GetRightDto, ctx: CrudContext) {

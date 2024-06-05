@@ -44,7 +44,6 @@ program
   .description('Setup new project (adapt an existing nestjs application)')
   .argument('<type>', 'mongo | postgre')
   .argument('<name>', 'project name (will be used for db)')
-  .option('-si, --skip-install', 'will not run npm install after setup')
   .action(function () {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
