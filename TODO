@@ -11,7 +11,7 @@
 [x] crudQuery Validation
 [ ] test QueryPatch (or queryPut behavior)
 
-[ ] security test with null query, null data etc..
+[x] security test with null query, null data etc..
 
 [ ] security test default fields option
 [x] rename crudService methods to $
@@ -33,14 +33,9 @@
 
 [ ] test maxItemsInDb
 
-[ ] test account & emails (user service methods)
-
-[ ] 2fa tests
-
+[x] test account & emails (user service methods)
+[x] 2fa tests
 [x] cli generate cmds
-
 [x] move defineCMDAbility
-
 [x] change controller route (:service) & proxy request
-
 [x] third party auth client part

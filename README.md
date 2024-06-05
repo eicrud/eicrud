@@ -105,7 +105,7 @@ Eicrud lets you group your CRUD services into "microservices" with a simple conf
   - Extensible for 3rd party auth
 - Validation/Transform
   - Entities are DTOs
-  - CMDs have their own DTOs
+  - CMDs have their DTOs
   - Custom $Transform decorators
 - Database Control
   - Max entities per user
@@ -116,8 +116,8 @@ Eicrud lets you group your CRUD services into "microservices" with a simple conf
   - Handle expired JWT (disconnect)
   - Handle limited results (auto-fetching)
 - Monolithic/Microservices structure
-  - Simple (dynamic) configuration
   - Group your CRUD services into microservices
+  - Simple (dynamic) configuration
   - Application can be both monolithic and distributed
 - And more!
   - Rate limiting
