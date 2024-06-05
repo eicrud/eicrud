@@ -22,6 +22,7 @@
 [x] patch many
 
 [ ] log service
+[ ] test token refresh 
 
 [x] check nested entities are not exposed
 [x] test create limits
