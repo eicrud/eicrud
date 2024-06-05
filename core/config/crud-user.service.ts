@@ -358,7 +358,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     user: Loaded<Partial<CrudUser>, never, '*', never>,
     twoFA_code: any,
   ) {
-    if (user.lastTwoFACode !== twoFA_code) {
+    if (!user.lastTwoFACode || user.lastTwoFACode !== twoFA_code) {
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }
     if (
@@ -744,6 +744,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     expiresIn = '30m',
     twoFA_code?,
   ) {
+    const userSuccessPatch: any = {};
     if (user.failedLoginCount >= this.rateLimitCount) {
       const timeoutMS = Math.min(
         user.failedLoginCount * user.failedLoginCount * 1000,
@@ -777,9 +778,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         throw new UnauthorizedException(CrudErrors.TWOFA_REQUIRED.str());
       }
       await this.verifyTwoFA(user, twoFA_code);
+      user.lastTwoFACode = null;
+      userSuccessPatch.lastTwoFACode = user.lastTwoFACode;
+      user.lastTwoFACodeSent = new Date(0);
+      userSuccessPatch.lastTwoFACodeSent = user.lastTwoFACodeSent;
     }
 
     user.lastLoginAttempt = new Date();
+    userSuccessPatch.lastLoginAttempt = user.lastLoginAttempt;
 
     const match = await bcrypt.compare(pass, user?.password);
     if (!match) {
@@ -803,16 +809,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     }
 
     user.failedLoginCount = 0;
-    const patch = {
-      failedLoginCount: 0,
-      lastLoginAttempt: user.lastLoginAttempt,
-    } as Partial<CrudUser>;
+    userSuccessPatch.failedLoginCount = user.failedLoginCount;
+
     if (updatePass) {
-      patch.password = updatePass;
+      userSuccessPatch.password = updatePass;
     }
     await this.$unsecure_fastPatchOne(
       user[this.crudConfig.id_field],
-      patch as any,
+      userSuccessPatch as any,
       ctx,
     );
 

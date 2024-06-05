@@ -40,7 +40,7 @@ const dto: ICreateAccountDto = {
     password: 'p4ssw0rd';
     role: 'user';
 };
-const { userId, accessToken } = await userClient.cmd('create_account', dto);
+const { userId, accessToken } = await userClient.cmdS('create_account', dto);
 userClient.setJwt(accessToken);
 ```
 
@@ -71,7 +71,7 @@ await userClient.login(dto);
 guest: {
     async defineCMDAbility(can, cannot, ctx) {
         can('check_jwt', 'user');
-        // guest can login
+        // guest can check_jwt
     }
 }
 ```
@@ -97,14 +97,14 @@ user: {
 import { ISendVerificationEmailDto } from '@eicrud/shared/interfaces';
 
 // verify current email
-await userClient.cmd('send_verification_email', {});
+await userClient.cmdS('send_verification_email', {});
 
 // change email
 const dto: ISendVerificationEmailDto = {
     newEmail: 'new-email@mail.com';
     password: 'p4ssw0rd';
 };
-await userClient.cmd('send_verification_email', dto);
+await userClient.cmdS('send_verification_email', dto);
 ```
 ### $verify_email
 
@@ -123,7 +123,7 @@ const dto: IVerifyTokenDto = {
     token_id: "k2Urz2b703aP6zQ_4d3ed089fb60ab534684b7ff"
     // email received token 
 };
-await userClient.cmd('verify_email', dto);
+await userClient.cmdS('verify_email', dto);
 ```
 
 ## Password management
@@ -145,7 +145,7 @@ const dto: ISendPasswordResetEmailDto = {
     email: "my-email@mail.com"
     // user email 
 };
-await userClient.cmd('send_password_reset_email', dto);
+await userClient.cmdS('send_password_reset_email', dto);
 ```
 
 ### $reset_password
@@ -168,7 +168,7 @@ const dto: IResetPasswordDto = {
     expiresIn: "30min"
     // log user for 30 min
 };
-const { accessToken } = await userClient.cmd('reset_password', dto);
+const { accessToken } = await userClient.cmdS('reset_password', dto);
 userClient.setJwt(accessToken, 1); // save token for 1 day
 ```
 
@@ -191,7 +191,7 @@ const dto: IChangePasswordDto = {
     expiresIn: "30min"
     // log user for 30 min
 };
-const { accessToken } = await userClient.cmd('change_password', dto);
+const { accessToken } = await userClient.cmdS('change_password', dto);
 userClient.setJwt(accessToken, 1); // save token for 1 day
 ```
 
@@ -212,8 +212,38 @@ import { IChangePasswordDto } from '@eicrud/shared/interfaces';
 const dto: IUserIdDto = {
     userId
 };
-await userClient.cmd('logout_everywhere', dto);
+await userClient.cmdS('logout_everywhere', dto);
 ```
 
 !!! note 
     Calling `logout_everywhere` will invalidate all issued tokens for a user. It is automatically called when updating fields included in [AuthenticationOptions](../configuration/authentication.md)->`fieldsThatResetRevokedCount`.
+
+
+## Moderation
+
+### $timeout_user
+```typescript title="timeout_user.security.ts"
+moderator: {
+    async defineCMDAbility(can, cannot, ctx) {
+          const dto: ITimeoutUserDto = ctx.data;
+          const allowed = ['user', 'vip'];
+          if (
+            dto.allowedRoles?.length &&
+            dto.allowedRoles.every((r) => allowed.includes(r))
+          ) {
+            can(baseCmds.timeoutUser.name, 'user');
+          }
+    }
+}
+```
+```typescript 
+import { ITimeoutUserDto } from '@eicrud/shared/interfaces';
+
+const dto: ITimeoutUserDto = {
+    userId: "507f191e810c19729de860ea",
+    timeoutDurationMinutes: 10, // will ban user for 10 min
+    allowedRoles: ['user'],
+};
+
+await userClient.cmdS('timeout_user', dto);
+```

@@ -1954,4 +1954,66 @@ describe('AppController', () => {
       expect(res3.status).toEqual(401);
     }
   });
+
+  it('should forbid find profile with empty query', async () => {
+    const otherUser: TestUser = users['Sarah Doe'];
+    const payload: Partial<Melon> = {} as any;
+    const query: CrudQuery = {
+      service: CrudService.getName(UserProfile),
+      query: null,
+    };
+    await testMethod({
+      expectedCode: 403,
+      url: '/crud/one',
+      method: 'GET',
+      app,
+      jwt: null,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    query.query = '{}';
+
+    await testMethod({
+      expectedCode: 403,
+      url: '/crud/one',
+      method: 'GET',
+      app,
+      jwt: null,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+  });
+
+  it('should forbid create profile when empty data', async () => {
+    const userName = 'John NoProfile';
+    const user: TestUser = users[userName];
+    const payload: Partial<UserProfile> = {} as any;
+    const query: CrudQuery = {
+      service: 'user-profile',
+    };
+    await createNewProfileTest(
+      app,
+      user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+      400,
+    );
+
+    await createNewProfileTest(
+      app,
+      user.jwt,
+      entityManager,
+      null,
+      query,
+      crudConfig,
+      400,
+    );
+  });
 });

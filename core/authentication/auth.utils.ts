@@ -30,14 +30,10 @@ export class AuthUtils {
   static getObjectFields(data: object, head = null) {
     let fields = ['all'];
     if (!data) return fields;
-    fields = Object.keys(data);
-    // .reduce((acc, key) => {
-    //   const newField = head ? `${head}.${key}` : key;
-    //   if (typeof data[key] === 'object' && data[key] !== null) {
-    //     return [...acc, ...AuthUtils.getObjectFields(data[key], newField)];
-    //   }
-    //   return [...acc, newField];
-    // }, []);
+    const keys = Object.keys(data);
+    if (keys.length) {
+      fields = keys;
+    }
     return fields;
   }
 }

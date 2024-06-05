@@ -294,10 +294,10 @@ export class CrudAuthorizationService {
     let roleRights: CrudSecurityRights | CmdSecurityRights;
     let defineMethod;
     let currentResult: RoleResult = null;
-    if (ctx.origin == 'crud') {
+    if (ctx.origin === 'crud') {
       roleRights = security.rolesRights[role.name];
       defineMethod = (roleRights as CrudSecurityRights)?.defineCRUDAbility;
-    } else {
+    } else if (ctx.origin === 'cmd') {
       roleRights =
         security.cmdSecurityMap?.[ctx.cmdName]?.rolesRights?.[role.name];
       defineMethod = (roleRights as CmdSecurityRights)?.defineCMDAbility;

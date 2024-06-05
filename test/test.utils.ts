@@ -103,6 +103,7 @@ export function testMethod(arg: {
 
       if (arg.expectedCrudCode) {
         const er = JSON.parse(res.message);
+        if (er.code !== arg.expectedCrudCode) console.log(res.message);
         expect(er.code).toEqual(arg.expectedCrudCode);
       }
 

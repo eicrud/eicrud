@@ -32,6 +32,7 @@ import exp from 'constants';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
 import { LoginDto } from '../../core/crud/model/dtos';
 import {
+  IChangePasswordDto,
   IResetPasswordDto,
   ISendPasswordResetEmailDto,
   ISendVerificationEmailDto,
@@ -66,6 +67,12 @@ describe('AppController', () => {
   let crudConfig: CrudConfigService;
 
   const users: Record<string, TestUser> = {
+    '2Fa Dude': {
+      email: '2Fa.Dude@test.com',
+      role: 'super_admin',
+      bio: 'BIO_FIND_KEY',
+      store: profiles,
+    },
     'Michael Doe': {
       email: 'michael.doe@test.com',
       role: 'super_admin',
@@ -74,6 +81,12 @@ describe('AppController', () => {
     },
     'RateLimit Gus': {
       email: 'RateLimit.Gus@test.com',
+      role: 'super_admin',
+      bio: 'My bio.',
+      store: profiles,
+    },
+    'PassReset Gus': {
+      email: 'PassReset.Gus@test.com',
       role: 'super_admin',
       bio: 'My bio.',
       store: profiles,
@@ -356,7 +369,7 @@ describe('AppController', () => {
       { to: user.email, type: 'passwordReset' },
       null,
     );
-    expect(email).toBeDefined();
+    expect(email).toBeTruthy();
     const resetPassDto: IResetPasswordDto = {
       token_id: email.message + '_' + user.id,
       newPassword: 'newpassword',
@@ -407,7 +420,7 @@ describe('AppController', () => {
   }, 17000);
 
   it('should reset password', async () => {
-    const user = users['PassChange Gus'];
+    const user = users['PassReset Gus'];
     user.email = user.email.toLocaleLowerCase();
     const payload: LoginDto = {
       email: user.email,
@@ -417,7 +430,6 @@ describe('AppController', () => {
 
     let jwt = null;
 
-    // password reset should allow login even if rate limited
     const resetPassEmailDto: ISendPasswordResetEmailDto = {
       email: user.email,
     };
@@ -456,7 +468,7 @@ describe('AppController', () => {
       { to: user.email, type: 'passwordReset' },
       null,
     );
-    expect(email).toBeDefined();
+    expect(email).toBeTruthy();
     const resetPassDto: IResetPasswordDto = {
       token_id: email.message + '_' + user.id,
       newPassword: 'newpassword',
@@ -496,6 +508,81 @@ describe('AppController', () => {
       expectedCode: 201,
       app,
       jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+  }, 7000);
+
+  it('should change password', async () => {
+    const user = users['PassChange Gus'];
+    user.email = user.email.toLocaleLowerCase();
+    const payload: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password,
+    };
+    const query = {};
+
+    let jwt = null;
+
+    //check old password is still working
+    await testMethod({
+      url: '/crud/auth',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+    await new Promise((r) => setTimeout(r, 600));
+
+    const resetPassDto: IChangePasswordDto = {
+      oldPassword: testAdminCreds.password,
+      newPassword: 'newpassword2',
+    };
+    const changePassQuery: CrudQuery = {
+      service: 'my-user',
+      cmd: 'change_password',
+    };
+    jwt = user.jwt;
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload: resetPassDto,
+      query: changePassQuery,
+      crudConfig,
+    });
+
+    await testMethod({
+      url: '/crud/auth',
+      method: 'POST',
+      expectedCode: 401,
+      app,
+      jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    await new Promise((r) => setTimeout(r, 600));
+
+    payload.password = 'newpassword2';
+
+    await testMethod({
+      url: '/crud/auth',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt: null,
       entityManager,
       payload,
       query,
@@ -944,4 +1031,133 @@ describe('AppController', () => {
     },
     6000 * 100,
   );
+
+  it('should log with 2fa', async () => {
+    const user = users['2Fa Dude'];
+
+    const patch: Partial<MyUser> = {
+      twoFA: true,
+    };
+    await userService.$patchOne(
+      { id: crudConfig.dbAdapter.formatId(user.id, crudConfig) } as any,
+      patch as any,
+      null,
+    );
+
+    const query = {};
+
+    let jwt = null;
+
+    // 2 times for loop
+    for (let i = 0; i < 2; i++) {
+      const payload: LoginDto = {
+        email: user.email,
+        password: testAdminCreds.password,
+      };
+
+      await testMethod({
+        url: '/crud/auth',
+        method: 'POST',
+        expectedCode: 401,
+        expectedCrudCode: CrudErrors.TWOFA_REQUIRED.code,
+        app,
+        jwt,
+        entityManager,
+        payload,
+        query,
+        crudConfig,
+      });
+
+      const res = await emailService.$find(
+        { to: user.email.toLowerCase().trim(), type: 'twoFactor' },
+        null,
+      );
+
+      const email: FakeEmail = res.data[res.data.length - 1];
+
+      expect(email).toBeTruthy();
+
+      payload.twoFA_code = email.message;
+
+      // wait 600ms
+      await new Promise((r) => setTimeout(r, 600));
+
+      await testMethod({
+        url: '/crud/auth',
+        method: 'POST',
+        expectedCode: 201,
+        app,
+        jwt,
+        entityManager,
+        payload,
+        query,
+        crudConfig,
+      });
+
+      // wait 600ms
+      await new Promise((r) => setTimeout(r, 600));
+
+      await testMethod({
+        url: '/crud/auth',
+        method: 'POST',
+        expectedCode: 401,
+        expectedCrudCode: CrudErrors.INVALID_CREDENTIALS.code,
+        app,
+        jwt,
+        entityManager,
+        payload,
+        query,
+        crudConfig,
+      });
+
+      // wait 600ms
+      await new Promise((r) => setTimeout(r, 600));
+    }
+
+    const oldValue = crudConfig.authenticationOptions.twoFaEmailTimeoutMinutes;
+    crudConfig.authenticationOptions.twoFaEmailTimeoutMinutes = 0;
+
+    const payload: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password,
+    };
+
+    await testMethod({
+      url: '/crud/auth',
+      method: 'POST',
+      expectedCode: 401,
+      expectedCrudCode: CrudErrors.TWOFA_REQUIRED.code,
+      app,
+      jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    const res = await emailService.$find(
+      { to: user.email.toLowerCase().trim(), type: 'twoFactor' },
+      null,
+    );
+    const email: FakeEmail = res.data[res.data.length - 1];
+    payload.twoFA_code = email.message;
+
+    // wait 600ms
+    await new Promise((r) => setTimeout(r, 600));
+
+    await testMethod({
+      url: '/crud/auth',
+      method: 'POST',
+      expectedCode: 401,
+      expectedCrudCode: CrudErrors.TOKEN_EXPIRED.code,
+      app,
+      jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    crudConfig.authenticationOptions.twoFaEmailTimeoutMinutes = oldValue;
+  }, 8000);
 });
