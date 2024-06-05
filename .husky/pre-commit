@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 npm run clean
-npx lint-staged
+npx lint-staged@15.2.2

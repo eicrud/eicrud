@@ -21,15 +21,15 @@
 
 [ ] log service
 
-[ ] check nested entities are not exposed
+[x] check nested entities are not exposed
 
 [x] test create limits
 
-[ ] options tests
+[x] options tests
 
 [x] replace all entityManager calls in test for ms testing (.fork())
 
-[ ] test cmd forward to other ms
+[x] test cmd forward to other ms
 
 [ ] test maxItemsInDb
 
@@ -43,4 +43,4 @@
 
 [x] change controller route (:service) & proxy request
 
-[ ] third party auth client part
+[x] third party auth client part

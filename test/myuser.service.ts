@@ -12,6 +12,7 @@ import { IsString, MaxLength } from 'class-validator';
 import { $Transform } from '../core/validation/decorators';
 import { CrudContext } from '../core/crud/model/CrudContext';
 import { MyProfileService } from './profile.service';
+import { ITimeoutUserDto } from '../shared/interfaces';
 
 class CallTestCmdDto {
   @IsString()
@@ -66,6 +67,22 @@ const cmdSecurityMap: Record<string, CmdSecurity> = {
       user: {
         async defineCMDAbility(can, cannot, ctx) {
           can(baseCmds.checkJwt.name, 'my-user');
+        },
+      },
+    },
+  },
+  [baseCmds.timeoutUser.name]: {
+    rolesRights: {
+      moderator: {
+        async defineCMDAbility(can, cannot, ctx) {
+          const dto: ITimeoutUserDto = ctx.data;
+          const allowed = ['user', 'moderator'];
+          if (
+            dto.allowedRoles?.length &&
+            dto.allowedRoles.every((r) => allowed.includes(r))
+          ) {
+            can(baseCmds.timeoutUser.name, 'my-user');
+          }
         },
       },
     },

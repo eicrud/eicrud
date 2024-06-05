@@ -85,7 +85,15 @@ export interface CmdSecurityRights {
    */
   maxBatchSize?: number;
 
+  fields?: string[];
+
   defineCMDAbility?(
+    can: AbilityBuilder<any>['can'],
+    cannot: AbilityBuilder<any>['cannot'],
+    ctx: CrudContext,
+  ): Promise<any>;
+
+  defineOPTAbility?(
     can: AbilityBuilder<any>['can'],
     cannot: AbilityBuilder<any>['cannot'],
     ctx: CrudContext,
