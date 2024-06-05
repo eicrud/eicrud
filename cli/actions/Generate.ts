@@ -57,6 +57,7 @@ export class Generate {
       tk_entity_name: name,
       tk_entity_lname: name.toLowerCase(),
       tk_entity_uname: name.toUpperCase(),
+      tk_config_path_from_service: `../../${options?.ms ? '../' : ''}eicrud.config.service`,
     };
 
     const dir = `./src/services/${msPath}${keys.tk_entity_lname}`;

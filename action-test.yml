@@ -37,3 +37,6 @@ jobs:
 
       - name: Microservices proxy tests
         run: npm run start:test-ms:proxy
+
+      - name: CLI tests
+        run: ./test/test-cli.sh

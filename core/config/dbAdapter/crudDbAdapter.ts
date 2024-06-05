@@ -9,7 +9,7 @@ export abstract class CrudDbAdapter {
     this.crudConfig = crudConfig;
   }
 
-  abstract onModuleInit(orm: MikroORM): Promise<any>;
+  abstract onModuleInit(orm: any): Promise<any>;
 
   abstract getIncrementUpdate(
     increments: { [key: string]: number },
