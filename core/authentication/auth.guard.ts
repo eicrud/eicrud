@@ -254,7 +254,7 @@ export class CrudAuthGuard implements CanActivate {
 
       const role: CrudRole = this.crudConfig?.rolesMap[user?.role];
 
-      if (user?.revokedCount != payload.revokedCount) {
+      if (user?.rvkd != payload.rvkd) {
         throw new UnauthorizedException(CrudErrors.TOKEN_MISMATCH.str());
       }
 

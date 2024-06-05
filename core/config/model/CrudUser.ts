@@ -20,7 +20,7 @@ export interface CrudUser extends CrudEntity {
 
   role: string;
 
-  revokedCount: number;
+  rvkd: number;
 
   nextEmail: string;
   verifiedEmail: boolean;

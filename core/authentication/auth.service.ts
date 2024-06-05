@@ -15,7 +15,7 @@ export class AuthenticationOptions {
   twoFaEmailTimeoutMinutes = 15;
   passwordResetEmailTimeoutHours = 6;
   passwordMaxLength = 64;
-  jwtFieldInPayload = ['revokedCount'];
+  userFieldsInJwtPayload = ['rvkd'];
   fieldsThatResetRevokedCount = ['password', 'email'];
   username_field = 'email';
   renewJwt = false;
@@ -44,7 +44,7 @@ export class AuthenticationOptions {
 @Injectable()
 export class CrudAuthService {
   protected JWT_SECRET: string;
-  protected FIELDS_IN_PAYLOAD: string[] = ['revokedCount'];
+  protected FIELDS_IN_PAYLOAD: string[] = ['rvkd'];
   protected username_field = 'email';
   protected crudConfig: CrudConfigService;
   _authGuard: CrudAuthGuard;
@@ -58,10 +58,10 @@ export class CrudAuthService {
     this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY, { strict: false });
     this.JWT_SECRET = this.crudConfig.JWT_SECRET;
     this.FIELDS_IN_PAYLOAD =
-      this.crudConfig.authenticationOptions.jwtFieldInPayload;
+      this.crudConfig.authenticationOptions.userFieldsInJwtPayload;
     this.FIELDS_IN_PAYLOAD.push(this.crudConfig.id_field);
-    if (!this.FIELDS_IN_PAYLOAD.includes('revokedCount')) {
-      this.FIELDS_IN_PAYLOAD.push('revokedCount');
+    if (!this.FIELDS_IN_PAYLOAD.includes('rvkd')) {
+      this.FIELDS_IN_PAYLOAD.push('rvkd');
     }
     this.username_field = this.crudConfig.authenticationOptions.username_field;
   }

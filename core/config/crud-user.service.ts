@@ -223,13 +223,13 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const fieldsThatResetRevokedCount =
       this.crudConfig.authenticationOptions.fieldsThatResetRevokedCount;
     if (fieldsThatResetRevokedCount.some((field) => newEntity[field])) {
-      if (newEntity.revokedCount == null) {
+      if (newEntity.rvkd == null) {
         throw new BadRequestException(
-          'revokedCount is required when updating ' +
+          'rvkd is required when updating ' +
             fieldsThatResetRevokedCount.join(', '),
         );
       }
-      newEntity.revokedCount = newEntity.revokedCount + 1;
+      newEntity.rvkd = newEntity.rvkd + 1;
     }
   }
 
@@ -501,7 +501,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
           verifiedEmailAttempCount: 0,
         };
         if (user.nextEmail) {
-          patch.revokedCount = user.revokedCount ?? 0;
+          patch.rvkd = user.rvkd ?? 0;
           patch.email = user.nextEmail;
           patch.nextEmail = null;
         }
@@ -621,7 +621,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       (user: CrudUser) => {
         const patch: Partial<CrudUser> = {
           role: user.role,
-          revokedCount: user.revokedCount ?? 0,
+          rvkd: user.rvkd ?? 0,
           password: dto.newPassword,
           passwordResetAttempCount: 0,
         };
@@ -665,7 +665,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     }
     const patch: Partial<CrudUser> = {
       role: user.role,
-      revokedCount: user.revokedCount ?? 0,
+      rvkd: user.rvkd ?? 0,
       password: dto.newPassword,
       passwordResetAttempCount: 0,
     };
@@ -862,9 +862,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       ctx.user?.[this.crudConfig.id_field] == dto.userId
         ? ctx.user
         : await this.$findOne(query, ctx);
-    user.revokedCount = user.revokedCount || 0;
-    user.revokedCount++;
-    const patch: any = { revokedCount: user.revokedCount };
+    user.rvkd = user.rvkd || 0;
+    user.rvkd++;
+    const patch: any = { rvkd: user.rvkd };
 
     await Promise.all([
       this.$unsecure_fastPatch(query, patch, ctx),

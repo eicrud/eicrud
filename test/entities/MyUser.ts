@@ -57,7 +57,7 @@ export class MyUser implements CrudUser {
   lastResetEmailSent: Date;
 
   @Property({ nullable: true })
-  revokedCount: number;
+  rvkd: number;
 
   @Property({ nullable: true })
   nextEmail: string;

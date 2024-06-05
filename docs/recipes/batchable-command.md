@@ -1,0 +1,1 @@
+Eicrud provides a batching options to help you split large [DTO](../validation/definition.md) arrays into smaller batches. This functionality can smooth the impact of commands on your infrastructure and prevent potential issues with requests being too big.
