@@ -14,7 +14,7 @@
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
   },
   "peerDependencies": {
-    "@eicrud/core": "^0.1.7"
+    "@eicrud/core": "^0.1.8"
   },
   "devDependencies": {
     "del-cli": "^5.1.0"

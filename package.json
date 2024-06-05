@@ -24,7 +24,7 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "lint": "eslint \"{core,client,shared,test,db_*}/**/*.ts\" --fix",
+    "lint": "eslint \"{core,client,shared,test,db_*}/**/*.ts\" --fix --ignore-pattern test/cli-app/** --ignore-pattern cli/templates/**",
     "test": "jest --forceExit --maxWorkers=50%",
     "test:postgre": "cross-env TEST_CRUD_DB=postgre jest --forceExit --maxWorkers=50%",
     "test:watch": "jest --watch",
@@ -32,17 +32,17 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "generate:typedoc": "typedoc --plugin typedoc-plugin-markdown --out \"docs/Ξ Api\" && del-cli \"docs/Ξ Api/README.md\"",
-    "clean": "del-cli **.js **.d.ts **.js.map !node_modules !**node_modules",
+    "clean": "del-cli **.js **.d.ts **.js.map !node_modules !**/node_modules",
     "prepare": "husky install"
   },
   "dependencies": {
-    "@eicrud/shared": "file:shared",
     "@eicrud/core": "file:core",
     "@eicrud/mongodb": "file:db_mongo",
-    "@eicrud/postgresql": "file:db_postgre"
+    "@eicrud/postgresql": "file:db_postgre",
+    "@eicrud/shared": "file:shared"
   },
   "devDependencies": {
-    "@eicrud/cli": "^0.1.0",
+    "@eicrud/cli": "file:cli",
     "@nestjs/cli": "^10.3.2",
     "@nestjs/schematics": "^10.1.1",
     "@nestjs/testing": "^10.3.6",
