@@ -17,9 +17,7 @@ import { CrudUser } from '../config/model/CrudUser';
 
 import { Cron, CronExpression } from '@nestjs/schedule';
 import {
-  BasicMemoryCache,
   CRUD_CONFIG_KEY,
-  CrudCache,
   CrudConfigService,
   MicroServicesOptions,
 } from '../config/crud.config.service';

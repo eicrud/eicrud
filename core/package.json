@@ -31,9 +31,12 @@
     "lru-cache": "^10.2.0",
     "mnemonist": "^0.39.8",
     "reflect-metadata": "^0.2.1",
-    "wildcard": "^2.0.1"
+    "wildcard": "^2.0.1",
+    "async-mutex": "^0.5.0"
   },
   "devDependencies": {
-    "del-cli": "^5.1.0"
+    "typescript": "^5.3.3",
+    "del-cli": "^5.1.0",
+    "@types/node": "^20.12.12"
   }
 }

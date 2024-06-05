@@ -21,7 +21,6 @@
     "start:ms:proxy-email": "cross-env TEST_CRUD_PROXY=true CRUD_CURRENT_MS=email PORT=3007 nest start",
     "test:ms": "wait-on http://localhost:3005/crud/rdy && wait-on http://localhost:3006/crud/rdy && wait-on http://localhost:3007/crud/rdy && cross-env CRUD_CURRENT_MS=entry jest --runInBand --forceExit",
     "test:ms:proxy": "wait-on http://localhost:3004/crud/rdy && wait-on http://localhost:3005/crud/rdy && wait-on http://localhost:3006/crud/rdy && wait-on http://localhost:3007/crud/rdy && cross-env CRUD_CURRENT_MS=entry TEST_CRUD_PROXY=true jest --testPathIgnorePatterns=traffic- --runInBand --forceExit",
-    "test:cli": "del-cli \"test/cli/**/*\" && cd cli && npm remove -g @nestjs/cli && npm run compile ; npm i ./ && cd .. && npm i -g ./shared && cd test && nest new cli --skip-install --package-manager npm && cd cli && eicrud setup --skip-install mongo cli && eicrud generate -ms data service profile && eicrud generate cmd -ms data profile search && eicrud generate service sales && eicrud generate cmd sales search",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
@@ -37,10 +36,10 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@eicrud/shared": "file:shared",
     "@eicrud/core": "file:core",
     "@eicrud/mongodb": "file:db_mongo",
-    "@eicrud/postgresql": "file:db_postgre",
-    "async-mutex": "^0.5.0"
+    "@eicrud/postgresql": "file:db_postgre"
   },
   "devDependencies": {
     "@eicrud/cli": "^0.1.0",

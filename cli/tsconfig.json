@@ -6,7 +6,4 @@
     "resolveJsonModule": true
   },
   "exclude": ["node_modules", "templates"],
-  "paths": {
-    "@eicrud/shared": ["../shared"],
-  }
 }

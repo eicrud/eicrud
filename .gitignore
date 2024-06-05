@@ -43,3 +43,6 @@ src/
 *.npmrc
 **/node_modules/**
 cli/dist/
+verdaccio/storage/
+
+nohup.out
