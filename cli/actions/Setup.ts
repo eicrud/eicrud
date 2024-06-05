@@ -24,6 +24,7 @@ export class Setup {
   }
 
   static action(type, name): Promise<any> {
+    const opts = (this as any).opts();
     let packages = ['@eicrud/core', '@nestjs/config'];
     const allowedTypes = ['mongo', 'postgre'];
     if (!allowedTypes.includes(type)) {
@@ -220,9 +221,11 @@ export class Setup {
     fs.writeFileSync(mainFile, mainFileContent);
     console.log('UPDATED:', mainFile);
 
-    child_process.execSync('npm install ' + packages.join(' '), {
-      stdio: 'inherit',
-    });
+    if (!opts.skipInstall) {
+      child_process.execSync('npm install ' + packages.join(' '), {
+        stdio: 'inherit',
+      });
+    }
 
     return null;
   }

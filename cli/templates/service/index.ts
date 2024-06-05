@@ -1,9 +1,9 @@
 
 //Auto generated file
 
-export const CRUDServices = [
+export const tk_ms_nameCRUDServices = [
 ]
 
-export const CRUDEntities = [
+export const tk_ms_nameCRUDEntities = [
 ]
 

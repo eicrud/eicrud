@@ -11,11 +11,12 @@ const __dirname = dirname(__filename);
 
 export class Generate {
   static action(type, name, cmd): Promise<any> {
+    const opts = (this as any).opts();
     switch (type) {
       case 'cmd':
-        return Generate.cmd(name, cmd);
+        return Generate.cmd(name, cmd, opts);
       case 'service':
-        return Generate.service(name, (this as any).opts());
+        return Generate.service(name, opts);
       default:
         return Promise.resolve();
     }
@@ -47,6 +48,9 @@ export class Generate {
   static service(name, options?): Promise<any> {
     //console.log('Generating service', name);
 
+    const msName = options?.ms ? options.ms : '';
+    const msPath = options?.ms ? `${options.ms}-ms/` : '';
+
     name = name.charAt(0).toUpperCase() + name.slice(1);
 
     const keys = {
@@ -55,7 +59,7 @@ export class Generate {
       tk_entity_uname: name.toUpperCase(),
     };
 
-    const dir = `./src/services/${keys.tk_entity_lname}`;
+    const dir = `./src/services/${msPath}${keys.tk_entity_lname}`;
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
@@ -70,10 +74,57 @@ export class Generate {
 
     Generate.copyTemplateFiles(template_folder, files, keys, dir);
 
-    const indexFile = `./src/services/index.ts`;
+    const serviceIndexDir = `./src/services/`;
+    const serviceIndexFile = serviceIndexDir + `index.ts`;
+    if (!fs.existsSync(serviceIndexFile)) {
+      Generate.copyTemplateFiles(
+        template_folder,
+        ['index.ts'],
+        { tk_ms_name: '' },
+        serviceIndexDir,
+      );
+    }
+
+    const indexDir = `./src/services/${msPath}`;
+    const indexFile = indexDir + `index.ts`;
     if (!fs.existsSync(indexFile)) {
-      const templateIndex = path.join(template_folder, '/index.ts');
-      fs.copyFileSync(templateIndex, indexFile);
+      Generate.copyTemplateFiles(
+        template_folder,
+        ['index.ts'],
+        { tk_ms_name: msName },
+        indexDir,
+      );
+      const importLines = [
+        `import { ${msName}CRUDServices, ${msName}CRUDEntities } from './${msPath}index';`,
+      ];
+      const replaces = [
+        {
+          regex:
+            /export[ ]{1,}const[ ]{1,}CRUDServices[ ]{1,}=[ ]{1,}\[([^\]]*)\]/,
+          getReplaceString: (array) => {
+            let rep = array.trim();
+            rep = rep ? '    ' + rep + '\n' : '';
+            return `export const CRUDServices = [\n    ...${msName}CRUDServices,\n${rep}]`;
+          },
+          error: 'Could not find CRUDServices array in index file',
+        },
+        {
+          regex:
+            /export[ ]{1,}const[ ]{1,}CRUDEntities[ ]{1,}=[ ]{1,}\[([^\]]*)\]/,
+          getReplaceString: (array) => {
+            let rep = array.trim();
+            rep = rep ? '    ' + rep + '\n' : '';
+            return `export const CRUDEntities = [\n    ...${msName}CRUDEntities,\n${rep}]`;
+          },
+          error: 'Could not find CRUDEntities array in index file',
+        },
+      ];
+      _utils_cli.writeImportsAndReplacesToFile(
+        importLines,
+        replaces,
+        serviceIndexFile,
+        fs,
+      );
     }
 
     const cmdsFile = dir + `/cmds.ts`;
@@ -89,52 +140,40 @@ export class Generate {
       `import ${name} from './${keys.tk_entity_lname}/${keys.tk_entity_lname}.entity';`,
     ];
 
-    //update index file
-    let content = fs.readFileSync(indexFile, 'utf8');
-
-    importLines.forEach((importLine) => {
-      content = importLine + '\n' + content;
-    });
-
     const replaces = [
       {
-        regex:
-          /export[ ]{1,}const[ ]{1,}CRUDServices[ ]{1,}=[ ]{1,}\[([^\]]*)\]/,
+        regex: new RegExp(
+          `export[ ]{1,}const[ ]{1,}${msName}CRUDServices[ ]{1,}=[ ]{1,}\\[([^\\]]*)\\]`,
+        ),
         getReplaceString: (array) => {
           let rep = array.trim();
           rep = rep ? '    ' + rep + '\n' : '';
-          return `export const CRUDServices = [\n    ${serviceName},\n${rep}]`;
+          return `export const ${msName}CRUDServices = [\n    ${serviceName},\n${rep}]`;
         },
-        error: 'Could not find CRUDServices array in index file',
+        error: `Could not find ${msName}CRUDServices array in index file`,
       },
     ];
 
     if (!options?.nonCrud) {
       replaces.push({
-        regex:
-          /export[ ]{1,}const[ ]{1,}CRUDEntities[ ]{1,}=[ ]{1,}\[([^\]]*)\]/,
+        regex: new RegExp(
+          `export[ ]{1,}const[ ]{1,}${msName}CRUDEntities[ ]{1,}=[ ]{1,}\\[([^\\]]*)\\]`,
+        ),
         getReplaceString: (array) => {
           let rep = array.trim();
           rep = rep ? '    ' + rep + '\n' : '';
-          return `export const CRUDEntities = [\n    ${name},\n${rep}]`;
+          return `export const ${msName}CRUDEntities = [\n    ${name},\n${rep}]`;
         },
-        error: 'Could not find CRUDEntities array in index file',
+        error: `Could not find ${msName}CRUDEntities array in index file`,
       });
     }
 
-    for (let replace of replaces) {
-      content = _utils_cli.addNewLineToMatched(
-        content,
-        replace.regex,
-        replace.getReplaceString,
-        replace.error,
-      );
-    }
-
-    //write content
-    fs.writeFileSync(indexFile, content);
-
-    console.log('UPDATED:', indexFile);
+    _utils_cli.writeImportsAndReplacesToFile(
+      importLines,
+      replaces,
+      indexFile,
+      fs,
+    );
 
     const providersFile = `./src/app.module.ts`;
     if (!fs.existsSync(providersFile)) {
@@ -142,7 +181,7 @@ export class Generate {
     }
 
     //update app.module.ts
-    content = fs.readFileSync(providersFile, 'utf8');
+    let content = fs.readFileSync(providersFile, 'utf8');
 
     const dbType = content.includes('MongoDriver') ? 'mongo' : 'postgres';
 
@@ -201,8 +240,10 @@ export class Generate {
     return Promise.resolve();
   }
 
-  static cmd(serviceName, name): Promise<any> {
+  static cmd(serviceName, name, options?): Promise<any> {
     //console.log('Generating service', name);
+    const msPath = options?.ms ? `${options.ms}-ms/` : '';
+
     serviceName = serviceName.charAt(0).toUpperCase() + serviceName.slice(1);
 
     const tk_cmd_bname = name;
@@ -224,14 +265,14 @@ export class Generate {
       tk_cmd_bname,
     };
 
-    let dir = `./src/services/${keys.tk_entity_lname}`;
+    let dir = `./src/services/${msPath}${keys.tk_entity_lname}`;
     if (!fs.existsSync(dir)) {
       throw new Error(`Could not find service directory: ${dir}`);
     }
 
-    dir = dir + '/cmds/' + keys.tk_cmd_lname;
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+    const cmdDir = dir + '/cmds/' + keys.tk_cmd_lname;
+    if (!fs.existsSync(cmdDir)) {
+      fs.mkdirSync(cmdDir, { recursive: true });
     }
 
     const template_folder = path.join(__dirname, '../templates');
@@ -245,14 +286,18 @@ export class Generate {
       path.join(template_folder, '/cmd'),
       files,
       keys,
-      dir,
+      cmdDir,
     );
 
-    _utils_cli.addSecurityToCmdIndex(fs, path, template_folder, serviceName, [
-      keys,
-    ]);
+    _utils_cli.addSecurityToCmdIndex(
+      fs,
+      path,
+      template_folder,
+      msPath + serviceName,
+      [keys],
+    );
 
-    const servicePath = `./src/services/${keys.tk_entity_lname}/${keys.tk_entity_lname}.service.ts`;
+    const servicePath = path.join(dir, `${keys.tk_entity_lname}.service.ts`);
     let serviceFileContent = fs.readFileSync(servicePath, 'utf8');
 
     if (!serviceFileContent.includes('GENERATED START')) {
