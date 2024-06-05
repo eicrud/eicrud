@@ -233,10 +233,6 @@ export class CrudAuthorizationService {
       }
     }
 
-    if (security.alwaysExcludeFields && ctx.method == 'GET') {
-      ctx.options.exclude = security.alwaysExcludeFields as any;
-    }
-
     // Authorization
     const crudCanReadAll =
       ctx.origin == 'crud' && security.guestCanReadAll && ctx.method == 'GET';
@@ -261,6 +257,21 @@ export class CrudAuthorizationService {
         msg += `- ${roleName} failed on ${r.problemField} `;
       }
       throw new ForbiddenException(msg);
+    }
+
+    const fieldsToExclude = security.alwaysExcludeFields;
+    if (fieldsToExclude?.length && ctx.method == 'GET') {
+      if (ctx.options.fields?.length) {
+        for (const field of ctx.options.fields) {
+          if (fieldsToExclude.includes(field)) {
+            throw new BadRequestException(
+              `Always excluded field ${field} cannot be in fields option.`,
+            );
+          }
+        }
+      } else {
+        ctx.options.exclude = fieldsToExclude as any;
+      }
     }
 
     return true;

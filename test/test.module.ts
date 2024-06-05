@@ -17,6 +17,8 @@ import { Picture } from './entities/Picture';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
 import { EntityManager, MikroORM } from '@mikro-orm/core';
 import { MyPictureService } from './picture.service';
+import { DragonFruit } from './entities/Dragonfruit';
+import { DragonFruitService } from './dragonfruit.service';
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, './.env') });
 
@@ -57,7 +59,7 @@ export const getModule = (dbName) => {
   return {
     imports: [
       MikroOrmModule.forRoot({
-        entities: [MyUser, UserProfile, FakeEmail, Melon, Picture],
+        entities: [MyUser, UserProfile, FakeEmail, Melon, Picture, DragonFruit],
         driver:
           process.env.TEST_CRUD_DB == 'postgre'
             ? PostgreSqlDriver
@@ -75,6 +77,7 @@ export const getModule = (dbName) => {
       MelonService,
       MyProfileService,
       MyPictureService,
+      DragonFruitService,
       {
         provide: CRUD_CONFIG_KEY,
         useClass: MyConfigService,

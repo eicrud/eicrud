@@ -3,17 +3,19 @@
 [x] Add cmd rights
 [x] add before, after & error hooks
 [x] make sur to pass ctx for datadog trace tracking 
-[ ] check cannot default throw (CASL)
-[x] batch wait for flush 
-[x] add inheritance argument 
+[x] check cannot default throw (CASL)
+[x] batch wait for flush
+[x] add inheritance argument
 [x] VALIDATION
 [x] Check CMD method, get non cached user for cmd
 [x] crudQuery Validation
+
 [ ] test QueryPatch (or queryPut behavior)
 
 [x] security test with null query, null data etc..
 
-[ ] security test default fields option
+[x] security test default fields option
+
 [x] rename crudService methods to $
 [x] test nested validation & transform
 [x] replace maxSize with per field decorator value
@@ -22,17 +24,11 @@
 [ ] log service
 
 [x] check nested entities are not exposed
-
 [x] test create limits
-
 [x] options tests
-
 [x] replace all entityManager calls in test for ms testing (.fork())
-
 [x] test cmd forward to other ms
-
-[ ] test maxItemsInDb
-
+[x] test maxItemsInDb
 [x] test account & emails (user service methods)
 [x] 2fa tests
 [x] cli generate cmds

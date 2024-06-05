@@ -22,7 +22,7 @@ import {
   createNewProfileTest,
   testMethod,
 } from '../test.utils';
-import { MyProfileService } from '../profile.service';
+import { MyProfileService, TestCmdDto } from '../profile.service';
 import { Melon } from '../entities/Melon';
 import { CrudService } from '../../core/crud/crud.service';
 import { TestUser } from '../test.utils';
@@ -2015,5 +2015,30 @@ describe('AppController', () => {
       crudConfig,
       400,
     );
+  });
+
+  it('cannot should overyde can at same level', async () => {
+    const user = users['Michael Doe'];
+
+    const payload: TestCmdDto = {
+      returnMessage: 'Hello World',
+    };
+
+    const query: CrudQuery = {
+      service: 'user-profile',
+      cmd: 'canCannotCmd',
+    };
+
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'PATCH',
+      expectedCode: 403,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
   });
 });

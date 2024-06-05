@@ -55,6 +55,12 @@
     {
       "type": "node-terminal",
       "request": "launch",
+      "name": "npm run test security-2",
+      "command": "npm run test core.security-2.spec.ts"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
       "name": "npm run test orm",
       "command": "npm run test core.orm.spec.ts"
     },

@@ -7,12 +7,16 @@ import { MyConfigService } from './myconfig.service';
 import { ModuleRef } from '@nestjs/core';
 import { Picture } from './entities/Picture';
 
-const myPictureSecurity = (USER_PROFILE) => {
+const myPictureSecurity = (PICTURE) => {
   return {
     cmdSecurityMap: {},
-
+    maxItemsInDb: 10,
     rolesRights: {
-      super_admin: {},
+      super_admin: {
+        async defineCRUDAbility(can, cannot, ctx) {
+          can('crud', PICTURE);
+        },
+      },
       admin: {},
       moderator: {},
       user: {},

@@ -50,6 +50,7 @@ export class CrudErrors {
     13,
   );
   static readonly WAIT_UNTIL = new CrudError('Wait until', 14);
+  static readonly MAX_ITEMS_IN_DB = new CrudError('Too many items in DB.', 15);
 }
 
 export interface MaxBatchSizeExceededDto {

@@ -55,6 +55,17 @@ const myProfileSecurity = (USER_PROFILE) => {
         rolesRights: {},
         guestCanUseAll: true,
       },
+      canCannotCmd: {
+        dto: TestCmdDto,
+        rolesRights: {
+          guest: {
+            async defineCMDAbility(can, cannot, ctx) {
+              can('canCannotCmd', USER_PROFILE);
+              cannot('canCannotCmd', USER_PROFILE);
+            },
+          },
+        },
+      } as CmdSecurity,
       testCmd: {
         maxUsesPerUser: 10,
         additionalUsesPerTrustPoint: 1,
@@ -132,6 +143,15 @@ export class MyProfileService extends CrudService<UserProfile> {
   }
 
   $testCmd(
+    dto: TestCmdDto,
+    ctx: CrudContext,
+    inheritance?: any,
+  ): Promise<string> {
+    let res = dto?.sub?.subfield || dto.returnMessage;
+    return Promise.resolve(res);
+  }
+
+  $canCannotCmd(
     dto: TestCmdDto,
     ctx: CrudContext,
     inheritance?: any,
