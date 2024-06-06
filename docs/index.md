@@ -12,4 +12,4 @@ Most of the time, a web app has some CRUD functionality as its base. Eicrud atte
 (others supported by [Mikro-orm](https://mikro-orm.io){:target="_blank"} may work with a custom dbAdapter)
 
 ## Getting started
-Check out the installation [guide](./installation.md).
+Check out the [installation guide](./installation.md).

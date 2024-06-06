@@ -1,4 +1,4 @@
- In a CrudService any function starting with `$` may be replaced by an HTTP call, depending on your `msOptions`. 
+ In a [CrudService](../services/definition.md) any function starting with `$` may be replaced by an HTTP call, depending on your `msOptions`. 
 
  For example with the following configuration :
 
