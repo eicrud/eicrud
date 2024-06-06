@@ -13,6 +13,7 @@ import { $Transform } from '../core/validation/decorators';
 import { CrudContext } from '../core/crud/model/CrudContext';
 import { MyProfileService } from './profile.service';
 import { ITimeoutUserDto } from '../shared/interfaces';
+import { CrudUser } from '@eicrud/core/config';
 
 class CallTestCmdDto {
   @IsString()
@@ -133,5 +134,16 @@ export class MyUserService extends CrudUserService<MyUser> {
 
   async $callTestCmd(dto: CallTestCmdDto, ctx: CrudContext) {
     return await this.profileService.$testCmd(dto, ctx);
+  }
+
+  override async addToComputedTrust(
+    user: CrudUser,
+    trust: number,
+    ctx: CrudContext,
+  ): Promise<number> {
+    if (user.role === 'trusted_user') {
+      trust += 100;
+    }
+    return trust;
   }
 }

@@ -5,7 +5,7 @@ import { FindResponseDto } from '@eicrud/shared/interfaces';
 import axios from 'axios';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { ILoginDto, LoginResponseDto } from '@eicrud/shared/interfaces';
-import wildcard from 'wildcard';
+let wildcard = require('wildcard');
 
 class _utils {
   static makeArray(obj) {
@@ -196,6 +196,13 @@ export class CrudClient<T> {
       if (e.response && e.response.status === 401) {
         this.logout();
       } else {
+        const NODE_ENV = process?.env?.NODE_ENV;
+        if (
+          NODE_ENV &&
+          (NODE_ENV.includes('dev') || NODE_ENV.includes('test'))
+        ) {
+          console.error(e.response.data);
+        }
         throw e;
       }
       args[optsIndex] = {
@@ -597,15 +604,16 @@ export class CrudClient<T> {
     copts?: ClientOptions,
   ): Promise<T[]> {
     const datas = objects.map((o) => {
-      let query, data;
+      let query = {};
+      let data = {};
       if (!limitingFields) {
         [query, data] = this.processLimitingFields(
           this.config.limitingFields,
           query,
-          data,
+          o,
         );
       } else {
-        [query, data] = this.processLimitingFields(limitingFields, query, data);
+        [query, data] = this.processLimitingFields(limitingFields, query, o);
       }
       return { query, data };
     });
@@ -634,7 +642,7 @@ export class CrudClient<T> {
     };
 
     const batchFunc = async (chunk: any[]) => {
-      this._tryOrLogout(axios.patch, 2, url, chunk, {
+      return await this._tryOrLogout(axios.patch, 2, url, chunk, {
         params: ICrudQuery,
         headers: this._getHeaders(),
       });
@@ -690,7 +698,11 @@ export class CrudClient<T> {
     if (e.response && e.response.status == 400) {
       let parsedMessage = e.response.data?.message;
       if (typeof parsedMessage == 'string') {
-        parsedMessage = JSON.parse(parsedMessage);
+        try {
+          parsedMessage = JSON.parse(parsedMessage);
+        } catch (e) {
+          return null;
+        }
       }
       if (
         [
@@ -724,7 +736,7 @@ export class CrudClient<T> {
     };
 
     const batchFunc = async (chunk: any[]) => {
-      this._tryOrLogout(axios.post, 2, url, chunk, {
+      return await this._tryOrLogout(axios.post, 2, url, chunk, {
         params: ICrudQuery,
         headers: this._getHeaders(),
       });
