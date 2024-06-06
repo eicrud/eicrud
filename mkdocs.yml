@@ -28,7 +28,7 @@ extra:
       link: https://example.com
       name: homepage
 
-repo_url: https://github.com/squidfunk/mkdocs-material
+repo_url: https://github.com/eicrud/eicrud
 
 extra_css:
   - stylesheets/extra.css

@@ -1,6 +1,6 @@
 {
   "name": "@eicrud/mongodb",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "eicrud db adapter for mongodb",
   "author": "acrosett",
   "license": "MIT",
@@ -14,7 +14,7 @@
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
   },
   "peerDependencies": {
-    "@eicrud/core": "^0.1.9"
+    "@eicrud/core": "^0.1.10"
   },
   "devDependencies": {
     "del-cli": "^5.1.0"

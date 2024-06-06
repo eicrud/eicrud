@@ -1,12 +1,17 @@
 import { ICrudOptions } from '@eicrud/shared/interfaces';
 import { ICrudQuery } from '@eicrud/shared/interfaces';
-import { Cookies } from 'js-cookie';
+const Cookies = require('js-cookie'); // required for browser support
 import { FindResponseDto } from '@eicrud/shared/interfaces';
 import axios from 'axios';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { ILoginDto, LoginResponseDto } from '@eicrud/shared/interfaces';
 import wildcard from 'wildcard';
-import { _utils } from '../core/utils';
+
+class _utils {
+  static makeArray(obj) {
+    return Array.isArray(obj) ? obj : [obj];
+  }
+}
 
 export interface ClientStorage {
   get(name: string): string;
