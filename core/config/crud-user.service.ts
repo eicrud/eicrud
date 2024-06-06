@@ -397,6 +397,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return { emailCount, timeout };
   }
 
+  async addToComputedTrust(
+    user: CrudUser,
+    trust: number,
+    ctx: CrudContext,
+  ): Promise<number> {
+    return trust;
+  }
+
   async sendTokenEmail(
     email: string,
     user: CrudUser,

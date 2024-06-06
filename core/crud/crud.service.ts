@@ -657,10 +657,6 @@ export class CrudService<T extends CrudEntity> {
     return await this['$' + cmdName](ctx.data, ctx, inheritance);
   }
 
-  async addToComputedTrust(user: CrudUser, trust: number, ctx: CrudContext) {
-    return trust;
-  }
-
   checkObjectForIds(obj: any) {
     for (let key in obj || {}) {
       obj[key] = this.dbAdapter.checkId(obj[key]);

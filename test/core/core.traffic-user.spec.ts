@@ -6,16 +6,16 @@ import {
   readyApp,
   dropDatabases,
 } from '../test.module';
-import { CrudController } from '../../core/crud/crud.controller';
+import { CrudController } from '@eicrud/core/crud/crud.controller';
 import { MyUserService } from '../myuser.service';
-import { CrudAuthService } from '../../core/authentication/auth.service';
+import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../entities/UserProfile';
-import { CrudQuery } from '../../core/crud/model/CrudQuery';
+import { CrudQuery } from '@eicrud/core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,
   createMelons,
@@ -24,15 +24,15 @@ import {
 } from '../test.utils';
 import { MyProfileService } from '../profile.service';
 import { Melon } from '../entities/Melon';
-import { CrudService } from '../../core/crud/crud.service';
+import { CrudService } from '@eicrud/core/crud/crud.service';
 import { TestUser } from '../test.utils';
 import {
   CRUD_CONFIG_KEY,
   CrudConfigService,
-} from '../../core/config/crud.config.service';
+} from '@eicrud/core/config/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
-import { CrudAuthGuard } from '../../core/authentication/auth.guard';
+import { CrudAuthGuard } from '@eicrud/core/authentication/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 
 const testAdminCreds = {

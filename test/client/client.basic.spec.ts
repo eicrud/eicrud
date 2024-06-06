@@ -32,6 +32,9 @@ import {
   MemoryStorage,
 } from '../../client/CrudClient';
 import { LoginDto } from '../../core/crud/model/dtos';
+import { MelonService } from '../melon.service';
+import exp from 'constants';
+import { MyUser } from '../entities/MyUser';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -69,12 +72,24 @@ const users: Record<string, TestUser> = {
     bio: 'I am a cool guy.',
     melons: 7,
   },
+  'Giveme Melons': {
+    email: 'Giveme.Melons@test.com',
+    role: 'trusted_user',
+    bio: 'I am a cool guy.',
+  },
+  'Patchmy Melons': {
+    email: 'PatchMy.Melons@test.com',
+    role: 'trusted_user',
+    bio: 'I am a cool guy.',
+    melons: 44,
+  },
 };
 
 describe('AppController', () => {
   let appController: CrudController;
   let userService: MyUserService;
   let authService: CrudAuthService;
+  let melonService: MelonService;
   let authGuard: CrudAuthGuard;
   let profileService: MyProfileService;
   let app: NestFastifyApplication;
@@ -117,6 +132,7 @@ describe('AppController', () => {
     profileService = app.get<MyProfileService>(MyProfileService);
     entityManager = app.get<EntityManager>(EntityManager);
     crudConfig = app.get<CrudConfigService>(CRUD_CONFIG_KEY, { strict: false });
+    melonService = app.get<MelonService>(MelonService);
 
     crudConfig.authenticationOptions.minTimeBetweenLoginAttempsMs = 0;
 
@@ -316,5 +332,129 @@ describe('AppController', () => {
     const res2 = await myClient.checkJwt();
 
     expect(res2).toBeNull();
+  });
+
+  it('should batch create melons', async () => {
+    const user = users['Giveme Melons'];
+    const dto: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password,
+    };
+    const myClient = getMelonClient();
+
+    await myClient.login(dto);
+
+    const batch: Melon[] = [];
+    for (let i = 0; i < 10; i++) {
+      batch.push({
+        owner: user.id,
+        price: i,
+        ownerEmail: user.email,
+        name: 'melon',
+      } as Melon);
+    }
+
+    await myClient.createBatch(batch);
+
+    const batch2: Melon[] = [];
+    for (let i = 0; i < 4; i++) {
+      batch2.push({
+        owner: user.id,
+        price: i,
+        ownerEmail: user.email,
+        name: 'melon',
+      } as Melon);
+    }
+
+    await myClient.createBatch(batch2);
+
+    const batch3: Melon[] = [];
+    for (let i = 0; i < 20; i++) {
+      batch3.push({
+        owner: user.id,
+        price: i,
+        ownerEmail: user.email,
+        name: 'melon',
+      } as Melon);
+    }
+
+    await myClient.createBatch(batch3, {}, { batchSize: 4 });
+
+    const res = await melonService.$find({ owner: user.id }, null);
+    const userMelons = res.data;
+    expect(userMelons.length).toBe(34);
+  });
+
+  it('should batch patch melons', async () => {
+    const user = users['Patchmy Melons'];
+
+    const res0 = await melonService.$find({ owner: user.id }, null);
+    const userMelons0 = res0.data;
+
+    const dto: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password,
+    };
+    const myClient = getMelonClient();
+
+    await myClient.login(dto);
+
+    const batch: { query: any; data: any }[] = [];
+    for (let i = 0; i < 10; i++) {
+      const popped = userMelons0.pop();
+      popped.owner = (popped.owner as MyUser).id;
+      batch.push({
+        query: { id: popped.id, owner: popped.owner },
+        data: { name: `patched name ${popped.price}` },
+      });
+    }
+
+    await myClient.patchBatch(batch);
+
+    const batch2: { query: any; data: any }[] = [];
+    for (let i = 0; i < 4; i++) {
+      const popped = userMelons0.pop();
+      popped.owner = (popped.owner as MyUser).id;
+      batch2.push({
+        query: { id: popped.id, owner: popped.owner },
+        data: { name: `patched name ${popped.price}` },
+      });
+    }
+
+    await myClient.patchBatch(batch2);
+
+    const batch3: Melon[] = [];
+    for (let i = 0; i < 20; i++) {
+      const popped = userMelons0.pop();
+      popped.owner = (popped.owner as MyUser).id;
+      batch3.push({
+        owner: popped.owner,
+        id: popped.id,
+        name: `patched name ${popped.price}`,
+      } as Melon);
+    }
+
+    await myClient.saveBatch(['owner'], batch3, {}, { batchSize: 4 });
+
+    const batch4: Melon[] = [];
+    for (let i = 0; i < 10; i++) {
+      const popped = userMelons0.pop();
+      popped.owner = (popped.owner as MyUser).id;
+      batch4.push({
+        owner: popped.owner,
+        id: popped.id,
+        name: `patched name ${popped.price}`,
+      } as Melon);
+    }
+    myClient.config.limitingFields = ['owner'];
+    await myClient.saveBatch(null, batch4, {}, { batchSize: 4 });
+
+    const res = await melonService.$find({ owner: user.id }, null);
+    const userMelons = res.data;
+    expect(userMelons.length).toBe(44);
+
+    for (const mel of userMelons) {
+      expect(mel.name).toEqual(`patched name ${mel.price}`);
+    }
   });
 });

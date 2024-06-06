@@ -9,7 +9,7 @@ import {
   UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
-import wildcard from 'wildcard';
+let wildcard = require('wildcard');
 
 import { CrudContext } from '../crud/model/CrudContext';
 
