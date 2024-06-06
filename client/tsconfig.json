@@ -1,10 +1,4 @@
 {
   "extends": "../global.tsconfig.json",
-  "compilerOptions": {
-    "module": "ES2022",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "skipLibCheck": true
-  },
   "exclude": ["node_modules"]
 }
