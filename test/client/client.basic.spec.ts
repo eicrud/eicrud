@@ -16,6 +16,7 @@ import {
   createAccountsAndProfiles,
   createMelons,
   createNewProfileTest,
+  parseJwtCookieFromRes,
   testMethod,
 } from '../test.utils';
 import { MyProfileService } from '../profile.service';
@@ -82,6 +83,11 @@ const users: Record<string, TestUser> = {
     role: 'trusted_user',
     bio: 'I am a cool guy.',
     melons: 44,
+  },
+  'Logme Out': {
+    email: 'Logme.Out@test.com',
+    role: 'user',
+    bio: 'I am leaving.',
   },
 };
 
@@ -464,5 +470,29 @@ describe('AppController', () => {
     for (const mel of userMelons) {
       expect(mel.name).toEqual(`patched name ${mel.price}`);
     }
+  });
+
+  it('should logout', async () => {
+    const user = users['Logme Out'];
+
+    const dto: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password,
+    };
+
+    const myClient = getProfileClient();
+
+    await myClient.login(dto);
+
+    const res = await myClient.checkJwt();
+    expect(res).toEqual(user.id?.toString());
+
+    myClient.config.storage = null;
+    const res2 = await myClient.logout();
+
+    const match = parseJwtCookieFromRes(res2);
+
+    expect(match).toBeTruthy();
+    expect(match[1]).toBeFalsy();
   });
 });

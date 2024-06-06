@@ -41,8 +41,7 @@
     "@eicrud/core": "file:core",
     "@eicrud/mongodb": "file:db_mongo",
     "@eicrud/postgresql": "file:db_postgre",
-    "@eicrud/shared": "file:shared",
-    "@fastify/cookie": "^9.3.1"
+    "@eicrud/shared": "file:shared"
   },
   "devDependencies": {
     "@eicrud/cli": "file:cli",

@@ -73,6 +73,7 @@ export class CrudAuthService {
         httpOnly: true,
         secure: true,
         maxAge: expiresInSec,
+        path: '/',
       };
     }
     return token;

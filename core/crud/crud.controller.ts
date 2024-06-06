@@ -210,8 +210,10 @@ export class CrudController {
     }
     if (e instanceof UnauthorizedException) {
       const response = ctx.getHttpResponse();
-      response.setCookie('eicrud-jwt', null, {
+      response.setCookie('eicrud-jwt', '', {
         httpOnly: true,
+        maxAge: 0,
+        path: '/',
       });
     }
     throw e;
