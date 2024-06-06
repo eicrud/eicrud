@@ -64,7 +64,7 @@ const cmdSecurityMap: Record<string, CmdSecurity> = {
   },
   [baseCmds.checkJwt.name]: {
     rolesRights: {
-      user: {
+      guest: {
         async defineCMDAbility(can, cannot, ctx) {
           can(baseCmds.checkJwt.name, 'my-user');
         },

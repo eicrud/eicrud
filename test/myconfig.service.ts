@@ -15,6 +15,7 @@ import { Picture } from './entities/Picture';
 import { Melon } from './entities/Melon';
 import { FakeEmail } from './entities/FakeEmail';
 import { PostgreDbAdapter } from '../db_postgre/postgreDbAdapter';
+import { DragonFruit } from './entities/Dragonfruit';
 
 const roles: CrudRole[] = [
   {
@@ -68,7 +69,9 @@ msOptions.microServices = {
     allowNonSecureUrl: true,
   },
   melon: {
-    services: PROXY_TEST ? [Melon] : [Melon, UserProfile, Picture],
+    services: PROXY_TEST
+      ? [Melon, DragonFruit]
+      : [Melon, DragonFruit, UserProfile, Picture],
     openBackDoor: true,
     openController: PROXY_TEST ? true : false,
     url: 'http://localhost:3006',

@@ -1,6 +1,6 @@
 {
   "name": "@eicrud/cli",
-  "version": "0.0.41",
+  "version": "0.0.42",
   "description": "cli for @eicrud framework",
   "author": "acrosett",
   "license": "MIT",

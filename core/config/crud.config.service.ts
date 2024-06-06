@@ -70,8 +70,12 @@ export class MicroServicesOptions {
 
   findCurrentServiceMatches(service: CrudService<any>) {
     let matches = [];
-    for (const key of Object.keys(this.microServices)) {
-      if (this.microServices[key].services.includes(service.entity)) {
+    for (const key in this.microServices) {
+      if (
+        this.microServices[key].services
+          .map((v) => v.name)
+          .includes(service.entity.name)
+      ) {
         matches.push(key);
       }
     }
