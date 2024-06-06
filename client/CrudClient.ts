@@ -1,6 +1,5 @@
 import { ICrudOptions } from '@eicrud/shared/interfaces';
 import { ICrudQuery } from '@eicrud/shared/interfaces';
-const Cookies = require('js-cookie'); // required for browser support
 import { FindResponseDto } from '@eicrud/shared/interfaces';
 import axios from 'axios';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
@@ -15,25 +14,13 @@ class _utils {
 
 export interface ClientStorage {
   get(name: string): string;
-  set(name: string, value: string, durationDays: number, secure: boolean): void;
-  del(name: string): void;
-}
-
-export class CookieStorage implements ClientStorage {
-  get(name: string): string {
-    return Cookies.get(name);
-  }
   set(
     name: string,
     value: string,
-    durationDays: number,
+    durationSeconds: number,
     secure: boolean,
-  ): void {
-    return Cookies.set(name, value, { expires: durationDays, secure: secure });
-  }
-  del(name: string): void {
-    return Cookies.remove(name);
-  }
+  ): void;
+  del(name: string): void;
 }
 
 export class MemoryStorage implements ClientStorage {
@@ -46,7 +33,7 @@ export class MemoryStorage implements ClientStorage {
   set(
     name: string,
     value: string,
-    durationDays: number,
+    durationSeconds: number,
     secure: boolean,
   ): void {
     this.memory.set(name, value);
@@ -59,6 +46,7 @@ export class MemoryStorage implements ClientStorage {
 export interface ClientConfig {
   serviceName: string;
   url: string;
+  allowNonSecureUrl?: boolean;
   userServiceName?: string;
   onLogout?: () => void;
   storage?: ClientStorage;
@@ -90,67 +78,70 @@ export interface ClientOptions {
  * A client for CRUD operations.
  */
 export class CrudClient<T> {
-  JWT_COOKIE_KEY = 'crud-client';
+  JWT_STORAGE_KEY = 'eicrud-jwt';
   fetchNb = 0;
 
   constructor(public config: ClientConfig) {
     this.config.id_field = this.config.id_field || 'id';
     this.config.storage =
-      this.config.storage ||
-      (document ? new CookieStorage() : new MemoryStorage());
+      this.config.storage || (document ? null : new MemoryStorage());
     this.config.defaultBatchSize = this.config.defaultBatchSize || 200;
     this.config.cmdDefaultBatchMap = this.config.cmdDefaultBatchMap || {};
     this.config.userServiceName = this.config.userServiceName || 'user';
   }
 
-  private _getHeaders() {
+  private _getAxiosOptions() {
     const headers: any = {};
-    const jwt = this.config.storage.get(this.JWT_COOKIE_KEY);
-    if (jwt) {
-      headers.Authorization = `Bearer ${jwt}`;
+    if (this.config.storage) {
+      const jwt = this.config.storage?.get(this.JWT_STORAGE_KEY);
+      if (jwt) {
+        const mustStartWith = [
+          'https://',
+          'http://localhost',
+          'localhost',
+          'http://127.0.0.1',
+          '127.0.0.1',
+        ];
+        if (
+          !this.config.allowNonSecureUrl &&
+          !mustStartWith.some((v) => this.config.url.startsWith(v))
+        ) {
+          throw new Error(
+            'allowNonSecureUrl not set, but url is not secure - cannot send credentials over non-secure connection.',
+          );
+        }
+        headers.Cookie = `eicrud-jwt=${jwt};`;
+      }
     }
-    return headers;
+    return { headers, withCredentials: true };
   }
 
-  logout() {
-    this.config.storage.del(this.JWT_COOKIE_KEY);
+  async logout(remote = true) {
+    if (this.config.storage) {
+      this.config.storage.del(this.JWT_STORAGE_KEY);
+    } else if (remote) {
+      await this.userServiceCmd('logout');
+    }
     this.config.onLogout?.();
   }
 
-  async checkJwt() {
+  async userServiceCmd(cmdName, data = {}, returnRaw = false) {
     const url =
       this.config.url +
       '/crud/s/' +
       this.config.userServiceName +
-      '/cmd/check_jwt';
+      '/cmd/' +
+      cmdName;
     try {
-      const res: LoginResponseDto = (
-        await axios.patch(
-          url,
-          {},
-          {
-            headers: this._getHeaders(),
-          },
-        )
-      )?.data;
+      const res = await axios.patch(url, data, {
+        ...this._getAxiosOptions(),
+      });
 
-      if (res.refreshTokenSec) {
-        let days = Math.round(res.refreshTokenSec / 60 / 60 / 24);
-        if (days < 1) {
-          days = 1;
-        }
-        this.config.storage.set(
-          this.JWT_COOKIE_KEY,
-          res.accessToken,
-          days,
-          false,
-        );
-      }
-
-      return res.userId;
+      return returnRaw ? res : res?.data;
     } catch (e) {
       if (e.response && e.response.status === 401) {
-        this.logout();
+        console.error(e.response.data);
+        this.logout(false);
       } else {
         throw e;
       }
@@ -158,33 +149,31 @@ export class CrudClient<T> {
     return null;
   }
 
-  async login(dto: ILoginDto): Promise<LoginResponseDto> {
-    const url =
-      this.config.url + '/crud/s/' + this.config.userServiceName + '/cmd/login';
-
-    let res: LoginResponseDto;
-    try {
-      res = (await axios.patch(url, dto)).data;
-    } catch (e) {
-      if (e.response && e.response.status === 401) {
-        this.logout();
-      }
-      throw e;
-    }
-    let days = 1;
-    if (dto.expiresIn?.includes('d')) {
-      const dayStr = dto.expiresIn.replace('d', '');
-      const dayNum = parseInt(dayStr);
-      if (dayNum > 0) {
-        days = dayNum;
-      }
-    }
-    this.setJwt(res.accessToken, days);
-    return res;
+  async checkJwt() {
+    const res = await this.userServiceCmd('check_jwt');
+    return res?.userId || null;
   }
 
-  setJwt(jwt: string, durationDays: number = 1) {
-    this.config.storage.set(this.JWT_COOKIE_KEY, jwt, durationDays, true);
+  async login(dto: ILoginDto): Promise<LoginResponseDto> {
+    let res = await this.userServiceCmd('login', dto, true);
+    let secs = dto.expiresInSec;
+
+    const cookieRegex = /eicrud-jwt=([^;]*);/;
+    const cookie = res.headers['set-cookie'];
+    for (const c of cookie || []) {
+      const match = cookieRegex.exec(c);
+      if (match) {
+        this.setJwt(match[1], secs);
+        return res?.data;
+      }
+    }
+    throw new Error('No jwt cookie found in response');
+  }
+
+  setJwt(jwt: string, durationSeconds: number = 60 * 30) {
+    if (this.config.storage) {
+      this.config.storage.set(this.JWT_STORAGE_KEY, jwt, durationSeconds, true);
+    }
   }
 
   private async _tryOrLogout(method, optsIndex, ...args) {
@@ -194,7 +183,7 @@ export class CrudClient<T> {
       this.fetchNb++;
     } catch (e) {
       if (e.response && e.response.status === 401) {
-        this.logout();
+        this.logout(false);
       } else {
         const NODE_ENV = process?.env?.NODE_ENV;
         if (
@@ -207,7 +196,7 @@ export class CrudClient<T> {
       }
       args[optsIndex] = {
         ...args[optsIndex],
-        headers: this._getHeaders(),
+        ...this._getAxiosOptions(),
       };
       res = await method(...args);
     }
@@ -265,7 +254,7 @@ export class CrudClient<T> {
 
     const res = await this._tryOrLogout(axios.get, 1, url, {
       params: ICrudQuery,
-      headers: this._getHeaders(),
+      ...this._getAxiosOptions(),
     });
 
     return res;
@@ -286,7 +275,7 @@ export class CrudClient<T> {
     const fetchFunc = async (crdQuery: ICrudQuery) => {
       return await this._tryOrLogout(axios.get, 1, url, {
         params: crdQuery,
-        headers: this._getHeaders(),
+        ...this._getAxiosOptions(),
       });
     };
 
@@ -320,7 +309,7 @@ export class CrudClient<T> {
       const fetchFunc = async (crdQ: ICrudQuery) => {
         return await this._tryOrLogout(axios.get, 1, url, {
           params: crdQ,
-          headers: this._getHeaders(),
+          ...this._getAxiosOptions(),
         });
       };
 
@@ -344,7 +333,7 @@ export class CrudClient<T> {
     const fetchFunc = async (crdQ: ICrudQuery) => {
       return await this._tryOrLogout(axios.get, 1, url, {
         params: crdQ,
-        headers: this._getHeaders(),
+        ...this._getAxiosOptions(),
       });
     };
 
@@ -460,7 +449,7 @@ export class CrudClient<T> {
       const fetchFunc = async (crdQ: ICrudQuery) => {
         return await this._tryOrLogout(method, 2, url, dto, {
           params: crdQ,
-          headers: this._getHeaders(),
+          ...this._getAxiosOptions(),
         });
       };
       return await this._doLimitQuery(fetchFunc, crudQuery, copts);
@@ -469,7 +458,7 @@ export class CrudClient<T> {
     crudQuery.options = JSON.stringify(options) as any;
     return await this._tryOrLogout(method, 2, url, dto, {
       params: crudQuery,
-      headers: this._getHeaders(),
+      ...this._getAxiosOptions(),
     });
   }
 
@@ -535,7 +524,7 @@ export class CrudClient<T> {
 
     const res = await this._tryOrLogout(axios.patch, 2, url, data, {
       params: ICrudQuery,
-      headers: this._getHeaders(),
+      ...this._getAxiosOptions(),
     });
 
     return res;
@@ -555,7 +544,7 @@ export class CrudClient<T> {
 
     const res = await this._tryOrLogout(axios.patch, 2, url, data, {
       params: ICrudQuery,
-      headers: this._getHeaders(),
+      ...this._getAxiosOptions(),
     });
 
     return res;
@@ -588,7 +577,7 @@ export class CrudClient<T> {
       };
       return await this._tryOrLogout(axios.patch, 2, url, data, {
         params: newICrudQuery,
-        headers: this._getHeaders(),
+        ...this._getAxiosOptions(),
       });
     };
 
@@ -644,7 +633,7 @@ export class CrudClient<T> {
     const batchFunc = async (chunk: any[]) => {
       return await this._tryOrLogout(axios.patch, 2, url, chunk, {
         params: ICrudQuery,
-        headers: this._getHeaders(),
+        ...this._getAxiosOptions(),
       });
     };
 
@@ -738,7 +727,7 @@ export class CrudClient<T> {
     const batchFunc = async (chunk: any[]) => {
       return await this._tryOrLogout(axios.post, 2, url, chunk, {
         params: ICrudQuery,
-        headers: this._getHeaders(),
+        ...this._getAxiosOptions(),
       });
     };
 
@@ -753,7 +742,7 @@ export class CrudClient<T> {
 
     const res = await this._tryOrLogout(axios.post, 2, url, data, {
       params: ICrudQuery,
-      headers: this._getHeaders(),
+      ...this._getAxiosOptions(),
     });
 
     return res;
@@ -771,7 +760,7 @@ export class CrudClient<T> {
 
     const res = await this._tryOrLogout(axios.delete, 1, url, {
       params: ICrudQuery,
-      headers: this._getHeaders(),
+      ...this._getAxiosOptions(),
     });
 
     return res;
@@ -794,7 +783,7 @@ export class CrudClient<T> {
       };
       return await this._tryOrLogout(axios.delete, 1, url, {
         params: newICrudQuery,
-        headers: this._getHeaders(),
+        ...this._getAxiosOptions(),
       });
     };
 
@@ -816,7 +805,7 @@ export class CrudClient<T> {
 
     const res = await this._tryOrLogout(axios.delete, 1, url, {
       params: ICrudQuery,
-      headers: this._getHeaders(),
+      ...this._getAxiosOptions(),
     });
 
     return res;

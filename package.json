@@ -37,11 +37,12 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "@eicrud/core": "file:core",
     "@eicrud/client": "file:client",
+    "@eicrud/core": "file:core",
     "@eicrud/mongodb": "file:db_mongo",
     "@eicrud/postgresql": "file:db_postgre",
-    "@eicrud/shared": "file:shared"
+    "@eicrud/shared": "file:shared",
+    "@fastify/cookie": "^9.3.1"
   },
   "devDependencies": {
     "@eicrud/cli": "file:cli",

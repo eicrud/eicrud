@@ -18,6 +18,7 @@ import { Loaded, Type } from '@mikro-orm/core';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { CrudAuthService } from '../authentication/auth.service';
 import {
+  IsBoolean,
   IsEmail,
   IsInt,
   IsOptional,
@@ -43,6 +44,10 @@ import { CrudRole } from './model/CrudRole';
 import { access } from 'fs';
 
 export class CreateAccountDto implements ICreateAccountDto {
+  @IsOptional()
+  @IsBoolean()
+  logMeIn: boolean;
+
   @IsString()
   @$Transform((value) => {
     return value.toLowerCase().trim();
@@ -57,14 +62,18 @@ export class CreateAccountDto implements ICreateAccountDto {
 }
 
 export class ResetPasswordDto implements IResetPasswordDto {
+  @IsOptional()
+  @IsBoolean()
+  logMeIn: boolean;
+
   @IsString()
   token_id: string;
 
   @IsString()
   newPassword: string;
 
-  @IsString()
-  expiresIn: string;
+  @IsInt()
+  expiresInSec: number;
 }
 
 export class TimeoutUserDto implements ITimeoutUserDto {
@@ -78,17 +87,25 @@ export class TimeoutUserDto implements ITimeoutUserDto {
   allowedRoles: string[];
 }
 export class ChangePasswordDto implements IChangePasswordDto {
+  @IsOptional()
+  @IsBoolean()
+  logMeIn: boolean;
+
   @IsString()
   oldPassword: string;
 
   @IsString()
   newPassword: string;
 
-  @IsString()
-  expiresIn: string;
+  @IsInt()
+  expiresInSec: number;
 }
 
 export class VerifyTokenDto implements IVerifyTokenDto {
+  @IsOptional()
+  @IsBoolean()
+  logMeIn: boolean;
+
   @IsString()
   token_id: string;
 }
@@ -121,6 +138,11 @@ export const baseCmds = {
   },
   checkJwt: {
     name: 'check_jwt',
+    dto: EmptyDto,
+    nonSecure: true,
+  },
+  logout: {
+    name: 'logout',
     dto: EmptyDto,
     nonSecure: true,
   },
@@ -279,6 +301,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       timeoutCount: user.timeoutCount,
     };
     this.$unsecure_fastPatchOne(user[this.crudConfig.id_field], patch, null);
+  }
+
+  async $logout(dto: EmptyDto, ctx: CrudContext) {
+    ctx.setCookies = ctx.setCookies || {};
+    ctx.setCookies['eicrud-jwt'] = {
+      value: null,
+      httpOnly: true,
+    };
   }
 
   addTimeoutToUser(user: CrudUser, timeoutDurationMinutes: number) {
@@ -549,7 +579,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       },
     );
     return {
-      accessToken: await this.authService.signTokenForUser(updatedUser),
+      accessToken: dto.logMeIn
+        ? await this.authService.signTokenForUser(ctx, updatedUser)
+        : undefined,
     };
   }
 
@@ -624,14 +656,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   }
 
   async $reset_password(dto: ResetPasswordDto, ctx: CrudContext) {
-    const allowedJwtExpiresIn =
-      this.crudConfig.authenticationOptions.allowedJwtExpiresIn;
-    if (dto.expiresIn && !allowedJwtExpiresIn.includes(dto.expiresIn)) {
+    const maxJwtexpiresInSec =
+      this.crudConfig.authenticationOptions.maxJwtexpiresInSec;
+    if (dto.expiresInSec && dto.expiresInSec > maxJwtexpiresInSec) {
       throw new BadRequestException(
-        'Invalid expiresIn: ' +
-          dto.expiresIn +
-          ' allowed: ' +
-          allowedJwtExpiresIn.join(', '),
+        'Invalid expiresInSec: ' +
+          dto.expiresInSec +
+          ' max: ' +
+          maxJwtexpiresInSec,
       );
     }
     const { newPassword, token_id } = dto;
@@ -669,22 +701,25 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       },
     );
     return {
-      accessToken: await this.authService.signTokenForUser(
-        updatedUser,
-        dto.expiresIn || undefined,
-      ),
+      accessToken: dto.logMeIn
+        ? await this.authService.signTokenForUser(
+            ctx,
+            updatedUser,
+            dto.expiresInSec || undefined,
+          )
+        : undefined,
     };
   }
 
   async $change_password(dto: ChangePasswordDto, ctx: CrudContext) {
-    const allowedJwtExpiresIn =
-      this.crudConfig.authenticationOptions.allowedJwtExpiresIn;
-    if (dto.expiresIn && !allowedJwtExpiresIn.includes(dto.expiresIn)) {
+    const maxJwtexpiresInSec =
+      this.crudConfig.authenticationOptions.maxJwtexpiresInSec;
+    if (dto.expiresInSec && dto.expiresInSec > maxJwtexpiresInSec) {
       throw new BadRequestException(
-        'Invalid expiresIn: ' +
-          dto.expiresIn +
-          ' allowed: ' +
-          allowedJwtExpiresIn.join(', '),
+        'Invalid expiresInSec: ' +
+          dto.expiresInSec +
+          ' max: ' +
+          maxJwtexpiresInSec,
       );
     }
     if (!ctx.userId) {
@@ -717,10 +752,13 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const updatedUser = { ...user, ...patch };
 
     return {
-      accessToken: await this.authService.signTokenForUser(
-        updatedUser,
-        dto.expiresIn || undefined,
-      ),
+      accessToken: dto.logMeIn
+        ? await this.authService.signTokenForUser(
+            ctx,
+            updatedUser,
+            dto.expiresInSec || undefined,
+          )
+        : undefined,
     };
   }
 
@@ -744,7 +782,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
     return {
       userId: res[this.crudConfig.id_field],
-      accessToken: await this.authService.signTokenForUser(res),
+      accessToken: dto.logMeIn
+        ? await this.authService.signTokenForUser(ctx, res)
+        : undefined,
     };
   }
 
@@ -752,7 +792,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     ctx: CrudContext,
     user: CrudUser,
     pass,
-    expiresIn = '30m',
+    expiresInSec = 60 * 30,
     twoFA_code?,
   ) {
     const userSuccessPatch: any = {};
@@ -832,7 +872,11 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     );
 
     return {
-      accessToken: await this.authService.signTokenForUser(user, expiresIn),
+      accessToken: await this.authService.signTokenForUser(
+        ctx,
+        user,
+        expiresInSec,
+      ),
       userId: user[this.crudConfig.id_field],
     } as LoginResponseDto;
   }
@@ -857,14 +901,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
     this.userLastLoginAttemptMap.set(dto.email, now);
 
-    const allowedJwtExpiresIn =
-      this.crudConfig.authenticationOptions.allowedJwtExpiresIn;
-    if (dto.expiresIn && !allowedJwtExpiresIn.includes(dto.expiresIn)) {
+    const maxJwtexpiresInSec =
+      this.crudConfig.authenticationOptions.maxJwtexpiresInSec;
+    if (dto.expiresInSec && dto.expiresInSec > maxJwtexpiresInSec) {
       throw new BadRequestException(
-        'Invalid expiresIn: ' +
-          dto.expiresIn +
-          ' allowed: ' +
-          allowedJwtExpiresIn.join(', '),
+        'Invalid expiresInSec: ' +
+          dto.expiresInSec +
+          ' max: ' +
+          maxJwtexpiresInSec,
       );
     }
 
@@ -891,7 +935,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       ctx,
       user,
       dto.password,
-      dto.expiresIn,
+      dto.expiresInSec,
       dto.twoFA_code,
     );
   }
@@ -932,6 +976,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       const thresholdMs = totalSec * 1000 * this.reciprocal20percent; // 20% of total time
       if (elapsedMs >= thresholdMs) {
         const newToken = await this.authService.signTokenForUser(
+          ctx,
           ctx.user,
           totalSec,
           addToPayload,
@@ -950,9 +995,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       throw new UnauthorizedException('User not found.');
     }
     const ret: LoginResponseDto = { userId };
-    const { accessToken, refreshTokenSec } = await this.$renewJwt(ctx);
-    ret.accessToken = accessToken;
-    ret.refreshTokenSec = refreshTokenSec;
-    return ret as LoginResponseDto;
+    await this.$renewJwt(ctx);
+    return ret;
   }
 }

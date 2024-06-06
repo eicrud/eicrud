@@ -34,6 +34,17 @@ export interface CrudContext {
    * @type {object}
    */
   _temp?: object;
+
+  setCookies?: Record<string, CookieToSet>;
   getCurrentService?: () => CrudService<any>;
-  getRequest?: () => any;
+  getHttpRequest?: () => any;
+  getHttpResponse?: () => any;
+}
+
+export interface CookieToSet {
+  value: string;
+  httpOnly?: boolean;
+  secure?: boolean;
+  signed?: boolean;
+  maxAge?: number;
 }

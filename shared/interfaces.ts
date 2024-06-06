@@ -24,7 +24,7 @@ export interface ILoginDto {
   email: string;
   password: string;
   twoFA_code?: string;
-  expiresIn?: string;
+  expiresInSec?: number;
 }
 
 export interface LoginResponseDto {
@@ -36,12 +36,14 @@ export interface LoginResponseDto {
 export interface IResetPasswordDto {
   token_id: string;
   newPassword: string;
+  logMeIn: boolean;
 }
 
 export interface ICreateAccountDto {
   email: string;
   password: string;
   role: string;
+  logMeIn: boolean;
 }
 
 export interface ITimeoutUserDto {
@@ -52,6 +54,7 @@ export interface ITimeoutUserDto {
 export interface IChangePasswordDto {
   oldPassword: string;
   newPassword: string;
+  logMeIn: boolean;
 }
 export class ISendVerificationEmailDto {
   newEmail?: string;
@@ -67,4 +70,5 @@ export interface IUserIdDto {
 
 export interface IVerifyTokenDto {
   token_id: string;
+  logMeIn: boolean;
 }

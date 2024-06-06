@@ -136,6 +136,7 @@ export class Setup {
       'login',
       'checkJwt',
       'timeoutUser',
+      'logout',
     ];
 
     const bKeysArray = [];

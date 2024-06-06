@@ -58,7 +58,7 @@ export interface MicroServiceConfig {
   url: string;
   username?: string;
   password?: string;
-  allowNonSecureUrl: boolean;
+  allowNonSecureUrl?: boolean;
 }
 
 export class MicroServicesOptions {
@@ -123,6 +123,7 @@ export class CrudConfigService {
   isIsolated: any;
   public dbAdapter: CrudDbAdapter;
   JWT_SECRET: string;
+  COOKIE_SECRET: string;
 
   constructor(config: {
     userService: CrudUserService<any>;
@@ -131,6 +132,7 @@ export class CrudConfigService {
     captchaService?: any;
     emailService: EmailService;
     jwtSecret: string;
+    cookieSecret?: string;
     cacheManager: CrudCache;
     authenticationOptions?: Partial<AuthenticationOptions>;
     watchTrafficOptions?: Partial<WatchTrafficOptions>;
@@ -179,6 +181,7 @@ export class CrudConfigService {
     this.cacheManager = config.cacheManager;
 
     this.JWT_SECRET = config.jwtSecret;
+    this.COOKIE_SECRET = config.cookieSecret;
 
     this.userService = config.userService;
     this.logService = config.logService;

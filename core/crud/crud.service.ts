@@ -172,8 +172,16 @@ export class CrudService<T extends CrudEntity> {
 
         const orignalMethod = this[methodName].bind(this);
 
+        const mustStartWith = [
+          'https://',
+          'http://localhost',
+          'localhost',
+          'http://127.0.0.1',
+          '127.0.0.1',
+        ];
+
         if (
-          !targetServiceConfig.url.includes('https') &&
+          !mustStartWith.some((v) => targetServiceConfig.url.startsWith(v)) &&
           !targetServiceConfig.allowNonSecureUrl
         ) {
           throw new Error(
@@ -182,13 +190,14 @@ export class CrudService<T extends CrudEntity> {
         }
 
         this[methodName] = async (...args) => {
-          return this.forwardToBackdoor(
+          const res = await this.forwardToBackdoor(
             args,
             methodName,
             targetServiceConfig,
             ctxPos,
             inheritancePos,
           );
+          return res;
         };
       }
     }
@@ -221,11 +230,11 @@ export class CrudService<T extends CrudEntity> {
     const url = msConfig.url + '/crud/backdoor/' + this.serviceName;
 
     const payload = {
-      args,
+      args: [...(args || [])] as any,
     };
 
     if (ctxPos != null && args[ctxPos]) {
-      args[ctxPos] = {
+      payload.args[ctxPos] = {
         ...args[ctxPos],
         em: undefined,
         noFlush: undefined,
@@ -253,7 +262,14 @@ export class CrudService<T extends CrudEntity> {
         );
       });
 
-    return res.data;
+    const result = res.data.res;
+    const partialCtx = res.data.ctx;
+    if (partialCtx && ctxPos != null && args[ctxPos]) {
+      for (const key in partialCtx) {
+        args[ctxPos][key] = partialCtx[key];
+      }
+    }
+    return result;
   }
 
   getName() {
@@ -262,6 +278,14 @@ export class CrudService<T extends CrudEntity> {
 
   static getName(entity) {
     return toKebabCase(entity.name);
+  }
+
+  async $create_(
+    ctx: CrudContext,
+    secure: boolean = true,
+    inheritance: any = {},
+  ) {
+    return await this.$create(ctx.data, ctx, secure, inheritance);
   }
 
   async $create(
@@ -299,6 +323,14 @@ export class CrudService<T extends CrudEntity> {
     return entity;
   }
 
+  async $createBatch_(
+    ctx: CrudContext,
+    secure: boolean = true,
+    inheritance: any = {},
+  ) {
+    return await this.$createBatch(ctx.data, ctx, secure, inheritance);
+  }
+
   async $createBatch(
     newEntities: Partial<T>[],
     ctx: CrudContext,
@@ -315,6 +347,14 @@ export class CrudService<T extends CrudEntity> {
     ctx.noFlush = false;
 
     return results;
+  }
+
+  async $patchBatch_(
+    ctx: CrudContext,
+    secure: boolean = true,
+    inheritance: any = {},
+  ) {
+    return await this.$patchBatch(ctx.data, ctx, secure, inheritance);
   }
 
   async $patchBatch(
@@ -342,6 +382,13 @@ export class CrudService<T extends CrudEntity> {
     return await this.$create(newEntity, ctx, false, inheritance);
   }
 
+  async $find_(
+    ctx: CrudContext,
+    inheritance: any = {},
+  ): Promise<FindResponseDto<T>> {
+    return await this.$find(ctx.query, ctx, inheritance);
+  }
+
   async $find(
     entity: Partial<T>,
     ctx: CrudContext,
@@ -361,6 +408,10 @@ export class CrudService<T extends CrudEntity> {
     }
 
     return result;
+  }
+
+  async $findIn_(ctx: CrudContext, inheritance: any = {}) {
+    return this.$findIn(ctx.ids, ctx.query, ctx, inheritance);
   }
 
   async $findIn(
@@ -393,12 +444,20 @@ export class CrudService<T extends CrudEntity> {
     return key;
   }
 
+  async $findOne_(ctx: CrudContext, inheritance: any = {}) {
+    return await this.$findOne(ctx.query, ctx, inheritance);
+  }
+
   async $findOne(entity: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
     this.checkObjectForIds(entity);
     const em = ctx?.em || this.entityManager.fork();
     const opts = this.getReadOptions(ctx);
     const result = await em.findOne(this.entity, entity, opts as any);
     return result;
+  }
+
+  async $findOneCached_(ctx: CrudContext, inheritance: any = {}) {
+    return await this.$findOneCached(ctx.query, ctx, inheritance);
   }
 
   async $findOneCached(
@@ -430,6 +489,14 @@ export class CrudService<T extends CrudEntity> {
     let cacheKey = this.getCacheKey(entity);
     await this.cacheManager.set(cacheKey, entity, this.cacheOptions.TTL);
     return entity;
+  }
+
+  async $patch_(
+    ctx: CrudContext,
+    secure: boolean = true,
+    inheritance: any = {},
+  ) {
+    return await this.$patch(ctx.query, ctx.data, ctx, secure, inheritance);
   }
 
   async $patch(
@@ -481,6 +548,21 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
+  async $patchIn_(
+    ctx: CrudContext,
+    secure: boolean = true,
+    inheritance: any = {},
+  ) {
+    return await this.$patchIn(
+      ctx.ids,
+      ctx.query,
+      ctx.data,
+      ctx,
+      secure,
+      inheritance,
+    );
+  }
+
   async $patchIn(
     ids: string[],
     query: Partial<T>,
@@ -493,7 +575,16 @@ export class CrudService<T extends CrudEntity> {
     return await this.$patch(query, newEntity, ctx, secure, inheritance);
   }
 
-  async $removeIn(ids: any, query: any, ctx: CrudContext) {
+  async $removeIn_(ctx: CrudContext, inheritance: any = {}) {
+    return await this.$removeIn(ctx.ids, ctx.query, ctx, inheritance);
+  }
+
+  async $removeIn(
+    ids: any,
+    query: any,
+    ctx: CrudContext,
+    inheritance: any = {},
+  ) {
     this.dbAdapter.makeInQuery(ids, query);
     return await this.$remove(query, ctx);
   }
@@ -505,6 +596,14 @@ export class CrudService<T extends CrudEntity> {
     inheritance: any = {},
   ) {
     return await this.$patch(query, newEntity, ctx, false, inheritance);
+  }
+
+  async $patchOne_(
+    ctx: CrudContext,
+    secure: boolean = true,
+    inheritance: any = {},
+  ) {
+    return await this.$patchOne(ctx.query, ctx.data, ctx, secure, inheritance);
   }
 
   async $patchOne(
@@ -614,6 +713,10 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
+  async $remove_(ctx: CrudContext, inheritance: any = {}) {
+    return await this.$remove(ctx.query, ctx, inheritance);
+  }
+
   async $remove(query: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
     this.checkObjectForIds(query);
     const em = ctx?.em || this.entityManager.fork();
@@ -625,6 +728,10 @@ export class CrudService<T extends CrudEntity> {
     ctx = ctx || {};
     ctx.em = em;
     return length;
+  }
+
+  async $removeOne_(ctx: CrudContext, inheritance: any = {}) {
+    return await this.$removeOne(ctx.query, ctx, inheritance);
   }
 
   async $removeOne(query: Partial<T>, ctx: CrudContext, inheritance: any = {}) {

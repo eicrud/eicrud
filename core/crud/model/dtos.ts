@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsInt } from 'class-validator';
 import { $Transform } from '../../validation/decorators';
 import { ILoginDto, IUserIdDto } from '@eicrud/shared/interfaces';
 
@@ -21,8 +21,8 @@ export class LoginDto implements ILoginDto {
   twoFA_code?: string;
 
   @IsOptional()
-  @IsString()
-  expiresIn?: string;
+  @IsInt()
+  expiresInSec?: number;
 }
 
 export interface ICrudRightsFieldInfo {

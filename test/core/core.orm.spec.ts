@@ -119,6 +119,7 @@ describe('AppController', () => {
       testAdminCreds,
     });
     const createAccountDto: CreateAccountDto = {
+      logMeIn: true,
       email: testAdminCreds.email,
       password: testAdminCreds.password,
       role: 'super_admin',

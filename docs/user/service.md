@@ -40,8 +40,7 @@ const dto: ICreateAccountDto = {
     password: 'p4ssw0rd',
     role: 'user',
 };
-const { userId, accessToken } = await userClient.cmdS('create_account', dto);
-userClient.setJwt(accessToken);
+const { userId } = await userClient.cmdS('create_account', dto);
 ```
 
 ## Authentication
@@ -169,11 +168,11 @@ const dto: IResetPasswordDto = {
     token_id: "k2Urz2b703aP6zQ_4d3ed089fb60ab534684b7ff",
     // email received token 
     newPassword: "w0rdp4ss",
-    expiresIn: "30min"
+    logMeIn: true,
+    expiresInSec: 60*30
     // log user for 30 min
 };
 const { accessToken } = await userClient.cmdS('reset_password', dto);
-userClient.setJwt(accessToken, 1); // save token for 1 day
 ```
 
 ### $change_password
@@ -192,11 +191,11 @@ import { IChangePasswordDto } from '@eicrud/shared/interfaces';
 const dto: IChangePasswordDto = {
     oldPassword: "p4ssw0rd",
     newPassword: "w0rdp4ss",
-    expiresIn: "30min"
+    logMeIn: true,
+    expiresInSec: 60*30
     // log user for 30 min
 };
 const { accessToken } = await userClient.cmdS('change_password', dto);
-userClient.setJwt(accessToken, 1); // save token for 1 day
 ```
 
 ## Session kick
