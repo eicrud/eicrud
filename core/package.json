@@ -1,6 +1,6 @@
 {
   "name": "@eicrud/core",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "eicrud core package",
   "author": "acrosett",
   "license": "UNLICENSED",
@@ -10,7 +10,7 @@
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
   },
   "peerDependencies": {
-    "@eicrud/shared": "^0.1.5"
+    "@eicrud/shared": "^0.1.6"
   },
   "dependencies": {
     "@casl/ability": "^6.5.0",

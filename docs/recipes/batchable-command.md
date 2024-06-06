@@ -2,7 +2,7 @@ Eicrud provides batching options to help split large [DTO](../validation/definit
 
 ## Create a batchable command
 
-Start by generating a new cmd using the [CLI]().
+Start by generating a new cmd using the [CLI](https://www.npmjs.com/package/@eicrud/cli){:target="_blank"}.
 
 ```shell
 eicrud generate cmd profile migrate

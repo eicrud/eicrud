@@ -2,7 +2,7 @@ Eicrud plugs itself on a working [NestJS](https://nestjs.com){:target="_blank"} 
 
 ## Install with the CLI (recommended)
 
-It is recommended to use Eicrud's [CLI](){:target="_blank"} throughout all your developments since it will maintain a proper directory structure.
+It is recommended to use Eicrud's [CLI](https://www.npmjs.com/package/@eicrud/cli){:target="_blank"} throughout all your developments since it will maintain a proper directory structure.
 
 First create your nest app as specified in the [NestJS documentation](https://docs.nestjs.com/#installation){:target="_blank"}.
 

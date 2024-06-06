@@ -4,7 +4,7 @@ You can create a `search` command to use the full potential of your Database / [
 
 ## Setup
 
-Start by generating a new cmd using the [CLI]().
+Start by generating a new cmd using the [CLI](https://www.npmjs.com/package/@eicrud/cli){:target="_blank"}.
 
 ```shell
 eicrud generate cmd profile search

@@ -2,7 +2,7 @@ Services are the main components of your Eicrud application. They host a CRUD en
 
 ## Generate a new service
 
-You can use the [CLI](){:target="_blank"} to quickly generate a new service.
+You can use the [CLI](https://www.npmjs.com/package/@eicrud/cli){:target="_blank"} to quickly generate a new service.
 
 ```
 eicrud generate service profile
@@ -10,7 +10,7 @@ eicrud generate service profile
 
 An Eicrud service (CrudService) has 3 main components:
 
-### An [Entity]():
+### An [Entity](entity.md):
 
 ```typescript title="services/profile/profile.entity.ts"
 @Entity()
@@ -31,7 +31,7 @@ export default class Profile implements CrudEntity {
 ```
 It is the database schema as well as the DTO for CRUD operations. In that case, a `profile` table is created.
 
-### A [Security]():
+### A [Security](../security/definition.md):
 ```typescript title="services/profile/profile.security.ts"
 export function getSecurity(PROFILE: string): CrudSecurity { 
     return {
@@ -48,7 +48,7 @@ export function getSecurity(PROFILE: string): CrudSecurity {
 ```
 This is where you define the access rules for your entity. By default, nothing is allowed unless specified in the security.
 
-### A [Service]():
+### A Service:
 ```typescript title="services/profile/profile.service.ts"
 @Injectable()
 export class ProfileService extends CrudService<Profile> {
@@ -62,7 +62,7 @@ The actual service implementation, it's a [NestJS provider](https://docs.nestjs.
 
 !!! info
 
-    In a CrudService any function starting with `$` may be replaced by an HTTP call, depending on your [microservices]() configuration. 
+    In a CrudService any function starting with `$` may be replaced by an HTTP call, depending on your [microservice configuration](../microservices/configuration.md). 
     
     You should always: 
     

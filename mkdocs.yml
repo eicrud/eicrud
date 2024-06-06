@@ -16,7 +16,7 @@ plugins:
   - search
   - awesome-pages
 
-# copyright: "3"
+copyright: "contact@eicrud.com"
 
 extra:
   homepage: https://example.com

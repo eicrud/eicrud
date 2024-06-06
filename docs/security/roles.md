@@ -20,7 +20,7 @@ export const roles: CrudRole[] = [
 ]
 ```
 
-Roles must be registered in the [config service]().
+Roles must be registered in the [config service](../configuration/service.md).
 ```typescript
 @Injectable()
 export class MyConfigService extends CrudConfigService {
@@ -49,4 +49,4 @@ The authorization stops going up the tree whenever a role passes the check, it a
     This means `cannot` rules from inherited roles have no effect if the child role passes the authorization check.
 
 ## Guest Role
-Your application needs a guest role to define unauthenticated users' abilities. It is set the [config service]()'s constructor and defaults as `'guest'`.  
+Your application needs a guest role to define unauthenticated users' abilities. It is set the [config service](../configuration/service.md)'s constructor and defaults as `'guest'`.  

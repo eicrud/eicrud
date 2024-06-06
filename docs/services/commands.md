@@ -2,7 +2,7 @@ Commands are user-defined functions attached to a service. They're useful when y
 
 ## Generate a new command
 
-You can use the [CLI](){:target="_blank"} to quickly generate a new command.
+You can use the [CLI](https://www.npmjs.com/package/@eicrud/cli){:target="_blank"} to quickly generate a new command.
 
 ```
 eicrud generate cmd profile sayHello
@@ -69,7 +69,7 @@ async $say_hello(dto: SayHelloDto, ctx: CrudContext, inheritance?: any) {
 ```
 ## Call your command
 
-You can call your command from the [client]():
+You can call your command from the [client](../client/setup.md):
 ```typescript 
 const dto = { arg: 'world'};
 const res = await profileClient.cmd('say_hello', dto);

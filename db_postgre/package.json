@@ -1,9 +1,9 @@
 {
   "name": "@eicrud/postgresql",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "eicrud db adapter for postgresql",
   "author": "acrosett",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "dependencies": {
     "@mikro-orm/core": "^6.1.12",
     "@mikro-orm/postgresql": "^6.1.12"
@@ -14,7 +14,7 @@
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
   },
   "peerDependencies": {
-    "@eicrud/core": "^0.1.8"
+    "@eicrud/core": "^0.1.9"
   },
   "devDependencies": {
     "del-cli": "^5.1.0"

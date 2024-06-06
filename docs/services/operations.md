@@ -1,4 +1,4 @@
-Eicrud's services offer the following CRUD methods out of the box. Check out the [client page]() to call them from your front end.
+Eicrud's services offer the following CRUD methods out of the box. Check out the [client page](../client/operations.md) to call them from your front end.
 
 !!! warning
     In the following examples CRUD methods are called directly from CrudServices, this means Security rules are **not** enforced and Validations/Transforms are **not** applied. All of the previous checks happen at the controller level.

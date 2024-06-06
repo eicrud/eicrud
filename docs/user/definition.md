@@ -2,7 +2,7 @@ In Eicrud, every authenticated request fetches (from cache or DB) a `CrudUser` a
 
 
 ## Entity
-A `User` entity must be registered in a `CrudUserService` and passed to the [CrudConfigService]().
+A `User` entity must be registered in a `CrudUserService` and passed to the [CrudConfigService](../configuration/service.md).
 
 ```typescript title="services/user/user.entity.ts"
 @Entity()
@@ -60,7 +60,7 @@ export class MyConfigService extends CrudConfigService {
     ```
 
 ## Optimization
-The user is retrieved from the [cacheManager]() if present, except in `POST` requests (`create` and secure CMDs) where it is always fetched from the database.
+The user is retrieved from the [cacheManager](../services/cache.md) if present, except in `POST` requests (`create` and secure CMDs) where it is always fetched from the database.
 
 To keep your [authorization](../security/definition.md) fast, you might want to store useful info in the `User` entity. It will be available with every request.
 
