@@ -151,6 +151,7 @@ export class CrudAuthGuard implements CanActivate {
     }
 
     const request = ctx.switchToHttp().getRequest();
+    const response = ctx.switchToHttp().getResponse();
     const url = request.url;
 
     const ip = this.crudConfig.watchTrafficOptions.useForwardedIp
@@ -162,11 +163,20 @@ export class CrudAuthGuard implements CanActivate {
 
     const currentMsConfig = msOptions.microServices[currentMs];
 
-    function getRequest() {
+    function getHttpRequest() {
       return request;
     }
+    function getHttpResponse() {
+      return response;
+    }
 
-    const crudContext: CrudContext = { ip, url, currentMs, getRequest };
+    const crudContext: CrudContext = {
+      ip,
+      url,
+      currentMs,
+      getHttpRequest,
+      getHttpResponse,
+    };
 
     if (url.includes('/crud/backdoor')) {
       if (!currentMsConfig) {
@@ -307,8 +317,8 @@ export class CrudAuthGuard implements CanActivate {
   }
 
   private extractTokenFromHeader(request: any): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : undefined;
+    const jwtCookie = request.cookies?.['eicrud-jwt'];
+    return jwtCookie;
   }
 
   async addTrafficToIpTrafficMap(ip: string, silent = false) {

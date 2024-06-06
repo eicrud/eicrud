@@ -58,7 +58,6 @@ msOptions.microServices = {
     openBackDoor: PROXY_TEST ? true : false,
     openController: true,
     url: 'http://localhost:3004',
-    allowNonSecureUrl: true,
     proxyCrudController: PROXY_TEST ? true : false,
   },
   user: {
@@ -66,7 +65,6 @@ msOptions.microServices = {
     openBackDoor: true,
     openController: PROXY_TEST ? true : false,
     url: 'http://localhost:3005',
-    allowNonSecureUrl: true,
   },
   melon: {
     services: PROXY_TEST
@@ -75,14 +73,12 @@ msOptions.microServices = {
     openBackDoor: true,
     openController: PROXY_TEST ? true : false,
     url: 'http://localhost:3006',
-    allowNonSecureUrl: true,
   },
   email: {
     services: [FakeEmail],
     openBackDoor: true,
     openController: PROXY_TEST ? true : false,
     url: 'http://localhost:3007',
-    allowNonSecureUrl: true,
   },
 };
 

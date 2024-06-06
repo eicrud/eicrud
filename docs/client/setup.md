@@ -36,7 +36,7 @@ You can use the client as a [guest](../security/roles.md) or log in as a specifi
 const dto = {
   email: "myuser@mail.com",
   password: "p4ssw0rd",
-  expiresIn: '30m'
+  expiresInSec: 60*30
 }
 
 await profileClient.login(dto);
@@ -48,9 +48,9 @@ await profileClient.login(dto);
 !!! note
     Make sure to allow the `login` and `check_jwt` commands in your user service security. See [this example](../user/service.md#authentication).
     
-### expiresIn  
+### expiresInSec  
 Indicates how long until the authentication token expires.
-Allowed `expiresIn` values are listed in the `allowedJwtExpiresIn` [authentication option](../configuration/authentication.md).
+Maximum `expiresInSec` is specified in the `maxJwtexpiresInSec` [authentication option](../configuration/authentication.md).
 
 !!! info
     If one of the clients encounters a `401` error, it will delete the JWT from storage, call the `onLogout` callback and retry the request as a [guest](../security/roles.md).
@@ -77,7 +77,7 @@ You can provide your own storage as long as it implements the `ClientStorage` in
 ```typescript
 export interface ClientStorage {
   get(name: string): string;
-  set(name: string, value: string, durationDays: number, secure: boolean): void;
+  set(name: string, value: string, durationSeconds: number, secure: boolean): void;
   del(name: string): void;
 }
 ```

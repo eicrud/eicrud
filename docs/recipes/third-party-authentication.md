@@ -36,7 +36,7 @@ export class LinkGoogleAccountDto {
   id_token: string;
 
   @IsIn(['30m', '1d', '15d'])
-  expiresIn: string;
+  expiresInSec: number;
 }
 ```
 
@@ -87,7 +87,7 @@ export default async function link_google_account(dto: LinkGoogleAccountDto, ser
 
     return {
       userId: res[this.crudConfig.id_field],
-      accessToken: await service.authService.signTokenForUser(res, dto.expiresIn),
+      accessToken: dto.logMeIn ? await service.authService.signTokenForUser(ctx, res, dto.expiresInSec) : undefined,
     };
 
 }
@@ -97,12 +97,12 @@ Finally, let's call the command from your front end.
 ```typescript 
 const dto = { 
     id_token: 'f05415b13acb9590f70df862765c655f5a7a019e',
-    expiresIn: '15d'
+    expiresInSec: 60*60*24*15
 };
 
 const { userId, accessToken } = await userClient.cmd('link_google_account', dto);
 
-userClient.setJwt(accessToken, 15); // expires in 15 days
+userClient.setJwt(accessToken, 60*60*24*15); // expires in 15 days
 ```
 !!! note
     The [client](../client/setup.md)->`setJwt` method stores the provided token so that it can be used with every client request.
@@ -120,13 +120,13 @@ override async $authUser(
     ctx: CrudContext,
     user: CrudUser,
     pass,
-    expiresIn = '30m',
+    expiresInSec = 60*30,
     twoFA_code?,
 ) {
     if(user.thirdPartyAuth){
         throw new UnauthorizedException('Must use third party login command.');
     }
-    return super.$authUser(ctx, user, pass, expiresIn, twoFA_code);
+    return super.$authUser(ctx, user, pass, expiresInSec, twoFA_code);
 }
 
 // ...
@@ -168,7 +168,7 @@ override async $renewJwt(ctx: CrudContext) {
     ```typescript
     return {
       userId: res[this.crudConfig.id_field],
-      accessToken: await service.authService.signTokenForUser(res, dto.expiresIn, { id_token: dto.id_token}),
+      accessToken: dto.logMeIn ? await service.authService.signTokenForUser(ctx, res, dto.expiresInSec, { id_token: dto.id_token}) : undefined,
     };
     ```
     ```typescript

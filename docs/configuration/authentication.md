@@ -13,8 +13,7 @@ export class AuthenticationOptions {
   username_field = 'email';
   renewJwt = false;
   minTimeBetweenLoginAttempsMs: number = 600;
-  allowedJwtExpiresIn = ['1s', '15m', '30m', '1h', '2h', '6h', 
-  '12h', '1d', '2d', '4d', '5d', '6d', '7d', '14d', '30d'];
+  maxJwtexpiresInSec = 60*60*24*30; //30 days
   extractUserOnRoutes: string[] = [];
   resetTokenLength: number = 17;
 }
@@ -58,7 +57,7 @@ async get(@Query() query, @Context() ctx: CrudContext) {
 ```
 
 !!! note
-    When calling your route, you must include the JWT token inside the authorization header.
+    When calling your route, the JWT cookie must be present in the request headers
     ```
-    Authorization: Bearer <token>
+    Cookie: eicrud-jwt=<token>
     ```

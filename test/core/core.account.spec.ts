@@ -178,6 +178,7 @@ describe('AppController', () => {
       email: 'newguy@mail.com',
       password: 'p4ssw0rd',
       role: 'user',
+      logMeIn: true,
     };
     const query: CrudQuery = {
       service: 'my-user',
@@ -369,6 +370,7 @@ describe('AppController', () => {
     const resetPassDto: IResetPasswordDto = {
       token_id: email.message + '_' + user.id,
       newPassword: 'newpassword',
+      logMeIn: true,
     };
     resetPassQuery.cmd = 'reset_password';
     const res = await testMethod({
@@ -468,6 +470,7 @@ describe('AppController', () => {
     const resetPassDto: IResetPasswordDto = {
       token_id: email.message + '_' + user.id,
       newPassword: 'newpassword',
+      logMeIn: true,
     };
     resetPassQuery.cmd = 'reset_password';
     const res = await testMethod({
@@ -539,6 +542,7 @@ describe('AppController', () => {
     const resetPassDto: IChangePasswordDto = {
       oldPassword: testAdminCreds.password,
       newPassword: 'newpassword2',
+      logMeIn: true,
     };
     const changePassQuery: CrudQuery = {
       service: 'my-user',
@@ -663,6 +667,7 @@ describe('AppController', () => {
       email: ' nonTriMMed@mail.com ',
       password: testAdminCreds.password,
       role: 'user',
+      logMeIn: true,
     };
     const query: CrudQuery = {
       service: 'my-user',
@@ -747,6 +752,7 @@ describe('AppController', () => {
     expect(email).toBeTruthy();
     const resetPassDto: IVerifyTokenDto = {
       token_id: email.message + '_' + user.id,
+      logMeIn: true,
     };
     resetPassQuery.cmd = 'verify_email';
     const res = await testMethod({
@@ -830,6 +836,7 @@ describe('AppController', () => {
     expect(email).toBeTruthy();
     const resetPassDto: IVerifyTokenDto = {
       token_id: email.message + '_' + user.id,
+      logMeIn: true,
     };
     resetPassQuery.cmd = 'verify_email';
     const res = await testMethod({

@@ -1903,7 +1903,7 @@ describe('AppController', () => {
     });
 
     const expectedArray = process.env.TEST_CRUD_PROXY
-      ? ['Invalid backdoor credentials.']
+      ? ['No credentials provided for backdoor access.']
       : ['Microservice not found.', 'Backdoor is closed.'];
 
     expect(expectedArray).toContain(res.message);
@@ -1942,7 +1942,7 @@ describe('AppController', () => {
       });
 
       expect(res2.status).toEqual(200);
-      expect(res2.data).toEqual('backdoor ping');
+      expect(res2.data?.res).toEqual('backdoor ping');
 
       auth.password = 'wrongpassword';
 

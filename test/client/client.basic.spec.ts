@@ -166,20 +166,20 @@ describe('AppController', () => {
     const dto: LoginDto = {
       email: user.email,
       password: testAdminCreds.password,
-      expiresIn: '1s',
+      expiresInSec: 1,
     };
     const myClient = getMelonClient();
 
     await myClient.login(dto);
 
-    expect(myClient.config.storage.get(myClient.JWT_COOKIE_KEY)).toBeTruthy();
+    expect(myClient.config.storage.get(myClient.JWT_STORAGE_KEY)).toBeTruthy();
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const melon: Melon = await myClient.findOne({ owner: user.id });
 
     expect(melon.ownerEmail).toBe(user.email);
-    expect(myClient.config.storage.get(myClient.JWT_COOKIE_KEY)).toBeFalsy();
+    expect(myClient.config.storage.get(myClient.JWT_STORAGE_KEY)).toBeFalsy();
   }, 10000);
 
   it('should detect limit when fetching melon ids', async () => {
@@ -256,6 +256,9 @@ describe('AppController', () => {
     };
     const myClient = getMelonClient();
 
+    //wait 600ms
+    await new Promise((resolve) => setTimeout(resolve, 600));
+
     await myClient.login(dto);
 
     const ids: string[] = (await myClient.findIds({ owner: user.id })).data;
@@ -296,6 +299,8 @@ describe('AppController', () => {
     };
     const myClient = getProfileClient();
 
+    //wait 600ms
+    await new Promise((resolve) => setTimeout(resolve, 600));
     await myClient.login(dto);
 
     const patch: Partial<UserProfile> = {
@@ -327,7 +332,7 @@ describe('AppController', () => {
 
     expect(res).toEqual(user.id?.toString());
 
-    await myClient.logout();
+    await myClient.logout(false);
 
     const res2 = await myClient.checkJwt();
 
@@ -402,7 +407,10 @@ describe('AppController', () => {
     const batch: { query: any; data: any }[] = [];
     for (let i = 0; i < 10; i++) {
       const popped = userMelons0.pop();
-      popped.owner = (popped.owner as MyUser).id;
+      popped.owner = (popped.owner as MyUser).id || popped.owner;
+      if (!popped.owner) {
+        console.log(popped);
+      }
       batch.push({
         query: { id: popped.id, owner: popped.owner },
         data: { name: `patched name ${popped.price}` },
@@ -414,7 +422,7 @@ describe('AppController', () => {
     const batch2: { query: any; data: any }[] = [];
     for (let i = 0; i < 4; i++) {
       const popped = userMelons0.pop();
-      popped.owner = (popped.owner as MyUser).id;
+      popped.owner = (popped.owner as MyUser).id || popped.owner;
       batch2.push({
         query: { id: popped.id, owner: popped.owner },
         data: { name: `patched name ${popped.price}` },
@@ -426,7 +434,7 @@ describe('AppController', () => {
     const batch3: Melon[] = [];
     for (let i = 0; i < 20; i++) {
       const popped = userMelons0.pop();
-      popped.owner = (popped.owner as MyUser).id;
+      popped.owner = (popped.owner as MyUser).id || popped.owner;
       batch3.push({
         owner: popped.owner,
         id: popped.id,
@@ -439,7 +447,7 @@ describe('AppController', () => {
     const batch4: Melon[] = [];
     for (let i = 0; i < 10; i++) {
       const popped = userMelons0.pop();
-      popped.owner = (popped.owner as MyUser).id;
+      popped.owner = (popped.owner as MyUser).id || popped.owner;
       batch4.push({
         owner: popped.owner,
         id: popped.id,

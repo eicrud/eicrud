@@ -46,7 +46,7 @@ export function testMethod(arg: {
 }) {
   const headers = {};
   if (arg.jwt) {
-    headers['Authorization'] = `Bearer ${arg.jwt}`;
+    headers['Cookie'] = `eicrud-jwt=${arg.jwt};`;
   }
   if (arg.basicAuth) {
     headers['Authorization'] =
@@ -259,6 +259,7 @@ export async function createAccountsAndProfiles(
       email: user.email,
       password: user.password || config.testAdminCreds.password,
       role: user.role,
+      logMeIn: true,
     };
     const prom = userService
       .$create_account(createAccountDto, null)

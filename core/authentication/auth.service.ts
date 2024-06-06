@@ -7,6 +7,7 @@ import {
 } from '../config/crud.config.service';
 import { ModuleRef } from '@nestjs/core';
 import { CrudAuthGuard } from './auth.guard';
+import { CrudContext } from '../crud';
 
 export class AuthenticationOptions {
   saltRounds = 11;
@@ -20,23 +21,7 @@ export class AuthenticationOptions {
   username_field = 'email';
   renewJwt = false;
   minTimeBetweenLoginAttempsMs: number = 600;
-  allowedJwtExpiresIn = [
-    '1s',
-    '15m',
-    '30m',
-    '1h',
-    '2h',
-    '6h',
-    '12h',
-    '1d',
-    '2d',
-    '4d',
-    '5d',
-    '6d',
-    '7d',
-    '14d',
-    '30d',
-  ];
+  maxJwtexpiresInSec = 60 * 60 * 24 * 30;
   extractUserOnRoutes: string[] = [];
   resetTokenLength: number = 17;
 }
@@ -67,8 +52,9 @@ export class CrudAuthService {
   }
 
   async signTokenForUser(
+    ctx: CrudContext,
     user,
-    expiresIn: string | number = '30m',
+    expiresInSec: number = 60 * 30,
     addToPayload = {},
   ) {
     let payload = {};
@@ -76,10 +62,20 @@ export class CrudAuthService {
       payload[field] = user[field];
     });
     payload = { ...payload, ...addToPayload };
-    return await this.jwtService.signAsync(payload, {
+    const token = await this.jwtService.signAsync(payload, {
       secret: this.JWT_SECRET,
-      expiresIn,
+      expiresIn: expiresInSec,
     });
+    if (ctx) {
+      ctx.setCookies = ctx.setCookies || {};
+      ctx.setCookies['eicrud-jwt'] = {
+        value: token,
+        httpOnly: true,
+        secure: true,
+        maxAge: expiresInSec,
+      };
+    }
+    return token;
   }
 
   async getJwtPayload(token: string) {
