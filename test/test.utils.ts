@@ -27,6 +27,17 @@ export interface TestUser {
   lowercaseTrimmedField?: string;
 }
 
+export function parseJwtCookieFromRes(res) {
+  const cookieRegex = /eicrud-jwt=([^;]*);/;
+  const cookie = res.headers['set-cookie'];
+  for (const c of cookie || []) {
+    const match = cookieRegex.exec(c);
+    if (match) {
+      return match;
+    }
+  }
+}
+
 export function testMethod(arg: {
   app: NestFastifyApplication;
   method: string;

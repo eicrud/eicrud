@@ -54,24 +54,6 @@ const cmdSecurityMap: Record<string, CmdSecurity> = {
       },
     },
   },
-  [baseCmds.login.name]: {
-    rolesRights: {
-      guest: {
-        async defineCMDAbility(can, cannot, ctx) {
-          can(baseCmds.login.name, 'my-user');
-        },
-      },
-    },
-  },
-  [baseCmds.checkJwt.name]: {
-    rolesRights: {
-      guest: {
-        async defineCMDAbility(can, cannot, ctx) {
-          can(baseCmds.checkJwt.name, 'my-user');
-        },
-      },
-    },
-  },
   [baseCmds.timeoutUser.name]: {
     rolesRights: {
       moderator: {
@@ -94,6 +76,9 @@ const cmdSecurityMap: Record<string, CmdSecurity> = {
     baseCmds.sendPasswordResetEmail,
     baseCmds.changePassword,
     baseCmds.resetPassword,
+    baseCmds.login,
+    baseCmds.checkJwt,
+    baseCmds.logout,
   ].reduce((acc, cmd) => {
     acc[cmd.name] = {
       dto: cmd.dto,

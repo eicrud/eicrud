@@ -47,4 +47,5 @@ export interface CookieToSet {
   secure?: boolean;
   signed?: boolean;
   maxAge?: number;
+  path?: string;
 }

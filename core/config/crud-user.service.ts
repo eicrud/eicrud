@@ -306,8 +306,10 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   async $logout(dto: EmptyDto, ctx: CrudContext) {
     ctx.setCookies = ctx.setCookies || {};
     ctx.setCookies['eicrud-jwt'] = {
-      value: null,
+      value: '',
       httpOnly: true,
+      maxAge: 0,
+      path: '/',
     };
   }
 

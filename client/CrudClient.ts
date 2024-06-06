@@ -117,12 +117,14 @@ export class CrudClient<T> {
   }
 
   async logout(remote = true) {
+    let result;
     if (this.config.storage) {
       this.config.storage.del(this.JWT_STORAGE_KEY);
     } else if (remote) {
-      await this.userServiceCmd('logout');
+      result = await this.userServiceCmd('logout', {}, true);
     }
     this.config.onLogout?.();
+    return result;
   }
 
   async userServiceCmd(cmdName, data = {}, returnRaw = false) {
@@ -140,7 +142,7 @@ export class CrudClient<T> {
       return returnRaw ? res : res?.data;
     } catch (e) {
       if (e.response && e.response.status === 401) {
-        console.error(e.response.data);
+        console.error(e.response?.data);
         this.logout(false);
       } else {
         throw e;
@@ -154,20 +156,11 @@ export class CrudClient<T> {
     return res?.userId || null;
   }
 
-  async login(dto: ILoginDto): Promise<LoginResponseDto> {
-    let res = await this.userServiceCmd('login', dto, true);
+  async login(dto: ILoginDto): Promise<any> {
+    let res: LoginResponseDto = await this.userServiceCmd('login', dto);
     let secs = dto.expiresInSec;
-
-    const cookieRegex = /eicrud-jwt=([^;]*);/;
-    const cookie = res.headers['set-cookie'];
-    for (const c of cookie || []) {
-      const match = cookieRegex.exec(c);
-      if (match) {
-        this.setJwt(match[1], secs);
-        return res?.data;
-      }
-    }
-    throw new Error('No jwt cookie found in response');
+    this.setJwt(res?.accessToken, secs);
+    return res;
   }
 
   setJwt(jwt: string, durationSeconds: number = 60 * 30) {
@@ -190,7 +183,7 @@ export class CrudClient<T> {
           NODE_ENV &&
           (NODE_ENV.includes('dev') || NODE_ENV.includes('test'))
         ) {
-          console.error(e.response.data);
+          console.error(e.response?.data);
         }
         throw e;
       }

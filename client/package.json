@@ -1,6 +1,6 @@
 {
   "name": "@eicrud/client",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "http client for @eicrud/core",
   "author": "acrosett",
   "license": "MIT",
@@ -15,6 +15,6 @@
     "tslib": "^2.6.2"
   },
   "peerDependencies": {
-    "@eicrud/shared": "^0.1.7"
+    "@eicrud/shared": "^0.1.8"
   }
 }
