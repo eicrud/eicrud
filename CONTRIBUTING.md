@@ -23,7 +23,7 @@ If you want to implement a new feature of bugfix please submit an issue with a p
 
 - a mongodb server listening on localhost:27017
 - a postgresql server listening localhost:5432
-- nodejs installed
+- nodejs (>= 18.x) installed
 
 Make sure to run all the test suites to ensure your setup is working :
 

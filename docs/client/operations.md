@@ -59,7 +59,7 @@ const {data, total, limit} = await profileClient.find(query);
 ```
 
 !!! note
-    [CrudServices](../services/definition.md) have an enforced [limit](../configuration/limits.md#limitoptions) for find operations. If you don't specify a limit in the [options](), the clients will call the server repeatedly until it fetches all the results.
+    [CrudServices](../services/definition.md) have an enforced [limit](../configuration/limits.md#limitoptions) for find operations. If you don't specify a limit in the [options](options.md), the clients will call the server repeatedly until it fetches all the results.
 
 ### findIn 
 Find entities with IDs included in the provided list. 

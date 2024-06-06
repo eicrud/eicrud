@@ -124,4 +124,4 @@ Eicrud lets you group your CRUD services into "microservices" with a simple conf
   - DDOS protection
   - ...
 
-Check out the [documentation]() to get started.
+Check out the [documentation](https://docs.eicrud.com/installation) to get started.

@@ -175,7 +175,7 @@ user: {
 ```
 However, doing so may increase your operations' response time **significantly**.
 !!! warning 
-    `defineAbility` functions are called for **each** resource when authorizing batch operations. For example, a [batch create]() of X items, will call `defineCRUDAbility` X times. You should implement some caching to avoid redundant fetches. A basic cache can be stored in the `ctx` since it is unique to each request.
+    `defineAbility` functions are called for **each** resource when authorizing batch operations. For example, a [batch create](../services/operations.md#createbatch) of X items, will call `defineCRUDAbility` X times. You should implement some caching to avoid redundant fetches. A basic cache can be stored in the `ctx` since it is unique to each request.
     ```typescript
     async defineCRUDAbility(can, cannot, ctx) {
         let res = getFromCache(ctx._temp);

@@ -1,10 +1,10 @@
-import { ICrudOptions } from '../shared/interfaces';
-import { ICrudQuery } from '../shared/interfaces';
+import { ICrudOptions } from '@eicrud/shared/interfaces';
+import { ICrudQuery } from '@eicrud/shared/interfaces';
 import { Cookies } from 'js-cookie';
-import { FindResponseDto } from '../shared/interfaces';
+import { FindResponseDto } from '@eicrud/shared/interfaces';
 import axios from 'axios';
-import { CrudErrors } from '../shared/CrudErrors';
-import { ILoginDto, LoginResponseDto } from '../shared/interfaces';
+import { CrudErrors } from '@eicrud/shared/CrudErrors';
+import { ILoginDto, LoginResponseDto } from '@eicrud/shared/interfaces';
 import wildcard from 'wildcard';
 import { _utils } from '../core/utils';
 
