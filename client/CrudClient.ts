@@ -124,13 +124,15 @@ export class CrudClient<T> {
       this.config.userServiceName +
       '/cmd/check_jwt';
     try {
-      const res: LoginResponseDto = await axios.patch(
-        url,
-        {},
-        {
-          headers: this._getHeaders(),
-        },
-      );
+      const res: LoginResponseDto = (
+        await axios.patch(
+          url,
+          {},
+          {
+            headers: this._getHeaders(),
+          },
+        )
+      )?.data;
 
       if (res.refreshTokenSec) {
         let days = Math.round(res.refreshTokenSec / 60 / 60 / 24);
@@ -149,8 +151,11 @@ export class CrudClient<T> {
     } catch (e) {
       if (e.response && e.response.status === 401) {
         this.logout();
+      } else {
+        throw e;
       }
     }
+    return null;
   }
 
   async login(dto: ILoginDto): Promise<LoginResponseDto> {
@@ -159,7 +164,7 @@ export class CrudClient<T> {
 
     let res: LoginResponseDto;
     try {
-      res = (await axios.post(url, dto)).data;
+      res = (await axios.patch(url, dto)).data;
     } catch (e) {
       if (e.response && e.response.status === 401) {
         this.logout();

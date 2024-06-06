@@ -36,9 +36,9 @@ guest: {
 import { ICreateAccountDto } from '@eicrud/shared/interfaces';
 
 const dto: ICreateAccountDto = {
-    email: 'new.user@mail.com';
-    password: 'p4ssw0rd';
-    role: 'user';
+    email: 'new.user@mail.com',
+    password: 'p4ssw0rd',
+    role: 'user',
 };
 const { userId, accessToken } = await userClient.cmdS('create_account', dto);
 userClient.setJwt(accessToken);
@@ -59,8 +59,8 @@ guest: {
 import { ILoginDto } from '@eicrud/shared/interfaces';
 
 const dto: ILoginDto = {
-    email: 'new.user@mail.com';
-    password: 'p4ssw0rd';
+    email: 'new.user@mail.com',
+    password: 'p4ssw0rd',
 };
 
 await userClient.login(dto);
@@ -76,7 +76,11 @@ guest: {
 }
 ```
 ```typescript 
-await userClient.checkJwt();
+const userId = await userClient.checkJwt();
+
+if(userId){
+    console.log(`${userId} is logged in`) 
+}
 ```
 
 !!! note
@@ -101,8 +105,8 @@ await userClient.cmdS('send_verification_email', {});
 
 // change email
 const dto: ISendVerificationEmailDto = {
-    newEmail: 'new-email@mail.com';
-    password: 'p4ssw0rd';
+    newEmail: 'new-email@mail.com',
+    password: 'p4ssw0rd',
 };
 await userClient.cmdS('send_verification_email', dto);
 ```

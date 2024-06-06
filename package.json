@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@eicrud/core": "file:core",
+    "@eicrud/client": "file:client",
     "@eicrud/mongodb": "file:db_mongo",
     "@eicrud/postgresql": "file:db_postgre",
     "@eicrud/shared": "file:shared"

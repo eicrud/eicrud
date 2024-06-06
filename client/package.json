@@ -1,6 +1,6 @@
 {
   "name": "@eicrud/client",
-  "version": "0.1.10",
+  "version": "0.1.13",
   "description": "http client for @eicrud/core",
   "author": "acrosett",
   "license": "MIT",

@@ -117,6 +117,7 @@ export const baseCmds = {
   login: {
     name: 'login',
     dto: LoginDto,
+    nonSecure: true,
   },
   checkJwt: {
     name: 'check_jwt',
@@ -138,6 +139,7 @@ export const baseCmds = {
   sendPasswordResetEmail: {
     name: 'send_password_reset_email',
     dto: SendPasswordResetEmailDto,
+    nonSecure: true,
   },
   resetPassword: {
     name: 'reset_password',
@@ -150,6 +152,7 @@ export const baseCmds = {
   createAccount: {
     name: 'create_account',
     dto: CreateAccountDto,
+    nonSecure: true,
   },
   logoutEverywhere: {
     name: 'logout_everywhere',

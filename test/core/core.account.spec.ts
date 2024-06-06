@@ -220,15 +220,11 @@ describe('AppController', () => {
     expect(res.userId).toEqual(userId);
   });
 
-  it('should forbid createAccount when not called in secure mode', async () => {
-    const payload: CreateAccountDto = {
-      email: 'newguy@mail.com',
-      password: 'p4ssw0rd',
-      role: 'user',
-    };
+  it('should forbid send_verification_email when not called in secure mode', async () => {
+    const payload = {};
     const query: CrudQuery = {
       service: 'my-user',
-      cmd: 'create_account',
+      cmd: 'send_verification_email',
     };
     let jwt = null;
 
@@ -719,10 +715,7 @@ describe('AppController', () => {
 
     jwt = res0.accessToken;
 
-    // password reset should allow login even if rate limited
-    const resetPassEmailDto: ISendVerificationEmailDto = {
-      password: testAdminCreds.password,
-    };
+    const resetPassEmailDto: ISendVerificationEmailDto = {};
 
     const resetPassQuery: CrudQuery = {
       service: 'my-user',
@@ -1108,6 +1101,11 @@ describe('AppController', () => {
 
       // wait 600ms
       await new Promise((r) => setTimeout(r, 600));
+    }
+
+    if (process.env.CRUD_CURRENT_MS) {
+      // changing crudConfig doesn't work in ms configuration
+      return;
     }
 
     const oldValue = crudConfig.authenticationOptions.twoFaEmailTimeoutMinutes;

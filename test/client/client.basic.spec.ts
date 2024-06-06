@@ -51,6 +51,12 @@ const users: Record<string, TestUser> = {
     bio: 'I am a cool guy.',
     melons: 5,
   },
+  'Jon Dae': {
+    email: 'jon.Dae@test.com',
+    role: 'user',
+    bio: 'I am a cool guy.',
+    melons: 5,
+  },
   'Admin Dude': {
     email: 'admin.dude@mail.com',
     role: 'admin',
@@ -288,5 +294,27 @@ describe('AppController', () => {
     });
 
     expect(profile.astroSign).toBe(patch.astroSign);
+  });
+
+  //@Patch('one')
+  it('checkjwt should return userId or null', async () => {
+    const user = users['Jon Dae'];
+    const dto: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password,
+    };
+    const myClient = getProfileClient();
+
+    await myClient.login(dto);
+
+    const res = await myClient.checkJwt();
+
+    expect(res).toEqual(user.id?.toString());
+
+    await myClient.logout();
+
+    const res2 = await myClient.checkJwt();
+
+    expect(res2).toBeNull();
   });
 });
