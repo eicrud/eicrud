@@ -498,4 +498,55 @@ describe('AppController', () => {
 
     expect(res2).toBeFalsy();
   });
+
+  it('should renew jwt with storage', async () => {
+    const user = users['Renew Me'];
+    const myClient = getProfileClient();
+
+    const dto: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password,
+      expiresInSec: 4,
+    };
+    await myClient.login(dto);
+
+    const profile: UserProfile = await myClient.findOne({
+      id: user.profileId,
+      user: user.id,
+    });
+    expect(profile.bio).toBe(user.bio);
+
+    //wait 4000ms
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+
+    let error;
+    try {
+      await myClient.findOne({
+        id: user.profileId,
+        user: user.id,
+      });
+    } catch (e) {
+      console.log(e.response.data);
+      error = e.response.status;
+    }
+    expect(error).toBe(403);
+
+    dto.expiresInSec = 4;
+    const resLog = await myClient.login(dto);
+
+    expect(resLog.userId).toEqual(user.id?.toString());
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const res = await myClient.checkJwt();
+    expect(res).toEqual(user.id?.toString());
+
+    //wait 2500ms
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+
+    const profile2: UserProfile = await myClient.findOne({
+      id: user.profileId,
+      user: user.id,
+    });
+    expect(profile2.bio).toBe(user.bio);
+  }, 15000);
 });
