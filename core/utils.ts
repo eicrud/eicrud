@@ -15,16 +15,19 @@ export class _utils {
         if (err) {
           reject(err);
         } else {
-          resolve(buffer.toString('ascii').replace(/[^a-zA-Z0-9]/g, ''));
+          resolve(buffer.toString('base64').replace(/[^a-zA-Z0-9]/g, ''));
         }
       });
     });
 
+    while (token.length > length) {
+      token = token.slice(0, -1);
+    }
+
     const characters =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
     while (token.length < length) {
-      token += characters.charAt(Math.floor(Math.random() * charactersLength));
+      token += characters.charAt(Math.floor(Math.random() * characters.length));
     }
     return token;
   }

@@ -24,6 +24,8 @@
 [ ] log service
 [ ] test token refresh 
 
+[ ] test populate authorizations
+
 [x] check nested entities are not exposed
 [x] test create limits
 [x] options tests
@@ -39,4 +41,6 @@
 
 ---
 
-[ ] csrf token
+[x] csrf token
+[ ] add helmet ?
+[ ] add a way to rotate JWT/backdoor key 
