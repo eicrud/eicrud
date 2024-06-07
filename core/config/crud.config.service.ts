@@ -13,6 +13,7 @@ import { LimitOptions } from '../crud/crud.controller';
 import { CrudDbAdapter } from './dbAdapter/crudDbAdapter';
 import { LRUCache } from 'lru-cache';
 import { ValidationOptions } from '../validation';
+import { _utils } from '../utils';
 
 export class BasicMemoryCache implements CrudCache {
   cache: LRUCache<string, CrudUser>;
@@ -132,7 +133,7 @@ export class CrudConfigService {
     captchaService?: any;
     emailService: EmailService;
     jwtSecret: string;
-    cookieSecret?: string;
+    csrfSecret?: string;
     cacheManager: CrudCache;
     authenticationOptions?: Partial<AuthenticationOptions>;
     watchTrafficOptions?: Partial<WatchTrafficOptions>;
@@ -181,7 +182,6 @@ export class CrudConfigService {
     this.cacheManager = config.cacheManager;
 
     this.JWT_SECRET = config.jwtSecret;
-    this.COOKIE_SECRET = config.cookieSecret;
 
     this.userService = config.userService;
     this.logService = config.logService;
@@ -217,6 +217,10 @@ export class CrudConfigService {
 
   async onModuleInit() {
     await this.dbAdapter.onModuleInit(this.orm);
+    this.COOKIE_SECRET = await _utils.deriveSecretKey(
+      this.JWT_SECRET,
+      'eicrud-cookie',
+    );
   }
 
   async afterCrudHook(res: any, ctx: CrudContext) {

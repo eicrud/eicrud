@@ -69,16 +69,4 @@ It is possible to manually log out.
 await profileClient.logout();
 ```
 
-## Storage
-
-By default, authentication tokens are stored in cookies or RAM (browser or node).
-
-You can provide your own storage as long as it implements the `ClientStorage` interface.
-```typescript
-export interface ClientStorage {
-  get(name: string): string;
-  set(name: string, value: string, durationSeconds: number, secure: boolean): void;
-  del(name: string): void;
-}
-```
 

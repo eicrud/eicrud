@@ -454,7 +454,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       !lastEmailSent ||
       lastEmailSent.getTime() + timeout >= Date.now()
     ) {
-      const token = _utils.generateRandomString(
+      const token = await _utils.generateRandomString(
         this.crudConfig.authenticationOptions.resetTokenLength,
       );
       const patch: Partial<CrudUser> = {
@@ -599,7 +599,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     ) {
       return new UnauthorizedException(CrudErrors.EMAIL_ALREADY_SENT.str());
     }
-    const code = _utils.generateRandomString(6).toUpperCase();
+    const code = (await _utils.generateRandomString(6)).toUpperCase();
     const twoFACodeCount = user.twoFACodeCount || 0;
     const patch: Partial<CrudUser> = {
       lastTwoFACode: code,

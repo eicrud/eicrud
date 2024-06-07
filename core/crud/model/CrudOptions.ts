@@ -24,6 +24,10 @@ export class CrudOptions implements ICrudOptions {
   cached?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  jwtCookie?: boolean;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @$MaxSize(300)

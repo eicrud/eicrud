@@ -1,15 +1,32 @@
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+import hkdf from '@panva/hkdf';
 
 export class _utils {
-  static generateRandomString(length: number) {
-    let result = '';
+  static async deriveSecretKey(key, message) {
+    return Buffer.from(await hkdf('sha256', key, '', message, 256)).toString(
+      'base64',
+    );
+  }
+
+  static async generateRandomString(length: number) {
+    let token: string = await new Promise((resolve, reject) => {
+      crypto.randomBytes(length, function (err, buffer) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(buffer.toString('ascii').replace(/[^a-zA-Z0-9]/g, ''));
+        }
+      });
+    });
+
     const characters =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    while (token.length < length) {
+      token += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
-    return result;
+    return token;
   }
 
   static makeArray(obj) {

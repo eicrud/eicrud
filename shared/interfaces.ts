@@ -5,6 +5,12 @@ export interface ICrudOptions {
   limit?: number;
   offset?: number;
   cached?: boolean;
+
+  /**
+   * Used by the client to indicate to the server that the JWT should be stored in a cookie.
+   * @usageNotes Do not set manually.
+   */
+  jwtCookie?: boolean;
 }
 
 export interface ICrudQuery {

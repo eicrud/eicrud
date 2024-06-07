@@ -18,6 +18,13 @@
     {
       "type": "node-terminal",
       "request": "launch",
+      "name": "npm run test client cookie",
+      "command": "npm run test client.cookie"
+    },
+
+    {
+      "type": "node-terminal",
+      "request": "launch",
       "name": "npm run test recipes",
       "command": "npm run test recipes."
     },

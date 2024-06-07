@@ -36,6 +36,7 @@ const SKIPPABLE_OPTIONS = [
   'mockRole',
   'cached',
   'exclude',
+  'jwtCookie',
 ];
 
 @Injectable()
@@ -352,7 +353,10 @@ export class CrudAuthorizationService {
         }
         let ofields = ctx.options[key];
         if (!Array.isArray(ofields)) {
-          ofields = [ofields];
+          ofields = Object.keys(ofields);
+        }
+        if (!ofields.length) {
+          ofields = ['all'];
         }
         const pbField = this.loopFieldAndCheckCannot(
           key,

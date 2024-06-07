@@ -4,7 +4,9 @@ import { FindResponseDto } from '@eicrud/shared/interfaces';
 import axios from 'axios';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { ILoginDto, LoginResponseDto } from '@eicrud/shared/interfaces';
+import { CrudOptions } from '@eicrud/core/crud';
 let wildcard = require('wildcard');
+let Cookie = require('js-cookie');
 
 class _utils {
   static makeArray(obj) {
@@ -43,6 +45,24 @@ export class MemoryStorage implements ClientStorage {
   }
 }
 
+export class LocalStorage implements ClientStorage {
+  get(name: string): string {
+    return localStorage.getItem(name);
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  set(
+    name: string,
+    value: string,
+    durationSeconds: number,
+    secure: boolean,
+  ): void {
+    localStorage.setItem(name, value);
+  }
+  del(name: string): void {
+    localStorage.removeItem(name);
+  }
+}
+
 export interface ClientConfig {
   serviceName: string;
   url: string;
@@ -50,6 +70,7 @@ export interface ClientConfig {
   userServiceName?: string;
   onLogout?: () => void;
   storage?: ClientStorage;
+  useSecureCookie?: boolean;
   id_field?: string;
   globalMockRole?: string;
   defaultBatchSize?: number;
@@ -62,6 +83,8 @@ export interface ClientConfig {
     type: 'limit' | 'batch',
   ) => Promise<void>;
   limitingFields?: string[];
+  globalOptions?: ICrudOptions;
+  globalHeaders?: any;
 }
 
 export interface ClientOptions {
@@ -80,21 +103,35 @@ export interface ClientOptions {
 export class CrudClient<T> {
   JWT_STORAGE_KEY = 'eicrud-jwt';
   fetchNb = 0;
+  sessionStorage = typeof document !== 'undefined' ? sessionStorage : null;
 
   constructor(public config: ClientConfig) {
     this.config.id_field = this.config.id_field || 'id';
     this.config.storage =
-      this.config.storage || (document ? null : new MemoryStorage());
+      this.config.storage ||
+      (typeof document !== 'undefined'
+        ? this.config.useSecureCookie
+          ? null
+          : new LocalStorage()
+        : new MemoryStorage());
     this.config.defaultBatchSize = this.config.defaultBatchSize || 200;
     this.config.cmdDefaultBatchMap = this.config.cmdDefaultBatchMap || {};
     this.config.userServiceName = this.config.userServiceName || 'user';
+
+    if (!this.config.storage) {
+      this.config.globalOptions = this.config.globalOptions || {};
+      this.config.globalOptions.jwtCookie = true;
+    }
   }
 
-  private _getAxiosOptions() {
-    const headers: any = {};
+  private _getAxiosOptions(sendCredentials = true) {
+    const headers: any = { ...(this.config.globalHeaders || {}) };
+
     if (this.config.storage) {
-      const jwt = this.config.storage?.get(this.JWT_STORAGE_KEY);
-      if (jwt) {
+      const jwt =
+        this.sessionStorage?.getItem(this.JWT_STORAGE_KEY) ||
+        this.config.storage?.get(this.JWT_STORAGE_KEY);
+      if (jwt && sendCredentials) {
         const mustStartWith = [
           'https://',
           'http://localhost',
@@ -110,14 +147,24 @@ export class CrudClient<T> {
             'allowNonSecureUrl not set, but url is not secure - cannot send credentials over non-secure connection.',
           );
         }
-        headers.Cookie = `eicrud-jwt=${jwt};`;
+        headers.Cookie =
+          (headers.Cookie || '') + `${this.JWT_STORAGE_KEY}=${jwt}; `;
+      }
+    } else {
+      const csrf = Cookie.get('eicrud-csrf');
+      if (csrf) {
+        headers['eicrud-csrf'] = csrf;
       }
     }
-    return { headers, withCredentials: true };
+    return {
+      headers,
+      withCredentials: this.config.useSecureCookie && sendCredentials,
+    };
   }
 
   async logout(remote = true) {
     let result;
+    this.sessionStorage?.setItem(this.JWT_STORAGE_KEY, null);
     if (this.config.storage) {
       this.config.storage.del(this.JWT_STORAGE_KEY);
     } else if (remote) {
@@ -127,7 +174,12 @@ export class CrudClient<T> {
     return result;
   }
 
-  async userServiceCmd(cmdName, data = {}, returnRaw = false) {
+  async userServiceCmd(
+    cmdName,
+    data = {},
+    returnRaw = false,
+    sendCredentials = true,
+  ) {
     const url =
       this.config.url +
       '/crud/s/' +
@@ -135,8 +187,14 @@ export class CrudClient<T> {
       '/cmd/' +
       cmdName;
     try {
+      const globalOptions = this.config.globalOptions;
       const res = await axios.patch(url, data, {
-        ...this._getAxiosOptions(),
+        params: {
+          options: globalOptions
+            ? (JSON.stringify(globalOptions) as any)
+            : undefined,
+        },
+        ...this._getAxiosOptions(sendCredentials),
       });
 
       return returnRaw ? res : res?.data;
@@ -145,6 +203,7 @@ export class CrudClient<T> {
         console.error(e.response?.data);
         this.logout(false);
       } else {
+        this.checkDevLog(e);
         throw e;
       }
     }
@@ -156,21 +215,46 @@ export class CrudClient<T> {
     return res?.userId || null;
   }
 
-  async login(dto: ILoginDto): Promise<any> {
-    let res: LoginResponseDto = await this.userServiceCmd('login', dto);
+  async login(dto: ILoginDto, returnRaw = false): Promise<any> {
+    const response = await this.userServiceCmd('login', dto, true, false);
+    let res: LoginResponseDto = response?.data;
     let secs = dto.expiresInSec;
     this.setJwt(res?.accessToken, secs);
-    return res;
+    return returnRaw ? response : res;
   }
 
-  setJwt(jwt: string, durationSeconds: number = 60 * 30) {
+  setJwt(jwt: string, durationSeconds?: number) {
+    this.sessionStorage?.setItem(this.JWT_STORAGE_KEY, null);
     if (this.config.storage) {
-      this.config.storage.set(this.JWT_STORAGE_KEY, jwt, durationSeconds, true);
+      if (durationSeconds || !this.sessionStorage) {
+        this.config.storage.set(
+          this.JWT_STORAGE_KEY,
+          jwt,
+          durationSeconds,
+          true,
+        );
+      } else {
+        this.sessionStorage.setItem(this.JWT_STORAGE_KEY, null);
+      }
     }
   }
 
   private async _tryOrLogout(method, optsIndex, ...args) {
     let res;
+
+    const globalOptions = this.config.globalOptions;
+    if (globalOptions) {
+      let oldOptions = args[optsIndex]?.options;
+      if (oldOptions) {
+        oldOptions = JSON.parse(oldOptions);
+      }
+      const newOptions = { ...globalOptions, ...(oldOptions || {}) };
+      args[optsIndex] = {
+        ...args[optsIndex],
+        options: JSON.stringify(newOptions) as any,
+      };
+    }
+
     try {
       res = await method(...args);
       this.fetchNb++;
@@ -178,13 +262,7 @@ export class CrudClient<T> {
       if (e.response && e.response.status === 401) {
         this.logout(false);
       } else {
-        const NODE_ENV = process?.env?.NODE_ENV;
-        if (
-          NODE_ENV &&
-          (NODE_ENV.includes('dev') || NODE_ENV.includes('test'))
-        ) {
-          console.error(e.response?.data);
-        }
+        this.checkDevLog(e);
         throw e;
       }
       args[optsIndex] = {
@@ -194,6 +272,12 @@ export class CrudClient<T> {
       res = await method(...args);
     }
     return res.data;
+  }
+  checkDevLog(e: any) {
+    const NODE_ENV = process?.env?.NODE_ENV;
+    if (NODE_ENV && (NODE_ENV.includes('dev') || NODE_ENV.includes('test'))) {
+      console.error(e.response?.data);
+    }
   }
 
   private async _doLimitQuery(

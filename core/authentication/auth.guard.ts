@@ -228,12 +228,19 @@ export class CrudAuthGuard implements CanActivate {
       this.addTrafficToIpTrafficMap(ip);
     }
 
-    const token = this.extractTokenFromHeader(request);
+    const token = this.extractJWT(request);
     let user: Partial<CrudUser> = { role: this.crudConfig.guest_role };
     let userId;
     const options: CrudOptions = request.query?.query?.options || {};
     if (token && this.extractUserCheck(url)) {
       const payload = await this.authService.getJwtPayload(token);
+      if (payload.csrf) {
+        const csrfHash = this.extractCSRF(request);
+        if (this.authService.hmacCSRFToken(payload.csrf) != csrfHash) {
+          throw new UnauthorizedException('CSRF token JWT mismatch.');
+        }
+      }
+
       crudContext.jwtPayload = payload;
       const query = {
         [this.crudConfig.id_field]: payload[this.crudConfig.id_field],
@@ -316,9 +323,18 @@ export class CrudAuthGuard implements CanActivate {
     return false;
   }
 
-  private extractTokenFromHeader(request: any): string | undefined {
+  private extractJWT(request: any): string | undefined {
     const jwtCookie = request.cookies?.['eicrud-jwt'];
     return jwtCookie;
+  }
+
+  private extractCSRF(request: any): string | undefined {
+    const csrfCookie = request.cookies?.['eicrud-csrf'];
+    const csrfHeader = request.headers['eicrud-csrf'];
+    if (!csrfCookie || !csrfHeader || csrfCookie != csrfHeader) {
+      throw new UnauthorizedException('CSRF token mismatch.');
+    }
+    return csrfCookie;
   }
 
   async addTrafficToIpTrafficMap(ip: string, silent = false) {
