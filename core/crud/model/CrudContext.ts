@@ -48,4 +48,6 @@ export interface CookieToSet {
   signed?: boolean;
   maxAge?: number;
   path?: string;
+  // any other cookie options
+  [key: string]: any;
 }

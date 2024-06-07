@@ -51,3 +51,20 @@ async defineCRUDAbility(can, cannot, ctx) {
 ```
 !!! warning
     Storing circular references in the `CrudContext` will break your microservice configuration since `ctx` is often serialized in [dollar functions](./microservices/dollar-functions.md). You can store such objects in the `_temp` property which is always deleted before serialization (it will be limited to the current ms).
+
+## Cookies
+
+You can set cookies using the `CrudContext`->`setCookies` parameter and it will work in [microservices configurations](./microservices/configuration.md).
+
+```typescript
+import { CookieToSet } from "@eicrud/core/crud";
+```
+```typescript
+ctx.setCookies = ctx.setCookies || {};
+const newCookie: CookieToSet = {
+    value: 'I love cookies',
+    maxAge: 60*30, // 30min
+    path: '/',
+}
+ctx.setCookies['my-cookie'] = newCookie;
+```

@@ -89,6 +89,11 @@ const users: Record<string, TestUser> = {
     role: 'user',
     bio: 'I am leaving.',
   },
+  'Renew Me': {
+    email: 'Renew.Me@test.com',
+    role: 'user',
+    bio: 'I am staying.',
+  },
 };
 
 describe('AppController', () => {
@@ -487,12 +492,10 @@ describe('AppController', () => {
     const res = await myClient.checkJwt();
     expect(res).toEqual(user.id?.toString());
 
-    myClient.config.storage = null;
     const res2 = await myClient.logout();
+    expect(myClient.tempJwt).toBeFalsy();
+    expect(myClient.config.storage.get(myClient.JWT_STORAGE_KEY)).toBeFalsy();
 
-    const match = parseJwtCookieFromRes(res2);
-
-    expect(match).toBeTruthy();
-    expect(match[1]).toBeFalsy();
+    expect(res2).toBeFalsy();
   });
 });

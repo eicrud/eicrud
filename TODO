@@ -36,3 +36,7 @@
 [x] move defineCMDAbility
 [x] change controller route (:service) & proxy request
 [x] third party auth client part
+
+---
+
+[ ] csrf token

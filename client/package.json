@@ -11,8 +11,9 @@
   },
   "dependencies": {
     "axios": "^1.6.8",
-    "wildcard": "^2.0.1",
-    "tslib": "^2.6.2"
+    "js-cookie": "^3.0.5",
+    "tslib": "^2.6.2",
+    "wildcard": "^2.0.1"
   },
   "peerDependencies": {
     "@eicrud/shared": "^0.1.8"

@@ -8,6 +8,7 @@ import { CrudUser } from '../core/config/model/CrudUser';
 import { Picture } from './entities/Picture';
 import { DragonFruit } from './entities/Dragonfruit';
 import { create } from 'domain';
+import { CrudClient } from '@eicrud/client';
 
 export interface TestUser {
   email: string;
@@ -27,8 +28,18 @@ export interface TestUser {
   lowercaseTrimmedField?: string;
 }
 
-export function parseJwtCookieFromRes(res) {
-  const cookieRegex = /eicrud-jwt=([^;]*);/;
+export function extractAndSetCRSF(raw, myClient: CrudClient<any>) {
+  const csrfMatch = parseJwtCookieFromRes(raw, /eicrud-csrf=([^;]*);/);
+  expect(csrfMatch).toBeTruthy();
+  const csrf = csrfMatch[1];
+  myClient.config.globalHeaders = {
+    'eicrud-csrf': csrf,
+    Cookie: `eicrud-csrf=${csrf}; `,
+  };
+}
+
+export function parseJwtCookieFromRes(res, regex?) {
+  const cookieRegex = regex || /eicrud-jwt=([^;]*);/;
   const cookie = res.headers['set-cookie'];
   for (const c of cookie || []) {
     const match = cookieRegex.exec(c);

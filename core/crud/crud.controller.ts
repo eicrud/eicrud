@@ -57,11 +57,13 @@ export class CrudController {
     protected moduleRef: ModuleRef,
   ) {}
 
-  onModuleInit() {
+  async onModuleInit() {
     this.crudConfig = this.moduleRef.get(CRUD_CONFIG_KEY, { strict: false });
     const app = this.adapterHost.httpAdapter.getInstance();
     app.register(fastifyCookie, {
-      secret: this.crudConfig.COOKIE_SECRET || _utils.generateRandomString(16),
+      secret:
+        this.crudConfig.COOKIE_SECRET ||
+        (await _utils.generateRandomString(16)),
     });
     this._initProxyController(app);
   }

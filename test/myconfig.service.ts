@@ -104,6 +104,9 @@ export class MyConfigService extends CrudConfigService {
         ddosProtection: PROXY_TEST ? false : true,
         useForwardedIp: PROXY_TEST ? true : false,
       },
+      authenticationOptions: {
+        renewJwt: true,
+      },
       dbAdapter:
         process.env.TEST_CRUD_DB == 'postgre'
           ? new PostgreDbAdapter()
