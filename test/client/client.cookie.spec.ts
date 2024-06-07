@@ -230,6 +230,8 @@ describe('AppController', () => {
     }
     expect(error).toBe(403);
 
+    //wait 600ms
+    await new Promise((resolve) => setTimeout(resolve, 600));
     const raw = await myClient.login(dto, true);
     extractAndSetCRSF(raw, myClient);
 

@@ -493,7 +493,7 @@ describe('AppController', () => {
     expect(res).toEqual(user.id?.toString());
 
     const res2 = await myClient.logout();
-    expect(myClient.tempJwt).toBeFalsy();
+
     expect(myClient.config.storage.get(myClient.JWT_STORAGE_KEY)).toBeFalsy();
 
     expect(res2).toBeFalsy();

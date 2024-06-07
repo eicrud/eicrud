@@ -352,9 +352,8 @@ export class CrudAuthorizationService {
           continue;
         }
         let ofields = ctx.options[key];
-        if (!Array.isArray(ofields)) {
-          ofields = Object.keys(ofields);
-        }
+        ofields = _utils.makeArray(ofields);
+        ofields = ofields.map((f) => f.toString());
         if (!ofields.length) {
           ofields = ['all'];
         }
