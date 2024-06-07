@@ -211,7 +211,10 @@ export class CrudClient<T> {
   }
 
   async checkJwt() {
-    const res = await this.userServiceCmd('check_jwt');
+    const res: LoginResponseDto = await this.userServiceCmd('check_jwt');
+    if (res?.accessToken) {
+      this.setJwt(res.accessToken, res.refreshTokenSec);
+    }
     return res?.userId || null;
   }
 

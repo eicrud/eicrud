@@ -145,7 +145,7 @@ describe('AppController', () => {
     expect(match[1]).toBeFalsy();
   });
 
-  it('should extend / renew jwt', async () => {
+  it('should renew jwt with cookie', async () => {
     const user = users['Renew Me'];
     const myClient = getProfileClient();
     myClient.config.globalOptions = { jwtCookie: true };
@@ -196,6 +196,7 @@ describe('AppController', () => {
     expect(match).toBeTruthy();
     myClient.setJwt(match[1]);
     extractAndSetCRSF(res, myClient);
+    expect(res.data.accessToken).toBeFalsy();
 
     //wait 2500ms
     await new Promise((resolve) => setTimeout(resolve, 2500));

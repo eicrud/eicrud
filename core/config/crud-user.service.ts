@@ -983,8 +983,11 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
           totalSec,
           addToPayload,
         );
-        ret.accessToken = newToken;
-        ret.refreshTokenSec = totalSec;
+        if (!ctx.jwtPayload.csrf) {
+          // indicates that the token is stored in the client's local storage
+          ret.accessToken = newToken;
+          ret.refreshTokenSec = totalSec;
+        }
       }
     }
     return ret;
@@ -996,8 +999,8 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     if (!userId) {
       throw new UnauthorizedException('User not found.');
     }
-    const ret: LoginResponseDto = { userId };
-    await this.$renewJwt(ctx);
+    const ret: Partial<LoginResponseDto> = await this.$renewJwt(ctx);
+    ret.userId = userId;
     return ret;
   }
 }
