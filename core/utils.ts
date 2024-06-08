@@ -20,8 +20,8 @@ export class _utils {
       });
     });
 
-    while (token.length > length) {
-      token = token.slice(0, -1);
+    if (token.length > length) {
+      token = token.slice(0, length);
     }
 
     const characters =
@@ -53,3 +53,39 @@ export class _utils {
     return await bcrypt.hash(password, salt);
   }
 }
+
+// // ts-node core/utils.ts
+// import { performance } from 'perf_hooks';
+
+// async function calculateSpeed(input: number) {
+//     const start = performance.now();
+//     const str = await _utils.generateRandomString(input);
+//     await crypto
+//     .createHmac('sha256', '4oR5XrhkDEdNG1W19ncy8lNwr6utojpbKTMKBGktbZBEQjmh3Sha9WhyracR4eMmg3/mo9wwRwCbaOUCHRdMgS0YNc/yepWjT2XBUOpQqKDGpIyp/iVsqnWZbHXLhfhjlMr7vA2cYnERStTZbV6HV0Tl3wxE5yesqIZWj6nHgXlCcsOQ630DKRqd+027B+GMXpq3C3jw7IU7blF4s7e/yBdcKvDcQZ0S/vIZYx0vYyaw+sE25R042kRUWDhjqvX23/Z3fw0x6pAuu0Atsy4P8NLZFTpajnNc7k+BUkRUjVGtwT2XWNxCyxVqrtw+65dUbw2isVbJnZQYaOgUzK5R0w==')
+//     .update(str)
+//     .digest('hex');
+//     const end = performance.now();
+
+//     const duration = end - start;
+//     console.log(`${input} : ${duration} ms ${str}`);
+//     return duration;
+// }
+
+// let total = 0;
+// let count = 0;
+// let max = 64;
+
+// const recurseCalculateSpeed = async (input, max, total, count) => {
+//   if(input >= max) {
+//       console.log(`Total: ${total/count}`);
+//       return;
+//   }
+//   const res = await calculateSpeed(input);
+//   if(input > 1){
+//     total += res;
+//     count++;
+//   }
+//   return await recurseCalculateSpeed(input*2, max, total, count);
+// }
+
+// recurseCalculateSpeed(1, max, total, count);
