@@ -105,7 +105,7 @@ const { userId, accessToken } = await userClient.cmd('link_google_account', dto)
 userClient.setJwt(accessToken, 60*60*24*15); // expires in 15 days
 ```
 !!! note
-    The [client](../client/setup.md)->`setJwt` method stores the provided token so that it can be used with every client request.
+    The [client](../client/setup.md)->`setJwt` method stores the provided token so that it can be used with every client request. It has no effect if you configured your [JWT storage](../client/jwt-storage.md) to cookie.
 
 ## Disable regular login
 
@@ -182,5 +182,6 @@ override async $renewJwt(ctx: CrudContext) {
         return { accessToken: null, refreshTokenSec: null};
     }
     ```
+    If you configured your [JWT storage](../client/jwt-storage.md) to cookie, `signTokenForUser` automatically adds the JWT cookie to your [CrudContext](../context.md#cookies)->`setCookies`. In that case, you don't need to return the token in your response's payload.
 
     

@@ -21,12 +21,18 @@ copyright: "contact@eicrud.com"
 extra:
   homepage: https://example.com
   social:
+    - icon: fontawesome/brands/discord
+      link: https://example.com
+      name: discord
     - icon: fontawesome/solid/heart
       link: https://example.com
       name: support this project
+    - icon: fontawesome/brands/github
+      link: https://example.com
+      name: source code        
     - icon: fontawesome/solid/earth-europe
       link: https://example.com
-      name: homepage
+      name: homepage    
 
 repo_url: https://github.com/eicrud/eicrud
 

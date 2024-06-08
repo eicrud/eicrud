@@ -52,125 +52,26 @@ describe('AppController', () => {
 
   let crudConfig: CrudConfigService;
 
-  const usersForDeletion: Record<string, TestUser> = {
-    'Michael Delete': {
-      email: 'michael.delete@test.com',
-      role: 'user',
-      bio: 'I am a bad guy.',
-    },
-    'Joe Deletedbyadmin': {
-      email: 'Joe.Deletedbyadmin@test.com',
-      role: 'user',
-      bio: 'I am a bad guy.',
-    },
-  };
-
-  const usersForManyDeletion: Record<string, TestUser> = {
-    'Michael DeleteMany': {
-      email: 'michael.DeleteMany@test.com',
-      role: 'user',
-      bio: 'BIO_DELETE_KEY',
-    },
-    'Joe DeleteMany': {
-      email: 'Joe.DeleteMany@test.com',
-      role: 'user',
-      bio: 'BIO_DELETE_KEY',
-    },
-  };
-
-  const usersForInDeletion: Record<string, TestUser> = {
-    'Michael DeleteIn': {
-      email: 'michael.DeleteIn@test.com',
-      role: 'user',
-      bio: 'In delete guy.',
-    },
-    'Joe DeleteIn': {
-      email: 'Joe.DeleteIn@test.com',
-      role: 'user',
-      bio: 'In delete guy 2.',
-    },
-  };
-
   const users: Record<string, TestUser> = {
     'Michael Doe': {
       email: 'michael.doe@test.com',
       role: 'user',
       bio: 'I am a cool guy.',
+      pictures: 1,
     },
     'Sarah Doe': {
       email: 'sarah.doe@test.com',
       role: 'user',
       bio: 'I am a cool girl.',
       melons: 5,
-    },
-    'John NoProfile': {
-      email: 'john.noprofile@mail.com',
-      role: 'user',
-      bio: 'I am a cool guy.',
-      skipProfile: true,
-    },
-    'Hack NoProfile': {
-      email: 'hack.noprofile@mail.com',
-      role: 'user',
-      bio: 'I am a cool guy.',
-      skipProfile: true,
-    },
-    'Greed NoProfile': {
-      email: 'greed.noprofile@mail.com',
-      role: 'user',
-      bio: 'I am a cool guy.',
-      skipProfile: true,
-    },
-    'Trusted NoProfile': {
-      email: 'trustedgreed.noprofile@mail.com',
-      role: 'trusted_user',
-      bio: 'I am a cool guy.',
-      skipProfile: true,
-    },
-    'Trusted NoProfile2': {
-      email: 'trusted2.noprofile@mail.com',
-      role: 'trusted_user',
-      bio: 'I am a cool guy.',
-      skipProfile: true,
-    },
-    'Trusted NoProfile3': {
-      email: 'trusted3.noprofile@mail.com',
-      role: 'trusted_user',
-      bio: 'I am a cool guy.',
-      skipProfile: true,
-    },
-    'Moderator Joe': {
-      email: 'moderator.joe@mail.com',
-      role: 'moderator',
-      bio: 'I am a discord mod.',
-      profileType: 'admin',
-    },
-    'Moderator Bro': {
-      email: 'moderator.bro@mail.com',
-      role: 'moderator',
-      bio: 'I am a reddit mod.',
-      profileType: 'admin',
+      pictures: 4,
     },
     'Admin Dude': {
       email: 'admin.dude@mail.com',
       role: 'admin',
       bio: 'I am a sys admin.',
       profileType: 'admin',
-    },
-    'Joe Many': {
-      email: 'Joe.Many@mail.com',
-      role: 'user',
-      bio: 'BIO_FIND_MANY_KEY',
-    },
-    'Don Many': {
-      email: 'Don.Many@mail.com',
-      role: 'user',
-      bio: 'BIO_FIND_MANY_KEY',
-    },
-    'Moe Many': {
-      email: 'Moe.Many@mail.com',
-      role: 'user',
-      bio: 'BIO_FIND_MANY_KEY',
+      pictures: 3,
     },
   };
 
@@ -196,24 +97,73 @@ describe('AppController', () => {
     await createAccountsAndProfiles(users, userService, crudConfig, {
       testAdminCreds,
     });
-    await createAccountsAndProfiles(usersForDeletion, userService, crudConfig, {
-      testAdminCreds,
-    });
-    await createAccountsAndProfiles(
-      usersForManyDeletion,
-      userService,
-      crudConfig,
-      { testAdminCreds },
-    );
-    await createAccountsAndProfiles(
-      usersForInDeletion,
-      userService,
-      crudConfig,
-      { testAdminCreds },
-    );
   });
 
-  it('should ensure populate is array', async () => {
+  it('should populate pictures', async () => {
+    const user = users['Admin Dude'];
+    const populatedUser = users['Sarah Doe'];
+    const payload = {};
+
+    let query = {
+      service: 'user-profile',
+      query: JSON.stringify({
+        user: populatedUser.id?.toString(),
+        type: 'basic',
+      }),
+      options: JSON.stringify({
+        populate: ['pictures'],
+      } as CrudOptions),
+    };
+
+    const res = await testMethod({
+      url: '/crud/one',
+      method: 'GET',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    expect(res.pictures?.length).toBe(populatedUser.pictures);
+    for (let i = 0; i < res.pictures.length; i++) {
+      expect(res.pictures[i].alt).toBe(`Alt ${i}`);
+    }
+
+    query = {
+      service: 'user-profile',
+      query: JSON.stringify({ type: 'basic' }),
+      options: JSON.stringify({
+        populate: ['pictures'],
+      } as CrudOptions),
+    };
+
+    const res2 = await testMethod({
+      url: '/crud/many',
+      method: 'GET',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+    expect(res2.length).toBeTruthy();
+    for (let usr of res2) {
+      const base = users[usr.userName];
+      expect(usr.pictures?.length).toBe(base.pictures);
+      if (base.pictures) {
+        for (let i = 0; i < usr.pictures.length; i++) {
+          expect(usr.pictures[i].src).toBe(`https://example.com/${i}`);
+        }
+      }
+    }
+  });
+
+  it('should validate and authorize populate', async () => {
     const user = users['Admin Dude'];
 
     const payload = {};
