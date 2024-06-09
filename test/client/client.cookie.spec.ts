@@ -139,10 +139,12 @@ describe('AppController', () => {
     myClient.config.storage = null;
     const res2 = await myClient.logout();
 
-    const match = parseJwtCookieFromRes(res2);
-
-    expect(match).toBeTruthy();
-    expect(match[1]).toBeFalsy();
+    const matchLogout = parseJwtCookieFromRes(
+      res2,
+      /eicrud-jwt=; Max-Age=([^;]*);/,
+    );
+    expect(matchLogout).toBeTruthy();
+    expect(matchLogout[1]).toBe('0');
   });
 
   it('should renew jwt with cookie', async () => {
