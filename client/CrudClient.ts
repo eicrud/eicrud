@@ -124,6 +124,24 @@ export class CrudClient<T> {
     }
   }
 
+  private _checkHttps() {
+    const mustStartWith = [
+      'https://',
+      'http://localhost',
+      'localhost',
+      'http://127.0.0.1',
+      '127.0.0.1',
+    ];
+    if (
+      !this.config.allowNonSecureUrl &&
+      !mustStartWith.some((v) => this.config.url.startsWith(v))
+    ) {
+      throw new Error(
+        'allowNonSecureUrl not set, but url is not secure - cannot send credentials over non-secure connection.',
+      );
+    }
+  }
+
   private _getAxiosOptions(sendCredentials = true) {
     const headers: any = { ...(this.config.globalHeaders || {}) };
 
@@ -132,27 +150,14 @@ export class CrudClient<T> {
         this.sessionStorage?.getItem(this.JWT_STORAGE_KEY) ||
         this.config.storage?.get(this.JWT_STORAGE_KEY);
       if (jwt && sendCredentials) {
-        const mustStartWith = [
-          'https://',
-          'http://localhost',
-          'localhost',
-          'http://127.0.0.1',
-          '127.0.0.1',
-        ];
-        if (
-          !this.config.allowNonSecureUrl &&
-          !mustStartWith.some((v) => this.config.url.startsWith(v))
-        ) {
-          throw new Error(
-            'allowNonSecureUrl not set, but url is not secure - cannot send credentials over non-secure connection.',
-          );
-        }
+        this._checkHttps();
         headers.Cookie =
           (headers.Cookie || '') + `${this.JWT_STORAGE_KEY}=${jwt}; `;
       }
     } else {
       const csrf = Cookie.get('eicrud-csrf');
       if (csrf) {
+        this._checkHttps();
         headers['eicrud-csrf'] = csrf;
       }
     }
