@@ -46,7 +46,7 @@ import { access } from 'fs';
 export class CreateAccountDto implements ICreateAccountDto {
   @IsOptional()
   @IsBoolean()
-  logMeIn: boolean;
+  logMeIn?: boolean;
 
   @IsString()
   @$Transform((value) => {
@@ -452,13 +452,13 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     if (
       emailCount < 2 ||
       !lastEmailSent ||
-      lastEmailSent.getTime() + timeout >= Date.now()
+      Date.now() >= lastEmailSent.getTime() + timeout
     ) {
-      const token = await _utils.generateRandomString(
+      const rnd = await _utils.generateRandomString(
         this.crudConfig.authenticationOptions.resetTokenLength,
       );
       const patch: Partial<CrudUser> = {
-        [tokenKey]: token,
+        [tokenKey]: rnd,
         [lastEmailSentKey]: new Date(),
         [attempCountKey]: emailCount + 1,
       };
@@ -470,6 +470,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         patch as any,
         ctx,
       );
+      const token = rnd + '_' + user[this.crudConfig.id_field];
       await sendEmailFunc(email, token);
       return true;
     }
@@ -781,7 +782,11 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     user.role = role;
 
     const res = await this.$create(user, ctx);
-
+    this.crudConfig.emailService?.sendAccountCreationEmail(
+      user.email,
+      res,
+      ctx,
+    );
     return {
       userId: res[this.crudConfig.id_field],
       accessToken: dto.logMeIn

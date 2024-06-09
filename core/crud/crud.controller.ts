@@ -210,14 +210,6 @@ export class CrudController {
       };
       this.crudConfig.userService.$setCached(ctx.user, ctx);
     }
-    if (e instanceof UnauthorizedException) {
-      const response = ctx.getHttpResponse();
-      response.setCookie('eicrud-jwt', '', {
-        httpOnly: true,
-        maxAge: 0,
-        path: '/',
-      });
-    }
     throw e;
   }
 

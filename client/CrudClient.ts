@@ -142,17 +142,16 @@ export class CrudClient<T> {
     }
   }
 
-  private _getAxiosOptions(sendCredentials = true) {
+  private _getAxiosOptions() {
     const headers: any = { ...(this.config.globalHeaders || {}) };
 
     if (this.config.storage) {
       const jwt =
         this.sessionStorage?.getItem(this.JWT_STORAGE_KEY) ||
         this.config.storage?.get(this.JWT_STORAGE_KEY);
-      if (jwt && sendCredentials) {
+      if (jwt) {
         this._checkHttps();
-        headers.Cookie =
-          (headers.Cookie || '') + `${this.JWT_STORAGE_KEY}=${jwt}; `;
+        headers.Authorization = 'Bearer ' + jwt;
       }
     } else {
       const csrf = Cookie.get('eicrud-csrf');
@@ -163,7 +162,7 @@ export class CrudClient<T> {
     }
     return {
       headers,
-      withCredentials: this.config.useSecureCookie && sendCredentials,
+      withCredentials: this.config.useSecureCookie,
     };
   }
 
@@ -183,7 +182,7 @@ export class CrudClient<T> {
     cmdName,
     data = {},
     returnRaw = false,
-    sendCredentials = true,
+    retryAsGuest = false,
   ) {
     const url =
       this.config.url +
@@ -199,7 +198,7 @@ export class CrudClient<T> {
             ? (JSON.stringify(globalOptions) as any)
             : undefined,
         },
-        ...this._getAxiosOptions(sendCredentials),
+        ...this._getAxiosOptions(),
       });
 
       return returnRaw ? res : res?.data;
@@ -207,6 +206,10 @@ export class CrudClient<T> {
       if (e.response && e.response.status === 401) {
         console.error(e.response?.data);
         this.logout(false);
+        if (retryAsGuest) {
+          return await this.userServiceCmd(cmdName, data, returnRaw);
+        }
+        if (returnRaw) return e;
       } else {
         this.checkDevLog(e);
         throw e;
@@ -242,7 +245,7 @@ export class CrudClient<T> {
           true,
         );
       } else {
-        this.sessionStorage.setItem(this.JWT_STORAGE_KEY, null);
+        this.sessionStorage.setItem(this.JWT_STORAGE_KEY, jwt);
       }
     }
   }

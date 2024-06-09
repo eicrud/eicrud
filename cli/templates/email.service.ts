@@ -3,9 +3,10 @@ import { ModuleRef } from "@nestjs/core";
 import { CrudService, CrudContext } from "@eicrud/core/crud";
 import Email from "./email.entity";
 import { getSecurity } from "./email.security";
+import { EmailService as BaseEmailService, CrudUser } from "@eicrud/core/config";
 
 @Injectable()
-export class EmailService extends CrudService<Email> implements EmailService {
+export class EmailService extends CrudService<Email> implements BaseEmailService {
     constructor(
         protected moduleRef: ModuleRef
     ) {
@@ -25,6 +26,11 @@ export class EmailService extends CrudService<Email> implements EmailService {
     
     sendPasswordResetEmail(to: string, token: string, ctx: CrudContext): Promise<any> {
         console.log('Sending password reset email to', to, 'with token', token);
+        return Promise.resolve();
+    }
+
+    sendAccountCreationEmail(to: string, user: CrudUser, ctx: CrudContext): Promise<any> {
+        console.log('Sending account creation email to', to);
         return Promise.resolve();
     }
 }

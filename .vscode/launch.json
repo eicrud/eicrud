@@ -18,8 +18,8 @@
     {
       "type": "node-terminal",
       "request": "launch",
-      "name": "npm run test client basic",
-      "command": "npm run test client.basic"
+      "name": "npm run test client",
+      "command": "npm run test client"
     },
 
     {

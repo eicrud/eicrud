@@ -49,7 +49,7 @@ export interface ICreateAccountDto {
   email: string;
   password: string;
   role: string;
-  logMeIn: boolean;
+  logMeIn?: boolean;
 }
 
 export interface ITimeoutUserDto {

@@ -1,6 +1,12 @@
 import { CrudContext } from '../crud';
 
 export interface EmailService {
+  sendAccountCreationEmail(
+    email: string,
+    user: any,
+    ctx: CrudContext,
+  ): Promise<any>;
+
   sendVerificationEmail(
     to: string,
     token: string,
