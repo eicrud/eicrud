@@ -146,6 +146,22 @@ export class CrudAuthGuard implements CanActivate {
   }
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
+    try {
+      return await this.subCanActivate(ctx);
+    } catch (e) {
+      if (e instanceof UnauthorizedException) {
+        const response = ctx.switchToHttp().getResponse();
+        response.setCookie('eicrud-jwt', '', {
+          httpOnly: true,
+          maxAge: 0,
+          path: '/',
+        });
+      }
+      throw e;
+    }
+  }
+
+  async subCanActivate(ctx: ExecutionContext): Promise<boolean> {
     if (this.crudConfig.isIsolated) {
       throw new BadRequestException('This instance is isolated.');
     }
@@ -325,6 +341,9 @@ export class CrudAuthGuard implements CanActivate {
 
   private extractJWT(request: any): string | undefined {
     const jwtCookie = request.cookies?.['eicrud-jwt'];
+    if (!jwtCookie) {
+      return request.headers['authorization']?.split(' ')[1];
+    }
     return jwtCookie;
   }
 

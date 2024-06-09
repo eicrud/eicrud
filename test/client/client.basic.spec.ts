@@ -348,6 +348,11 @@ describe('AppController', () => {
     const res2 = await myClient.checkJwt();
 
     expect(res2).toBeNull();
+
+    myClient.setJwt('bad jwt');
+    const res3 = await myClient.checkJwt();
+
+    expect(res3).toBeNull();
   });
 
   it('should batch create melons', async () => {

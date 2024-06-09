@@ -32,6 +32,7 @@ import exp from 'constants';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
 import { LoginDto } from '../../core/crud/model/dtos';
 import {
+  FindResponseDto,
   IChangePasswordDto,
   IResetPasswordDto,
   ISendPasswordResetEmailDto,
@@ -122,6 +123,11 @@ describe('AppController', () => {
       role: 'user',
       bio: 'My bio.',
     },
+    'Manyverif Email': {
+      email: 'Manyverif.Email@test.com',
+      role: 'user',
+      bio: 'My bio.',
+    },
     'Changemy Email': {
       email: 'Changemy.Email@test.com',
       role: 'user',
@@ -158,6 +164,7 @@ describe('AppController', () => {
     crudConfig = moduleRef.get<CrudConfigService>(CRUD_CONFIG_KEY, {
       strict: false,
     });
+
     appController = app.get<CrudController>(CrudController);
     userService = app.get<MyUserService>(MyUserService);
     authService = app.get<CrudAuthService>(CrudAuthService);
@@ -368,7 +375,7 @@ describe('AppController', () => {
     );
     expect(email).toBeTruthy();
     const resetPassDto: IResetPasswordDto = {
-      token_id: email.message + '_' + user.id,
+      token_id: email.message,
       newPassword: 'newpassword',
       logMeIn: true,
     };
@@ -468,7 +475,7 @@ describe('AppController', () => {
     );
     expect(email).toBeTruthy();
     const resetPassDto: IResetPasswordDto = {
-      token_id: email.message + '_' + user.id,
+      token_id: email.message,
       newPassword: 'newpassword',
       logMeIn: true,
     };
@@ -751,7 +758,7 @@ describe('AppController', () => {
     );
     expect(email).toBeTruthy();
     const resetPassDto: IVerifyTokenDto = {
-      token_id: email.message + '_' + user.id,
+      token_id: email.message,
       logMeIn: true,
     };
     resetPassQuery.cmd = 'verify_email';
@@ -772,6 +779,84 @@ describe('AppController', () => {
       null,
     );
     expect(currentUser2.verifiedEmail).toBeTruthy();
+  }, 7000);
+
+  it('should timeout to many email sent', async () => {
+    const user = users['Manyverif Email'];
+    user.email = user.email.toLocaleLowerCase();
+    const payload: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password,
+    };
+    const query = {};
+
+    if (process.env.CRUD_CURRENT_MS) {
+      // changing crudConfig doesn't work in ms configuration
+      return;
+    }
+    crudConfig.authenticationOptions.verificationEmailTimeoutHours =
+      1 / 60 / 6 / 2;
+
+    let jwt = null;
+
+    const res0: LoginResponseDto = await testMethod({
+      url: '/crud/auth',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    jwt = res0.accessToken;
+
+    const resetPassEmailDto: ISendVerificationEmailDto = {};
+
+    const sendEmail = async (expectedCode = 201) => {
+      const resetPassQuery: CrudQuery = {
+        service: 'my-user',
+        cmd: 'send_verification_email',
+      };
+      await testMethod({
+        url: '/crud/cmd',
+        method: 'POST',
+        expectedCode: expectedCode,
+        app,
+        jwt,
+        entityManager,
+        payload: resetPassEmailDto,
+        query: resetPassQuery,
+        crudConfig,
+      });
+    };
+
+    await sendEmail();
+
+    const fetchEmails = async () => {
+      const res: FindResponseDto<FakeEmail> = await emailService.$find(
+        { to: user.email, type: 'emailVerification' },
+        null,
+      );
+      return res;
+    };
+    expect((await fetchEmails()).data.length).toBe(1);
+
+    await sendEmail();
+
+    expect((await fetchEmails()).data.length).toBe(2);
+
+    await sendEmail(400);
+
+    expect((await fetchEmails()).data.length).toBe(2);
+
+    //Wait 5sec
+    await new Promise((r) => setTimeout(r, 5000));
+
+    await sendEmail();
+    expect((await fetchEmails()).data.length).toBe(3);
   }, 7000);
 
   it('should change user email', async () => {
@@ -835,7 +920,7 @@ describe('AppController', () => {
     );
     expect(email).toBeTruthy();
     const resetPassDto: IVerifyTokenDto = {
-      token_id: email.message + '_' + user.id,
+      token_id: email.message,
       logMeIn: true,
     };
     resetPassQuery.cmd = 'verify_email';

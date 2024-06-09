@@ -57,8 +57,9 @@ async get(@Query() query, @Context() ctx: CrudContext) {
 ```
 
 !!! note
-    When calling your route, the [eicrud-jwt](../client/jwt-storage.md) cookie must be present in the request headers.
+    When calling your route, the [JWT token](../client/jwt-storage.md) must be present in the request headers (as a Cookie or in the authorization header).
     ```
-    Cookie: eicrud-jwt=<token>;
+    Authorization: Bearer <token>;
     ```
-    If your JWT is stored in an `httpOnly` cookie, the `eicrud-csrf` cookie (obtained during authentication) must be provided as well. To satisfy the [Double-submit Cookie Pattern](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#signed-double-submit-cookie-recommended){:target="_blank"}, you must provide it as a cookie and as a custom header of the same name.
+
+    If your JWT is stored in an `httpOnly` cookie, the `eicrud-csrf` cookie (obtained during authentication) must be provided. You must provide it as a cookie and as a custom header of the same name to satisfy the [Double-submit Cookie Pattern](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#signed-double-submit-cookie-recommended){:target="_blank"}, 

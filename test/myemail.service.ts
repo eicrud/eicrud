@@ -17,6 +17,19 @@ export class MyEmailService
   constructor(protected moduleRef: ModuleRef) {
     super(moduleRef, FakeEmail, emailSecurity);
   }
+  sendAccountCreationEmail(
+    to: string,
+    user: any,
+    ctx: CrudContext,
+  ): Promise<any> {
+    const email: Partial<FakeEmail> = {
+      to,
+      message: 'Welcome!',
+      type: 'accountCreation',
+    };
+    return this.$create(email, null);
+  }
+
   sendVerificationEmail(
     to: string,
     token: string,
