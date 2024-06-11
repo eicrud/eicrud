@@ -64,7 +64,7 @@ const client = new CrudClient({ serviceName: 'profile' });
 const res = await client.findOne({ userName: 'jon doe' });
 ```
 
-You can extend it using [commands](#commands) (for non-CRUD operations).
+You can extend it using [commands](https://docs.eicrud.com/services/commands/) (for non-CRUD operations).
 
 ## Monolithic/Microservices duality
 

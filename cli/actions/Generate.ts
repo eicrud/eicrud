@@ -3,7 +3,6 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import { Setup } from './Setup.js';
-import { CrudService } from '@eicrud/core/crud/crud.service.js';
 import { toKebabCase } from '@eicrud/shared/utils.js';
 
 const __filename = fileURLToPath(import.meta.url);

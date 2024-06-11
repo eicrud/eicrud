@@ -1,11 +1,4 @@
 {
   "extends": "../global.tsconfig.json",
-  "exclude": ["node_modules", "dist"],
-  "compilerOptions": {
-    "paths": {
-      "@eicrud/core": ["../core"],
-      "@eicrud/core/*": ["../core/*"]
-    },
-    "baseUrl": "."
-  }
+  "exclude": ["node_modules"]
 }
