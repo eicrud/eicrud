@@ -546,10 +546,10 @@ export class CrudService<T extends CrudEntity> {
         this.entity,
         ctx,
       );
-      if (args.addPatch) {
-        const addPatch = this.dbAdapter.getSetUpdate(args.addPatch);
-        update = { ...update, ...addPatch };
-      }
+      let addPatch = args.addPatch || {};
+      addPatch.updatedAt = new Date();
+      addPatch = this.dbAdapter.getSetUpdate(addPatch);
+      update = { ...update, ...addPatch };
       const res = await em.nativeUpdate(this.entity, args.query, update as any);
       ctx.em = em;
       return res;
@@ -658,6 +658,7 @@ export class CrudService<T extends CrudEntity> {
     const opts = this.getReadOptions(ctx);
     let ormEntity = {};
     Object.setPrototypeOf(ormEntity, this.entity.prototype);
+    newEntity.updatedAt = new Date();
     wrap(ormEntity).assign(newEntity as any, {
       em: em.fork(),
       mergeObjectProperties: true,
@@ -688,7 +689,7 @@ export class CrudService<T extends CrudEntity> {
       }
     }
     const id = this.dbAdapter.checkId(result[this.crudConfig.id_field]);
-
+    newEntity.updatedAt = new Date();
     let res = em.getReference(this.entity, id);
     wrap(res).assign(newEntity as any, {
       updateByPrimaryKey: false,

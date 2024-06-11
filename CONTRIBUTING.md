@@ -49,10 +49,6 @@ Never call the orm directly but use the CRUDService methods instead (ex: `userSe
 
 Ensure all the test suites are passing before submitting your merge request.
 
-### Documentation
-
-Documentation for your changes is optional but appreciated.
-
 ## Commit Message Guidelines
 
 Each **merge** commit message consists of a **header**, a **body** and a **footer**. The header has a special
