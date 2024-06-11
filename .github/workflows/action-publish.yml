@@ -17,16 +17,16 @@ jobs:
       with:
         node-version: '18.x'
         registry-url: 'https://registry.npmjs.org'
-    - uses: dorny/paths-filter@v3
-      id: filter
-      with:
-        filters: |
-          matched:
-            - './${{ matrix.dir }}/package.json'
+    # - uses: dorny/paths-filter@v3
+    #   id: filter
+    #   with:
+    #     filters: |
+    #       matched:
+    #         - './${{ matrix.dir }}/package.json'
 
     - name: Publish
       working-directory: ./${{ matrix.dir }}
-      if: steps.filter.outputs.matched == 'true'
+      # if: steps.filter.outputs.matched == 'true'
       run: npm run publish:package --provenance --access public 
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
