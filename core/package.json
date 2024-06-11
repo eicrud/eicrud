@@ -1,6 +1,6 @@
 {
   "name": "@eicrud/core",
-  "version": "0.1.20",
+  "version": "0.7.0",
   "description": "eicrud core package",
   "author": "acrosett",
   "license": "MIT",
@@ -9,8 +9,13 @@
     "publish:package": "npm i && npm run compile && npm publish",
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eicrud/eicrud.git",
+    "directory": "core"
+  },
   "peerDependencies": {
-    "@eicrud/shared": "^0.1.9"
+    "@eicrud/shared": "^0.7.0"
   },
   "dependencies": {
     "@casl/ability": "^6.5.0",

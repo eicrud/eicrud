@@ -1,9 +1,14 @@
 {
   "name": "@eicrud/client",
-  "version": "0.1.18",
+  "version": "0.7.0",
   "description": "http client for @eicrud/core",
   "author": "acrosett",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eicrud/eicrud.git",
+    "directory": "client"
+  },
   "scripts": {
     "compile": "npm run clean && tsc",
     "publish:package": "npm i && npm run compile && npm publish",
@@ -15,7 +20,11 @@
     "tslib": "^2.6.2",
     "wildcard": "^2.0.1"
   },
+  "devDependencies": {
+    "del-cli": "^5.1.0",
+    "@types/node": "^20.12.12"
+  },
   "peerDependencies": {
-    "@eicrud/shared": "^0.1.9"
+    "@eicrud/shared": "^0.7.0"
   }
 }

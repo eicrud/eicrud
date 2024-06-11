@@ -1,6 +1,6 @@
 {
   "name": "@eicrud/mongodb",
-  "version": "0.1.4",
+  "version": "0.7.0",
   "description": "eicrud db adapter for mongodb",
   "author": "acrosett",
   "license": "MIT",
@@ -13,8 +13,13 @@
     "publish:package": "npm i && npm run compile && npm publish",
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eicrud/eicrud.git",
+    "directory": "db_mongo"
+  },
   "peerDependencies": {
-    "@eicrud/core": "^0.1.10"
+    "@eicrud/core": "^0.7.0"
   },
   "devDependencies": {
     "del-cli": "^5.1.0"

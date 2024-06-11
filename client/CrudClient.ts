@@ -4,7 +4,6 @@ import { FindResponseDto } from '@eicrud/shared/interfaces';
 import axios from 'axios';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { ILoginDto, LoginResponseDto } from '@eicrud/shared/interfaces';
-import { CrudOptions } from '@eicrud/core/crud';
 let wildcard = require('wildcard');
 let Cookie = require('js-cookie');
 
