@@ -1,9 +1,10 @@
 name: npm-publish
 on:
+  workflow_dispatch: 
   pull_request:
-    branches: ['main']
+    branches: ['develop', 'main']
 jobs:
-  build:
+  publish-all:
     runs-on: ubuntu-latest
     strategy:
       matrix: { dir: ['shared', 'core', 'cli', 'client', 'db_mongo', 'db_postgre'] }
