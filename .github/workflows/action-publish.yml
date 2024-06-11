@@ -9,9 +9,6 @@ jobs:
     strategy:
       matrix:
         dir: ['shared', 'core', 'cli', 'client', 'db_mongo', 'db_postgre']
-        # When set to true, GitHub cancels all in-progress jobs if any matrix job fails.
-        fail-fast: true
-        # The maximum number of jobs that can run simultaneously
       max-parallel: 1
     permissions:
       contents: read
