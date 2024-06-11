@@ -56,7 +56,11 @@ export class LocalStorage implements ClientStorage {
     durationSeconds: number,
     secure: boolean,
   ): void {
-    localStorage.setItem(name, value);
+    if (!value) {
+      localStorage.removeItem(name);
+    } else {
+      localStorage.setItem(name, value);
+    }
   }
   del(name: string): void {
     localStorage.removeItem(name);
@@ -168,7 +172,7 @@ export class CrudClient<T> {
 
   async logout(remote = true) {
     let result;
-    this.sessionStorage?.setItem(this.JWT_STORAGE_KEY, null);
+    this.sessionStorage?.removeItem(this.JWT_STORAGE_KEY);
     if (this.config.storage) {
       this.config.storage.del(this.JWT_STORAGE_KEY);
     } else if (remote) {
@@ -235,7 +239,7 @@ export class CrudClient<T> {
   }
 
   setJwt(jwt: string, durationSeconds?: number) {
-    this.sessionStorage?.setItem(this.JWT_STORAGE_KEY, null);
+    this.sessionStorage?.removeItem(this.JWT_STORAGE_KEY);
     if (this.config.storage) {
       if (durationSeconds || !this.sessionStorage) {
         this.config.storage.set(
@@ -244,7 +248,7 @@ export class CrudClient<T> {
           durationSeconds,
           true,
         );
-      } else {
+      } else if (jwt) {
         this.sessionStorage.setItem(this.JWT_STORAGE_KEY, jwt);
       }
     }

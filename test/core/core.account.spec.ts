@@ -436,6 +436,7 @@ describe('AppController', () => {
       jwt: user.jwt,
       entityManager,
       payload,
+      expectedCrudCode: CrudErrors.TOKEN_MISMATCH.code,
       query,
       crudConfig,
     });
@@ -622,6 +623,7 @@ describe('AppController', () => {
       jwt: user.jwt,
       entityManager,
       payload,
+      expectedCrudCode: CrudErrors.TOKEN_MISMATCH.code,
       query,
       crudConfig,
     });
@@ -997,6 +999,7 @@ describe('AppController', () => {
       jwt: originalJwT,
       entityManager,
       payload,
+      expectedCrudCode: CrudErrors.TOKEN_MISMATCH.code,
       query,
       crudConfig,
     });

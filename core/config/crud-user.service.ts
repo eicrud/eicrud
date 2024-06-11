@@ -534,7 +534,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       //Verify password
       const match = await bcrypt.compare(dto.password, ctx.user?.password);
       if (!match) {
-        throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
+        throw new BadRequestException(CrudErrors.INVALID_CREDENTIALS.str());
       }
     } else {
       if (!ctx.userId) {
@@ -580,7 +580,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     entity[this.crudConfig.id_field] = userId;
     const user: CrudUser = (await this.$findOne(entity, ctx)) as any;
     if (!user) {
-      throw new UnauthorizedException(CrudErrors.USER_NOT_FOUND.str());
+      throw new BadRequestException(CrudErrors.USER_NOT_FOUND.str());
     }
     if (user?.verifiedEmail && !user.nextEmail) {
       return {};
@@ -711,7 +711,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     entity[this.crudConfig.id_field] = userId;
     const user: CrudUser = (await this.$findOne(entity, ctx)) as any;
     if (!user) {
-      throw new UnauthorizedException(CrudErrors.USER_NOT_FOUND.str());
+      throw new BadRequestException(CrudErrors.USER_NOT_FOUND.str());
     }
     const updatedUser = await this.useToken(
       user,
@@ -766,7 +766,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const user: CrudUser = ctx.user;
     const match = await bcrypt.compare(oldPassword, user?.password);
     if (!match) {
-      throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
+      throw new BadRequestException(CrudErrors.INVALID_CREDENTIALS.str());
     }
     const patch: Partial<CrudUser> = {
       role: user.role,

@@ -19,19 +19,17 @@ plugins:
 copyright: "contact@eicrud.com"
 
 extra:
-  homepage: https://example.com
+  homepage: https://eicrud.com
   social:
-    - icon: fontawesome/brands/discord
-      link: https://example.com
-      name: discord
+
     - icon: fontawesome/solid/heart
-      link: https://example.com
+      link: https://github.com/acrosett
       name: support this project
     - icon: fontawesome/brands/github
-      link: https://example.com
+      link: https://github.com/eicrud/eicrud
       name: source code        
     - icon: fontawesome/solid/earth-europe
-      link: https://example.com
+      link: https://eicrud.com
       name: homepage    
 
 repo_url: https://github.com/eicrud/eicrud
