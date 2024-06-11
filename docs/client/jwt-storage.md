@@ -30,7 +30,7 @@ const profileClient = new CrudClient(config)
     ```
 
 !!! info
-    When using this cookie storage method, the JWT token is not accessible via javascript and therefore cannot be stolen in case of a Cross-site scripting (XSS) attack. However, keep in mind that a XSS vulnerability would still allow an attacker to perform requests on behalf of a connected user. Note that putting credentials in cookies opens the way for Cross-site request forgery (CSRF) attacks. Eicrud attempts to block these attacks using the [Double-submit Cookie Pattern](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#signed-double-submit-cookie-recommended){:target="_blank"}.
+    When using this cookie storage method, the JWT token is not accessible via javascript and therefore cannot be stolen in case of a Cross-site scripting (XSS) attack. Note that putting credentials in cookies opens the way for Cross-site request forgery (CSRF) attacks. Eicrud attempts to block these attacks using the [Double-submit Cookie Pattern](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#signed-double-submit-cookie-recommended){:target="_blank"}.
 
 
 

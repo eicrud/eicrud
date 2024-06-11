@@ -54,7 +54,6 @@ export interface MicroServiceConfig {
     openBackDoor: boolean,
     openController: boolean,
     proxyCrudController?: boolean,
-    proxyAuthTo?: string,
     url: string,
     username?: string,
     password?: string,
@@ -67,10 +66,6 @@ export interface MicroServiceConfig {
 Tells your application instance to behave as a proxy and to directly forward requests to other microservices.
 
 If the target of a request is present in its services list, the application will not proxy the request but will run the controls and implementation instead.
-
-#### proxyAuthTo
-
-Tells your application to proxy login requests to a particular ms.
 
 #### url
 The url of the instance (where other microservices need to forward their requests).

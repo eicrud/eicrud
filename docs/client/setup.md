@@ -43,9 +43,6 @@ await profileClient.login(dto);
 ```
 
 !!! note
-    Clients sharing their `ClientStorage` are logged together. 
-
-!!! note
     Make sure to allow the `login` and `check_jwt` commands in your user service security. See [this example](../user/service.md#authentication).
     
 ### expiresInSec  

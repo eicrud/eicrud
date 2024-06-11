@@ -19,6 +19,7 @@ import {
 import { CrudErrors } from '../shared/CrudErrors';
 export class SearchMelonDto {
   @IsString()
+  @IsOptional()
   @$Transform((v: string) => v.replace(/[.*+?^$}{)(|[\]\\]/g, '\\$&'))
   nameLike: string;
 

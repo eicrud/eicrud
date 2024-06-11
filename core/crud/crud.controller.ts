@@ -802,6 +802,7 @@ export class CrudController {
       if (!cmdSecurity?.dto) {
         throw new Error('dto missing for cmd: ' + ctx.cmdName);
       }
+      dataDefaultValues = true;
       dataClass = cmdSecurity.dto;
     }
     const crudTransformer = new CrudTransformer(this, ctx);

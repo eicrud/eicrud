@@ -56,7 +56,7 @@ You also need a local (or remote) database server to use Eicrud. Once you have i
    }),
 // ...
 ```
-You can start your application to verify that everything is working.
+You can start your application to make sure that everything is working.
 ```
 npm run start
 ```
