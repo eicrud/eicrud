@@ -1,6 +1,6 @@
 {
   "name": "@eicrud/postgresql",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "eicrud db adapter for postgresql",
   "author": "acrosett",
   "license": "MIT",
@@ -14,7 +14,7 @@
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
   },
   "peerDependencies": {
-    "@eicrud/core": "^0.7.1"
+    "@eicrud/core": "^0.7.2"
   },
   "repository": {
     "type": "git",
