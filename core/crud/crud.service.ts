@@ -491,6 +491,16 @@ export class CrudService<T extends CrudEntity> {
     return entity;
   }
 
+  async $deleteCached(
+    entity: Partial<T>,
+    ctx: CrudContext,
+    inheritance: any = {},
+  ) {
+    let cacheKey = this.getCacheKey(entity);
+    await this.cacheManager.set(cacheKey, null, this.cacheOptions.TTL);
+    return entity;
+  }
+
   async $patch_(
     ctx: CrudContext,
     secure: boolean = true,

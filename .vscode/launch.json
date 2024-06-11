@@ -7,6 +7,13 @@
       "name": "npm run test",
       "command": "npm run test"
     },
+
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test validation",
+      "command": "npm run test validation"
+    },
     
     {
       "type": "node-terminal",

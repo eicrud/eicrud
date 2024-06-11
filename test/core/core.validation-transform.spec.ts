@@ -33,6 +33,7 @@ import {
 import { format } from 'path';
 import { SearchMelonDto } from '../melon.service';
 import exp from 'constants';
+import { IChangePasswordDto } from '../../shared/interfaces';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -67,6 +68,13 @@ describe('AppController', () => {
     },
     'Username Dude': {
       email: 'Username.dude@mail.com',
+      role: 'admin',
+      bio: 'I am a sys Username.',
+      profileType: 'admin',
+      skipProfile: true,
+    },
+    'Username Joe': {
+      email: 'Username.Joe@mail.com',
       role: 'admin',
       bio: 'I am a sys Username.',
       profileType: 'admin',
@@ -127,6 +135,12 @@ describe('AppController', () => {
     },
     'John NoProfile': {
       email: 'john.noprofile@mail.com',
+      role: 'user',
+      bio: 'I am a cool guy.',
+      skipProfile: true,
+    },
+    'PassChange Gus': {
+      email: 'PassChange.Gus@mail.com',
       role: 'user',
       bio: 'I am a cool guy.',
       skipProfile: true,
@@ -418,6 +432,47 @@ describe('AppController', () => {
     });
 
     payload.userName = 'Username Heinrich';
+    const expectedObject = {
+      userName: payload.userName,
+    };
+    await testMethod({
+      expectedObject,
+      url: '/crud/one',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+  });
+
+  it('should validate missing POST field', async () => {
+    const user = users['Username Joe'];
+    const userId = user.id;
+    const payload: Partial<UserProfile> = {
+      user: userId,
+      bio: 'I am a cool guy.',
+    } as any;
+    const query: CrudQuery = {
+      service: 'user-profile',
+    };
+
+    await testMethod({
+      url: '/crud/one',
+      method: 'POST',
+      expectedCode: 400,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    payload.userName = 'Username Jonnathan';
     const expectedObject = {
       userName: payload.userName,
     };
@@ -1102,5 +1157,33 @@ describe('AppController', () => {
     });
 
     expect(res2.data?.length).toBe(michael.melons);
+  });
+
+  it('should validate cmd missing arg', async () => {
+    const user = users['PassChange Gus'];
+    user.email = user.email.toLocaleLowerCase();
+
+    const query = {};
+
+    const resetPassDto: IChangePasswordDto = {
+      oldPassword: undefined as any,
+      newPassword: 'newpassword2',
+      logMeIn: true,
+    };
+    const changePassQuery: CrudQuery = {
+      service: 'my-user',
+      cmd: 'change_password',
+    };
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 400,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: resetPassDto,
+      query: changePassQuery,
+      crudConfig,
+    });
   });
 });

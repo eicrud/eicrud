@@ -72,6 +72,7 @@ export class ResetPasswordDto implements IResetPasswordDto {
   @IsString()
   newPassword: string;
 
+  @IsOptional()
   @IsInt()
   expiresInSec: number;
 }
@@ -97,6 +98,7 @@ export class ChangePasswordDto implements IChangePasswordDto {
   @IsString()
   newPassword: string;
 
+  @IsOptional()
   @IsInt()
   expiresInSec: number;
 }
@@ -236,13 +238,21 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   }
 
   override async $patch(entity: T, newEntity: T, ctx: CrudContext) {
-    await this.checkUserBeforePatch(newEntity);
-    return super.$patch(entity, newEntity, ctx);
+    const revoked = await this.checkUserBeforePatch(newEntity, ctx);
+    const res = await super.$patch(entity, newEntity, ctx);
+    if (revoked && entity[this.crudConfig.id_field]) {
+      this.$deleteCached(entity, ctx);
+    }
+    return res;
   }
 
   override async $patchOne(query: T, newEntity: T, ctx: CrudContext) {
-    await this.checkUserBeforePatch(newEntity);
-    return super.$patchOne(query, newEntity, ctx);
+    const revoked = await this.checkUserBeforePatch(newEntity, ctx);
+    const res = await super.$patchOne(query, newEntity, ctx);
+    if (revoked && query[this.crudConfig.id_field]) {
+      this.$deleteCached(query, ctx);
+    }
+    return res;
   }
 
   async checkPassword(newEntity: T) {
@@ -256,9 +266,10 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     }
   }
 
-  async checkUserBeforePatch(newEntity: T) {
+  async checkUserBeforePatch(newEntity: T, ctx: CrudContext) {
     await this.checkPassword(newEntity);
-    this.checkFieldsThatIncrementRevokedCount(newEntity);
+    const revoked = this.checkFieldsThatIncrementRevokedCount(newEntity);
+    return revoked;
   }
 
   checkFieldsThatIncrementRevokedCount(newEntity: T) {
@@ -272,7 +283,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         );
       }
       newEntity.rvkd = newEntity.rvkd + 1;
+      return true;
     }
+    return false;
   }
 
   getUserAgeInWeeks(user: CrudUser) {
@@ -510,6 +523,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     ctx: CrudContext,
   ) {
     if (dto?.newEmail) {
+      const userWithNewEmail = await this.$findOne(
+        { email: dto.newEmail } as any,
+        ctx,
+      );
+      if (userWithNewEmail) {
+        throw new BadRequestException(CrudErrors.EMAIL_ALREADY_TAKEN.str());
+      }
+
       //Verify password
       const match = await bcrypt.compare(dto.password, ctx.user?.password);
       if (!match) {
@@ -558,6 +579,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const entity = {};
     entity[this.crudConfig.id_field] = userId;
     const user: CrudUser = (await this.$findOne(entity, ctx)) as any;
+    if (!user) {
+      throw new UnauthorizedException(CrudErrors.USER_NOT_FOUND.str());
+    }
     if (user?.verifiedEmail && !user.nextEmail) {
       return {};
     }
@@ -686,6 +710,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const entity = {};
     entity[this.crudConfig.id_field] = userId;
     const user: CrudUser = (await this.$findOne(entity, ctx)) as any;
+    if (!user) {
+      throw new UnauthorizedException(CrudErrors.USER_NOT_FOUND.str());
+    }
     const updatedUser = await this.useToken(
       user,
       token,

@@ -133,6 +133,11 @@ describe('AppController', () => {
       role: 'user',
       bio: 'My bio.',
     },
+    'FailChangemy Email': {
+      email: 'FailChangemy.Email@test.com',
+      role: 'user',
+      bio: 'My bio.',
+    },
     'Logme Out': {
       email: 'Logme.Out@test.com',
       role: 'user',
@@ -420,8 +425,20 @@ describe('AppController', () => {
       query,
       crudConfig,
     });
-
     expect(res2.userId).toEqual(user.id?.toString());
+
+    // check that initial JWT has ben unvalidated
+    await testMethod({
+      url: '/crud/auth',
+      method: 'GET',
+      expectedCode: 401,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
   }, 17000);
 
   it('should reset password', async () => {
@@ -590,6 +607,19 @@ describe('AppController', () => {
       expectedCode: 201,
       app,
       jwt: null,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    // check that initial JWT has ben unvalidated
+    await testMethod({
+      url: '/crud/auth',
+      method: 'GET',
+      expectedCode: 401,
+      app,
+      jwt: user.jwt,
       entityManager,
       payload,
       query,
@@ -883,6 +913,7 @@ describe('AppController', () => {
     });
 
     jwt = res0.accessToken;
+    const originalJwT = jwt;
 
     // password reset should allow login even if rate limited
     const resetPassEmailDto: ISendVerificationEmailDto = {
@@ -942,6 +973,82 @@ describe('AppController', () => {
     );
     expect(currentUser2.verifiedEmail).toBeTruthy();
     expect(currentUser2.email).toBe('changed@email.com');
+
+    // check returned token is valid
+    const resCheck = await testMethod({
+      url: '/crud/auth',
+      method: 'GET',
+      expectedCode: 200,
+      app,
+      jwt: res.accessToken,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+    expect(resCheck.userId).toEqual(user.id?.toString());
+
+    // check that initial JWT has ben unvalidated
+    await testMethod({
+      url: '/crud/auth',
+      method: 'GET',
+      expectedCode: 401,
+      app,
+      jwt: originalJwT,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+  });
+
+  it('should fail to change email to existing', async () => {
+    const user = users['FailChangemy Email'];
+    user.email = user.email.toLocaleLowerCase();
+    const payload: LoginDto = {
+      email: user.email,
+      password: testAdminCreds.password,
+    };
+    const query = {};
+
+    let jwt = null;
+
+    const res0: LoginResponseDto = await testMethod({
+      url: '/crud/auth',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    jwt = res0.accessToken;
+
+    // password reset should allow login even if rate limited
+    const resetPassEmailDto: ISendVerificationEmailDto = {
+      password: testAdminCreds.password,
+      newEmail: users['Michael Doe'].email,
+    };
+
+    const resetPassQuery: CrudQuery = {
+      service: 'my-user',
+      cmd: 'send_verification_email',
+    };
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.EMAIL_ALREADY_TAKEN.code,
+      app,
+      jwt,
+      entityManager,
+      payload: resetPassEmailDto,
+      query: resetPassQuery,
+      crudConfig,
+    });
   });
 
   it('should logout_everywhere', async () => {
@@ -1045,11 +1152,10 @@ describe('AppController', () => {
 
     jwt = res0.accessToken;
 
-    // password reset should allow login even if rate limited
     const timeoutUserDto: ITimeoutUserDto = {
       userId: userToTimeOut.id,
       timeoutDurationMinutes: 10,
-      allowedRoles: undefined,
+      allowedRoles: [],
     };
 
     const timeoutUserQuery: CrudQuery = {
