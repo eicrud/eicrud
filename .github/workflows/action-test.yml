@@ -2,7 +2,7 @@ name: ci
 on:
   workflow_dispatch: 
   # pull_request:
-  #   branches: ['develop']
+  #   branches: ['develop', 'main']
   # push:
   #   branches: ['develop']
   # paths:
