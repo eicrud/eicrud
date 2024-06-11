@@ -1,0 +1,21 @@
+{
+  "name": "@eicrud/client",
+  "version": "0.1.18",
+  "description": "http client for @eicrud/core",
+  "author": "acrosett",
+  "license": "MIT",
+  "scripts": {
+    "compile": "npm run clean && tsc",
+    "publish:package": "npm i && npm run compile && npm publish",
+    "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
+  },
+  "dependencies": {
+    "axios": "^1.6.8",
+    "js-cookie": "^3.0.5",
+    "tslib": "^2.6.2",
+    "wildcard": "^2.0.1"
+  },
+  "peerDependencies": {
+    "@eicrud/shared": "^0.1.9"
+  }
+}

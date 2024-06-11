@@ -1,0 +1,4 @@
+{
+  "extends": "../global.tsconfig.json",
+  "exclude": ["node_modules", "dist"]
+}

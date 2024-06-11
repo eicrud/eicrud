@@ -1,0 +1,31 @@
+name: npm-publish
+on:
+  pull_request:
+    branches: ['main']
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: { dir: ['shared', 'core', 'cli', 'client', 'db_mongo', 'db_postgre'] }
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+        registry-url: 'https://registry.npmjs.org'
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          matched:
+            - './${{ matrix.dir }}/package.json'
+
+    - name: Publish
+      working-directory: ./${{ matrix.dir }}
+      if: steps.filter.outputs.matched == 'true'
+      run: npm run publish:package --provenance --access public 
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

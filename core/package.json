@@ -1,0 +1,43 @@
+{
+  "name": "@eicrud/core",
+  "version": "0.1.20",
+  "description": "eicrud core package",
+  "author": "acrosett",
+  "license": "MIT",
+  "scripts": {
+    "compile": "npm run clean && tsc",
+    "publish:package": "npm i && npm run compile && npm publish",
+    "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
+  },
+  "peerDependencies": {
+    "@eicrud/shared": "^0.1.9"
+  },
+  "dependencies": {
+    "@casl/ability": "^6.5.0",
+    "@fastify/cookie": "^9.3.1",
+    "@fastify/reply-from": "^9.7.0",
+    "@mikro-orm/core": "^6.1.12",
+    "@mikro-orm/nestjs": "^5.2.3",
+    "@nestjs/cache-manager": "^2.2.1",
+    "@nestjs/common": "^10.3.6",
+    "@nestjs/core": "^10.3.6",
+    "@nestjs/jwt": "^10.2.0",
+    "@nestjs/platform-fastify": "^10.3.6",
+    "@nestjs/schedule": "^4.0.1",
+    "@panva/hkdf": "^1.1.1",
+    "async-mutex": "^0.5.0",
+    "axios": "^1.6.8",
+    "bcrypt": "^5.1.1",
+    "cache-manager": "^5.4.0",
+    "class-validator": "^0.14.1",
+    "lru-cache": "^10.2.0",
+    "mnemonist": "^0.39.8",
+    "reflect-metadata": "^0.2.1",
+    "wildcard": "^2.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "del-cli": "^5.1.0",
+    "typescript": "^5.3.3"
+  }
+}

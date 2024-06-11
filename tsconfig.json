@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2017",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@eicrud/core": ["./core"],
+      "@eicrud/core/*": ["./core/*"],
+      "@eicrud/shared": ["./shared"],
+      "@eicrud/shared/*": ["./shared/*"]
+    }
+  },
+  "exclude": ["cli", "core", "shared", "db_mongo", "db_postgre"]
+}

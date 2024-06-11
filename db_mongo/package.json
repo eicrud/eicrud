@@ -1,0 +1,22 @@
+{
+  "name": "@eicrud/mongodb",
+  "version": "0.1.4",
+  "description": "eicrud db adapter for mongodb",
+  "author": "acrosett",
+  "license": "MIT",
+  "dependencies": {
+    "@mikro-orm/core": "^6.1.12",
+    "@mikro-orm/mongodb": "^6.1.12"
+  },
+  "scripts": {
+    "compile": "npm run clean && tsc",
+    "publish:package": "npm i && npm run compile && npm publish",
+    "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
+  },
+  "peerDependencies": {
+    "@eicrud/core": "^0.1.10"
+  },
+  "devDependencies": {
+    "del-cli": "^5.1.0"
+  }
+}
