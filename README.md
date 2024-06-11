@@ -56,7 +56,7 @@ export class ProfileService extends CrudService<Profile> {
 }
 ```
 
-And **that's it**, `profile` is now a fully operational CRUD service that you can query with the [client](#client) :
+And **that's it**, `profile` is now a fully operational CRUD service that you can query with the [client](https://docs.eicrud.com/client/setup/) :
 
 ```typescript
 const client = new CrudClient({ serviceName: 'profile' });
