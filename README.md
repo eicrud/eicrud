@@ -71,6 +71,7 @@ You can extend it using [commands](https://docs.eicrud.com/services/commands/) (
 Eicrud lets you group your CRUD services into "microservices" with a simple configuration. You can start developing a monolith and easily switch to microservices later on.
 
 ```typescript
+msOptions.microServices = {
   "entry": {
     services: [],
     openBackDoor: false, openController: true,
