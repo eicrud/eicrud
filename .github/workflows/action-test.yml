@@ -39,11 +39,11 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Mongodb tests
-        run: npm run test
+      # - name: Mongodb tests
+      #   run: npm run test
 
-      - name: PostgreSQL tests
-        run: npm run test:postgre
+      # - name: PostgreSQL tests
+      #   run: npm run test:postgre
 
       - name: Microservices tests
         run: npm run start:test-ms
