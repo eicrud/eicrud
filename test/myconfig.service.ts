@@ -15,7 +15,7 @@ import { Picture } from './entities/Picture';
 import { Melon } from './entities/Melon';
 import { FakeEmail } from './entities/FakeEmail';
 import { PostgreDbAdapter } from '../db_postgre/postgreDbAdapter';
-import { DragonFruit } from './entities/DragonFruit';
+import { DragonFruit } from './entities/DragonXruit';
 
 const roles: CrudRole[] = [
   {
