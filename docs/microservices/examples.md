@@ -55,7 +55,7 @@ export const microServices: Record<string, MicroServiceConfig>  = {
     },
 }
 ```
-In this configuration put the `UserService` into the `entry` ms. Along with [caching users in RAM](../services/cache.md), this allows for great performance since the users will be fetched from the pod memory. 
+This configuration puts the `UserService` into the `entry` ms. Along with [caching users in RAM](../services/cache.md), this allows for great performance since the users will be fetched from the pod memory. 
 
 It can work with multiple `entry` pods if you put a load balancer with an IP-hashing strategy in front of it.
 
