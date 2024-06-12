@@ -36,7 +36,7 @@ import exp from 'constants';
 import { MelonService } from '../melon.service';
 import axios from 'axios';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
-import { DragonFruit } from '../entities/Dragonfruit';
+import { DragonFruit } from '../entities/DragonFruit';
 import { FindResponseDto } from '../../shared/interfaces';
 import { DragonFruitService } from '../dragonfruit.service';
 

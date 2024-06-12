@@ -16,7 +16,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { CrudEntity } from '../../core/crud/model/CrudEntity';
+import { CrudEntity } from '@eicrud/core/crud/model/CrudEntity';
 import { MyUser } from './MyUser';
 
 @Entity()

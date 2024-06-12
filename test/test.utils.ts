@@ -6,7 +6,7 @@ import { CrudConfigService } from '../core/config/crud.config.service';
 import { CrudUserService } from '../core/config/crud-user.service';
 import { CrudUser } from '../core/config/model/CrudUser';
 import { Picture } from './entities/Picture';
-import { DragonFruit } from './entities/Dragonfruit';
+import { DragonFruit } from './entities/DragonFruit';
 import { create } from 'domain';
 import { CrudClient } from '@eicrud/client';
 
