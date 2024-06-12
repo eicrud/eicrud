@@ -177,14 +177,19 @@ describe('AppController', () => {
   };
 
   beforeAll(async () => {
+    console.log('beforeAll');
     const moduleRef: TestingModule = await Test.createTestingModule(
       getModule(require('path').basename(__filename)),
     ).compile();
+
+    console.log('dropDatabases');
     await dropDatabases(moduleRef);
 
     app = createNestApplication(moduleRef);
 
+    console.log('init');
     await app.init();
+    console.log('readyApp');
     await readyApp(app);
 
     appController = app.get<CrudController>(CrudController);
@@ -195,6 +200,7 @@ describe('AppController', () => {
     entityManager = app.get<EntityManager>(EntityManager);
     crudConfig = app.get<CrudConfigService>(CRUD_CONFIG_KEY, { strict: false });
 
+    console.log('createAccountsAndProfiles');
     await createAccountsAndProfiles(users, userService, crudConfig, {
       testAdminCreds,
     });
@@ -213,6 +219,8 @@ describe('AppController', () => {
       crudConfig,
       { testAdminCreds },
     );
+
+    console.log('done');
   });
 
   //@Get('/crud/auth')
