@@ -16,7 +16,19 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 7
-    
+
+    services:
+      mongodb:
+        image: mongo
+        ports:
+        - 27017:27017
+      postgres:
+        image: postgres
+        ports:
+        - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: admin
     steps:
       - name: Copy repository
         uses: actions/checkout@v3

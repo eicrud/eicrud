@@ -25,7 +25,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{core,client,shared,test,db_*}/**/*.ts\" --fix --ignore-pattern test/cli-app/** --ignore-pattern cli/templates/**",
-    "test": "jest security.spec --runInBand --forceExit ",
+    "test": "jest --forceExit --maxWorkers=50%",
     "test:postgre": "cross-env TEST_CRUD_DB=postgre jest --forceExit --maxWorkers=50%",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -78,7 +78,7 @@
   },
   "rootDir": "test",
   "jest": {
-    "testTimeout": 100000,
+    "testTimeout": 6000,
     "moduleFileExtensions": [
       "js",
       "json",
