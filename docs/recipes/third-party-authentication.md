@@ -35,7 +35,7 @@ export class LinkGoogleAccountDto {
   @IsString()
   id_token: string;
 
-  @IsIn(['30m', '1d', '15d'])
+  @Max(60*60*24*7) // 7 days
   expiresInSec: number;
 }
 ```
@@ -97,12 +97,12 @@ Finally, let's call the command from your front end.
 ```typescript 
 const dto = { 
     id_token: 'f05415b13acb9590f70df862765c655f5a7a019e',
-    expiresInSec: 60*60*24*15
+    expiresInSec: 60*60*24*7
 };
 
 const { userId, accessToken } = await userClient.cmd('link_google_account', dto);
 
-userClient.setJwt(accessToken, 60*60*24*15); // expires in 15 days
+userClient.setJwt(accessToken, 60*60*24*7); // expires in 7 days
 ```
 !!! note
     The [client](../client/setup.md)->`setJwt` method stores the provided token so that it can be used with every client request. It has no effect if you configured your [JWT storage](../client/jwt-storage.md) to cookie.
