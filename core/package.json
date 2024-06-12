@@ -1,6 +1,6 @@
 {
   "name": "@eicrud/core",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "eicrud core package",
   "author": "acrosett",
   "license": "MIT",
@@ -15,7 +15,7 @@
     "directory": "core"
   },
   "peerDependencies": {
-    "@eicrud/shared": "^0.7.2"
+    "@eicrud/shared": "^0.7.3"
   },
   "dependencies": {
     "@casl/ability": "^6.5.0",

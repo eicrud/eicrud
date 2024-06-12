@@ -1,6 +1,6 @@
 {
   "name": "@eicrud/cli",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "cli for @eicrud framework",
   "author": "acrosett",
   "license": "MIT",
@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "commander": "^12.0.0",
-    "@eicrud/shared": "^0.7.2",
+    "@eicrud/shared": "^0.7.3",
     "@types/node": "^20.12.12"
   }
 }
