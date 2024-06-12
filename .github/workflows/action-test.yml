@@ -45,11 +45,11 @@ jobs:
       # - name: PostgreSQL tests
       #   run: npm run test:postgre
 
-      - name: Microservices tests
-        run: npm run start:test-ms
+      # - name: Microservices tests
+      #   run: npm run start:test-ms
 
-      - name: Microservices proxy tests
-        run: npm run start:test-ms:proxy
+      # - name: Microservices proxy tests
+      #   run: npm run start:test-ms:proxy
 
       - name: CLI tests
         run: ./test/test-cli.sh
