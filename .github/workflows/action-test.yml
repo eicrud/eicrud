@@ -14,7 +14,7 @@ on:
 
 jobs:
   test:
-    runs-on: node:18
+    runs-on: ubuntu-latest
     timeout-minutes: 7
     
     steps:
