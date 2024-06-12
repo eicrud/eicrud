@@ -15,7 +15,8 @@ on:
 jobs:
   test:
     runs-on: node:18
-
+    timeout-minutes: 7
+    
     steps:
       - name: Copy repository
         uses: actions/checkout@v3

@@ -6,6 +6,7 @@ on:
 jobs:
   publish-all:
     runs-on: ubuntu-latest
+    timeout-minutes: 7
     strategy:
       matrix:
         dir: ['shared', 'core', 'cli', 'client', 'db_mongo', 'db_postgre']
