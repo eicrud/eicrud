@@ -178,6 +178,7 @@ describe('AppController', () => {
 
   beforeAll(async () => {
     console.log('beforeAll');
+    console.log(require('path').basename(__filename));
     const moduleRef: TestingModule = await Test.createTestingModule(
       getModule(require('path').basename(__filename)),
     ).compile();
