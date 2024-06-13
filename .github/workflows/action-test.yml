@@ -33,23 +33,24 @@ jobs:
       - name: Copy repository
         uses: actions/checkout@v3
 
-      # - name: Install Dependencies
-      #   run: npm install
+      - name: Install Dependencies
+        run: npm install
 
-      # - name: Build
-      #   run: npm run build
+      - name: Build
+        run: npm run build
 
-      # - name: Mongodb tests
-      #   run: npm run test
+      - name: Mongodb tests
+        run: npm run test
 
-      # - name: PostgreSQL tests
-      #   run: npm run test:postgre
+      - name: PostgreSQL tests
+        run: npm run test:postgre
 
-      # - name: Microservices tests
-      #   run: npm run start:test-ms
+      - name: Microservices tests
+        run: npm run start:test-ms
 
-      # - name: Microservices proxy tests
-      #   run: npm run start:test-ms:proxy
+      - name: Microservices proxy tests
+        run: npm run start:test-ms:proxy
 
-      - name: CLI tests
-        run: ./test/test-cli.sh postgre
+      - name: CLI mongo
+        run: ./test/test-cli.sh mongo
+        
