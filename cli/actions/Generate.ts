@@ -293,7 +293,7 @@ export class Generate {
       fs,
       path,
       template_folder,
-      msPath + serviceName,
+      msPath + keys.tk_entity_lname,
       [keys],
     );
 

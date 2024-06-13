@@ -17,7 +17,7 @@ import { Picture } from './entities/Picture';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
 import { EntityManager, MikroORM } from '@mikro-orm/core';
 import { MyPictureService } from './picture.service';
-import { DragonFruit } from './entities/Dragonfruit';
+import { DragonFruit } from './entities/DragonFruit';
 import { DragonFruitService } from './dragonfruit.service';
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, './.env') });

@@ -1,10 +1,57 @@
 name: npm-publish
 on:
   workflow_dispatch: 
+  push:
+    tags:
+      - 'v*.*.*'
   # pull_request:
   #   branches: ['develop', 'main']
 jobs:
+  release-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mongodb:
+        image: mongo
+        ports:
+        - 27017:27017
+      postgres:
+        image: postgres
+        ports:
+        - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: admin
+    steps:
+      - name: Copy repository
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Mongodb tests
+        run: npm run test
+
+      - name: PostgreSQL tests
+        run: npm run test:postgre
+
+      - name: Microservices tests
+        run: npm run start:test-ms
+
+      - name: Microservices proxy tests
+        run: npm run start:test-ms:proxy
+
+      - name: CLI mongo
+        run: ./test/test-cli.sh mongo
+        
+      - name: CLI postgre
+        run: ./test/test-cli.sh postgre
+
   publish-all:
+    needs: release-test
     runs-on: ubuntu-latest
     timeout-minutes: 7
     strategy:
@@ -27,6 +74,13 @@ jobs:
     #       matched:
     #         - './${{ matrix.dir }}/package.json'
 
+    - name: Set packages version
+      working-directory: ./${{ matrix.dir }}
+      run: TAG=${{ github.ref_name }} && echo "${TAG#v}" && npm version ${TAG#v} --no-git-tag-version
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VERSION: ${{ github.event.inputs.version }}
+    
     - name: Publish
       working-directory: ./${{ matrix.dir }}
       # if: steps.filter.outputs.matched == 'true'

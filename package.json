@@ -10,8 +10,8 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:postgre": "cross-env TEST_CRUD_DB=postgre nest start",
-    "start:test-ms": "concurrently -k -s='last' npm:start:ms-* npm:test:ms",
-    "start:test-ms:proxy": "concurrently -k -s='last' npm:start:ms:proxy-* npm:test:ms:proxy",
+    "start:test-ms": "concurrently -k -s='first' npm:start:ms-* npm:test:ms",
+    "start:test-ms:proxy": "concurrently -k -s='first' npm:start:ms:proxy-* npm:test:ms:proxy",
     "start:ms-user": "cross-env CRUD_CURRENT_MS=user PORT=3005 nest start",
     "start:ms-melon": "cross-env CRUD_CURRENT_MS=melon PORT=3006 nest start",
     "start:ms-email": "cross-env CRUD_CURRENT_MS=email PORT=3007 nest start",
@@ -33,7 +33,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "generate:typedoc": "typedoc --plugin typedoc-plugin-markdown --out \"docs/Ξ Api\" && del-cli \"docs/Ξ Api/README.md\"",
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules !**/node_modules",
-    "clean:deep": "del-cli **.js **.d.ts **.js.map !node_modules !**/node_modules && del-cli core/node_modules shared/node_modules db_mongo/node_modules db_postgre/node_modules client/node_modules cli/node_modules",
+    "clean:deep": "del-cli **.js **.d.ts **.js.map !node_modules !**/node_modules && del-cli test/cli-app/** && del-cli core/node_modules shared/node_modules db_mongo/node_modules db_postgre/node_modules client/node_modules cli/node_modules",
     "prepare": "husky install"
   },
   "dependencies": {

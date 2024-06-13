@@ -4,7 +4,7 @@ npm remove -g @eicrud/cli &&
 npm install -g verdaccio &&
 nohup verdaccio --config ./verdaccio/config.yaml &
 
-declare -a arr=("shared" "core" "db_mongo" "cli")
+declare -a arr=("shared" "core" "db_$1" "cli")
 
 for i in "${arr[@]}"
 do
@@ -18,10 +18,11 @@ cd cli-app &&
 echo @eicrud:registry=http://localhost:4873/ > .npmrc && echo //localhost:4873/:_authToken=fooBar >> .npmrc &&
 npm i -g ../../cli &&
 eicrud -V &&
-eicrud setup mongo cli-app && 
+eicrud setup $1 cli-app && 
 eicrud generate -ms data service profile && 
 eicrud generate cmd -ms data profile search && 
 eicrud generate service sales && 
 eicrud generate cmd sales search &&
 npm i &&
-nest build
+nest build &&
+echo "build successful"

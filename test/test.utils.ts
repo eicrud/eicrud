@@ -6,7 +6,7 @@ import { CrudConfigService } from '../core/config/crud.config.service';
 import { CrudUserService } from '../core/config/crud-user.service';
 import { CrudUser } from '../core/config/model/CrudUser';
 import { Picture } from './entities/Picture';
-import { DragonFruit } from './entities/Dragonfruit';
+import { DragonFruit } from './entities/DragonFruit';
 import { create } from 'domain';
 import { CrudClient } from '@eicrud/client';
 
@@ -285,7 +285,7 @@ export async function createAccountsAndProfiles(
     };
     const prom = userService
       .$create_account(createAccountDto, null)
-      .then(async (accRes) => {
+      .then((accRes) => {
         users[key][crudConfig.id_field] = userService.dbAdapter.createNewId(
           accRes.userId,
         );
@@ -346,7 +346,7 @@ export async function createAccountsAndProfiles(
           userService,
         );
 
-        await em.flush();
+        return em.flush();
       });
     promises.push(prom);
   }
