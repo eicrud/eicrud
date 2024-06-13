@@ -34,6 +34,8 @@ extra:
 
 repo_url: https://github.com/eicrud/eicrud
 
+site_url: https://docs.eicrud.com/
+
 extra_css:
   - stylesheets/extra.css
 
