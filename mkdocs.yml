@@ -25,6 +25,9 @@ extra:
     - icon: fontawesome/solid/heart
       link: https://github.com/acrosett
       name: support this project
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/eicrud
+      name: x social network
     - icon: fontawesome/brands/github
       link: https://github.com/eicrud/eicrud
       name: source code        
