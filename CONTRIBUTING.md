@@ -36,7 +36,7 @@ npm run start:test-ms
 
 npm run start:test-ms:proxy
 
-./test/test-cli.sh
+./test/test-cli.sh mongo
 ```
 
 ### Testing your code
