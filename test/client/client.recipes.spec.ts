@@ -274,6 +274,9 @@ describe('AppController', () => {
 
     delete option.limit;
 
+    //wait 200ms
+    await new Promise((r) => setTimeout(r, 200));
+
     const res2: FindResponseDto<Melon> = await myClient.cmdL(
       'search',
       searchDto,
@@ -322,6 +325,9 @@ describe('AppController', () => {
     };
 
     const option: CrudOptions = {};
+
+    //wait 200ms
+    await new Promise((r) => setTimeout(r, 200));
 
     const res2: FindResponseDto<Melon> = await myClient.cmdL(
       'search',
