@@ -18,7 +18,7 @@ cd cli-app &&
 echo @eicrud:registry=http://localhost:4873/ > .npmrc && echo //localhost:4873/:_authToken=fooBar >> .npmrc &&
 npm i -g ../../cli &&
 eicrud -V &&
-eicrud setup mongo cli-app && 
+eicrud setup postgre cli-app && 
 eicrud generate -ms data service profile && 
 eicrud generate cmd -ms data profile search && 
 eicrud generate service sales && 
