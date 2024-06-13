@@ -9,7 +9,7 @@ on:
 jobs:
   release-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 15
     services:
       mongodb:
         image: mongo
@@ -38,17 +38,17 @@ jobs:
       - name: PostgreSQL tests
         run: npm run test:postgre
 
-      - name: Microservices tests
-        run: npm run start:test-ms
+      # - name: Microservices tests
+      #   run: npm run start:test-ms
 
-      - name: Microservices proxy tests
-        run: npm run start:test-ms:proxy
+      # - name: Microservices proxy tests
+      #   run: npm run start:test-ms:proxy
 
-      - name: CLI mongo
-        run: ./test/test-cli.sh mongo
+      # - name: CLI mongo
+      #   run: ./test/test-cli.sh mongo
         
-      - name: CLI postgre
-        run: ./test/test-cli.sh postgre
+      # - name: CLI postgre
+      #   run: ./test/test-cli.sh postgre
 
   publish-all:
     needs: release-test

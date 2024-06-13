@@ -285,7 +285,7 @@ export async function createAccountsAndProfiles(
     };
     const prom = userService
       .$create_account(createAccountDto, null)
-      .then(async (accRes) => {
+      .then((accRes) => {
         users[key][crudConfig.id_field] = userService.dbAdapter.createNewId(
           accRes.userId,
         );
@@ -346,7 +346,7 @@ export async function createAccountsAndProfiles(
           userService,
         );
 
-        await em.flush();
+        return em.flush();
       });
     promises.push(prom);
   }
