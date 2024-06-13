@@ -32,23 +32,23 @@ jobs:
       - name: Build
         run: npm run build
 
-      # - name: Mongodb tests
-      #   run: npm run test
+      - name: Mongodb tests
+        run: npm run test
 
       - name: PostgreSQL tests
         run: npm run test:postgre
 
-      # - name: Microservices tests
-      #   run: npm run start:test-ms
+      - name: Microservices tests
+        run: npm run start:test-ms
 
-      # - name: Microservices proxy tests
-      #   run: npm run start:test-ms:proxy
+      - name: Microservices proxy tests
+        run: npm run start:test-ms:proxy
 
-      # - name: CLI mongo
-      #   run: ./test/test-cli.sh mongo
+      - name: CLI mongo
+        run: ./test/test-cli.sh mongo
         
-      # - name: CLI postgre
-      #   run: ./test/test-cli.sh postgre
+      - name: CLI postgre
+        run: ./test/test-cli.sh postgre
 
   publish-all:
     needs: release-test
@@ -81,9 +81,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         VERSION: ${{ github.event.inputs.version }}
     
-    # - name: Publish
-    #   working-directory: ./${{ matrix.dir }}
-    #   # if: steps.filter.outputs.matched == 'true'
-    #   run: npm run publish:package --provenance --access public 
-    #   env:
-    #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    - name: Publish
+      working-directory: ./${{ matrix.dir }}
+      # if: steps.filter.outputs.matched == 'true'
+      run: npm run publish:package --provenance --access public 
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
