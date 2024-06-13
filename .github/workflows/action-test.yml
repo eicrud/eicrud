@@ -1,10 +1,10 @@
 name: tests
 on:
   workflow_dispatch: 
-  # pull_request:
-  #   branches: ['develop', 'main']
+  pull_request:
+    branches: ['develop', 'main']
   # push:
-  #   branches: ['develop']
+  #   branches: ['develop', 'main']
   # paths:
   #   - 'client/**'
   #   - 'core/**'
@@ -33,11 +33,11 @@ jobs:
       - name: Copy repository
         uses: actions/checkout@v3
 
-      - name: Install Dependencies
-        run: npm install
+      # - name: Install Dependencies
+      #   run: npm install
 
-      - name: Build
-        run: npm run build
+      # - name: Build
+      #   run: npm run build
 
       # - name: Mongodb tests
       #   run: npm run test
@@ -52,4 +52,4 @@ jobs:
       #   run: npm run start:test-ms:proxy
 
       - name: CLI tests
-        run: ./test/test-cli.sh
+        run: ./test/test-cli.sh postgre
