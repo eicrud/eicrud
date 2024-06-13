@@ -24,4 +24,5 @@ eicrud generate cmd -ms data profile search &&
 eicrud generate service sales && 
 eicrud generate cmd sales search &&
 npm i &&
-nest build
+nest build &&
+echo "build successful"
