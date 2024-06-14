@@ -2,7 +2,7 @@ name: tests
 on:
   workflow_dispatch: 
   pull_request:
-    branches: ['develop', 'main']
+    branches: ['develop']
   # push:
   #   branches: ['develop', 'main']
   # paths:
