@@ -895,12 +895,44 @@ describe('AppController', () => {
     });
   });
 
-  it('should forbid moderator patch own profile with forbiden field (type)', async () => {
+  it('should forbid moderator patch own profile with forbiden value (type)', async () => {
     const userName = 'Moderator Joe';
     const user = users[userName];
     const payload: Partial<UserProfile> = {
       userName: 'Sarah Jane',
       type: 'admin',
+    } as any;
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({
+        id: crudConfig.dbAdapter.formatId(user.profileId, crudConfig),
+        user: crudConfig.dbAdapter.formatId(user.id, crudConfig),
+      }),
+    };
+    const expectedObject = null;
+    const fetchEntity = null;
+
+    let res = await testMethod({
+      url: '/crud/one',
+      method: 'PATCH',
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      expectedCode: 403,
+      fetchEntity,
+      expectedObject,
+      crudConfig,
+    });
+  });
+
+  it('should forbid moderator patch own profile with forbiden field', async () => {
+    const userName = 'Moderator Joe';
+    const user = users[userName];
+    const payload: Partial<UserProfile> = {
+      userName: 'Sarah Jane',
+      forbiddenField: 'forbidden',
     } as any;
     const query: CrudQuery = {
       service: 'user-profile',

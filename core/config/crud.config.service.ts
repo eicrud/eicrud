@@ -181,6 +181,9 @@ export class CrudConfigService {
     };
     this.cacheManager = config.cacheManager;
 
+    if (!config.jwtSecret) {
+      throw new Error('invalid jwtSecret');
+    }
     this.JWT_SECRET = config.jwtSecret;
 
     this.userService = config.userService;

@@ -236,4 +236,29 @@ describe('AppController', () => {
       expect(r.secretCode).toBeTruthy();
     }
   });
+
+  it("user shouldn't be able to update its profile user (owner)", async () => {
+    const user = users['Sarah Doe'];
+    const otherUser = users['Michael Doe'];
+    const payload: Partial<UserProfile> = {
+      user: otherUser.id.toString(),
+    };
+
+    const query: CrudQuery = {
+      service: CrudService.getName(UserProfile),
+      query: JSON.stringify({ user: user.id.toString() }),
+    };
+
+    await testMethod({
+      expectedCode: 403,
+      url: '/crud/one',
+      method: 'PATCH',
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+  });
 });

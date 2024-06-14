@@ -126,7 +126,7 @@ const myProfileSecurity = (USER_PROFILE) => {
           const userId = ctx.userId;
           can('crud', USER_PROFILE, { user: userId });
           cannot('cu', USER_PROFILE, { type: 'admin' });
-          cannot('update', USER_PROFILE, ['type', 'user']);
+          cannot('cu', USER_PROFILE, ['forbiddenField']);
         },
       },
 
