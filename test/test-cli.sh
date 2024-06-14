@@ -8,7 +8,9 @@ declare -a arr=("shared" "core" "db_$1" "cli")
 
 for i in "${arr[@]}"
 do
-    echo "publishing $i..." && cd $i && rm .npmrc ; echo @eicrud:registry=http://localhost:4873/ > .npmrc && echo //localhost:4873/:_authToken=fooBar >> .npmrc && npm i && npm run compile && npm publish && cd .. 
+    echo "publishing $i..." && cd $i && \
+    npm version "0.0.1" --no-git-tag-version && sed -i 's/"@eicrud\/\(.\+\)":.\+"/"@eicrud\/\1":\ "^0.0.1"/g' ./package.json && \
+    rm .npmrc ; echo @eicrud:registry=http://localhost:4873/ > .npmrc && echo //localhost:4873/:_authToken=fooBar >> .npmrc && npm i && npm run compile && npm publish && cd .. 
 done
 
 cd test && 
