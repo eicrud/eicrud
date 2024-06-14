@@ -47,7 +47,7 @@ moderator: {
   }
 }
 ```
-**Query** is the entity query for `read`, `update` and `delete` operations. It's the data for `create`.
+**Query** is the entity query for `read`, `update`* and `delete` operations. It's the data for `create`.
 ```typescript
 writer: {
   async defineCRUDAbility(can, cannot, ctx) {
@@ -60,6 +60,8 @@ writer: {
   }
 }
 ```
+!!! note
+    Authorization for `update` operations is performed twice, once with the entity query and once with the data merged into the query to make sure the request doesn't update a limiting field.
 You can use both **fields** and **query** at the same time:
 ```typescript
 moderator: {

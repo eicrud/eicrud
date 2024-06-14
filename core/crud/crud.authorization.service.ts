@@ -306,7 +306,9 @@ export class CrudAuthorizationService {
     let roleRights: CrudSecurityRights | CmdSecurityRights;
     let defineMethod;
     let currentResult: RoleResult = null;
-    if (ctx.origin === 'crud') {
+    const isCrud = ctx.origin === 'crud';
+
+    if (isCrud) {
       roleRights = security.rolesRights[role.name];
       defineMethod = (roleRights as CrudSecurityRights)?.defineCRUDAbility;
     } else if (ctx.origin === 'cmd') {
@@ -329,14 +331,23 @@ export class CrudAuthorizationService {
         { resolveAction: httpAliasResolver },
       );
 
-      const methodToCheck = ctx.origin == 'crud' ? ctx.method : ctx.cmdName;
-      const pbField = this.loopFieldAndCheckCannot(
+      const methodToCheck = isCrud ? ctx.method : ctx.cmdName;
+      let pbField = this.loopFieldAndCheckCannot(
         methodToCheck,
         ctx.query,
         fields,
         userAbilities,
         ctx,
       );
+      if (!pbField && ctx.method === 'PATCH' && isCrud) {
+        pbField = this.loopFieldAndCheckCannot(
+          methodToCheck,
+          { ...ctx.query, ...ctx.data },
+          fields,
+          userAbilities,
+          ctx,
+        );
+      }
       if (pbField) {
         currentResult = { problemField: pbField };
       }
