@@ -76,7 +76,7 @@ jobs:
 
     - name: Set packages version
       working-directory: ./${{ matrix.dir }}
-      run: TAG=${{ github.ref_name }} && npm version ${TAG#v} --no-git-tag-version && sed -i 's/"@eicrud\/\(.\+\)":.\+/"@eicrud\/\1":\ "^${TAG#v}"/g' ./package.json && cat ./package.json
+      run: TAG=${{ github.ref_name }} && npm version ${TAG#v} --no-git-tag-version && sed -i 's/"@eicrud\/\(.\+\)":.\+/"@eicrud\/\1":\ "^\${TAG#v}",/g' ./package.json && cat ./package.json
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         VERSION: ${{ github.event.inputs.version }}
