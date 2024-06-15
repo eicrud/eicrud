@@ -156,11 +156,11 @@ export class CrudController {
 
   async beforeHooks(service: CrudService<any>, ctx: CrudContext) {
     //await service.beforeControllerHook(ctx);
-    await this.crudConfig.beforeCrudHook(ctx);
+    await this.crudConfig.beforeControllerHook(ctx);
   }
 
   async afterHooks(service: CrudService<any>, res, ctx: CrudContext) {
-    await this.crudConfig.afterCrudHook(res, ctx);
+    await this.crudConfig.afterControllerHook(res, ctx);
     if (ctx.setCookies) {
       const fastifyReply = ctx.getHttpResponse();
       for (const key in ctx.setCookies) {
@@ -175,7 +175,7 @@ export class CrudController {
     ctx: CrudContext,
   ) {
     //await service.errorControllerHook(e, ctx);
-    await this.crudConfig.errorCrudHook(e, ctx);
+    await this.crudConfig.errorControllerHook(e, ctx);
     const notGuest = this.crudConfig.userService.notGuest(ctx?.user);
     if (notGuest) {
       let patch;

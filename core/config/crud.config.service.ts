@@ -226,15 +226,15 @@ export class CrudConfigService {
     );
   }
 
-  async afterCrudHook(res: any, ctx: CrudContext) {
+  async afterControllerHook(res: any, ctx: CrudContext) {
     return Promise.resolve();
   }
 
-  async beforeCrudHook(ctx: CrudContext) {
+  async beforeControllerHook(ctx: CrudContext) {
     return Promise.resolve();
   }
 
-  async errorCrudHook(error: Error, ctx: CrudContext) {
+  async errorControllerHook(error: Error, ctx: CrudContext) {
     return Promise.resolve();
   }
 

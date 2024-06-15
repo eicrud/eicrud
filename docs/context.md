@@ -38,7 +38,7 @@ async $say_hello(dto: SayHelloDto, ctx: CrudContext, inheritance?: any) {
 ```
 And in [hook functions](./configuration/service.md).
 ```typescript
-async afterCrudHook(res: any, ctx: CrudContext) {
+async afterControllerHook(res: any, ctx: CrudContext) {
     return Promise.resolve();
 }
 ```
