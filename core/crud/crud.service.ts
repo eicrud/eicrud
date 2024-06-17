@@ -285,7 +285,7 @@ export class CrudService<T extends CrudEntity> {
     secure: boolean = true,
     inheritance: any = {},
   ) {
-    return await this.$create(ctx.data, ctx, secure, inheritance);
+    return this.$create(ctx.data, ctx, secure, inheritance);
   }
 
   async $create(
@@ -293,7 +293,13 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     secure: boolean = true,
     inheritance: any = {},
+    createOpts = { hooks: true },
   ) {
+    const hooks = createOpts?.hooks;
+    if (hooks) {
+      [newEntity] = await this.$beforeCreateHook([newEntity], ctx);
+    }
+
     this.checkObjectForIds(newEntity);
 
     const em = ctx?.em || this.entityManager.fork();
@@ -305,7 +311,7 @@ export class CrudService<T extends CrudEntity> {
     newEntity.createdAt = new Date();
     newEntity.updatedAt = newEntity.createdAt;
 
-    const entity = em.create(this.entity, {}, opts as any);
+    let entity = em.create(this.entity, {}, opts as any);
     wrap(entity).assign(newEntity as any, {
       em,
       mergeObjectProperties: true,
@@ -320,6 +326,10 @@ export class CrudService<T extends CrudEntity> {
     }
     ctx = ctx || {};
     ctx.em = em;
+
+    if (hooks) {
+      [entity] = await this.$afterCreateHook([entity], ctx);
+    }
     return entity;
   }
 
@@ -328,7 +338,7 @@ export class CrudService<T extends CrudEntity> {
     secure: boolean = true,
     inheritance: any = {},
   ) {
-    return await this.$createBatch(ctx.data, ctx, secure, inheritance);
+    return this.$createBatch(ctx.data, ctx, secure, inheritance);
   }
 
   async $createBatch(
@@ -337,15 +347,18 @@ export class CrudService<T extends CrudEntity> {
     secure: boolean = true,
     inheritance: any = {},
   ) {
+    newEntities = await this.$beforeCreateHook(newEntities, ctx);
     ctx.noFlush = true;
-    const results = [];
+    let results = [];
     for (let entity of newEntities) {
-      const res = await this.$create(entity, ctx, secure, inheritance);
+      const res = await this.$create(entity, ctx, secure, inheritance, {
+        hooks: false,
+      });
       results.push(res);
     }
     await ctx.em.flush();
     ctx.noFlush = false;
-
+    results = await this.$afterCreateHook(results, newEntities, ctx);
     return results;
   }
 
@@ -354,7 +367,7 @@ export class CrudService<T extends CrudEntity> {
     secure: boolean = true,
     inheritance: any = {},
   ) {
-    return await this.$patchBatch(ctx.data, ctx, secure, inheritance);
+    return this.$patchBatch(ctx.data, ctx, secure, inheritance);
   }
 
   async $patchBatch(
@@ -363,14 +376,18 @@ export class CrudService<T extends CrudEntity> {
     secure: boolean = true,
     inheritance: any = {},
   ) {
+    data = await this.$beforeUpdateHook(data, ctx);
     ctx.noFlush = true;
-    const results = [];
+    let results = [];
     for (let d of data) {
-      const res = await this.$patch(d.query, d.data, ctx, secure, inheritance);
+      const res = await this.$patch(d.query, d.data, ctx, secure, inheritance, {
+        hooks: false,
+      });
       results.push(res);
     }
     await ctx.em.flush();
     ctx.noFlush = false;
+    results = await this.$afterUpdateHook(results, ctx);
     return results;
   }
 
@@ -386,7 +403,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     inheritance: any = {},
   ): Promise<FindResponseDto<T>> {
-    return await this.$find(ctx.query, ctx, inheritance);
+    return this.$find(ctx.query, ctx, inheritance);
   }
 
   async $find(
@@ -394,6 +411,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     inheritance: any = {},
   ): Promise<FindResponseDto<T>> {
+    entity = await this.$beforeReadHook(entity, ctx);
     this.checkObjectForIds(entity);
 
     const em = ctx?.em || this.entityManager.fork();
@@ -406,6 +424,8 @@ export class CrudService<T extends CrudEntity> {
       const res = await em.find(this.entity, entity, opts as any);
       result = { data: res };
     }
+
+    result = await this.$afterReadHook(result, entity, ctx);
 
     return result;
   }
@@ -445,7 +465,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $findOne_(ctx: CrudContext, inheritance: any = {}) {
-    return await this.$findOne(ctx.query, ctx, inheritance);
+    return this.$findOne(ctx.query, ctx, inheritance);
   }
 
   async $findOne(entity: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
@@ -457,7 +477,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $findOneCached_(ctx: CrudContext, inheritance: any = {}) {
-    return await this.$findOneCached(ctx.query, ctx, inheritance);
+    return this.$findOneCached(ctx.query, ctx, inheritance);
   }
 
   async $findOneCached(
@@ -506,26 +526,39 @@ export class CrudService<T extends CrudEntity> {
     secure: boolean = true,
     inheritance: any = {},
   ) {
-    return await this.$patch(ctx.query, ctx.data, ctx, secure, inheritance);
+    return this.$patch(ctx.query, ctx.data, ctx, secure, inheritance);
   }
 
   async $patch(
     query: Partial<T>,
-    newEntity: Partial<T>,
+    data: Partial<T>,
     ctx: CrudContext,
     secure: boolean = true,
     inheritance: any = {},
+    patchOpts = { hooks: true },
   ) {
+    const hooks = patchOpts?.hooks;
+
+    if (hooks) {
+      [{ query, data }] = await this.$beforeUpdateHook([{ query, data }], ctx);
+    }
+
     this.checkObjectForIds(query);
-    this.checkObjectForIds(newEntity);
+    this.checkObjectForIds(data);
 
     const em = ctx?.em || this.entityManager.fork();
-    const results = await this.doQueryPatch(query, newEntity, ctx, em, secure);
-    // if (!ctx?.noFlush) {
-    //     await em.flush();
-    // }
+    let results = await this.doQueryPatch(query, data, ctx, em, secure);
+
     ctx = ctx || {};
     ctx.em = em;
+
+    if (hooks) {
+      [results] = await this.$afterUpdateHook(
+        [results],
+        [{ query, data }],
+        ctx,
+      );
+    }
     return results;
   }
 
@@ -563,7 +596,7 @@ export class CrudService<T extends CrudEntity> {
     secure: boolean = true,
     inheritance: any = {},
   ) {
-    return await this.$patchIn(
+    return this.$patchIn(
       ctx.ids,
       ctx.query,
       ctx.data,
@@ -586,7 +619,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $removeIn_(ctx: CrudContext, inheritance: any = {}) {
-    return await this.$removeIn(ctx.ids, ctx.query, ctx, inheritance);
+    return this.$removeIn(ctx.ids, ctx.query, ctx, inheritance);
   }
 
   async $removeIn(
@@ -596,7 +629,7 @@ export class CrudService<T extends CrudEntity> {
     inheritance: any = {},
   ) {
     this.dbAdapter.makeInQuery(ids, query);
-    return await this.$remove(query, ctx);
+    return this.$remove(query, ctx);
   }
 
   async $unsecure_fastPatch(
@@ -605,7 +638,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     inheritance: any = {},
   ) {
-    return await this.$patch(query, newEntity, ctx, false, inheritance);
+    return this.$patch(query, newEntity, ctx, false, inheritance);
   }
 
   async $patchOne_(
@@ -613,23 +646,25 @@ export class CrudService<T extends CrudEntity> {
     secure: boolean = true,
     inheritance: any = {},
   ) {
-    return await this.$patchOne(ctx.query, ctx.data, ctx, secure, inheritance);
+    return this.$patchOne(ctx.query, ctx.data, ctx, secure, inheritance);
   }
 
   async $patchOne(
     query: Partial<T>,
-    newEntity: Partial<T>,
+    data: Partial<T>,
     ctx: CrudContext,
     secure: boolean = true,
     inheritance: any = {},
   ) {
+    [{ data, query }] = await this.$beforeUpdateHook([{ query, data }], ctx);
     const em = ctx?.em || this.entityManager.fork();
-    const result = await this.doOnePatch(query, newEntity, ctx, em, secure);
+    let result = await this.doOnePatch(query, data, ctx, em, secure);
     if (!ctx?.noFlush) {
       await em.flush();
     }
     ctx = ctx || {};
     ctx.em = em;
+    [result] = await this.$afterUpdateHook([result], [{ data, query }], ctx);
     return result;
   }
 
@@ -725,27 +760,30 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $remove_(ctx: CrudContext, inheritance: any = {}) {
-    return await this.$remove(ctx.query, ctx, inheritance);
+    return this.$remove(ctx.query, ctx, inheritance);
   }
 
   async $remove(query: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
+    [query] = await this.$beforeRemoveHook([query], ctx);
     this.checkObjectForIds(query);
     const em = ctx?.em || this.entityManager.fork();
     const opts = this.getReadOptions(ctx);
-    const length = em.nativeDelete(this.entity, query, opts);
+    let length = em.nativeDelete(this.entity, query, opts);
     if (!ctx?.noFlush) {
       await em.flush();
     }
     ctx = ctx || {};
     ctx.em = em;
+    [length] = await this.$afterRemoveHook([length], [query], ctx);
     return length;
   }
 
   async $removeOne_(ctx: CrudContext, inheritance: any = {}) {
-    return await this.$removeOne(ctx.query, ctx, inheritance);
+    return this.$removeOne(ctx.query, ctx, inheritance);
   }
 
   async $removeOne(query: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
+    [query] = await this.$beforeRemoveHook([query], ctx);
     this.checkObjectForIds(query);
     const em = ctx?.em || this.entityManager.fork();
     let entity = await em.findOne(this.entity, query);
@@ -758,6 +796,7 @@ export class CrudService<T extends CrudEntity> {
     }
     ctx = ctx || {};
     ctx.em = em;
+    [result] = await this.$afterRemoveHook([result], [query], ctx);
     return 1;
   }
 
@@ -875,36 +914,43 @@ export class CrudService<T extends CrudEntity> {
     return ret;
   }
 
-  async $beforeCreateHook(newEntities: T[], ctx: CrudContext) {
-    return newEntities;
+  async $beforeCreateHook(data: Partial<T>[], ctx: CrudContext) {
+    return data;
   }
 
-  async $afterCreateHook(newEntities: T[], ctx: CrudContext) {
-    return newEntities;
-  }
-
-  async $beforeReadHook(query: T, ctx: CrudContext) {
-    return query;
-  }
-
-  async $afterReadHook(result, query: T, ctx: CrudContext) {
+  async $afterCreateHook(result: any[], data: Partial<T>[], ctx: CrudContext) {
     return result;
   }
 
-  async $beforeUpdateHook(updates: { query: T; data: T }[], ctx: CrudContext) {
+  async $beforeReadHook(query: Partial<T>, ctx: CrudContext) {
+    return query;
+  }
+
+  async $afterReadHook(result, query: Partial<T>, ctx: CrudContext) {
+    return result;
+  }
+
+  async $beforeUpdateHook(
+    updates: { query: Partial<T>; data: Partial<T> }[],
+    ctx: CrudContext,
+  ) {
     return updates;
   }
 
-  async $afterUpdateHook(updates: { query: T; data: T }[], ctx: CrudContext) {
-    return updates;
+  async $afterUpdateHook(
+    results: any[],
+    updates: { query: Partial<T>; data: Partial<T> }[],
+    ctx: CrudContext,
+  ) {
+    return results;
   }
 
-  async $beforeRemoveHook(queries: T[], ctx: CrudContext) {
+  async $beforeRemoveHook(queries: Partial<T>[], ctx: CrudContext) {
     return queries;
   }
 
-  async $afterRemoveHook(queries: T[], ctx: CrudContext) {
-    return queries;
+  async $afterRemoveHook(result: any, queries: Partial<T>[], ctx: CrudContext) {
+    return result;
   }
 
   async errorControllerHook(error: Error, ctx: CrudContext): Promise<any> {

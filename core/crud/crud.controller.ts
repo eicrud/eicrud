@@ -250,7 +250,7 @@ export class CrudController {
 
       return res;
     } catch (e) {
-      return await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -310,7 +310,7 @@ export class CrudController {
 
       return results;
     } catch (e) {
-      return await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -377,7 +377,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      return await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -405,7 +405,7 @@ export class CrudController {
         currentService,
       );
     } catch (e) {
-      return await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -437,7 +437,7 @@ export class CrudController {
       res.data = res.data.map((d) => d[this.crudConfig.id_field]);
       return res;
     } catch (e) {
-      return await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -496,7 +496,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      return await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -526,7 +526,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      return await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -552,7 +552,7 @@ export class CrudController {
       this.addCountToDataMap(ctx, -1);
       return 1;
     } catch (e) {
-      return await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -578,7 +578,7 @@ export class CrudController {
       this.addCountToDataMap(ctx, -res);
       return res;
     } catch (e) {
-      return await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -619,7 +619,7 @@ export class CrudController {
       this.addCountToDataMap(ctx, -res);
       return res;
     } catch (e) {
-      return await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -650,7 +650,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      return await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -691,7 +691,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      return await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -717,7 +717,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      return await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -774,7 +774,7 @@ export class CrudController {
 
       return results;
     } catch (e) {
-      return await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
