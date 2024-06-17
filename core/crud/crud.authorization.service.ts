@@ -129,7 +129,7 @@ export class CrudAuthorizationService {
       ctx.userTrust = user.trust;
       return user.trust || 0;
     }
-    return await this.crudConfig.userService.$computeTrust(user, ctx);
+    return this.crudConfig.userService.$computeTrust(user, ctx);
   }
 
   async computeMaxUsesPerUser(ctx: CrudContext, cmdSec: CmdSecurity) {

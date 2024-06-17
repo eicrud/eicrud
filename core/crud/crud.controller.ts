@@ -175,7 +175,8 @@ export class CrudController {
     ctx: CrudContext,
   ) {
     //await service.errorControllerHook(e, ctx);
-    await this.crudConfig.errorControllerHook(e, ctx);
+    let res: any = await this.crudConfig.errorControllerHook(e, ctx);
+    res = (await service.errorControllerHook(e, ctx)) || res;
     const notGuest = this.crudConfig.userService.notGuest(ctx?.user);
     if (notGuest) {
       let patch;
@@ -209,6 +210,9 @@ export class CrudController {
         ...patch,
       };
       this.crudConfig.userService.$setCached(ctx.user, ctx);
+    }
+    if (res) {
+      return res;
     }
     throw e;
   }
@@ -246,7 +250,7 @@ export class CrudController {
 
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return await this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -306,7 +310,7 @@ export class CrudController {
 
       return results;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return await this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -373,7 +377,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return await this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -401,7 +405,7 @@ export class CrudController {
         currentService,
       );
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return await this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -433,7 +437,7 @@ export class CrudController {
       res.data = res.data.map((d) => d[this.crudConfig.id_field]);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return await this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -492,7 +496,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return await this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -522,7 +526,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return await this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -548,7 +552,7 @@ export class CrudController {
       this.addCountToDataMap(ctx, -1);
       return 1;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return await this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -574,7 +578,7 @@ export class CrudController {
       this.addCountToDataMap(ctx, -res);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return await this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -615,7 +619,7 @@ export class CrudController {
       this.addCountToDataMap(ctx, -res);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return await this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -646,7 +650,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return await this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -687,7 +691,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return await this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -713,7 +717,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return await this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -770,7 +774,7 @@ export class CrudController {
 
       return results;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return await this.errorHooks(currentService, e, ctx);
     }
   }
 

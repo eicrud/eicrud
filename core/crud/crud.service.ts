@@ -874,4 +874,40 @@ export class CrudService<T extends CrudEntity> {
 
     return ret;
   }
+
+  async $beforeCreateHook(newEntities: T[], ctx: CrudContext) {
+    return newEntities;
+  }
+
+  async $afterCreateHook(newEntities: T[], ctx: CrudContext) {
+    return newEntities;
+  }
+
+  async $beforeReadHook(query: T, ctx: CrudContext) {
+    return query;
+  }
+
+  async $afterReadHook(result, query: T, ctx: CrudContext) {
+    return result;
+  }
+
+  async $beforeUpdateHook(updates: { query: T; data: T }[], ctx: CrudContext) {
+    return updates;
+  }
+
+  async $afterUpdateHook(updates: { query: T; data: T }[], ctx: CrudContext) {
+    return updates;
+  }
+
+  async $beforeRemoveHook(queries: T[], ctx: CrudContext) {
+    return queries;
+  }
+
+  async $afterRemoveHook(queries: T[], ctx: CrudContext) {
+    return queries;
+  }
+
+  async errorControllerHook(error: Error, ctx: CrudContext): Promise<any> {
+    return Promise.resolve();
+  }
 }

@@ -280,6 +280,4 @@ export class CrudConfigService {
     }
     return this.authenticationOptions.saltRounds;
   }
-
-  callBackDoor(service, method, args: any[], ctxPos, inheritancePos) {}
 }
