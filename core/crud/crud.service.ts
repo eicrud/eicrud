@@ -328,7 +328,7 @@ export class CrudService<T extends CrudEntity> {
     ctx.em = em;
 
     if (hooks) {
-      [entity] = await this.$afterCreateHook([entity], ctx);
+      [entity] = await this.$afterCreateHook([entity], [newEntity], ctx);
     }
     return entity;
   }
@@ -387,7 +387,7 @@ export class CrudService<T extends CrudEntity> {
     }
     await ctx.em.flush();
     ctx.noFlush = false;
-    results = await this.$afterUpdateHook(results, ctx);
+    results = await this.$afterUpdateHook(results, data, ctx);
     return results;
   }
 
