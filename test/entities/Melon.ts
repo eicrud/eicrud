@@ -19,7 +19,7 @@ import {
 import { CrudEntity } from '../../core/crud/model/CrudEntity';
 import { MyUser } from './MyUser';
 import {
-  $MaxLength,
+  $MaxArLength,
   $MaxSize,
   $ToLowerCase,
   $Transform,
@@ -101,7 +101,7 @@ export class Melon implements CrudEntity {
     return value.filter((v) => v.size > 0);
   })
   @ValidateNested({ each: true })
-  @$MaxLength(5, 2)
+  @$MaxArLength(5, 2)
   seeds: Seed[];
 
   @Property({ nullable: true })

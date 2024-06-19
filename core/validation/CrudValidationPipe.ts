@@ -5,7 +5,7 @@ import { CrudTransformer, CrudTransformerConfig } from './CrudTransformer';
 @Injectable()
 export class CrudValidationPipe implements PipeTransform<any> {
   transformConfig: CrudTransformerConfig = {
-    defaultMaxLength: 20,
+    defaultMaxArLength: 20,
     defaultMaxSize: 50,
   };
 

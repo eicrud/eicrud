@@ -1910,7 +1910,7 @@ describe('AppController', () => {
     const user = users[userName];
     const payload: Partial<UserProfile> = {
       args: {
-        cmdName: 'testCmd',
+        cmdName: 'test_cmd',
       },
     } as any;
     const query: BackdoorQuery = {
@@ -1953,7 +1953,7 @@ describe('AppController', () => {
       const url = targetServiceConfig.url + '/crud/backdoor/user-profile';
 
       const data = {
-        args: ['testCmd', { data: { returnMessage: 'backdoor ping' } }],
+        args: ['test_cmd', { data: { returnMessage: 'backdoor ping' } }],
       };
 
       const res = await axios.patch(url, data, {

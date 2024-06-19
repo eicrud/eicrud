@@ -66,33 +66,33 @@ const myProfileSecurity = (USER_PROFILE) => {
           },
         },
       } as CmdSecurity,
-      testCmd: {
+      test_cmd: {
         maxUsesPerUser: 10,
         additionalUsesPerTrustPoint: 1,
         dto: TestCmdDto,
         rolesRights: {
           user: {
             async defineCMDAbility(can, cannot, ctx) {
-              can('testCmd', USER_PROFILE);
+              can('test_cmd', USER_PROFILE);
             },
           },
 
           guest: {
             async defineCMDAbility(can, cannot, ctx) {
-              can('testCmd', USER_PROFILE, ['returnMessage'], {
+              can('test_cmd', USER_PROFILE, ['returnMessage'], {
                 returnMessage: "I'M A GUEST!",
               });
             },
           },
         },
       } as CmdSecurity,
-      testCmdRateLimited: {
+      test_cmdRateLimited: {
         minTimeBetweenCmdCallMs: 500,
         dto: TestCmdDto,
         rolesRights: {
           user: {
             async defineCMDAbility(can, cannot, ctx) {
-              can('testCmdRateLimited', USER_PROFILE);
+              can('test_cmdRateLimited', USER_PROFILE);
             },
           },
         },
@@ -142,7 +142,7 @@ export class MyProfileService extends CrudService<UserProfile> {
     super(moduleRef, UserProfile, myProfileSecurity(serviceName));
   }
 
-  $testCmd(
+  $test_cmd(
     dto: TestCmdDto,
     ctx: CrudContext,
     inheritance?: any,
@@ -160,7 +160,7 @@ export class MyProfileService extends CrudService<UserProfile> {
     return Promise.resolve(res);
   }
 
-  $testCmdRateLimited(
+  $test_cmdRateLimited(
     dto: TestCmdDto,
     ctx: CrudContext,
     inheritance?: any,

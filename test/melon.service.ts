@@ -11,7 +11,7 @@ import { FindResponseDto } from '../shared/interfaces';
 import { UserProfile } from './entities/UserProfile';
 import { CrudContext } from '../core/crud/model/CrudContext';
 import {
-  $MaxLength,
+  $MaxArLength,
   $MaxSize,
   $Transform,
   $Type,

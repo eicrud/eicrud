@@ -102,7 +102,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     const res = await testMethod({
@@ -198,7 +198,7 @@ describe('AppController', () => {
 
   //   const query: CrudQuery = {
   //     service: "user-profile",
-  //     cmd: "testCmd",
+  //     cmd: "test_cmd",
   //   }
 
   //   await testMethod({ url: '/crud/cmd', method: 'POST', expectedCode: 201, app, jwt: user.jwt, entityManager, payload, query, crudConfig});

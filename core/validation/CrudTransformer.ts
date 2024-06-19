@@ -28,7 +28,7 @@ export interface IFieldMetadata {
 }
 
 export interface CrudTransformerConfig {
-  defaultMaxLength?: number;
+  defaultMaxArLength?: number;
   defaultMaxSize?: number;
   checkMissingProperties?: boolean;
   skipValidation?: boolean;
@@ -91,8 +91,8 @@ export class CrudTransformer {
           const length = obj[key].length;
           let maxLength =
             field_metadata.maxLength ||
-            this.crudConfig?.validationOptions.defaultMaxLength ||
-            this.config.defaultMaxLength;
+            this.crudConfig?.validationOptions.defaultMaxArLength ||
+            this.config.defaultMaxArLength;
           let add = field_metadata.addMaxLengthPerTrustPoint || 0;
           if (add && this.ctx && this.crudConfig) {
             const trust = await this.crudAuthorization.getOrComputeTrust(

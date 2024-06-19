@@ -376,7 +376,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     const promises = [];
@@ -422,7 +422,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     const promises = [];

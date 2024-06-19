@@ -100,7 +100,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     await testMethod({
@@ -137,7 +137,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     const res = await testMethod({
@@ -164,7 +164,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'my-user',
-      cmd: 'callTestCmd',
+      cmd: 'call_test_cmd',
     };
 
     const res = await testMethod({
@@ -191,7 +191,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     await testMethod({
@@ -220,7 +220,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     await testMethod({
@@ -275,7 +275,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     await testMethod({
@@ -328,7 +328,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     await testMethod({
@@ -353,7 +353,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmdRateLimited',
+      cmd: 'test_cmdRateLimited',
     };
 
     await testMethod({

@@ -853,7 +853,7 @@ export class CrudService<T extends CrudEntity> {
         if (Array.isArray(subType)) {
           subRet.maxLength =
             field_metadata?.maxLength ||
-            this.crudConfig.validationOptions.defaultMaxLength;
+            this.crudConfig.validationOptions.defaultMaxArLength;
           if (field_metadata?.addMaxLengthPerTrustPoint) {
             subRet.maxLength +=
               trust * field_metadata.addMaxLengthPerTrustPoint;

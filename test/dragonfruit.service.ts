@@ -11,7 +11,7 @@ import { FindResponseDto } from '@eicrud/shared/interfaces';
 import { UserProfile } from './entities/UserProfile';
 import { CrudContext } from '@eicrud/core/crud/model/CrudContext';
 import {
-  $MaxLength,
+  $MaxArLength,
   $MaxSize,
   $Transform,
   $Type,
