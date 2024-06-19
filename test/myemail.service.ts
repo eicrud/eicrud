@@ -3,7 +3,7 @@ import { CrudService } from '../core/crud/crud.service';
 import { CrudSecurity } from '../core/config/model/CrudSecurity';
 import { EmailService } from '../core/config/crud-email.service';
 import { FakeEmail } from './entities/FakeEmail';
-import { MyConfigService } from './myconfig.service';
+import { MyConfigService } from './eicrud.config.service';
 import { ModuleRef } from '@nestjs/core';
 import { CrudContext } from '@eicrud/core/crud';
 

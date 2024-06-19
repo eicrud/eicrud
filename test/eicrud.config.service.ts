@@ -3,18 +3,18 @@ import {
   BasicMemoryCache,
   CrudConfigService,
   MicroServicesOptions,
-} from '../core/config/crud.config.service';
+} from '@eicrud/core/config/crud.config.service';
 import { MyUserService } from './myuser.service';
 import { MikroORM, EntityManager } from '@mikro-orm/core';
 import { MyEmailService } from './myemail.service';
-import { CrudRole } from '../core/config/model/CrudRole';
-import { MongoDbAdapter } from '../db_mongo/mongoDbAdapter';
+import { CrudRole } from '@eicrud/core/config/model/CrudRole';
+import { MongoDbAdapter } from '@eicrud/mongodb/mongoDbAdapter';
 import { MyUser } from './entities/MyUser';
 import { UserProfile } from './entities/UserProfile';
 import { Picture } from './entities/Picture';
 import { Melon } from './entities/Melon';
 import { FakeEmail } from './entities/FakeEmail';
-import { PostgreDbAdapter } from '../db_postgre/postgreDbAdapter';
+import { PostgreDbAdapter } from '@eicrud/postgresql/postgreDbAdapter';
 import { DragonFruit } from './entities/DragonFruit';
 
 const roles: CrudRole[] = [

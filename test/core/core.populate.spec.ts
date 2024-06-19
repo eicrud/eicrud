@@ -4,7 +4,7 @@ import {
   createNestApplication,
   readyApp,
   dropDatabases,
-} from '../test.module';
+} from '../src/app.module';
 import { CrudController } from '../../core/crud/crud.controller';
 import { MyUserService } from '../myuser.service';
 import { CrudAuthService } from '../../core/authentication/auth.service';

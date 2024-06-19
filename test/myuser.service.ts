@@ -5,7 +5,7 @@ import { CrudService } from '../core/crud/crud.service';
 import { CmdSecurity, CrudSecurity } from '../core/config/model/CrudSecurity';
 import { CrudUserService } from '../core/config/crud-user.service';
 import { MyUser } from './entities/MyUser';
-import { MyConfigService } from './myconfig.service';
+import { MyConfigService } from './eicrud.config.service';
 import { ModuleRef } from '@nestjs/core';
 import { baseCmds } from '../core/config/crud-user.service';
 import { IsString, MaxLength } from 'class-validator';
@@ -94,20 +94,6 @@ const cmdSecurityMap: Record<string, CmdSecurity> = {
   }, {}),
 };
 
-const myUserSecurity = (USER): CrudSecurity => {
-  return {
-    cmdSecurityMap,
-
-    rolesRights: {
-      super_admin: {},
-      admin: {},
-      trusted_user: {},
-      user: {},
-      guest: {},
-    },
-  };
-};
-
 @Injectable()
 export class MyUserService extends CrudUserService<MyUser> {
   constructor(
@@ -119,16 +105,5 @@ export class MyUserService extends CrudUserService<MyUser> {
 
   async $callTestCmd(dto: CallTestCmdDto, ctx: CrudContext) {
     return await this.profileService.$testCmd(dto, ctx);
-  }
-
-  override async addToComputedTrust(
-    user: CrudUser,
-    trust: number,
-    ctx: CrudContext,
-  ): Promise<number> {
-    if (user.role === 'trusted_user') {
-      trust += 100;
-    }
-    return trust;
   }
 }

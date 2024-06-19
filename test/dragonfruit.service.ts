@@ -1,7 +1,7 @@
 import { ModuleRef } from '@nestjs/core';
 
 import { DragonFruit } from './entities/DragonFruit';
-import { MyConfigService } from './myconfig.service';
+import { MyConfigService } from './eicrud.config.service';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { CrudService } from '@eicrud/core/crud/crud.service';
 import { CrudSecurity } from '@eicrud/core/config/model/CrudSecurity';

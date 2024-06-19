@@ -3,7 +3,7 @@ import { CrudAuthService } from '../core/authentication/auth.service';
 import { CrudAuthorizationService } from '../core/crud/crud.authorization.service';
 import { CrudService } from '../core/crud/crud.service';
 import { CmdSecurity, CrudSecurity } from '../core/config/model/CrudSecurity';
-import { MyConfigService } from './myconfig.service';
+import { MyConfigService } from './eicrud.config.service';
 import { ModuleRef } from '@nestjs/core';
 import { Picture } from './entities/Picture';
 

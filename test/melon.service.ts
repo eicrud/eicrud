@@ -1,7 +1,7 @@
 import { ModuleRef } from '@nestjs/core';
 
 import { Melon } from './entities/Melon';
-import { MyConfigService } from './myconfig.service';
+import { MyConfigService } from './eicrud.config.service';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { CrudService } from '../core/crud/crud.service';
 import { CrudSecurity } from '../core/config/model/CrudSecurity';
