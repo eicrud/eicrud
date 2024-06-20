@@ -21,7 +21,11 @@
       "@eicrud/core": ["./core"],
       "@eicrud/core/*": ["./core/*"],
       "@eicrud/shared": ["./shared"],
-      "@eicrud/shared/*": ["./shared/*"]
+      "@eicrud/shared/*": ["./shared/*"],
+      "@eicrud/mongodb": ["./db_mongo"],
+      "@eicrud/mongodb/*": ["./db_mongo/*"],
+      "@eicrud/postgresql": ["./db_postgre"],
+      "@eicrud/postgresql/*": ["./db_postgre/*"],
     }
   },
   "exclude": ["cli", "core", "shared", "db_mongo", "db_postgre"]
