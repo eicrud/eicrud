@@ -1,21 +1,21 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
-import { CrudService } from '../core/crud/crud.service';
-import { CrudSecurity } from '../core/config/model/CrudSecurity';
-import { EmailService } from '../core/config/crud-email.service';
-import { FakeEmail } from './entities/FakeEmail';
-import { MyConfigService } from './eicrud.config.service';
 import { ModuleRef } from '@nestjs/core';
+import FakeEmail from './fakeemail.entity';
+import { Injectable } from '@nestjs/common';
+import { getSecurity } from './fakeemail.security';
+import { CrudService } from '@eicrud/core/crud';
+import { serviceCmds } from './cmds';
 import { CrudContext } from '@eicrud/core/crud';
-
-const emailSecurity: CrudSecurity = {};
+import { EmailService } from '@eicrud/core/config';
+import { get } from 'http';
 
 @Injectable()
-export class MyEmailService
+export class FakeEmailService
   extends CrudService<FakeEmail>
   implements EmailService
 {
   constructor(protected moduleRef: ModuleRef) {
-    super(moduleRef, FakeEmail, emailSecurity);
+    const serviceName = CrudService.getName(FakeEmail);
+    super(moduleRef, FakeEmail, getSecurity(serviceName));
   }
   sendAccountCreationEmail(
     to: string,
@@ -62,4 +62,6 @@ export class MyEmailService
     };
     return this.$create(email, null);
   }
+
+  // GENERATED START - do not remove
 }

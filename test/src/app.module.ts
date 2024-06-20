@@ -1,26 +1,18 @@
-import { CRUDServices } from './services/index';
 import { CRUDEntities, CRUDServices } from './services/index';
 import { Module } from '@nestjs/common';
-import { MyConfigService } from '../eicrud.config.service';
-import { MyEmailService } from '../myemail.service';
-import { MyUserService } from '../myuser.service';
+import { MyConfigService } from './eicrud.config.service';
+
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { MongoDriver } from '@mikro-orm/mongodb';
 import { PostgreSqlDriver } from '@mikro-orm/postgresql';
-import { MyUser } from '../entities/MyUser';
-import { UserProfile } from '../entities/UserProfile';
-import { FakeEmail } from '../entities/FakeEmail';
-import { Melon } from '../entities/Melon';
+
 import { EICRUDModule } from '@eicrud/core/eicrud.module';
-import { MelonService } from '../melon.service';
+
 import { CRUD_CONFIG_KEY } from '@eicrud/core/config/crud.config.service';
-import { MyProfileService } from '../profile.service';
-import { Picture } from '../entities/Picture';
+
 import { FastifyAdapter } from '@nestjs/platform-fastify';
 import { EntityManager, MikroORM } from '@mikro-orm/core';
-import { MyPictureService } from '../picture.service';
-import { DragonFruit } from '../entities/DragonFruit';
-import { DragonFruitService } from '../dragonfruit.service';
+
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, './.env') });
 

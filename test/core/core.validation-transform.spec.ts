@@ -7,14 +7,14 @@ import {
   dropDatabases,
 } from '../src/app.module';
 import { CrudController } from '../../core/crud/crud.controller';
-import { MyUserService } from '../myuser.service';
+import { MyUserService } from '../src/services/myuser/myuser.service';
 import { CrudAuthService } from '../../core/authentication/auth.service';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
-import { UserProfile } from '../entities/UserProfile';
+import UserProfile from '../src/services/userprofile/userprofile.entity';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,
@@ -22,8 +22,8 @@ import {
   createNewProfileTest,
   testMethod,
 } from '../test.utils';
-import { MyProfileService } from '../profile.service';
-import { Melon } from '../entities/Melon';
+import { UserProfileService as MyProfileService } from '../src/services/userprofile/userprofile.service';
+import Melon from '../src/services/melon/melon.entity';
 import { CrudService } from '../../core/crud/crud.service';
 import { TestUser } from '../test.utils';
 import {
@@ -31,9 +31,9 @@ import {
   CrudConfigService,
 } from '../../core/config/crud.config.service';
 import { format } from 'path';
-import { SearchMelonDto } from '../melon.service';
-import exp from 'constants';
 import { IChangePasswordDto } from '../../shared/interfaces';
+import exp from 'constants';
+import SearchMelonDto from '../src/services/melon/cmds/search/search.dto';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',

@@ -1,6 +1,16 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
-import { IsString, IsOptional } from 'class-validator';
+import {
+  Entity,
+  PrimaryKey,
+  Property,
+  Unique,
+  OneToOne,
+  OneToMany,
+  Collection,
+} from '@mikro-orm/core';
+import { IsString, IsOptional, Equals } from 'class-validator';
 import { CrudEntity } from '@eicrud/core/crud';
+import Melon from '../melon/melon.entity';
+import UserProfile from '../userprofile/userprofile.entity';
 
 @Entity()
 export default class MyUser implements CrudEntity {

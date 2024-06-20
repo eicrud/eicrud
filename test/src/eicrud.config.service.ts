@@ -4,18 +4,19 @@ import {
   CrudConfigService,
   MicroServicesOptions,
 } from '@eicrud/core/config/crud.config.service';
-import { MyUserService } from './myuser.service';
 import { MikroORM, EntityManager } from '@mikro-orm/core';
-import { MyEmailService } from './myemail.service';
 import { CrudRole } from '@eicrud/core/config/model/CrudRole';
 import { MongoDbAdapter } from '@eicrud/mongodb/mongoDbAdapter';
-import { MyUser } from './entities/MyUser';
-import { UserProfile } from './entities/UserProfile';
-import { Picture } from './entities/Picture';
-import { Melon } from './entities/Melon';
-import { FakeEmail } from './entities/FakeEmail';
+
 import { PostgreDbAdapter } from '@eicrud/postgresql/postgreDbAdapter';
-import { DragonFruit } from './entities/DragonFruit';
+import UserProfile from './services/userprofile/userprofile.entity';
+import Picture from './services/picture/picture.entity';
+import MyUser from './services/myuser/myuser.entity';
+import Melon from './services/melon/melon.entity';
+import DragonFruit from './services/dragonfruit/dragonfruit.entity';
+import FakeEmail from './services/fakeemail/fakeemail.entity';
+import { MyUserService } from './services/myuser/myuser.service';
+import { FakeEmailService } from './services/fakeemail/fakeemail.service';
 
 const roles: CrudRole[] = [
   {
@@ -87,7 +88,7 @@ export class MyConfigService extends CrudConfigService {
   constructor(
     public userService: MyUserService,
     public entityManager: EntityManager,
-    public emailService: MyEmailService,
+    public emailService: FakeEmailService,
     protected orm: MikroORM,
   ) {
     super({

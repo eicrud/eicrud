@@ -187,12 +187,7 @@ export class CrudAuthorizationService {
     if (ctx.origin == 'crud' && !ctx.isBatch) {
       await this.checkmaxItemsPerUser(ctx, security);
     } else if (ctx.origin == 'cmd') {
-      cmdSec = security.cmdSecurityMap?.[ctx.cmdName];
-      if (!cmdSec) {
-        throw new ForbiddenException(
-          `Command ${ctx.cmdName} not found in security map`,
-        );
-      }
+      cmdSec = security.cmdSecurityMap[ctx.cmdName];
       const hasMaxUses =
         cmdSec.maxUsesPerUser && this.crudConfig.userService.notGuest(ctx.user);
       const isSecureOnly = cmdSec.secureOnly;

@@ -19,7 +19,13 @@ export class UserProfileService extends CrudService<UserProfile> {
 
   // GENERATED START - do not remove
   async $search(dto: SearchDto, ctx: CrudContext, inheritance?: any) {
-    return await serviceCmds.search.action(dto, this, ctx, inheritance);
+    return await serviceCmds.search.action.call(
+      this,
+      dto,
+      this,
+      ctx,
+      inheritance,
+    );
   }
 
   async $test_cmd_rate_limited(

@@ -29,7 +29,7 @@ import {
   $MaxSize,
 } from '@eicrud/core/validation';
 import { CrudEntity } from '@eicrud/core/crud';
-import { Picture } from '../picture/picture.entity';
+import Picture from '../picture/picture.entity';
 
 @Embeddable()
 export class Geoloc {

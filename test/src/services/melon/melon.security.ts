@@ -33,7 +33,7 @@ export function getSecurity(MELON: string): CrudSecurity {
     additionalItemsInDbPerTrustPoints: 1,
 
     cmdSecurityMap: Object.keys(serviceCmds).reduce((acc, cmd) => {
-      acc[cmd] = serviceCmds[cmd].getCmdSecurity(cmd, melon);
+      acc[cmd] = serviceCmds[cmd].getCmdSecurity(cmd, MELON);
       return acc;
     }, {}),
   };

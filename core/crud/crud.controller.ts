@@ -348,6 +348,11 @@ export class CrudController {
     try {
       const cmdSecurity: CmdSecurity =
         currentService.security?.cmdSecurityMap?.[ctx.cmdName];
+      if (!cmdSecurity) {
+        throw new ForbiddenException(
+          `Command ${ctx.cmdName} not found in security map`,
+        );
+      }
       if (cmdSecurity.batchField && data?.[cmdSecurity.batchField]) {
         await this.crudAuthorization.authorizeBatch(
           ctx,

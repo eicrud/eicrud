@@ -1,26 +1,10 @@
-import {
-  PrimaryKey,
-  OneToOne,
-  Property,
-  ManyToOne,
-  Entity,
-  Embeddable,
-  Embedded,
-} from '@mikro-orm/core';
-import {
-  Allow,
-  IsDate,
-  IsInt,
-  IsMongoId,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
-import { CrudEntity } from '@eicrud/core/crud/model/CrudEntity';
-import { MyUser } from './MyUser';
+import { Entity, PrimaryKey, Property, ManyToOne } from '@mikro-orm/core';
+import { IsString, IsOptional, IsInt } from 'class-validator';
+import { CrudEntity } from '@eicrud/core/crud';
+import MyUser from '../myuser/myuser.entity';
 
 @Entity()
-export class DragonFruit implements CrudEntity {
+export default class DragonFruit implements CrudEntity {
   @PrimaryKey({ name: '_id' })
   @IsString()
   @IsOptional()

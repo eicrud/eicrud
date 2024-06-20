@@ -13,8 +13,8 @@ const getCmdSecurity = (can_cannot_cmd, userprofile): CmdSecurity => {
       },
       guest: {
         async defineCMDAbility(can, cannot, ctx) {
-          can('canCannotCmd', userprofile);
-          cannot('canCannotCmd', userprofile);
+          can(can_cannot_cmd, userprofile);
+          cannot(can_cannot_cmd, userprofile);
         },
       },
     },

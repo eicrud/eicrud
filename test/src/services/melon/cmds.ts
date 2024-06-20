@@ -1,3 +1,6 @@
+import { searchSecurity } from './cmds/search/search.security';
 //Auto generated file
 
-export const serviceCmds = {};
+export const serviceCmds = {
+  search: searchSecurity,
+};
