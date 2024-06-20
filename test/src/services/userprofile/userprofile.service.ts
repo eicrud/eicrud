@@ -1,3 +1,4 @@
+import SearchDto from './cmds/search/search.dto';
 import Test_cmd_rate_limitedDto from './cmds/test_cmd_rate_limited/test_cmd_rate_limited.dto';
 import CanCannotCmdDto from './cmds/can_cannot_cmd/can_cannot_cmd.dto';
 import Test_cmdDto from './cmds/test_cmd/test_cmd.dto';
@@ -17,6 +18,10 @@ export class UserProfileService extends CrudService<UserProfile> {
   }
 
   // GENERATED START - do not remove
+  async $search(dto: SearchDto, ctx: CrudContext, inheritance?: any) {
+    return await serviceCmds.search.action(dto, this, ctx, inheritance);
+  }
+
   async $test_cmd_rate_limited(
     dto: Test_cmd_rate_limitedDto,
     ctx: CrudContext,

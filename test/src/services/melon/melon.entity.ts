@@ -1,31 +1,26 @@
 import {
-  PrimaryKey,
-  OneToOne,
-  Property,
-  ManyToOne,
   Entity,
+  PrimaryKey,
+  Property,
   Embeddable,
   Embedded,
+  ManyToOne,
 } from '@mikro-orm/core';
 import {
-  Allow,
-  IsDate,
-  IsInt,
-  IsMongoId,
-  IsOptional,
   IsString,
+  IsOptional,
+  IsInt,
   ValidateNested,
+  Allow,
 } from 'class-validator';
-import { CrudEntity } from '../../core/crud/model/CrudEntity';
-import { MyUser } from './MyUser';
+import { CrudEntity } from '@eicrud/core/crud';
 import {
-  $MaxArLength,
   $MaxSize,
-  $ToLowerCase,
-  $Transform,
-  $Trim,
   $Type,
-} from '../../core/validation/decorators';
+  $Transform,
+  $MaxArLength,
+} from '@eicrud/core/validation';
+import MyUser from '../myuser/myuser.entity';
 
 @Embeddable()
 export class Slice {
@@ -54,7 +49,7 @@ export class Seed {
 }
 
 @Entity()
-export class Melon implements CrudEntity {
+export default class Melon implements CrudEntity {
   @PrimaryKey({ name: '_id' })
   @IsString()
   @IsOptional()

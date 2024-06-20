@@ -3,12 +3,18 @@ import { serviceCmds } from './cmds';
 
 export function getSecurity(picture: string): CrudSecurity {
   return {
+    maxItemsInDb: 10,
     rolesRights: {
-      guest: {
+      super_admin: {
         async defineCRUDAbility(can, cannot, ctx) {
-          // Define abilities for guest
+          can('crud', picture);
         },
       },
+      admin: {},
+      moderator: {},
+      user: {},
+
+      guest: {},
     },
 
     cmdSecurityMap: Object.keys(serviceCmds).reduce((acc, cmd) => {

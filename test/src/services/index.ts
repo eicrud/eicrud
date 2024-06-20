@@ -1,3 +1,5 @@
+import Melon from './melon/melon.entity';
+import { MelonService } from './melon/melon.service';
 import Picture from './picture/picture.entity';
 import { PictureService } from './picture/picture.service';
 import UserProfile from './userprofile/userprofile.entity';
@@ -12,6 +14,7 @@ import { MyUserService } from './myuser/myuser.service';
 //Auto generated file
 
 export const CRUDServices = [
+  MelonService,
   PictureService,
   UserProfileService,
   MyProfileService,
@@ -19,4 +22,11 @@ export const CRUDServices = [
   MyUserService,
 ];
 
-export const CRUDEntities = [Picture, UserProfile, MyProfile, MyUser, MyUser];
+export const CRUDEntities = [
+  Melon,
+  Picture,
+  UserProfile,
+  MyProfile,
+  MyUser,
+  MyUser,
+];
