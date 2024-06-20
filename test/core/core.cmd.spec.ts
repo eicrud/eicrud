@@ -353,7 +353,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'test_cmdRateLimited',
+      cmd: 'test_cmd_rate_limited',
     };
 
     await testMethod({

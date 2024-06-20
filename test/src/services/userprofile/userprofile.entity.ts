@@ -9,7 +9,6 @@ import {
   Collection,
   OneToMany,
 } from '@mikro-orm/core';
-import { CrudEntity } from '../../core/crud/model/CrudEntity';
 import {
   Allow,
   Equals,
@@ -20,7 +19,7 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { MyUser } from './MyUser';
+import MyUser from '../myuser/myuser.entity';
 import {
   $ToLowerCase,
   $Trim,
@@ -28,8 +27,9 @@ import {
   $Type,
   $Delete,
   $MaxSize,
-} from '../../core/validation/decorators';
-import { Picture } from './Picture';
+} from '@eicrud/core/validation';
+import { CrudEntity } from '@eicrud/core/crud';
+import { Picture } from '../picture/picture.entity';
 
 @Embeddable()
 export class Geoloc {
@@ -51,7 +51,7 @@ export class Geoloc {
 }
 
 @Entity()
-export class UserProfile implements CrudEntity {
+export default class UserProfile implements CrudEntity {
   @PrimaryKey({ name: '_id' })
   @IsString()
   @IsOptional()

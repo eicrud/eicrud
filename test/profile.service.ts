@@ -17,26 +17,6 @@ import {
 } from '../core/validation/decorators';
 import { FindResponseDto } from '../shared/interfaces';
 
-class subTestCmdDto {
-  @IsString()
-  @$MaxSize(100)
-  @$ToLowerCase()
-  subfield: string;
-}
-export class TestCmdDto {
-  @IsString()
-  @MaxLength(30)
-  @$Transform((value: string) => value.toUpperCase())
-  returnMessage: string;
-
-  @IsOptional()
-  @$Type(subTestCmdDto)
-  sub?: subTestCmdDto;
-
-  @IsOptional()
-  forbiddenField?: string;
-}
-
 export class SearchCmdDto {
   @IsString()
   @$Transform((v: string) => v.replace(/[.*+?^$}{)(|[\]\\]/g, '\\$&'))
@@ -55,82 +35,7 @@ const myProfileSecurity = (USER_PROFILE) => {
         rolesRights: {},
         guestCanUseAll: true,
       },
-      canCannotCmd: {
-        dto: TestCmdDto,
-        rolesRights: {
-          guest: {
-            async defineCMDAbility(can, cannot, ctx) {
-              can('canCannotCmd', USER_PROFILE);
-              cannot('canCannotCmd', USER_PROFILE);
-            },
-          },
-        },
-      } as CmdSecurity,
-      test_cmd: {
-        maxUsesPerUser: 10,
-        additionalUsesPerTrustPoint: 1,
-        dto: TestCmdDto,
-        rolesRights: {
-          user: {
-            async defineCMDAbility(can, cannot, ctx) {
-              can('test_cmd', USER_PROFILE);
-            },
-          },
-
-          guest: {
-            async defineCMDAbility(can, cannot, ctx) {
-              can('test_cmd', USER_PROFILE, ['returnMessage'], {
-                returnMessage: "I'M A GUEST!",
-              });
-            },
-          },
-        },
-      } as CmdSecurity,
-      test_cmdRateLimited: {
-        minTimeBetweenCmdCallMs: 500,
-        dto: TestCmdDto,
-        rolesRights: {
-          user: {
-            async defineCMDAbility(can, cannot, ctx) {
-              can('test_cmdRateLimited', USER_PROFILE);
-            },
-          },
-        },
-      } as CmdSecurity,
-    },
-
-    rolesRights: {
-      super_admin: {
-        async defineCRUDAbility(can, cannot, ctx) {
-          can('crud', USER_PROFILE);
-        },
-      },
-      admin: {
-        async defineCRUDAbility(can, cannot, ctx: CrudContext) {
-          can('crud', USER_PROFILE, { type: 'basic' });
-        },
-
-        async defineOPTAbility(can, cannot, ctx) {
-          can('populate', USER_PROFILE, ['pictures']);
-          can('populate', USER_PROFILE, 'user', { user: ctx.userId });
-        },
-      },
-      moderator: {
-        async defineCRUDAbility(can, cannot, ctx: CrudContext) {
-          can('read', USER_PROFILE, { type: 'basic' });
-        },
-      },
-      user: {
-        async defineCRUDAbility(can, cannot, ctx) {
-          const user: CrudUser = ctx.user;
-          const userId = ctx.userId;
-          can('crud', USER_PROFILE, { user: userId });
-          cannot('cu', USER_PROFILE, { type: 'admin' });
-          cannot('cu', USER_PROFILE, ['forbiddenField']);
-        },
-      },
-
-      guest: {},
+      test_cmd: {} as CmdSecurity,
     },
   } as CrudSecurity;
 };
@@ -140,33 +45,6 @@ export class MyProfileService extends CrudService<UserProfile> {
   constructor(protected moduleRef: ModuleRef) {
     const serviceName = CrudService.getName(UserProfile);
     super(moduleRef, UserProfile, myProfileSecurity(serviceName));
-  }
-
-  $test_cmd(
-    dto: TestCmdDto,
-    ctx: CrudContext,
-    inheritance?: any,
-  ): Promise<string> {
-    let res = dto?.sub?.subfield || dto.returnMessage;
-    return Promise.resolve(res);
-  }
-
-  $canCannotCmd(
-    dto: TestCmdDto,
-    ctx: CrudContext,
-    inheritance?: any,
-  ): Promise<string> {
-    let res = dto?.sub?.subfield || dto.returnMessage;
-    return Promise.resolve(res);
-  }
-
-  $test_cmdRateLimited(
-    dto: TestCmdDto,
-    ctx: CrudContext,
-    inheritance?: any,
-  ): Promise<string> {
-    let res = dto?.sub?.subfield || dto.returnMessage;
-    return Promise.resolve(res);
   }
 
   async $search(
