@@ -473,9 +473,6 @@ describe('AppController', () => {
       }) as any,
     };
 
-    //wait 100ms (this test often fail on CI, so I added a delay to see if it helps)
-    await new Promise((r) => setTimeout(r, 100));
-
     const res = await testMethod({
       url: '/crud/many',
       method: 'GET',

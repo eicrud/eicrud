@@ -352,6 +352,10 @@ export async function createAccountsAndProfiles(
     promises.push(prom);
   }
   await Promise.all(promises);
+
+  if (process.env.TEST_CRUD_DB == 'postgre') {
+    await new Promise((r) => setTimeout(r, 100));
+  }
 }
 
 function createEntities(em, user, nb, Entity, method, crudConfig, userService) {
