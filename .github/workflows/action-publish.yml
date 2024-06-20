@@ -9,7 +9,7 @@ on:
 jobs:
   release-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 16
     services:
       mongodb:
         image: mongo
