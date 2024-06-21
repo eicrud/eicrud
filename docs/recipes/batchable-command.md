@@ -13,6 +13,8 @@ Let's change the [DTO](../validation/definition.md) to accept an array of IDs. I
 ```typescript title="migrate.dto.ts"
 export class MigrateDto {
   @IsString({ each: true })
+  @MaxLength(30, {each: true})
+  @$MaxSize(-1)
   profileIds: string[];
 
   @IsString()
@@ -38,6 +40,9 @@ const getCmdSecurity = (migrate, profile): CmdSecurity => {
     }
 }
 ```
+
+!!! note
+    DTO's `$MaxSize(-1)` is important to prevent the validation of the `profileIds` array size which is already handled by `maxBatchSize`. Alternatively you can use `@$MaxArLength(-1)` combined with `@$Type()`. See [Eicrud's decorators](../validation/definition.md#eicrud-decorators).
 
 ## Implementation
 

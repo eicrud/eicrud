@@ -5,16 +5,14 @@ import {
   createNestApplication,
   readyApp,
   dropDatabases,
-} from '../test.module';
+} from '../src/app.module';
 import { CrudController } from '../../core/crud/crud.controller';
-import { MyUserService } from '../myuser.service';
 import { CrudAuthService } from '../../core/authentication/auth.service';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
-import { UserProfile } from '../entities/UserProfile';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,
@@ -22,8 +20,6 @@ import {
   createNewProfileTest,
   testMethod,
 } from '../test.utils';
-import { MyProfileService, TestCmdDto } from '../profile.service';
-import { Melon } from '../entities/Melon';
 import { CrudService } from '../../core/crud/crud.service';
 import { TestUser } from '../test.utils';
 import {
@@ -32,6 +28,11 @@ import {
 } from '../../core/config/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
+import { MyUserService } from '../src/services/myuser/myuser.service';
+import UserProfile from '../src/services/userprofile/userprofile.entity';
+import Melon from '../src/services/melon/melon.entity';
+import { UserProfileService as MyProfileService } from '../src/services/userprofile/userprofile.service';
+import TestCmdDto from '../src/services/userprofile/cmds/test_cmd/test_cmd.dto';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -100,7 +101,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     await testMethod({
@@ -137,7 +138,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     const res = await testMethod({
@@ -164,7 +165,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'my-user',
-      cmd: 'callTestCmd',
+      cmd: 'call_test_cmd',
     };
 
     const res = await testMethod({
@@ -191,7 +192,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     await testMethod({
@@ -220,7 +221,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     await testMethod({
@@ -275,7 +276,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     await testMethod({
@@ -328,7 +329,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmd',
+      cmd: 'test_cmd',
     };
 
     await testMethod({
@@ -353,7 +354,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'testCmdRateLimited',
+      cmd: 'test_cmd_rate_limited',
     };
 
     await testMethod({

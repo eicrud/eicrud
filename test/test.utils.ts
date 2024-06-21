@@ -1,14 +1,15 @@
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { UserProfile } from './entities/UserProfile';
-import { Melon } from './entities/Melon';
 import { CrudConfigService } from '../core/config/crud.config.service';
 import { CrudUserService } from '../core/config/crud-user.service';
 import { CrudUser } from '../core/config/model/CrudUser';
-import { Picture } from './entities/Picture';
-import { DragonFruit } from './entities/DragonFruit';
+import Picture from './src/services/picture/picture.entity';
+
 import { create } from 'domain';
 import { CrudClient } from '@eicrud/client';
+import DragonFruit from './src/services/dragonfruit/dragonfruit.entity';
+import Melon from './src/services/melon/melon.entity';
+import UserProfile from './src/services/userprofile/userprofile.entity';
 
 export interface TestUser {
   email: string;
@@ -351,6 +352,11 @@ export async function createAccountsAndProfiles(
     promises.push(prom);
   }
   await Promise.all(promises);
+
+  if (process.env.TEST_CRUD_DB == 'postgre') {
+    // Is there some propagation delay with postgres? some tests fail without this
+    await new Promise((r) => setTimeout(r, 40));
+  }
 }
 
 function createEntities(em, user, nb, Entity, method, crudConfig, userService) {

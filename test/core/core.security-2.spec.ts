@@ -5,40 +5,32 @@ import {
   createNestApplication,
   readyApp,
   dropDatabases,
-} from '../test.module';
+} from '../src/app.module';
 import { CrudController } from '@eicrud/core/crud/crud.controller';
-import { MyUserService } from '../myuser.service';
+import { MyUserService } from '../src/services/myuser/myuser.service';
 import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
-import { UserProfile } from '../entities/UserProfile';
+import UserProfile from '../src/services/userprofile/userprofile.entity';
 import { BackdoorQuery, CrudQuery } from '@eicrud/core/crud/model/CrudQuery';
-import {
-  createAccountsAndProfiles,
-  createMelons,
-  createNewProfileTest,
-  testMethod,
-} from '../test.utils';
-import { MyProfileService, TestCmdDto } from '../profile.service';
-import { Melon } from '../entities/Melon';
+import { createAccountsAndProfiles, testMethod } from '../test.utils';
 import { CrudService } from '@eicrud/core/crud/crud.service';
 import { TestUser } from '../test.utils';
 import {
   CRUD_CONFIG_KEY,
   CrudConfigService,
-  MicroServiceConfig,
 } from '@eicrud/core/config/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
-import { MelonService } from '../melon.service';
+import { MelonService } from '../src/services/melon/melon.service';
 import axios from 'axios';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
-import { DragonFruit } from '../entities/DragonFruit';
+import DragonFruit from '../src/services/dragonfruit/dragonfruit.entity';
 import { FindResponseDto } from '../../shared/interfaces';
-import { DragonFruitService } from '../dragonfruit.service';
+import { DragonFruitService } from '../src/services/dragonfruit/dragonfruit.service';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',

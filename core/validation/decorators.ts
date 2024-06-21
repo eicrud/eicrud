@@ -56,7 +56,7 @@ export function $MaxSize(size: number, addPerTrustPoint?: number) {
   };
 }
 
-export function $MaxLength(length: number, addPerTrustPoint?: number) {
+export function $MaxArLength(length: number, addPerTrustPoint?: number) {
   return (target: any, propertyKey: string) => {
     const metadata = CrudTransformer.getOrCreateFieldMetadata(
       target,

@@ -5,16 +5,16 @@ import {
   createNestApplication,
   readyApp,
   dropDatabases,
-} from '../test.module';
+} from '../src/app.module';
 import { CrudController } from '../../core/crud/crud.controller';
-import { MyUserService } from '../myuser.service';
+import { MyUserService } from '../src/services/myuser/myuser.service';
 import { CrudAuthService } from '../../core/authentication/auth.service';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
-import { UserProfile } from '../entities/UserProfile';
+import UserProfile from '../src/services/userprofile/userprofile.entity';
 import { BackdoorQuery, CrudQuery } from '../../core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,
@@ -22,8 +22,9 @@ import {
   createNewProfileTest,
   testMethod,
 } from '../test.utils';
-import { MyProfileService, TestCmdDto } from '../profile.service';
-import { Melon } from '../entities/Melon';
+import { UserProfileService as MyProfileService } from '../src/services/userprofile/userprofile.service';
+import TestCmdDto from '../src/services/userprofile/cmds/test_cmd/test_cmd.dto';
+import Melon from '../src/services/melon/melon.entity';
 import { CrudService } from '../../core/crud/crud.service';
 import { TestUser } from '../test.utils';
 import {
@@ -33,7 +34,7 @@ import {
 } from '../../core/config/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
-import { MelonService } from '../melon.service';
+import { MelonService } from '../src/services/melon/melon.service';
 import axios from 'axios';
 import { CrudErrors } from '../../shared/CrudErrors';
 
@@ -1910,7 +1911,7 @@ describe('AppController', () => {
     const user = users[userName];
     const payload: Partial<UserProfile> = {
       args: {
-        cmdName: 'testCmd',
+        cmdName: 'test_cmd',
       },
     } as any;
     const query: BackdoorQuery = {
@@ -1953,7 +1954,7 @@ describe('AppController', () => {
       const url = targetServiceConfig.url + '/crud/backdoor/user-profile';
 
       const data = {
-        args: ['testCmd', { data: { returnMessage: 'backdoor ping' } }],
+        args: ['test_cmd', { data: { returnMessage: 'backdoor ping' } }],
       };
 
       const res = await axios.patch(url, data, {
@@ -2049,7 +2050,7 @@ describe('AppController', () => {
     );
   });
 
-  it('cannot should overyde can at same level', async () => {
+  it('cannot should override can at same level', async () => {
     const user = users['Michael Doe'];
 
     const payload: TestCmdDto = {
@@ -2058,7 +2059,7 @@ describe('AppController', () => {
 
     const query: CrudQuery = {
       service: 'user-profile',
-      cmd: 'canCannotCmd',
+      cmd: 'can_cannot_cmd',
     };
 
     await testMethod({

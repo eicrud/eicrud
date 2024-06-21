@@ -37,6 +37,8 @@ npm run start:test-ms
 npm run start:test-ms:proxy
 
 ./test/test-cli.sh mongo
+
+npm run clean:deep
 ```
 
 ### Testing your code

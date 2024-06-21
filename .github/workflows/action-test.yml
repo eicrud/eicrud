@@ -15,7 +15,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 14
 
     services:
       mongodb:
@@ -50,6 +50,23 @@ jobs:
 
       - name: Microservices proxy tests
         run: npm run start:test-ms:proxy
+
+  test-cli-mongo:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+
+    services:
+      mongodb:
+        image: mongo
+        ports:
+        - 27017:27017
+    steps:
+      - name: Copy repository
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: npm install
 
       - name: CLI mongo
         run: ./test/test-cli.sh mongo

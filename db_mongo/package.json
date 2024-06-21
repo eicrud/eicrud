@@ -1,6 +1,6 @@
 {
   "name": "@eicrud/mongodb",
-  "version": "0.7.3",
+  "version": "0.0.1",
   "description": "eicrud db adapter for mongodb",
   "author": "acrosett",
   "license": "MIT",
@@ -19,7 +19,7 @@
     "directory": "db_mongo"
   },
   "peerDependencies": {
-    "@eicrud/core": "^0.7.3"
+    "@eicrud/core": "^0.0.1"
   },
   "devDependencies": {
     "del-cli": "^5.1.0"

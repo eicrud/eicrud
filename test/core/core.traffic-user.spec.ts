@@ -5,16 +5,16 @@ import {
   createNestApplication,
   readyApp,
   dropDatabases,
-} from '../test.module';
+} from '../src/app.module';
 import { CrudController } from '@eicrud/core/crud/crud.controller';
-import { MyUserService } from '../myuser.service';
+import { MyUserService } from '../src/services/myuser/myuser.service';
 import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
-import { UserProfile } from '../entities/UserProfile';
+import UserProfile from '../src/services/userprofile/userprofile.entity';
 import { CrudQuery } from '@eicrud/core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,
@@ -22,8 +22,8 @@ import {
   createNewProfileTest,
   testMethod,
 } from '../test.utils';
-import { MyProfileService } from '../profile.service';
-import { Melon } from '../entities/Melon';
+import { UserProfileService as MyProfileService } from '../src/services/userprofile/userprofile.service';
+import Melon from '../src/services/melon/melon.entity';
 import { CrudService } from '@eicrud/core/crud/crud.service';
 import { TestUser } from '../test.utils';
 import {
