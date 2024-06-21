@@ -16,7 +16,7 @@ Like [services](./definition.md), CMDs have 3 main components:
 ### A Dto:
 
 ```typescript title="say_hello.dto.ts"
-export default class SayHelloDto {
+export class SayHelloDto {
 
     @IsString()
     @IsOptional()
@@ -55,7 +55,7 @@ async defineCMDAbility(can, cannot, ctx) {
 
 ### An Action:
 ```typescript title="sayhello.action.ts"
-export default function say_hello(dto, service, ctx, inheritance?){
+export function say_hello(dto, service, ctx, inheritance?){
     return `Hello ${dto.arg}!`
 }
 ```

@@ -137,7 +137,7 @@ export class Generate {
     const serviceName = `${name}Service`;
     const importLines = [
       `import { ${serviceName} } from './${keys.tk_entity_lname}/${keys.tk_entity_lname}.service';`,
-      `import ${name} from './${keys.tk_entity_lname}/${keys.tk_entity_lname}.entity';`,
+      `import { ${name} } from './${keys.tk_entity_lname}/${keys.tk_entity_lname}.entity';`,
     ];
 
     const replaces = [

@@ -15,7 +15,7 @@ Transform an argument with the specified function.
 ```typescript 
 import { $Transform } from '@eicrud/core/validation'
 
-export default class CmdDto {
+export class CmdDto {
     @$Transform((value: string) => value.toUpperCase())
     message: string;
 }
@@ -24,7 +24,7 @@ export default class CmdDto {
 You can specify the desired behavior on arrays.
 
 ```typescript 
-export default class CmdDto {
+export class CmdDto {
     @$Transform((value: string[]) => value[0])
     array_a: string[];
 
@@ -40,7 +40,7 @@ Transform a string argument to lowercasing.
 ```typescript 
 import { $ToLowerCase } from '@eicrud/core/validation'
 
-export default class CmdDto {
+export class CmdDto {
     @$ToLowerCase()
     email: string;
 }
@@ -53,7 +53,7 @@ Trim a string argument.
 ```typescript 
 import { $Trim } from '@eicrud/core/validation'
 
-export default class CmdDto {
+export class CmdDto {
     @$Trim()
     email: string;
 }
@@ -65,7 +65,7 @@ Delete an argument.
 ```typescript 
 import { $Delete } from '@eicrud/core/validation'
 
-export default class CmdDto {
+export class CmdDto {
     @$Delete()
     frontEndProperty: string;
 }

@@ -125,7 +125,7 @@ The following `...args` can be **fields** or **query**.
 
 **Fields** and **Query** represent the command DTO's instance.
 ```typescript
-export default class SayHelloDto {
+export class SayHelloDto {
     @IsString()
     arg: string;
 

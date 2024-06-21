@@ -87,8 +87,12 @@ export class CrudService<T extends CrudEntity> {
       entityManager?: EntityManager;
       dbAdapter?: CrudDbAdapter;
       cacheManager?: CrudCache;
+      hooks?: CrudHooks<T>;
     },
   ) {
+    if (!this.config?.hooks) {
+      this.config.hooks = new CrudHooks<T>();
+    }
     this.serviceName = CrudService.getName(entity);
   }
 
@@ -915,26 +919,26 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $beforeCreateHook(data: Partial<T>[], ctx: CrudContext) {
-    return data;
+    return this.config.hooks.beforeCreateHook.call(this, data, ctx);
   }
 
   async $afterCreateHook(result: any[], data: Partial<T>[], ctx: CrudContext) {
-    return result;
+    return this.config.hooks.afterCreateHook.call(this, result, data, ctx);
   }
 
   async $beforeReadHook(query: Partial<T>, ctx: CrudContext) {
-    return query;
+    return this.config.hooks.beforeReadHook.call(this, query, ctx);
   }
 
   async $afterReadHook(result, query: Partial<T>, ctx: CrudContext) {
-    return result;
+    return this.config.hooks.afterReadHook.call(this, result, query, ctx);
   }
 
   async $beforeUpdateHook(
     updates: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
   ) {
-    return updates;
+    return this.config.hooks.beforeUpdateHook.call(this, updates, ctx);
   }
 
   async $afterUpdateHook(
@@ -942,18 +946,96 @@ export class CrudService<T extends CrudEntity> {
     updates: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
   ) {
-    return results;
+    return this.config.hooks.afterUpdateHook.call(this, results, updates, ctx);
   }
 
   async $beforeRemoveHook(queries: Partial<T>[], ctx: CrudContext) {
-    return queries;
+    return this.config.hooks.beforeRemoveHook.call(this, queries, ctx);
   }
 
   async $afterRemoveHook(result: any, queries: Partial<T>[], ctx: CrudContext) {
-    return result;
+    return this.config.hooks.afterRemoveHook.call(this, result, queries, ctx);
   }
 
   async errorControllerHook(error: Error, ctx: CrudContext): Promise<any> {
+    return this.config.hooks.errorControllerHook.call(this, error, ctx);
+  }
+}
+
+export class CrudHooks<T extends CrudEntity> {
+  async beforeCreateHook(
+    this: CrudService<T>,
+    data: Partial<T>[],
+    ctx: CrudContext,
+  ) {
+    return data;
+  }
+
+  async afterCreateHook(
+    this: CrudService<T>,
+    result: any[],
+    data: Partial<T>[],
+    ctx: CrudContext,
+  ) {
+    return result;
+  }
+
+  async beforeReadHook(
+    this: CrudService<T>,
+    query: Partial<T>,
+    ctx: CrudContext,
+  ) {
+    return query;
+  }
+
+  async afterReadHook(
+    this: CrudService<T>,
+    result,
+    query: Partial<T>,
+    ctx: CrudContext,
+  ) {
+    return result;
+  }
+
+  async beforeUpdateHook(
+    this: CrudService<T>,
+    updates: { query: Partial<T>; data: Partial<T> }[],
+    ctx: CrudContext,
+  ) {
+    return updates;
+  }
+
+  async afterUpdateHook(
+    this: CrudService<T>,
+    results: any[],
+    updates: { query: Partial<T>; data: Partial<T> }[],
+    ctx: CrudContext,
+  ) {
+    return results;
+  }
+
+  async beforeRemoveHook(
+    this: CrudService<T>,
+    queries: Partial<T>[],
+    ctx: CrudContext,
+  ) {
+    return queries;
+  }
+
+  async afterRemoveHook(
+    this: CrudService<T>,
+    result: any,
+    queries: Partial<T>[],
+    ctx: CrudContext,
+  ) {
+    return result;
+  }
+
+  async errorControllerHook(
+    this: CrudService<T>,
+    error: Error,
+    ctx: CrudContext,
+  ): Promise<any> {
     return Promise.resolve();
   }
 }

@@ -14,7 +14,7 @@ An Eicrud service (CrudService) has 3 main components:
 
 ```typescript title="services/profile/profile.entity.ts"
 @Entity()
-export default class Profile implements CrudEntity {
+export class Profile implements CrudEntity {
 
     @PrimaryKey({ name: '_id' })
     @IsString()
