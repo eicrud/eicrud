@@ -70,6 +70,7 @@ export class Generate {
       'tk_entity_lname.entity.ts',
       'tk_entity_lname.security.ts',
       'tk_entity_lname.service.ts',
+      'tk_entity_lname.hooks.ts',
     ];
 
     Generate.copyTemplateFiles(template_folder, files, keys, dir);

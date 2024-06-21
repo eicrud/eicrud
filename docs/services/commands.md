@@ -55,7 +55,7 @@ async defineCMDAbility(can, cannot, ctx) {
 
 ### An Action:
 ```typescript title="sayhello.action.ts"
-export function say_hello(dto, service, ctx, inheritance?){
+export function say_hello(dto, ctx, inheritance?){
     return `Hello ${dto.arg}!`
 }
 ```
@@ -64,7 +64,7 @@ This is the CMD implementation. Any value returned is sent back to the client.
 Eicrud's controller will route CMD calls to your CrudService's methods (`'$' + <cmd_name>`):
 ```typescript title="profile.service.ts"
 async $say_hello(dto: SayHelloDto, ctx: CrudContext, inheritance?: any) {
-   return await serviceCmds.say_hello.action(dto, this, ctx, inheritance);
+   return await serviceCmds.say_hello.action.call(this, dto, ctx, inheritance);
 }
 ```
 ## Call your command

@@ -49,7 +49,7 @@ const getCmdSecurity = (migrate, profile): CmdSecurity => {
 Let's implement the command action.
 
 ```typescript title="migrate.action.ts"
-export async function migrate(dto: MigrateDto, service: ProfileService, ctx: CrudContext, inheritance?: any ){
+export async function migrate(this: ProfileService, dto: MigrateDto, ctx: CrudContext, inheritance?: any ){
     const ids = dto.profileIds;
     let result;
     if(dto.direction === 'up'){

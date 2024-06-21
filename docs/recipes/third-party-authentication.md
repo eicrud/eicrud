@@ -64,7 +64,7 @@ import { UnauthorizedException } from '@nestjs/common';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { User } from "../../user.entity";
 
-export async function link_google_account(dto: LinkGoogleAccountDto, service: UserService, ctx: CrudContext, inheritance?: any ){
+export async function link_google_account(this: UserService, dto: LinkGoogleAccountDto, ctx: CrudContext, inheritance?: any ){
     
     const { email, valid, uuid } = await googleSDK(dto.id_token); //pseudocode
 
