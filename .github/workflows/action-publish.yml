@@ -9,7 +9,7 @@ on:
 jobs:
   release-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 17
+    timeout-minutes: 16
     services:
       mongodb:
         image: mongo
@@ -44,6 +44,32 @@ jobs:
       - name: Microservices proxy tests
         run: npm run start:test-ms:proxy
 
+  release-cli-test:
+    needs: release-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      mongodb:
+        image: mongo
+        ports:
+        - 27017:27017
+      postgres:
+        image: postgres
+        ports:
+        - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: admin
+    steps:
+      - name: Copy repository
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
       - name: CLI mongo
         run: ./test/test-cli.sh mongo
         
@@ -51,7 +77,7 @@ jobs:
         run: ./test/test-cli.sh postgre
 
   publish-all:
-    needs: release-test
+    needs: release-cli-test
     runs-on: ubuntu-latest
     timeout-minutes: 7
     strategy:
