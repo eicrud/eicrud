@@ -9,6 +9,13 @@ export class HookTrigger implements CrudEntity {
   @IsOptional()
   id: string;
 
+  @IsString()
+  @Property()
+  message: string;
+
+  @Property()
+  originalMessage: string;
+
   @Property()
   createdAt: Date;
 

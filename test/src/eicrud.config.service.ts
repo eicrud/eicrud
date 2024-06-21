@@ -17,6 +17,11 @@ import DragonFruit from './services/dragonfruit/dragonfruit.entity';
 import FakeEmail from './services/fakeemail/fakeemail.entity';
 import { MyUserService } from './services/myuser/myuser.service';
 import { FakeEmailService } from './services/fakeemail/fakeemail.service';
+import { CrudContext, CrudService } from '@eicrud/core/crud';
+import { HookLogService } from './services/hooklog/hooklog.service';
+import { logHook } from './services/hooktrigger/hooktrigger.hooks';
+import { HookTriggerService } from './services/hooktrigger/hooktrigger.service';
+import { UserProfileService } from './services/userprofile/userprofile.service';
 
 const roles: CrudRole[] = [
   {
@@ -89,6 +94,7 @@ export class MyConfigService extends CrudConfigService {
     public userService: MyUserService,
     public entityManager: EntityManager,
     public emailService: FakeEmailService,
+    public hookTriggerService: HookTriggerService,
     protected orm: MikroORM,
   ) {
     super({
@@ -116,5 +122,70 @@ export class MyConfigService extends CrudConfigService {
     });
 
     this.addRoles(roles);
+  }
+
+  override async beforeControllerHook(ctx: CrudContext) {
+    await logHook(
+      this.hookTriggerService,
+      ctx.data || ctx.query,
+      'before',
+      'controller',
+      ctx,
+    );
+  }
+
+  override async afterControllerHook(res: any, ctx: CrudContext) {
+    await logHook(
+      this.hookTriggerService,
+      ctx.data || ctx.query,
+      'after',
+      'controller',
+      ctx,
+    );
+  }
+
+  override async errorControllerHook(error: Error, ctx: CrudContext) {
+    const profileService: CrudService<UserProfile> =
+      this.servicesMap['user-profile'];
+    if (!profileService) {
+      throw new Error('UserProfile service not found (errorControllerHook)');
+    }
+    await logHook(
+      this.hookTriggerService,
+      ctx.data || ctx.query,
+      'error',
+      'controller',
+      ctx,
+    );
+  }
+
+  override async afterBackdoorHook(res: any, ctx: CrudContext) {
+    await logHook(
+      this.hookTriggerService,
+      ctx.data || ctx.query,
+      'after',
+      'backdoor',
+      ctx,
+    );
+  }
+
+  override async beforeBackdoorHook(ctx: CrudContext) {
+    await logHook(
+      this.hookTriggerService,
+      ctx.data || ctx.query,
+      'before',
+      'backdoor',
+      ctx,
+    );
+  }
+
+  override async errorBackdoorHook(error: Error, ctx: CrudContext) {
+    await logHook(
+      this.hookTriggerService,
+      ctx.data || ctx.query,
+      'error',
+      'backdoor',
+      ctx,
+    );
   }
 }

@@ -7,10 +7,14 @@ import { CrudService } from '@eicrud/core/crud';
 import { serviceCmds } from './cmds';
 import { CrudContext } from '@eicrud/core/crud';
 import { hooks } from './hooktrigger.hooks';
+import { HookLogService } from '../hooklog/hooklog.service';
 
 @Injectable()
 export class HookTriggerService extends CrudService<HookTrigger> {
-  constructor(protected moduleRef: ModuleRef) {
+  constructor(
+    protected moduleRef: ModuleRef,
+    public hookLogService: HookLogService,
+  ) {
     const serviceName = CrudService.getName(HookTrigger);
     super(moduleRef, HookTrigger, getSecurity(serviceName), { hooks });
   }

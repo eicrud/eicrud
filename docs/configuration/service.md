@@ -64,6 +64,17 @@ override async errorBackdoorHook(error: Error, ctx: CrudContext){
     It's better not to await function calls inside hooks when possible, this way errors won't prevent requests from returning data.
 
 
+## Services
+
+The `CrudConfigService` has access to all your [CrudServices](../services/definition.md) via the `servicesMap` property.
+
+```typescript
+override async afterControllerHook(res: any, ctx: CrudContext) {
+    const profileService: CrudService<Profile> = this.servicesMap['profile'];
+}
+```
+
+
 ## Events
 You can override some "event" methods as well.
 
