@@ -19,8 +19,6 @@ export interface CrudContext {
   data?: any;
   origin?: 'crud' | 'cmd' | 'webhook' | string;
   options?: CrudOptions;
-  em?: EntityManager;
-  noFlush?: boolean;
   cmdName?: string;
   ids?: string[];
   ip?: string;

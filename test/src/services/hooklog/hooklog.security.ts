@@ -7,6 +7,7 @@ export function getSecurity(hooklog: string): CrudSecurity {
       guest: {
         async defineCRUDAbility(can, cannot, ctx) {
           // Define abilities for guest
+          can('read', hooklog);
         },
       },
     },

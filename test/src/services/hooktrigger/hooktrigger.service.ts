@@ -1,4 +1,4 @@
-import TestTriggerDto from './cmds/test_trigger/test_trigger.dto';
+import { TestTriggerDto } from './cmds/test_trigger/test_trigger.dto';
 import { ModuleRef } from '@nestjs/core';
 import { HookTrigger } from './hooktrigger.entity';
 import { Injectable } from '@nestjs/common';

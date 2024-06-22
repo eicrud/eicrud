@@ -14,7 +14,7 @@ export async function logHook(
   const logs: Partial<HookLog>[] = [];
   for (const d of arrData) {
     const log: Partial<HookLog> = {
-      message: d.message,
+      message: d.message || d.originalMessage,
       hookPosition: position,
       hookType: type,
     };
@@ -30,11 +30,11 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     ctx: CrudContext,
   ) {
     // before HookTrigger creation
-    await logHook(this, data, 'before', 'create', ctx);
     for (const d of data) {
       d.originalMessage = d.message;
       d.message = d.message + ' - hooked';
     }
+    await logHook(this, data, 'before', 'create', ctx);
     return data;
   }
 
@@ -62,7 +62,13 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
 
     await logHook(this, query, 'before', 'read', ctx);
 
-    query.message = query.message.replace('replace Query with ', '');
+    if (query.message)
+      query.message = query.message?.replace('replace Query with ', '');
+    if (query.originalMessage)
+      query.originalMessage = query.originalMessage?.replace(
+        'replace Query with ',
+        '',
+      );
     return query;
   }
 

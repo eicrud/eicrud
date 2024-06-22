@@ -90,6 +90,7 @@ export class CrudService<T extends CrudEntity> {
       hooks?: CrudHooks<T>;
     },
   ) {
+    this.config = this.config || {};
     if (!this.config?.hooks) {
       this.config.hooks = new CrudHooks<T>();
     }
@@ -240,8 +241,6 @@ export class CrudService<T extends CrudEntity> {
     if (ctxPos != null && args[ctxPos]) {
       payload.args[ctxPos] = {
         ...args[ctxPos],
-        em: undefined,
-        noFlush: undefined,
         _temp: undefined,
       } as CrudContext;
     }
@@ -297,16 +296,16 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     secure: boolean = true,
     inheritance: any = {},
-    createOpts = { hooks: true },
+    opOpts = { hooks: true, em: null, noFlush: false },
   ) {
-    const hooks = createOpts?.hooks;
+    const hooks = opOpts?.hooks;
     if (hooks) {
       [newEntity] = await this.$beforeCreateHook([newEntity], ctx);
     }
 
     this.checkObjectForIds(newEntity);
 
-    const em = ctx?.em || this.entityManager.fork();
+    const em = opOpts?.em || this.entityManager.fork();
     if (secure) {
       await this.checkItemDbCount(em, ctx);
     }
@@ -325,11 +324,10 @@ export class CrudService<T extends CrudEntity> {
     entity[this.crudConfig.id_field] = this.dbAdapter.createNewId();
 
     await em.persist(entity);
-    if (!ctx?.noFlush) {
+    if (!opOpts?.noFlush) {
       await em.flush();
     }
     ctx = ctx || {};
-    ctx.em = em;
 
     if (hooks) {
       [entity] = await this.$afterCreateHook([entity], [newEntity], ctx);
@@ -352,16 +350,18 @@ export class CrudService<T extends CrudEntity> {
     inheritance: any = {},
   ) {
     newEntities = await this.$beforeCreateHook(newEntities, ctx);
-    ctx.noFlush = true;
+    ctx = ctx || {};
+    const opOpts = {
+      hooks: false,
+      noFlush: true,
+      em: this.entityManager.fork(),
+    };
     let results = [];
     for (let entity of newEntities) {
-      const res = await this.$create(entity, ctx, secure, inheritance, {
-        hooks: false,
-      });
+      const res = await this.$create(entity, ctx, secure, inheritance, opOpts);
       results.push(res);
     }
-    await ctx.em.flush();
-    ctx.noFlush = false;
+    await opOpts.em.flush();
     results = await this.$afterCreateHook(results, newEntities, ctx);
     return results;
   }
@@ -381,16 +381,15 @@ export class CrudService<T extends CrudEntity> {
     inheritance: any = {},
   ) {
     data = await this.$beforeUpdateHook(data, ctx);
-    ctx.noFlush = true;
     let results = [];
+    const opOpts = { em: this.entityManager.fork(), hooks: false };
+    let proms = [];
     for (let d of data) {
-      const res = await this.$patch(d.query, d.data, ctx, secure, inheritance, {
-        hooks: false,
-      });
-      results.push(res);
+      proms.push(
+        this.$patch(d.query, d.data, ctx, secure, inheritance, opOpts),
+      );
     }
-    await ctx.em.flush();
-    ctx.noFlush = false;
+    results = await Promise.all(proms);
     results = await this.$afterUpdateHook(results, data, ctx);
     return results;
   }
@@ -418,7 +417,7 @@ export class CrudService<T extends CrudEntity> {
     entity = await this.$beforeReadHook(entity, ctx);
     this.checkObjectForIds(entity);
 
-    const em = ctx?.em || this.entityManager.fork();
+    const em = this.entityManager.fork();
     const opts = this.getReadOptions(ctx);
     let result: FindResponseDto<T>;
     if (opts.limit) {
@@ -472,11 +471,22 @@ export class CrudService<T extends CrudEntity> {
     return this.$findOne(ctx.query, ctx, inheritance);
   }
 
-  async $findOne(entity: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
+  async $findOne(
+    entity: Partial<T>,
+    ctx: CrudContext,
+    inheritance: any = {},
+    opOpts = { hooks: true },
+  ) {
+    if (opOpts.hooks) {
+      entity = await this.$beforeReadHook(entity, ctx);
+    }
     this.checkObjectForIds(entity);
-    const em = ctx?.em || this.entityManager.fork();
+    const em = this.entityManager.fork();
     const opts = this.getReadOptions(ctx);
-    const result = await em.findOne(this.entity, entity, opts as any);
+    let result = await em.findOne(this.entity, entity, opts as any);
+    if (opOpts.hooks) {
+      result = await this.$afterReadHook(result, entity, ctx);
+    }
     return result;
   }
 
@@ -489,19 +499,20 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     inheritance: any = {},
   ) {
+    entity = await this.$beforeReadHook(entity, ctx);
     if (!entity[this.crudConfig.id_field]) {
       throw new BadRequestException('id field is required for findOneCached');
     }
 
     let cacheKey = this.getCacheKey(entity, ctx?.options);
-    const cached = await this.cacheManager.get(cacheKey);
-    if (cached) {
-      return cached;
+    let result = await this.cacheManager.get(cacheKey);
+    if (!result) {
+      result = await this.$findOne(entity, ctx, inheritance, { hooks: false });
+      if (!ctx.options?.cached || this.cacheOptions.allowClientCacheFilling) {
+        this.cacheManager.set(cacheKey, result, this.cacheOptions.TTL);
+      }
     }
-    const result = await this.$findOne(entity, ctx, inheritance);
-    if (!ctx.options?.cached || this.cacheOptions.allowClientCacheFilling) {
-      this.cacheManager.set(cacheKey, result, this.cacheOptions.TTL);
-    }
+    result = await this.$afterReadHook(result, entity, ctx);
     return result;
   }
 
@@ -539,9 +550,9 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     secure: boolean = true,
     inheritance: any = {},
-    patchOpts = { hooks: true },
+    opOpts = { hooks: true, em: null },
   ) {
-    const hooks = patchOpts?.hooks;
+    const hooks = opOpts?.hooks;
 
     if (hooks) {
       [{ query, data }] = await this.$beforeUpdateHook([{ query, data }], ctx);
@@ -550,11 +561,8 @@ export class CrudService<T extends CrudEntity> {
     this.checkObjectForIds(query);
     this.checkObjectForIds(data);
 
-    const em = ctx?.em || this.entityManager.fork();
+    const em = opOpts.em || this.entityManager.fork();
     let results = await this.doQueryPatch(query, data, ctx, em, secure);
-
-    ctx = ctx || {};
-    ctx.em = em;
 
     if (hooks) {
       [results] = await this.$afterUpdateHook(
@@ -577,7 +585,7 @@ export class CrudService<T extends CrudEntity> {
   ) {
     try {
       this.checkObjectForIds(args.query);
-      const em = ctx?.em || this.entityManager.fork();
+      const em = this.entityManager.fork();
       let update = this.dbAdapter.getIncrementUpdate(
         args.increments,
         this.entity,
@@ -588,7 +596,6 @@ export class CrudService<T extends CrudEntity> {
       addPatch = this.dbAdapter.getSetUpdate(addPatch);
       update = { ...update, ...addPatch };
       const res = await em.nativeUpdate(this.entity, args.query, update as any);
-      ctx.em = em;
       return res;
     } catch (e) {
       throw e;
@@ -661,13 +668,9 @@ export class CrudService<T extends CrudEntity> {
     inheritance: any = {},
   ) {
     [{ data, query }] = await this.$beforeUpdateHook([{ query, data }], ctx);
-    const em = ctx?.em || this.entityManager.fork();
+    const em = this.entityManager.fork();
     let result = await this.doOnePatch(query, data, ctx, em, secure);
-    if (!ctx?.noFlush) {
-      await em.flush();
-    }
-    ctx = ctx || {};
-    ctx.em = em;
+    await em.flush();
     [result] = await this.$afterUpdateHook([result], [{ data, query }], ctx);
     return result;
   }
@@ -770,14 +773,10 @@ export class CrudService<T extends CrudEntity> {
   async $remove(query: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
     [query] = await this.$beforeRemoveHook([query], ctx);
     this.checkObjectForIds(query);
-    const em = ctx?.em || this.entityManager.fork();
+    const em = this.entityManager.fork();
     const opts = this.getReadOptions(ctx);
     let length = em.nativeDelete(this.entity, query, opts);
-    if (!ctx?.noFlush) {
-      await em.flush();
-    }
-    ctx = ctx || {};
-    ctx.em = em;
+    await em.flush();
     [length] = await this.$afterRemoveHook([length], [query], ctx);
     return length;
   }
@@ -789,17 +788,15 @@ export class CrudService<T extends CrudEntity> {
   async $removeOne(query: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
     [query] = await this.$beforeRemoveHook([query], ctx);
     this.checkObjectForIds(query);
-    const em = ctx?.em || this.entityManager.fork();
+    const em = this.entityManager.fork();
     let entity = await em.findOne(this.entity, query);
     if (!entity) {
       throw new BadRequestException('Entity not found (removeOne)');
     }
     let result = em.remove(entity);
-    if (!ctx?.noFlush) {
-      await em.flush();
-    }
-    ctx = ctx || {};
-    ctx.em = em;
+
+    await em.flush();
+
     [result] = await this.$afterRemoveHook([result], [query], ctx);
     return 1;
   }
