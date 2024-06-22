@@ -45,6 +45,16 @@ const testAdminCreds = {
   password: 'testpassword',
 };
 
+function checkHookLogs(logChecks, allHooks) {
+  for (const check of logChecks) {
+    const log = allHooks.find(
+      (l) => l.hookPosition == check.pos && l.hookType == check.type,
+    );
+    expect(log).toBeDefined();
+    expect(log.message).toBe(check.expectedMessage);
+  }
+}
+
 describe('AppController', () => {
   let appController: CrudController;
   let userService: MyUserService;
@@ -133,7 +143,7 @@ describe('AppController', () => {
       });
       expect(res.message).toBe('replaced in hook');
       const createdTrigger: any = await hookTriggerService.$findOne(
-        { originalMessage: createMessage },
+        { originalMessage: 'replace Query with ' + createMessage },
         null,
       );
       expect(createdTrigger.result.message).toBe(createMessage + ' - hooked');
@@ -141,7 +151,53 @@ describe('AppController', () => {
         { message: createMessage },
         null,
       );
-      expect(createHookLogs.data.length).toBe(2);
+      const createHookLogs2 = await hookLogService.$find(
+        { message: createMessage + ' - hooked' },
+        null,
+      );
+      const createHookLogs3 = await hookLogService.$find(
+        { message: 'replace Query with ' + createMessage },
+        null,
+      );
+      const allHooks = [
+        ...createHookLogs.data,
+        ...createHookLogs2.data,
+        ...createHookLogs3.data,
+      ];
+      expect(allHooks.length).toBe(6);
+      const logCheck = [
+        {
+          pos: 'before',
+          type: 'controller',
+          expectedMessage: createMessage,
+        },
+        {
+          pos: 'before',
+          type: 'create',
+          expectedMessage: createMessage,
+        },
+        {
+          pos: 'after',
+          type: 'create',
+          expectedMessage: createMessage + ' - hooked',
+        },
+        {
+          pos: 'after',
+          type: 'controller',
+          expectedMessage: createMessage + ' - hooked',
+        },
+        {
+          pos: 'before',
+          type: 'read',
+          expectedMessage: 'replace Query with ' + createMessage,
+        },
+        {
+          pos: 'after',
+          type: 'read',
+          expectedMessage: createMessage,
+        },
+      ];
+      checkHookLogs(logCheck, allHooks);
     },
     8000 * 100,
   );

@@ -327,7 +327,6 @@ export class CrudService<T extends CrudEntity> {
     if (!opOpts?.noFlush) {
       await em.flush();
     }
-    ctx = ctx || {};
 
     if (hooks) {
       [entity] = await this.$afterCreateHook([entity], [newEntity], ctx);
@@ -350,7 +349,7 @@ export class CrudService<T extends CrudEntity> {
     inheritance: any = {},
   ) {
     newEntities = await this.$beforeCreateHook(newEntities, ctx);
-    ctx = ctx || {};
+
     const opOpts = {
       hooks: false,
       noFlush: true,
@@ -366,40 +365,36 @@ export class CrudService<T extends CrudEntity> {
     return results;
   }
 
-  async $patchBatch_(
-    ctx: CrudContext,
-    secure: boolean = true,
-    inheritance: any = {},
-  ) {
-    return this.$patchBatch(ctx.data, ctx, secure, inheritance);
+  async $patchBatch_(ctx: CrudContext, inheritance: any = {}) {
+    return this.$patchBatch(ctx.data, ctx, inheritance);
   }
 
-  async $patchBatch(
-    data: any[],
-    ctx: CrudContext,
-    secure: boolean = true,
-    inheritance: any = {},
-  ) {
+  async $patchBatch(data: any[], ctx: CrudContext, inheritance: any = {}) {
     data = await this.$beforeUpdateHook(data, ctx);
     let results = [];
     const opOpts = { em: this.entityManager.fork(), hooks: false };
     let proms = [];
     for (let d of data) {
-      proms.push(
-        this.$patch(d.query, d.data, ctx, secure, inheritance, opOpts),
-      );
+      proms.push(this.$patch(d.query, d.data, ctx, inheritance, opOpts));
     }
     results = await Promise.all(proms);
     results = await this.$afterUpdateHook(results, data, ctx);
     return results;
   }
 
+  /**
+   * @usageNotes Does not trigger hooks nor check for maxItemsInDb
+   */
   async $unsecure_fastCreate(
     newEntity: Partial<T>,
     ctx: CrudContext,
     inheritance: any = {},
   ) {
-    return await this.$create(newEntity, ctx, false, inheritance);
+    return await this.$create(newEntity, ctx, false, inheritance, {
+      hooks: false,
+      em: null,
+      noFlush: false,
+    });
   }
 
   async $find_(
@@ -536,19 +531,14 @@ export class CrudService<T extends CrudEntity> {
     return entity;
   }
 
-  async $patch_(
-    ctx: CrudContext,
-    secure: boolean = true,
-    inheritance: any = {},
-  ) {
-    return this.$patch(ctx.query, ctx.data, ctx, secure, inheritance);
+  async $patch_(ctx: CrudContext, inheritance: any = {}) {
+    return this.$patch(ctx.query, ctx.data, ctx, inheritance);
   }
 
   async $patch(
     query: Partial<T>,
     data: Partial<T>,
     ctx: CrudContext,
-    secure: boolean = true,
     inheritance: any = {},
     opOpts = { hooks: true, em: null },
   ) {
@@ -562,7 +552,7 @@ export class CrudService<T extends CrudEntity> {
     this.checkObjectForIds(data);
 
     const em = opOpts.em || this.entityManager.fork();
-    let results = await this.doQueryPatch(query, data, ctx, em, secure);
+    let results = await this.doQueryPatch(query, data, ctx, em);
 
     if (hooks) {
       [results] = await this.$afterUpdateHook(
@@ -574,6 +564,9 @@ export class CrudService<T extends CrudEntity> {
     return results;
   }
 
+  /**
+   * @usageNotes Does not trigger hooks nor check db model
+   */
   async $unsecure_incPatch(
     args: {
       query: Partial<T>;
@@ -581,25 +574,20 @@ export class CrudService<T extends CrudEntity> {
       addPatch?: any;
     },
     ctx: CrudContext,
-    inheritance: any = {},
   ) {
-    try {
-      this.checkObjectForIds(args.query);
-      const em = this.entityManager.fork();
-      let update = this.dbAdapter.getIncrementUpdate(
-        args.increments,
-        this.entity,
-        ctx,
-      );
-      let addPatch = args.addPatch || {};
-      addPatch.updatedAt = new Date();
-      addPatch = this.dbAdapter.getSetUpdate(addPatch);
-      update = { ...update, ...addPatch };
-      const res = await em.nativeUpdate(this.entity, args.query, update as any);
-      return res;
-    } catch (e) {
-      throw e;
-    }
+    this.checkObjectForIds(args.query);
+    const em = this.entityManager.fork();
+    let update = this.dbAdapter.getIncrementUpdate(
+      args.increments,
+      this.entity,
+      ctx,
+    );
+    let addPatch = args.addPatch || {};
+    addPatch.updatedAt = new Date();
+    addPatch = this.dbAdapter.getSetUpdate(addPatch);
+    update = { ...update, ...addPatch };
+    const res = await em.nativeUpdate(this.entity, args.query, update as any);
+    return res;
   }
 
   async $patchIn_(
@@ -643,13 +631,19 @@ export class CrudService<T extends CrudEntity> {
     return this.$remove(query, ctx);
   }
 
+  /**
+   * @usageNotes Does not trigger hooks
+   */
   async $unsecure_fastPatch(
     query: Partial<T>,
     newEntity: Partial<T>,
     ctx: CrudContext,
     inheritance: any = {},
   ) {
-    return this.$patch(query, newEntity, ctx, false, inheritance);
+    return this.$patch(query, newEntity, ctx, inheritance, {
+      hooks: false,
+      em: null,
+    });
   }
 
   async $patchOne_(
@@ -675,6 +669,9 @@ export class CrudService<T extends CrudEntity> {
     return result;
   }
 
+  /**
+   * @usageNotes Does not trigger hooks nor check if the entity exists before updating
+   */
   async $unsecure_fastPatchOne(
     id: string,
     newEntity: Partial<T>,
@@ -685,8 +682,8 @@ export class CrudService<T extends CrudEntity> {
       { [this.crudConfig.id_field]: id } as any,
       newEntity,
       ctx,
-      false,
       inheritance,
+      { hooks: false, em: null },
     );
   }
 
@@ -695,7 +692,6 @@ export class CrudService<T extends CrudEntity> {
     newEntity: Partial<T>,
     ctx: CrudContext,
     em: EntityManager,
-    secure: boolean,
   ) {
     const opts = this.getReadOptions(ctx);
     let ormEntity = {};

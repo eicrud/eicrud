@@ -29,12 +29,13 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     data: Partial<HookTrigger>[],
     ctx: CrudContext,
   ) {
+    await logHook(this, data, 'before', 'create', ctx);
+
     // before HookTrigger creation
     for (const d of data) {
       d.originalMessage = d.message;
       d.message = d.message + ' - hooked';
     }
-    await logHook(this, data, 'before', 'create', ctx);
     return data;
   }
 
