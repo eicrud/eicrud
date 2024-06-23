@@ -156,7 +156,11 @@ describe('AppController', () => {
       { message: 'update me many' },
     ];
     await hookTriggerService.$createBatch(
-      [hookToUpdate, ...hooksToUpdateBatch, ...hooksToUpdateMany],
+      [hookToUpdate, ...hooksToUpdateMany],
+      null,
+    );
+    hooksToUpdateBatch = await hookTriggerService.$createBatch(
+      hooksToUpdateBatch,
       null,
     );
 
@@ -455,8 +459,8 @@ describe('AppController', () => {
       expect(trig).toBe('replaced in hook (update)');
     }
     const createdTriggers: any = await hookTriggerService.$findIn(
-      hooksToUpdateBatch.map((h) => h.id),
-      { originalMessage: createMessage },
+      hooksToUpdateBatch.map((h) => h.id.toString()),
+      { originalMessage: 'replace Query with ' + createMessage },
       null,
     );
     expect(createdTriggers.hooked).toBe('read');
@@ -489,13 +493,13 @@ describe('AppController', () => {
       },
       {
         pos: 'before',
-        type: 'create',
+        type: 'update',
         expectedMessage: createMessage,
         length: payload.length,
       },
       {
         pos: 'after',
-        type: 'create',
+        type: 'update',
         expectedMessage: createMessage + ' - hooked',
         length: payload.length,
       },

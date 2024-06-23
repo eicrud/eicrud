@@ -5,7 +5,7 @@ import { CrudUser } from "@eicrud/core/config";
 export class User implements CrudUser {
 
     @PrimaryKey({ name: '_id'})
-    id: any;
+    id: string;
 
     @Unique()
     @Property()
