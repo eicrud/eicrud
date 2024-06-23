@@ -9,7 +9,7 @@ export class tk_entity_name implements CrudEntity {
     @PrimaryKey({ name: '_id' })
     @IsString()
     @IsOptional()
-    id: string;
+    id: any;
 
     @Property()
     createdAt: Date;

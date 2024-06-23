@@ -7,13 +7,15 @@ export class HookTrigger implements CrudEntity {
   @PrimaryKey({ name: '_id' })
   @IsString()
   @IsOptional()
-  id: string;
+  id: any;
 
   @IsString()
   @Property()
   message: string;
 
   @Property()
+  @IsString()
+  @IsOptional()
   originalMessage: string;
 
   @Property()

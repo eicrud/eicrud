@@ -5,6 +5,7 @@ export function getSecurity(hooktrigger: string): CrudSecurity {
   return {
     rolesRights: {
       user: {
+        maxBatchSize: 5,
         async defineCRUDAbility(can, cannot, ctx) {
           // Define abilities for user
           can('crud', hooktrigger);

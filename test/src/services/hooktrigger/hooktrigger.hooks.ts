@@ -12,11 +12,17 @@ export async function logHook(
 ) {
   const arrData = Array.isArray(data) ? data : [data];
   const logs: Partial<HookLog>[] = [];
-  for (const d of arrData) {
+  for (const idx in arrData) {
+    const d = arrData[idx];
     const log: Partial<HookLog> = {
-      message: d.message || d.originalMessage,
+      message:
+        d.message ||
+        d.originalMessage ||
+        d.data.message ||
+        d.data.originalMessage,
       hookPosition: position,
       hookType: type,
+      length: parseInt(idx),
     };
     logs.push(log);
   }
@@ -82,7 +88,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     await logHook(this, query, 'after', 'read', ctx);
 
     // after HookTrigger read
-    result = { result, hooked: true };
+    result = { result, hooked: 'read' };
 
     return result;
   }
@@ -112,7 +118,13 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     // after HookTrigger update
     await logHook(this, updates, 'after', 'update', ctx);
 
-    results = { results, hooked: true } as any;
+    for (const r in results) {
+      if (results[r]?.message) {
+        results[r].message = 'replaced in hook (update)';
+      } else {
+        results[r] = 'replaced in hook (update)';
+      }
+    }
 
     return results;
   }
@@ -142,7 +154,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     // after HookTrigger remove
     await logHook(this, queries, 'after', 'delete', ctx);
 
-    result = { result, hooked: true };
+    result = { result, hooked: 'remove' };
 
     return result;
   }

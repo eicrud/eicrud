@@ -26,6 +26,9 @@ export class HookLog implements CrudEntity {
   hookPosition: HookPos;
 
   @Property()
+  length: number;
+
+  @Property()
   hookType: HookType;
 
   @Property()
