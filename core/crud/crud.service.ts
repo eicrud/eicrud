@@ -755,13 +755,13 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $delete(query: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
-    [query] = await this.$beforeRemoveHook([query], ctx);
+    [query] = await this.$beforeDeleteHook([query], ctx);
     this.checkObjectForIds(query);
     const em = this.entityManager.fork();
     const opts = this.getReadOptions(ctx);
     let length = em.nativeDelete(this.entity, query, opts);
     await em.flush();
-    [length] = await this.$afterRemoveHook([length], [query], ctx);
+    [length] = await this.$afterDeleteHook([length], [query], ctx);
     return length;
   }
 
@@ -770,7 +770,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $deleteOne(query: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
-    [query] = await this.$beforeRemoveHook([query], ctx);
+    [query] = await this.$beforeDeleteHook([query], ctx);
     this.checkObjectForIds(query);
     const em = this.entityManager.fork();
     let entity = await em.findOne(this.entity, query);
@@ -781,7 +781,7 @@ export class CrudService<T extends CrudEntity> {
 
     await em.flush();
 
-    [result] = await this.$afterRemoveHook([result], [query], ctx);
+    [result] = await this.$afterDeleteHook([result], [query], ctx);
     return 1;
   }
 
@@ -930,12 +930,12 @@ export class CrudService<T extends CrudEntity> {
     return this.config.hooks.$afterUpdateHook.call(this, results, updates, ctx);
   }
 
-  async $beforeRemoveHook(queries: Partial<T>[], ctx: CrudContext) {
-    return this.config.hooks.$beforeRemoveHook.call(this, queries, ctx);
+  async $beforeDeleteHook(queries: Partial<T>[], ctx: CrudContext) {
+    return this.config.hooks.$beforeDeleteHook.call(this, queries, ctx);
   }
 
-  async $afterRemoveHook(result: any, queries: Partial<T>[], ctx: CrudContext) {
-    return this.config.hooks.$afterRemoveHook.call(this, result, queries, ctx);
+  async $afterDeleteHook(result: any, queries: Partial<T>[], ctx: CrudContext) {
+    return this.config.hooks.$afterDeleteHook.call(this, result, queries, ctx);
   }
 
   async errorControllerHook(error: Error, ctx: CrudContext): Promise<any> {
@@ -995,7 +995,7 @@ export class CrudHooks<T extends CrudEntity> {
     return results;
   }
 
-  async $beforeRemoveHook(
+  async $beforeDeleteHook(
     this: CrudService<T>,
     queries: Partial<T>[],
     ctx: CrudContext,
@@ -1003,7 +1003,7 @@ export class CrudHooks<T extends CrudEntity> {
     return queries;
   }
 
-  async $afterRemoveHook(
+  async $afterDeleteHook(
     this: CrudService<T>,
     result: any,
     queries: Partial<T>[],

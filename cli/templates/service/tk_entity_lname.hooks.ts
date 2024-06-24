@@ -53,14 +53,14 @@ export class tk_entity_nameHooks extends CrudHooks<tk_entity_name> {
         return results;
     }
 
-    override async $beforeRemoveHook(this: tk_entity_nameService, queries: Partial<tk_entity_name>[], ctx: CrudContext) {
+    override async $beforeDeleteHook(this: tk_entity_nameService, queries: Partial<tk_entity_name>[], ctx: CrudContext) {
         // before tk_entity_name remove
 
 
         return queries;
     }
 
-    override async $afterRemoveHook(this: tk_entity_nameService, result: any, queries: Partial<tk_entity_name>[], ctx: CrudContext) {
+    override async $afterDeleteHook(this: tk_entity_nameService, result: any, queries: Partial<tk_entity_name>[], ctx: CrudContext) {
         // after tk_entity_name remove
 
 

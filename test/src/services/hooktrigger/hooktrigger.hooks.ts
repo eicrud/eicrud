@@ -129,7 +129,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     return results;
   }
 
-  override async $beforeRemoveHook(
+  override async $beforeDeleteHook(
     this: HookTriggerService,
     queries: Partial<HookTrigger>[],
     ctx: CrudContext,
@@ -145,7 +145,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     return queries;
   }
 
-  override async $afterRemoveHook(
+  override async $afterDeleteHook(
     this: HookTriggerService,
     result: any,
     queries: Partial<HookTrigger>[],
