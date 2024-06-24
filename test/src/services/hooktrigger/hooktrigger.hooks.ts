@@ -139,7 +139,12 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     await logHook(this, queries, 'before', 'delete', ctx);
 
     for (const q of queries) {
-      q.message = q.message.replace('replace Query with ', '');
+      if (q.message) q.message = q.message.replace('replace Query with ', '');
+      if (q.originalMessage)
+        q.originalMessage = q.originalMessage.replace(
+          'replace Query with ',
+          '',
+        );
     }
 
     return queries;
@@ -154,7 +159,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     // after HookTrigger remove
     await logHook(this, queries, 'after', 'delete', ctx);
 
-    result = { result, hooked: 'remove' };
+    result = 'replaced in hook (delete)';
 
     return result;
   }

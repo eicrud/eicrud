@@ -547,10 +547,10 @@ export class CrudController {
     );
     try {
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      await currentService.$deleteOne_(ctx);
+      const result = await currentService.$deleteOne_(ctx);
       await this.afterHooks(currentService, 1, ctx);
       this.addCountToDataMap(ctx, -1);
-      return 1;
+      return result;
     } catch (e) {
       return this.errorHooks(currentService, e, ctx);
     }

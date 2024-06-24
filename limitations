@@ -1,4 +1,3 @@
-- can't use class transformer on entities  & cmdDtos
-- mongodb only (maybe postgre)
+- can't use class transformer on entities & cmdDtos
 - @PrimaryKey(name: '_id') id;
 - only supports fastify

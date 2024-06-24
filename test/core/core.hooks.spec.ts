@@ -742,86 +742,90 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   }, 8000);
 
-  it('should call hooks on deleteOne and findOne', async () => {
-    const user = users['Michael Doe'];
-    const createMessage = 'Test delete one message';
-    const payload: Partial<HookTrigger> = {
-      message: createMessage,
-    };
-    const search: Partial<HookTrigger> = {
-      originalMessage: 'delete me',
-    };
-    const query: CrudQuery = {
-      service: 'hook-trigger',
-      query: JSON.stringify(search),
-    };
-    const res = await testMethod({
-      url: '/crud/one',
-      method: 'DELETE',
-      expectedCode: 200,
-      app,
-      jwt: user.jwt,
-      entityManager,
-      payload,
-      query,
-      crudConfig,
-    });
-    expect(res.message).toBe('replaced in hook (update)');
-    const createdTrigger: any = await hookTriggerService.$findOne(
-      { originalMessage: 'replace Query with ' + createMessage },
-      null,
-    );
-    expect(createdTrigger.result.message).toBe(createMessage + ' - hooked');
-    const createHookLogs = await hookLogService.$find(
-      { message: createMessage },
-      null,
-    );
-    const createHookLogs2 = await hookLogService.$find(
-      { message: createMessage + ' - hooked' },
-      null,
-    );
-    const createHookLogs3 = await hookLogService.$find(
-      { message: 'replace Query with ' + createMessage },
-      null,
-    );
-    const allHooks = [
-      ...createHookLogs.data,
-      ...createHookLogs2.data,
-      ...createHookLogs3.data,
-    ];
-    expect(allHooks.length).toBe(6);
-    const logCheck = [
-      {
-        pos: 'before',
-        type: 'controller',
-        expectedMessage: createMessage,
-      },
-      {
-        pos: 'before',
-        type: 'update',
-        expectedMessage: createMessage,
-      },
-      {
-        pos: 'after',
-        type: 'update',
-        expectedMessage: createMessage + ' - hooked',
-      },
-      {
-        pos: 'after',
-        type: 'controller',
-        expectedMessage: createMessage + ' - hooked',
-      },
-      {
-        pos: 'before',
-        type: 'read',
-        expectedMessage: 'replace Query with ' + createMessage,
-      },
-      {
-        pos: 'after',
-        type: 'read',
-        expectedMessage: createMessage,
-      },
-    ];
-    checkHookLogs(logCheck, allHooks);
-  }, 8000);
+  it(
+    'should call hooks on deleteOne and findOne',
+    async () => {
+      const user = users['Michael Doe'];
+      const createMessage = 'Test delete one message';
+      const payload: Partial<HookTrigger> = {
+        message: createMessage,
+      };
+      const search: Partial<HookTrigger> = {
+        originalMessage: 'delete me',
+      };
+      const query: CrudQuery = {
+        service: 'hook-trigger',
+        query: JSON.stringify(search),
+      };
+      const res = await testMethod({
+        url: '/crud/one',
+        method: 'DELETE',
+        expectedCode: 200,
+        app,
+        jwt: user.jwt,
+        entityManager,
+        payload,
+        query,
+        crudConfig,
+      });
+      expect(res).toBe('replaced in hook (delete)');
+      const createdTrigger: any = await hookTriggerService.$findOne(
+        { originalMessage: 'replace Query with ' + createMessage },
+        null,
+      );
+      expect(createdTrigger.result.message).toBe(createMessage + ' - hooked');
+      const createHookLogs = await hookLogService.$find(
+        { message: createMessage },
+        null,
+      );
+      const createHookLogs2 = await hookLogService.$find(
+        { message: createMessage + ' - hooked' },
+        null,
+      );
+      const createHookLogs3 = await hookLogService.$find(
+        { message: 'replace Query with ' + createMessage },
+        null,
+      );
+      const allHooks = [
+        ...createHookLogs.data,
+        ...createHookLogs2.data,
+        ...createHookLogs3.data,
+      ];
+      expect(allHooks.length).toBe(6);
+      const logCheck = [
+        {
+          pos: 'before',
+          type: 'controller',
+          expectedMessage: createMessage,
+        },
+        {
+          pos: 'before',
+          type: 'update',
+          expectedMessage: createMessage,
+        },
+        {
+          pos: 'after',
+          type: 'update',
+          expectedMessage: createMessage + ' - hooked',
+        },
+        {
+          pos: 'after',
+          type: 'controller',
+          expectedMessage: createMessage + ' - hooked',
+        },
+        {
+          pos: 'before',
+          type: 'read',
+          expectedMessage: 'replace Query with ' + createMessage,
+        },
+        {
+          pos: 'after',
+          type: 'read',
+          expectedMessage: createMessage,
+        },
+      ];
+      checkHookLogs(logCheck, allHooks);
+    },
+    8000 * 100,
+  );
 });

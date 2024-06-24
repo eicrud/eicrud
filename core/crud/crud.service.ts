@@ -759,9 +759,8 @@ export class CrudService<T extends CrudEntity> {
     this.checkObjectForIds(query);
     const em = this.entityManager.fork();
     const opts = this.getReadOptions(ctx);
-    let length = em.nativeDelete(this.entity, query, opts);
-    await em.flush();
-    [length] = await this.$afterDeleteHook([length], [query], ctx);
+    let length = await em.nativeDelete(this.entity, query, opts);
+    length = await this.$afterDeleteHook(length, [query], ctx);
     return length;
   }
 
@@ -777,12 +776,12 @@ export class CrudService<T extends CrudEntity> {
     if (!entity) {
       throw new BadRequestException('Entity not found (removeOne)');
     }
-    let result = em.remove(entity);
+    em.remove(entity);
 
     await em.flush();
 
-    [result] = await this.$afterDeleteHook([result], [query], ctx);
-    return 1;
+    let result = await this.$afterDeleteHook(1, [query], ctx);
+    return result;
   }
 
   async $cmdHandler(
@@ -948,7 +947,7 @@ export class CrudHooks<T extends CrudEntity> {
     this: CrudService<T>,
     data: Partial<T>[],
     ctx: CrudContext,
-  ) {
+  ): Promise<Partial<T>[]> {
     return data;
   }
 
@@ -957,7 +956,7 @@ export class CrudHooks<T extends CrudEntity> {
     result: any[],
     data: Partial<T>[],
     ctx: CrudContext,
-  ) {
+  ): Promise<T[]> {
     return result;
   }
 
@@ -965,7 +964,7 @@ export class CrudHooks<T extends CrudEntity> {
     this: CrudService<T>,
     query: Partial<T>,
     ctx: CrudContext,
-  ) {
+  ): Promise<Partial<T>> {
     return query;
   }
 
@@ -974,7 +973,7 @@ export class CrudHooks<T extends CrudEntity> {
     result,
     query: Partial<T>,
     ctx: CrudContext,
-  ) {
+  ): Promise<T> {
     return result;
   }
 
@@ -982,7 +981,7 @@ export class CrudHooks<T extends CrudEntity> {
     this: CrudService<T>,
     updates: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
-  ) {
+  ): Promise<{ query: Partial<T>; data: Partial<T> }[]> {
     return updates;
   }
 
@@ -991,7 +990,7 @@ export class CrudHooks<T extends CrudEntity> {
     results: any[],
     updates: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
-  ) {
+  ): Promise<any[]> {
     return results;
   }
 
@@ -999,16 +998,16 @@ export class CrudHooks<T extends CrudEntity> {
     this: CrudService<T>,
     queries: Partial<T>[],
     ctx: CrudContext,
-  ) {
+  ): Promise<Partial<T>[]> {
     return queries;
   }
 
   async $afterDeleteHook(
     this: CrudService<T>,
-    result: any,
+    result: number,
     queries: Partial<T>[],
     ctx: CrudContext,
-  ) {
+  ): Promise<number> {
     return result;
   }
 
