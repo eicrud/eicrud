@@ -2,6 +2,10 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import hkdf from '@panva/hkdf';
 
+export type RequireAtLeastOne<T> = {
+  [K in keyof T]-?: Required<Pick<T, K>> &
+    Partial<Pick<T, Exclude<keyof T, K>>>;
+}[keyof T];
 export class _utils {
   static async deriveSecretKey(key, message) {
     return Buffer.from(await hkdf('sha256', key, '', message, 256)).toString(

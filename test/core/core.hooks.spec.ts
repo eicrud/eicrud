@@ -208,6 +208,9 @@ describe('AppController', () => {
     hooksToDeleteIn = await hookTriggerService.$createBatch(
       hooksToDeleteIn,
       null,
+      false,
+      {},
+      { hooks: false },
     );
 
     await createAccountsAndProfiles(users, userService, crudConfig, {
@@ -746,12 +749,10 @@ describe('AppController', () => {
     'should call hooks on deleteOne and findOne',
     async () => {
       const user = users['Michael Doe'];
-      const createMessage = 'Test delete one message';
-      const payload: Partial<HookTrigger> = {
-        message: createMessage,
-      };
+      const createMessage = 'delete me';
+      const payload: Partial<HookTrigger> = {};
       const search: Partial<HookTrigger> = {
-        originalMessage: 'delete me',
+        originalMessage: 'replace Query with ' + createMessage,
       };
       const query: CrudQuery = {
         service: 'hook-trigger',
@@ -770,10 +771,10 @@ describe('AppController', () => {
       });
       expect(res).toBe('replaced in hook (delete)');
       const createdTrigger: any = await hookTriggerService.$findOne(
-        { originalMessage: 'replace Query with ' + createMessage },
+        { originalMessage: createMessage },
         null,
       );
-      expect(createdTrigger.result.message).toBe(createMessage + ' - hooked');
+      expect(createdTrigger.result).toBeFalsy();
       const createHookLogs = await hookLogService.$find(
         { message: createMessage },
         null,

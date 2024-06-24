@@ -795,7 +795,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   async $create_account(
     dto: CreateAccountDto,
     ctx: CrudContext,
-    inheritance: any = {},
+    inheritance?: Inheritance,
   ) {
     const { email, password, role } = dto;
     if (
@@ -915,7 +915,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     } as LoginResponseDto;
   }
 
-  async $login(dto: LoginDto, ctx: CrudContext, inheritance: any = {}) {
+  async $login(dto: LoginDto, ctx: CrudContext, inheritance?: Inheritance) {
     const lastLogingAttempt: Date = this.userLastLoginAttemptMap.get(dto.email);
     const now = new Date();
     if (
@@ -977,7 +977,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   async $logout_everywhere(
     dto: UserIdDto,
     ctx: CrudContext,
-    inheritance: any = {},
+    inheritance?: Inheritance,
   ) {
     const query: any = { [this.crudConfig.id_field]: dto.userId };
     const user =
