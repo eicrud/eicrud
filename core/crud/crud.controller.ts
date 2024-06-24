@@ -547,7 +547,7 @@ export class CrudController {
     );
     try {
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      await currentService.$removeOne_(ctx);
+      await currentService.$deleteOne_(ctx);
       await this.afterHooks(currentService, 1, ctx);
       this.addCountToDataMap(ctx, -1);
       return 1;
@@ -573,7 +573,7 @@ export class CrudController {
     );
     try {
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      const res = await currentService.$remove_(ctx);
+      const res = await currentService.$delete_(ctx);
       await this.afterHooks(currentService, res, ctx);
       this.addCountToDataMap(ctx, -res);
       return res;
@@ -614,7 +614,7 @@ export class CrudController {
       ctx.ids = ids;
       delete ctx.query[this.crudConfig.id_field];
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      const res = await currentService.$removeIn_(ctx);
+      const res = await currentService.$deleteIn_(ctx);
       await this.afterHooks(currentService, res, ctx);
       this.addCountToDataMap(ctx, -res);
       return res;

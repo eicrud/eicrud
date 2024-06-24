@@ -605,7 +605,7 @@ export class CrudService<T extends CrudEntity> {
     return await this.$patch(query, newEntity, ctx, inheritance);
   }
 
-  async $removeIn_(ctx: CrudContext, inheritance: any = {}) {
+  async $deleteIn_(ctx: CrudContext, inheritance: any = {}) {
     return this.$deleteIn(ctx.ids, ctx.query, ctx, inheritance);
   }
 
@@ -750,7 +750,7 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
-  async $remove_(ctx: CrudContext, inheritance: any = {}) {
+  async $delete_(ctx: CrudContext, inheritance: any = {}) {
     return this.$delete(ctx.query, ctx, inheritance);
   }
 
@@ -765,7 +765,7 @@ export class CrudService<T extends CrudEntity> {
     return length;
   }
 
-  async $removeOne_(ctx: CrudContext, inheritance: any = {}) {
+  async $deleteOne_(ctx: CrudContext, inheritance: any = {}) {
     return this.$deleteOne(ctx.query, ctx, inheritance);
   }
 

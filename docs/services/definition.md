@@ -80,7 +80,7 @@ A CrudService handles all CRUD operations out of the box :
   - **Create**: [$create](./operations.md#create-operations), [$createBatch](./operations.md#create-operations)
   - **Read**: [$findOne](./operations.md#read-operations), [$find](./operations.md#read-operations), [$findIn](./operations.md#read-operations)
   - **Update**: [$patchOne](./operations.md#update-operations), [$patch](./operations.md#update-operations), [$patchIn](./operations.md#update-operations), [$patchBatch](./operations.md#update-operations)
-  - **Delete**: [$removeOne](./operations.md#delete-operations), [$remove](./operations.md#delete-operations), [$removeIn](./operations.md#delete-operations)
+  - **Delete**: [$deleteOne](./operations.md#delete-operations), [$delete](./operations.md#delete-operations), [$deleteIn](./operations.md#delete-operations)
 
 You can extend it with [CMDs](commands.md) for everything else.
 

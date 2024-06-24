@@ -138,7 +138,7 @@ await profileService.$patchBatch(updates, ctx);
     
 ## Delete Operations
 
-### $removeOne
+### $deleteOne
 Delete an entity.
 ```typescript
 const query: Partial<Profile> = {
@@ -147,9 +147,9 @@ const query: Partial<Profile> = {
 await profileService.$deleteOne(query, ctx);
 ```
 !!! note
-    `$removeOne` will throw if the queried entity doesn't exist.
+    `$deleteOne` will throw if the queried entity doesn't exist.
 
-### $remove
+### $delete
 Remove every entity that matches a query.
 ```typescript
 const query: Partial<Profile> = {
@@ -159,9 +159,9 @@ const query: Partial<Profile> = {
 await profileService.$delete(query, ctx);
 ```
 !!! note
-    `$remove` returns the number of entities affected by the operation
+    `$delete` returns the number of entities affected by the operation
 
-### $removeIn
+### $deleteIn
 Remove entities with IDs included in the provided list. 
 ```typescript
 const ids = ['4d3ed089fb60ab534684b7e9', '4d3ed089fb60ab534684b7ff']
