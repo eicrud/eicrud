@@ -4,7 +4,7 @@ import { UserProfileService } from '../../userprofile.service';
 import { CrudContext } from '@eicrud/core/crud';
 import UserProfile from '../../userprofile.entity';
 
-export default async function search(
+export async function search(
   dto: SearchDto,
   service: UserProfileService,
   ctx: CrudContext,

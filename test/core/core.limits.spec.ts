@@ -14,7 +14,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
-import UserProfile from '../src/services/userprofile/userprofile.entity';
+import { UserProfile } from '../src/services/userprofile/userprofile.entity';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,
@@ -23,8 +23,8 @@ import {
   testMethod,
 } from '../test.utils';
 import { UserProfileService as MyProfileService } from '../src/services/userprofile/userprofile.service';
-import TestCmdDto from '../src/services/userprofile/cmds/test_cmd/test_cmd.dto';
-import Melon from '../src/services/melon/melon.entity';
+import { Test_cmdDto as TestCmdDto } from '../src/services/userprofile/cmds/test_cmd/test_cmd.dto';
+import { Melon } from '../src/services/melon/melon.entity';
 import { CrudService } from '../../core/crud/crud.service';
 import { TestUser } from '../test.utils';
 import {
@@ -33,7 +33,7 @@ import {
 } from '../../core/config/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
-import Picture from '../src/services/picture/picture.entity';
+import { Picture } from '../src/services/picture/picture.entity';
 import { CrudErrors } from '../../shared/CrudErrors';
 
 const testAdminCreds = {

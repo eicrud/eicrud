@@ -14,7 +14,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager } from '@mikro-orm/mongodb';
-import UserProfile from '../src/services/userprofile/userprofile.entity';
+import { UserProfile } from '../src/services/userprofile/userprofile.entity';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,

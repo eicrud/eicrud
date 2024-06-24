@@ -1,7 +1,7 @@
 import { $MaxSize, $Transform } from '@eicrud/core/validation';
 import { IsString, IsOptional } from 'class-validator';
 
-export default class SearchDto {
+export class SearchDto {
   @IsString()
   @IsOptional()
   @$Transform((v: string) => v.replace(/[.*+?^$}{)(|[\]\\]/g, '\\$&'))

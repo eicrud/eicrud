@@ -14,7 +14,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
-import UserProfile from '../src/services/userprofile/userprofile.entity';
+import { UserProfile } from '../src/services/userprofile/userprofile.entity';
 import { BackdoorQuery, CrudQuery } from '@eicrud/core/crud/model/CrudQuery';
 import { createAccountsAndProfiles, testMethod } from '../test.utils';
 import { CrudService } from '@eicrud/core/crud/crud.service';
@@ -28,7 +28,7 @@ import exp from 'constants';
 import { MelonService } from '../src/services/melon/melon.service';
 import axios from 'axios';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
-import DragonFruit from '../src/services/dragonfruit/dragonfruit.entity';
+import { DragonFruit } from '../src/services/dragonfruit/dragonfruit.entity';
 import { FindResponseDto } from '../../shared/interfaces';
 import { DragonFruitService } from '../src/services/dragonfruit/dragonfruit.service';
 

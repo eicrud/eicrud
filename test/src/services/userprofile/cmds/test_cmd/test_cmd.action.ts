@@ -3,7 +3,7 @@ import Test_cmdDto from './test_cmd.dto';
 import { UserProfileService } from '../../userprofile.service';
 import { CrudContext } from '@eicrud/core/crud';
 
-export default async function test_cmd(
+export async function test_cmd(
   dto: Test_cmdDto,
   service: UserProfileService,
   ctx: CrudContext,

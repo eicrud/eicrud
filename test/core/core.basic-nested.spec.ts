@@ -11,7 +11,7 @@ import { MyUserService } from '../src/services/myuser/myuser.service';
 import { CrudAuthService } from '../../core/authentication/auth.service';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
-import UserProfile from '../src/services/userprofile/userprofile.entity';
+import { UserProfile } from '../src/services/userprofile/userprofile.entity';
 import {
   createAccountsAndProfiles,
   createNewProfileTest,
@@ -23,8 +23,8 @@ import {
   CrudConfigService,
 } from '../../core/config/crud.config.service';
 import { TestUser } from '../test.utils';
-import Picture from '../src/services/picture/picture.entity';
-import Melon from '../src/services/melon/melon.entity';
+import { Picture } from '../src/services/picture/picture.entity';
+import { Melon } from '../src/services/melon/melon.entity';
 import { PictureService as MyPictureService } from '../src/services/picture/picture.service';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
 

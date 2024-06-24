@@ -590,19 +590,8 @@ export class CrudService<T extends CrudEntity> {
     return res;
   }
 
-  async $patchIn_(
-    ctx: CrudContext,
-    secure: boolean = true,
-    inheritance: any = {},
-  ) {
-    return this.$patchIn(
-      ctx.ids,
-      ctx.query,
-      ctx.data,
-      ctx,
-      secure,
-      inheritance,
-    );
+  async $patchIn_(ctx: CrudContext, inheritance: any = {}) {
+    return this.$patchIn(ctx.ids, ctx.query, ctx.data, ctx, inheritance);
   }
 
   async $patchIn(
@@ -610,25 +599,24 @@ export class CrudService<T extends CrudEntity> {
     query: Partial<T>,
     newEntity: Partial<T>,
     ctx: CrudContext,
-    secure: boolean = true,
     inheritance: any = {},
   ) {
     this.dbAdapter.makeInQuery(ids, query);
-    return await this.$patch(query, newEntity, ctx, secure, inheritance);
+    return await this.$patch(query, newEntity, ctx, inheritance);
   }
 
   async $removeIn_(ctx: CrudContext, inheritance: any = {}) {
-    return this.$removeIn(ctx.ids, ctx.query, ctx, inheritance);
+    return this.$deleteIn(ctx.ids, ctx.query, ctx, inheritance);
   }
 
-  async $removeIn(
+  async $deleteIn(
     ids: any,
     query: any,
     ctx: CrudContext,
     inheritance: any = {},
   ) {
     this.dbAdapter.makeInQuery(ids, query);
-    return this.$remove(query, ctx);
+    return this.$delete(query, ctx);
   }
 
   /**
@@ -763,10 +751,10 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $remove_(ctx: CrudContext, inheritance: any = {}) {
-    return this.$remove(ctx.query, ctx, inheritance);
+    return this.$delete(ctx.query, ctx, inheritance);
   }
 
-  async $remove(query: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
+  async $delete(query: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
     [query] = await this.$beforeRemoveHook([query], ctx);
     this.checkObjectForIds(query);
     const em = this.entityManager.fork();
@@ -778,10 +766,10 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $removeOne_(ctx: CrudContext, inheritance: any = {}) {
-    return this.$removeOne(ctx.query, ctx, inheritance);
+    return this.$deleteOne(ctx.query, ctx, inheritance);
   }
 
-  async $removeOne(query: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
+  async $deleteOne(query: Partial<T>, ctx: CrudContext, inheritance: any = {}) {
     [query] = await this.$beforeRemoveHook([query], ctx);
     this.checkObjectForIds(query);
     const em = this.entityManager.fork();
@@ -789,7 +777,7 @@ export class CrudService<T extends CrudEntity> {
     if (!entity) {
       throw new BadRequestException('Entity not found (removeOne)');
     }
-    let result = em.remove(entity);
+    let result = em.delete(entity);
 
     await em.flush();
 

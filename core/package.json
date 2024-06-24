@@ -15,7 +15,7 @@
     "directory": "core"
   },
   "peerDependencies": {
-    "@eicrud/shared": "^0.0.1"
+    "@eicrud/shared": "0.0.1"
   },
   "dependencies": {
     "@casl/ability": "^6.5.0",

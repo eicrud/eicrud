@@ -14,7 +14,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager } from '@mikro-orm/mongodb';
-import UserProfile from '../src/services/userprofile/userprofile.entity';
+import { UserProfile } from '../src/services/userprofile/userprofile.entity';
 import {
   createAccountsAndProfiles,
   createNewProfileTest,
@@ -27,7 +27,7 @@ import {
 } from '../../core/config/crud.config.service';
 import { TestUser } from '../test.utils';
 import { CreateAccountDto } from '../../core/config/crud-user.service';
-import MyUser from '../src/services/myuser/myuser.entity';
+import { MyUser } from '../src/services/myuser/myuser.entity';
 import exp from 'constants';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
 import { LoginDto } from '../../core/crud/model/dtos';
@@ -42,7 +42,7 @@ import {
   IVerifyTokenDto,
   LoginResponseDto,
 } from '../../shared/interfaces';
-import FakeEmail from '../src/services/fakeemail/fakeemail.entity';
+import { FakeEmail } from '../src/services/fakeemail/fakeemail.entity';
 import { FakeEmailService as MyEmailService } from '../src/services/fakeemail/fakeemail.service';
 import { CrudUser } from '@eicrud/core/config';
 import { CrudErrors } from '../../shared/CrudErrors';

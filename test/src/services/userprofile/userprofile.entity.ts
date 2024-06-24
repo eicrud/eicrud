@@ -51,7 +51,7 @@ export class Geoloc {
 }
 
 @Entity()
-export default class UserProfile implements CrudEntity {
+export class UserProfile implements CrudEntity {
   @PrimaryKey({ name: '_id' })
   @IsString()
   @IsOptional()

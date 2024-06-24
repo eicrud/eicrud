@@ -4,7 +4,7 @@ import { CrudEntity } from '@eicrud/core/crud';
 import MyUser from '../myuser/myuser.entity';
 
 @Entity()
-export default class DragonFruit implements CrudEntity {
+export class DragonFruit implements CrudEntity {
   @PrimaryKey({ name: '_id' })
   @IsString()
   @IsOptional()

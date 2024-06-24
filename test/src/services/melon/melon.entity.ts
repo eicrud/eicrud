@@ -49,7 +49,7 @@ export class Seed {
 }
 
 @Entity()
-export default class Melon implements CrudEntity {
+export class Melon implements CrudEntity {
   @PrimaryKey({ name: '_id' })
   @IsString()
   @IsOptional()

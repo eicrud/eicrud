@@ -19,7 +19,7 @@
     "directory": "db_mongo"
   },
   "peerDependencies": {
-    "@eicrud/core": "^0.0.1"
+    "@eicrud/core": "0.0.1"
   },
   "devDependencies": {
     "del-cli": "^5.1.0"

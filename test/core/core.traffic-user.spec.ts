@@ -14,7 +14,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
-import UserProfile from '../src/services/userprofile/userprofile.entity';
+import { UserProfile } from '../src/services/userprofile/userprofile.entity';
 import { CrudQuery } from '@eicrud/core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,
@@ -23,7 +23,7 @@ import {
   testMethod,
 } from '../test.utils';
 import { UserProfileService as MyProfileService } from '../src/services/userprofile/userprofile.service';
-import Melon from '../src/services/melon/melon.entity';
+import { Melon } from '../src/services/melon/melon.entity';
 import { CrudService } from '@eicrud/core/crud/crud.service';
 import { TestUser } from '../test.utils';
 import {
@@ -33,7 +33,6 @@ import {
 import { format } from 'path';
 import exp from 'constants';
 import { CrudAuthGuard } from '@eicrud/core/authentication/auth.guard';
-import { APP_GUARD } from '@nestjs/core';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',

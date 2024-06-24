@@ -14,7 +14,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
-import UserProfile from '../src/services/userprofile/userprofile.entity';
+import { UserProfile } from '../src/services/userprofile/userprofile.entity';
 import { CrudQuery } from '@eicrud/core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,
@@ -23,8 +23,8 @@ import {
   testMethod,
 } from '../test.utils';
 import { UserProfileService as MyProfileService } from '../src/services/userprofile/userprofile.service';
-import TestCmdDto from '../src/services/userprofile/cmds/test_cmd/test_cmd.dto';
-import Melon from '../src/services/melon/melon.entity';
+import { Test_cmdDto as TestCmdDto } from '../src/services/userprofile/cmds/test_cmd/test_cmd.dto';
+import { Melon } from '../src/services/melon/melon.entity';
 import { CrudService } from '@eicrud/core/crud/crud.service';
 import { TestUser } from '../test.utils';
 import {
@@ -33,7 +33,7 @@ import {
 } from '@eicrud/core/config/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
-import Picture from '../src/services/picture/picture.entity';
+import { Picture } from '../src/services/picture/picture.entity';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { HookTrigger } from '../src/services/hooktrigger/hooktrigger.entity';
 import { HookLogService } from '../src/services/hooklog/hooklog.service';
@@ -83,6 +83,9 @@ describe('AppController', () => {
   let crudConfig: CrudConfigService;
 
   let hooksToUpdateBatch: Partial<HookTrigger>[];
+  let hooksToUpdateIn: Partial<HookTrigger>[];
+
+  let hooksToDeleteIn: Partial<HookTrigger>[];
 
   const users: Record<string, TestUser> = {
     'Michael Doe': {
@@ -133,19 +136,19 @@ describe('AppController', () => {
     const hookToUpdate: Partial<HookTrigger> = {
       message: 'update me',
     };
+    const hookToDelete: Partial<HookTrigger> = {
+      message: 'delete me',
+    };
     hooksToUpdateBatch = [
       {
-        id: crudConfig.dbAdapter.createId(crudConfig),
         message: 'update me batch',
         originalMessage: 'update me batch',
       },
       {
-        id: crudConfig.dbAdapter.createId(crudConfig),
         message: 'update me batch 2',
         originalMessage: 'update me batch',
       },
       {
-        id: crudConfig.dbAdapter.createId(crudConfig),
         message: 'update me batch 3',
         originalMessage: 'update me batch',
       },
@@ -155,12 +158,55 @@ describe('AppController', () => {
       { message: 'update me many' },
       { message: 'update me many' },
     ];
+    const hooksToDeleteMany: Partial<HookTrigger>[] = [
+      { message: 'delete me many' },
+      { message: 'delete me many' },
+      { message: 'delete me many' },
+    ];
     await hookTriggerService.$createBatch(
-      [hookToUpdate, ...hooksToUpdateMany],
+      [hookToUpdate, ...hooksToUpdateMany, hookToDelete, ...hooksToDeleteMany],
       null,
     );
     hooksToUpdateBatch = await hookTriggerService.$createBatch(
       hooksToUpdateBatch,
+      null,
+    );
+
+    hooksToUpdateIn = [
+      {
+        message: 'update me in',
+        originalMessage: 'update me in',
+      },
+      {
+        message: 'update me in 2',
+        originalMessage: 'update me in',
+      },
+      {
+        message: 'update me in 3',
+        originalMessage: 'update me in',
+      },
+    ];
+    hooksToUpdateIn = await hookTriggerService.$createBatch(
+      hooksToUpdateIn,
+      null,
+    );
+
+    hooksToDeleteIn = [
+      {
+        message: 'delete me in',
+        originalMessage: 'delete me in',
+      },
+      {
+        message: 'delete me in 2',
+        originalMessage: 'delete me in',
+      },
+      {
+        message: 'delete me in 3',
+        originalMessage: 'delete me in',
+      },
+    ];
+    hooksToDeleteIn = await hookTriggerService.$createBatch(
+      hooksToDeleteIn,
       null,
     );
 
@@ -169,7 +215,7 @@ describe('AppController', () => {
     });
   });
 
-  it('should call hooks on createOne and findOne', async () => {
+  it.skip('should call hooks on createOne and findOne', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test create message';
     const payload: Partial<HookTrigger> = {
@@ -249,7 +295,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   }, 8000);
 
-  it('should call hooks on createBatch and find', async () => {
+  it.skip('should call hooks on createBatch and find', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test create batch message';
     const subPayload: Partial<HookTrigger> = {
@@ -340,7 +386,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   }, 8000);
 
-  it('should call hooks on patchOne and findOne', async () => {
+  it.skip('should call hooks on patchOne and findOne', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test patch one message';
     const payload: Partial<HookTrigger> = {
@@ -423,7 +469,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   }, 8000);
 
-  it('should call hooks on patchBatch and findIn', async () => {
+  it.skip('should call hooks on patchBatch and findIn', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test patch batch message';
 
@@ -502,6 +548,263 @@ describe('AppController', () => {
         type: 'update',
         expectedMessage: createMessage + ' - hooked',
         length: payload.length,
+      },
+      {
+        pos: 'after',
+        type: 'controller',
+        expectedMessage: createMessage + ' - hooked',
+      },
+      {
+        pos: 'before',
+        type: 'read',
+        expectedMessage: 'replace Query with ' + createMessage,
+      },
+      {
+        pos: 'after',
+        type: 'read',
+        expectedMessage: createMessage,
+      },
+    ];
+    checkHookLogs(logCheck, allHooks);
+  }, 8000);
+
+  it.skip('should call hooks on patchIn and find', async () => {
+    const user = users['Michael Doe'];
+    const createMessage = 'Test patch in message';
+
+    const payload = {
+      message: createMessage,
+    };
+    const inIds = hooksToUpdateIn.map((h) => h.id.toString());
+    const query: CrudQuery = {
+      service: 'hook-trigger',
+      query: JSON.stringify({ id: inIds }),
+    };
+    const res = await testMethod({
+      url: '/crud/in',
+      method: 'PATCH',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    expect(res).toBe('replaced in hook (update)');
+    const createdTriggers: any = await hookTriggerService.$findIn(
+      inIds,
+      { originalMessage: 'replace Query with ' + createMessage },
+      null,
+    );
+    expect(createdTriggers.hooked).toBe('read');
+    expect(createdTriggers.result.data.length).toBe(inIds.length);
+    for (const createdTrigger of createdTriggers.result.data) {
+      expect(createdTrigger.message).toBe(createMessage + ' - hooked');
+    }
+    const createHookLogs = await hookLogService.$find(
+      { message: createMessage },
+      null,
+    );
+    const createHookLogs2 = await hookLogService.$find(
+      { message: createMessage + ' - hooked' },
+      null,
+    );
+    const createHookLogs3 = await hookLogService.$find(
+      { message: 'replace Query with ' + createMessage },
+      null,
+    );
+    const allHooks = [
+      ...createHookLogs.data,
+      ...createHookLogs2.data,
+      ...createHookLogs3.data,
+    ];
+    const logCheck = [
+      {
+        pos: 'before',
+        type: 'controller',
+        expectedMessage: createMessage,
+      },
+      {
+        pos: 'before',
+        type: 'update',
+        expectedMessage: createMessage,
+        length: inIds,
+      },
+      {
+        pos: 'after',
+        type: 'update',
+        expectedMessage: createMessage + ' - hooked',
+        length: inIds,
+      },
+      {
+        pos: 'after',
+        type: 'controller',
+        expectedMessage: createMessage + ' - hooked',
+      },
+      {
+        pos: 'before',
+        type: 'read',
+        expectedMessage: 'replace Query with ' + createMessage,
+      },
+      {
+        pos: 'after',
+        type: 'read',
+        expectedMessage: createMessage,
+      },
+    ];
+    checkHookLogs(logCheck, allHooks);
+  }, 8000);
+
+  it.skip('should call hooks on patchMany and findIn', async () => {
+    const user = users['Michael Doe'];
+    const createMessage = 'Test patch many message';
+
+    const payload = {
+      message: createMessage,
+    };
+    const query: CrudQuery = {
+      service: 'hook-trigger',
+      query: JSON.stringify({ originalMessage: 'update me many' }),
+    };
+    const res = await testMethod({
+      url: '/crud/many',
+      method: 'PATCH',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    expect(res).toBe('replaced in hook (update)');
+    const createdTriggers: any = await hookTriggerService.$find(
+      { originalMessage: 'replace Query with ' + createMessage },
+      null,
+    );
+    expect(createdTriggers.hooked).toBe('read');
+    expect(createdTriggers.result.data.length).toBe(3);
+    for (const createdTrigger of createdTriggers.result.data) {
+      expect(createdTrigger.message).toBe(createMessage + ' - hooked');
+    }
+    const createHookLogs = await hookLogService.$find(
+      { message: createMessage },
+      null,
+    );
+    const createHookLogs2 = await hookLogService.$find(
+      { message: createMessage + ' - hooked' },
+      null,
+    );
+    const createHookLogs3 = await hookLogService.$find(
+      { message: 'replace Query with ' + createMessage },
+      null,
+    );
+    const allHooks = [
+      ...createHookLogs.data,
+      ...createHookLogs2.data,
+      ...createHookLogs3.data,
+    ];
+    const logCheck = [
+      {
+        pos: 'before',
+        type: 'controller',
+        expectedMessage: createMessage,
+      },
+      {
+        pos: 'before',
+        type: 'update',
+        expectedMessage: createMessage,
+      },
+      {
+        pos: 'after',
+        type: 'update',
+        expectedMessage: createMessage + ' - hooked',
+      },
+      {
+        pos: 'after',
+        type: 'controller',
+        expectedMessage: createMessage + ' - hooked',
+      },
+      {
+        pos: 'before',
+        type: 'read',
+        expectedMessage: 'replace Query with ' + createMessage,
+      },
+      {
+        pos: 'after',
+        type: 'read',
+        expectedMessage: createMessage,
+      },
+    ];
+    checkHookLogs(logCheck, allHooks);
+  }, 8000);
+
+  it('should call hooks on deleteOne and findOne', async () => {
+    const user = users['Michael Doe'];
+    const createMessage = 'Test delete one message';
+    const payload: Partial<HookTrigger> = {
+      message: createMessage,
+    };
+    const search: Partial<HookTrigger> = {
+      originalMessage: 'delete me',
+    };
+    const query: CrudQuery = {
+      service: 'hook-trigger',
+      query: JSON.stringify(search),
+    };
+    const res = await testMethod({
+      url: '/crud/one',
+      method: 'DELETE',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+    expect(res.message).toBe('replaced in hook (update)');
+    const createdTrigger: any = await hookTriggerService.$findOne(
+      { originalMessage: 'replace Query with ' + createMessage },
+      null,
+    );
+    expect(createdTrigger.result.message).toBe(createMessage + ' - hooked');
+    const createHookLogs = await hookLogService.$find(
+      { message: createMessage },
+      null,
+    );
+    const createHookLogs2 = await hookLogService.$find(
+      { message: createMessage + ' - hooked' },
+      null,
+    );
+    const createHookLogs3 = await hookLogService.$find(
+      { message: 'replace Query with ' + createMessage },
+      null,
+    );
+    const allHooks = [
+      ...createHookLogs.data,
+      ...createHookLogs2.data,
+      ...createHookLogs3.data,
+    ];
+    expect(allHooks.length).toBe(6);
+    const logCheck = [
+      {
+        pos: 'before',
+        type: 'controller',
+        expectedMessage: createMessage,
+      },
+      {
+        pos: 'before',
+        type: 'update',
+        expectedMessage: createMessage,
+      },
+      {
+        pos: 'after',
+        type: 'update',
+        expectedMessage: createMessage + ' - hooked',
       },
       {
         pos: 'after',

@@ -144,7 +144,7 @@ Delete an entity.
 const query: Partial<Profile> = {
     userName: "Jon Doe",
 }
-await profileService.$removeOne(query, ctx);
+await profileService.$deleteOne(query, ctx);
 ```
 !!! note
     `$removeOne` will throw if the queried entity doesn't exist.
@@ -156,7 +156,7 @@ const query: Partial<Profile> = {
     astroSign: "Aries"
 }
 
-await profileService.$remove(query, ctx);
+await profileService.$delete(query, ctx);
 ```
 !!! note
     `$remove` returns the number of entities affected by the operation
@@ -166,5 +166,5 @@ Remove entities with IDs included in the provided list.
 ```typescript
 const ids = ['4d3ed089fb60ab534684b7e9', '4d3ed089fb60ab534684b7ff']
 
-await profileService.$removeIn(query, ctx);
+await profileService.$deleteIn(query, ctx);
 ```
