@@ -77,7 +77,7 @@ export async function search(this: ProfileService, dto: SearchDto, ctx: CrudCont
 
     await this.crudAuthorization.authorize(fakeCtx, this.security);
 
-    return this.$find(query, fakeCtx, inheritance);
+    return this.$find(query, fakeCtx);
 }
 ```
 !!! note

@@ -170,6 +170,7 @@ describe('AppController', () => {
     hooksToUpdateBatch = await hookTriggerService.$createBatch(
       hooksToUpdateBatch,
       null,
+      { hooks: false },
     );
 
     hooksToUpdateIn = [
@@ -189,6 +190,7 @@ describe('AppController', () => {
     hooksToUpdateIn = await hookTriggerService.$createBatch(
       hooksToUpdateIn,
       null,
+      { hooks: false },
     );
 
     hooksToDeleteIn = [
@@ -208,8 +210,6 @@ describe('AppController', () => {
     hooksToDeleteIn = await hookTriggerService.$createBatch(
       hooksToDeleteIn,
       null,
-      false,
-      {},
       { hooks: false },
     );
 
@@ -352,6 +352,7 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
+    expect(allHooks.length).toBe(6);
     const logCheck = [
       {
         pos: 'before',
@@ -534,6 +535,7 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
+    expect(allHooks.length).toBe(6);
     const logCheck = [
       {
         pos: 'before',
@@ -623,6 +625,7 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
+    expect(allHooks.length).toBe(6);
     const logCheck = [
       {
         pos: 'before',
@@ -710,6 +713,7 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
+    expect(allHooks.length).toBe(6);
     const logCheck = [
       {
         pos: 'before',

@@ -2,6 +2,7 @@ import { CrudContext, CrudHooks } from '@eicrud/core/crud';
 import { HookTrigger } from './hooktrigger.entity';
 import { HookTriggerService } from './hooktrigger.service';
 import { HookLog, HookPos, HookType } from '../hooklog/hooklog.entity';
+import { FindResponseDto } from '../../../../shared/interfaces';
 
 export async function logHook(
   service: HookTriggerService,
@@ -81,14 +82,16 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
 
   override async $afterReadHook(
     this: HookTriggerService,
-    result,
+    result: FindResponseDto<HookTrigger>,
     query: Partial<HookTrigger>,
     ctx: CrudContext,
-  ) {
+  ): Promise<FindResponseDto<HookTrigger>> {
     await logHook(this, query, 'after', 'read', ctx);
 
     // after HookTrigger read
-    result = { result, hooked: 'read' };
+    for (const r in result.data) {
+      result.data[r] = { result: result.data[r], hooked: 'read' } as any;
+    }
 
     return result;
   }

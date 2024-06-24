@@ -77,9 +77,9 @@ interface _OpOpts {
   noFlush?: boolean;
 }
 type ExcludedInheritanceKeys = 'hooks' | 'secure' | 'em' | 'noFlush';
-type OpOpts = RequireAtLeastOne<_OpOpts>;
+export type OpOpts = RequireAtLeastOne<_OpOpts>;
 
-type Inheritance = {
+export type Inheritance = {
   [key: string]: any;
 } & {
   [K in ExcludedInheritanceKeys]?: never;
