@@ -9,12 +9,12 @@ import { CrudRole } from '@eicrud/core/config/model/CrudRole';
 import { MongoDbAdapter } from '@eicrud/mongodb/mongoDbAdapter';
 
 import { PostgreDbAdapter } from '@eicrud/postgresql/postgreDbAdapter';
-import UserProfile from './services/userprofile/userprofile.entity';
-import Picture from './services/picture/picture.entity';
-import MyUser from './services/myuser/myuser.entity';
-import Melon from './services/melon/melon.entity';
-import DragonFruit from './services/dragonfruit/dragonfruit.entity';
-import FakeEmail from './services/fakeemail/fakeemail.entity';
+import { UserProfile } from './services/userprofile/userprofile.entity';
+import { Picture } from './services/picture/picture.entity';
+import { MyUser } from './services/myuser/myuser.entity';
+import { Melon } from './services/melon/melon.entity';
+import { DragonFruit } from './services/dragonfruit/dragonfruit.entity';
+import { FakeEmail } from './services/fakeemail/fakeemail.entity';
 import { MyUserService } from './services/myuser/myuser.service';
 import { FakeEmailService } from './services/fakeemail/fakeemail.service';
 import { CrudContext, CrudService } from '@eicrud/core/crud';

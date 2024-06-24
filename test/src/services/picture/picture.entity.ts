@@ -1,7 +1,7 @@
 import { CrudEntity } from '@eicrud/core/crud';
 import { Property, PrimaryKey, Entity, ManyToOne } from '@mikro-orm/core';
 import { IsNumber, IsOptional, IsString, MaxLength } from 'class-validator';
-import UserProfile from '../userprofile/userprofile.entity';
+import { UserProfile } from '../userprofile/userprofile.entity';
 
 @Entity()
 export class Picture implements CrudEntity {

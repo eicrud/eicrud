@@ -1,6 +1,6 @@
 import { CmdSecurity } from '@eicrud/core/config';
-import test_cmd from './test_cmd.action';
-import Test_cmdDto from './test_cmd.dto';
+import { test_cmd } from './test_cmd.action';
+import { Test_cmdDto } from './test_cmd.dto';
 
 const getCmdSecurity = (test_cmd, USER_PROFILE): CmdSecurity => {
   return {

@@ -1,5 +1,5 @@
 import { ModuleRef } from '@nestjs/core';
-import Picture from './picture.entity';
+import { Picture } from './picture.entity';
 import { Injectable } from '@nestjs/common';
 import { getSecurity } from './picture.security';
 import { CrudService } from '@eicrud/core/crud';

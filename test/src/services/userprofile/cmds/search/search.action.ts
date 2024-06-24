@@ -1,8 +1,8 @@
 import { ModuleRef } from '@nestjs/core';
-import SearchDto from './search.dto';
+import { SearchDto } from './search.dto';
 import { UserProfileService } from '../../userprofile.service';
 import { CrudContext } from '@eicrud/core/crud';
-import UserProfile from '../../userprofile.entity';
+import { UserProfile } from '../../userprofile.entity';
 
 export async function search(
   dto: SearchDto,

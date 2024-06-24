@@ -1,6 +1,6 @@
 import { CmdSecurity } from '@eicrud/core/config';
-import search from './search.action';
-import SearchDto from './search.dto';
+import { search } from './search.action';
+import { SearchDto } from './search.dto';
 
 const getCmdSecurity = (search, melon): CmdSecurity => {
   return {

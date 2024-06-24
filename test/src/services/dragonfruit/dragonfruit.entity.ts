@@ -1,7 +1,7 @@
 import { Entity, PrimaryKey, Property, ManyToOne } from '@mikro-orm/core';
 import { IsString, IsOptional, IsInt } from 'class-validator';
 import { CrudEntity } from '@eicrud/core/crud';
-import MyUser from '../myuser/myuser.entity';
+import { MyUser } from '../myuser/myuser.entity';
 
 @Entity()
 export class DragonFruit implements CrudEntity {

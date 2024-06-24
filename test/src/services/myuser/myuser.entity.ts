@@ -9,8 +9,8 @@ import {
 } from '@mikro-orm/core';
 import { IsString, IsOptional, Equals } from 'class-validator';
 import { CrudEntity } from '@eicrud/core/crud';
-import Melon from '../melon/melon.entity';
-import UserProfile from '../userprofile/userprofile.entity';
+import { Melon } from '../melon/melon.entity';
+import { UserProfile } from '../userprofile/userprofile.entity';
 
 @Entity()
 export class MyUser implements CrudEntity {

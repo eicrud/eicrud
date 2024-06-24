@@ -1,5 +1,5 @@
 import { ModuleRef } from '@nestjs/core';
-import CanCannotCmdDto from './can_cannot_cmd.dto';
+import { CanCannotCmdDto } from './can_cannot_cmd.dto';
 import { UserProfileService } from '../../userprofile.service';
 import { CrudContext } from '@eicrud/core/crud';
 

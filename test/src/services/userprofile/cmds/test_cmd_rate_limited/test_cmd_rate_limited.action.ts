@@ -1,5 +1,5 @@
 import { ModuleRef } from '@nestjs/core';
-import Test_cmd_rate_limitedDto from './test_cmd_rate_limited.dto';
+import { Test_cmd_rate_limitedDto } from './test_cmd_rate_limited.dto';
 import { UserProfileService } from '../../userprofile.service';
 import { CrudContext } from '@eicrud/core/crud';
 

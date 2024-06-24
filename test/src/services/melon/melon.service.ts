@@ -1,6 +1,6 @@
-import SearchDto from './cmds/search/search.dto';
+import { SearchDto } from './cmds/search/search.dto';
 import { ModuleRef } from '@nestjs/core';
-import Melon from './melon.entity';
+import { Melon } from './melon.entity';
 import { Injectable } from '@nestjs/common';
 import { getSecurity } from './melon.security';
 import { CrudService } from '@eicrud/core/crud';

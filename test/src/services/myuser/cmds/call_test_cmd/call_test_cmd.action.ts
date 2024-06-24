@@ -1,5 +1,5 @@
 import { ModuleRef } from '@nestjs/core';
-import CallTestCmdDto from './call_test_cmd.dto';
+import { CallTestCmdDto } from './call_test_cmd.dto';
 import { MyUserService } from '../../myuser.service';
 import { CrudContext } from '@eicrud/core/crud';
 

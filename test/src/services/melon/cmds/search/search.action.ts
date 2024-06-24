@@ -1,9 +1,9 @@
 import { ModuleRef } from '@nestjs/core';
-import SearchDto from './search.dto';
+import { SearchDto } from './search.dto';
 import { MelonService } from '../../melon.service';
 import { CrudContext } from '@eicrud/core/crud';
 import { FindResponseDto } from '@eicrud/shared/interfaces';
-import Melon from '../../melon.entity';
+import { Melon } from '../../melon.entity';
 
 export async function search(
   dto: SearchDto,

@@ -777,7 +777,7 @@ export class CrudService<T extends CrudEntity> {
     if (!entity) {
       throw new BadRequestException('Entity not found (removeOne)');
     }
-    let result = em.delete(entity);
+    let result = em.remove(entity);
 
     await em.flush();
 

@@ -19,7 +19,7 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import MyUser from '../myuser/myuser.entity';
+import { MyUser } from '../myuser/myuser.entity';
 import {
   $ToLowerCase,
   $Trim,
@@ -29,7 +29,7 @@ import {
   $MaxSize,
 } from '@eicrud/core/validation';
 import { CrudEntity } from '@eicrud/core/crud';
-import Picture from '../picture/picture.entity';
+import { Picture } from '../picture/picture.entity';
 
 @Embeddable()
 export class Geoloc {
