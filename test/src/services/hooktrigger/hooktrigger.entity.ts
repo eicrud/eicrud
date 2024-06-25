@@ -13,7 +13,7 @@ export class HookTrigger implements CrudEntity {
   @Property()
   message: string;
 
-  @Property()
+  @Property({ nullable: true })
   @IsString()
   @IsOptional()
   originalMessage: string;
