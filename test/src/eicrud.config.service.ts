@@ -125,6 +125,9 @@ export class MyConfigService extends CrudConfigService {
   }
 
   override async beforeControllerHook(ctx: CrudContext) {
+    if (ctx.serviceName != 'hook-trigger') {
+      return;
+    }
     await logHook(
       this.hookTriggerService,
       ctx.data || ctx.query,
@@ -135,6 +138,9 @@ export class MyConfigService extends CrudConfigService {
   }
 
   override async afterControllerHook(res: any, ctx: CrudContext) {
+    if (ctx.serviceName != 'hook-trigger') {
+      return;
+    }
     await logHook(
       this.hookTriggerService,
       ctx.data || ctx.query,
@@ -150,6 +156,9 @@ export class MyConfigService extends CrudConfigService {
     if (!profileService) {
       throw new Error('UserProfile service not found (errorControllerHook)');
     }
+    if (ctx.serviceName != 'hook-trigger') {
+      return;
+    }
     await logHook(
       this.hookTriggerService,
       ctx.data || ctx.query,
@@ -160,6 +169,9 @@ export class MyConfigService extends CrudConfigService {
   }
 
   override async afterBackdoorHook(res: any, ctx: CrudContext) {
+    if (ctx.serviceName != 'hook-trigger') {
+      return;
+    }
     await logHook(
       this.hookTriggerService,
       ctx.data || ctx.query,
@@ -170,6 +182,9 @@ export class MyConfigService extends CrudConfigService {
   }
 
   override async beforeBackdoorHook(ctx: CrudContext) {
+    if (ctx.serviceName != 'hook-trigger') {
+      return;
+    }
     await logHook(
       this.hookTriggerService,
       ctx.data || ctx.query,
@@ -180,6 +195,9 @@ export class MyConfigService extends CrudConfigService {
   }
 
   override async errorBackdoorHook(error: Error, ctx: CrudContext) {
+    if (ctx.serviceName != 'hook-trigger') {
+      return;
+    }
     await logHook(
       this.hookTriggerService,
       ctx.data || ctx.query,

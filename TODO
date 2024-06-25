@@ -44,3 +44,5 @@
 [x] csrf token
 [ ] add helmet ?
 [ ] add a way to rotate JWT/backdoor key 
+
+[ ] error hooks test
