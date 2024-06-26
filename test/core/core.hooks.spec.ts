@@ -78,6 +78,16 @@ function checkHookLogs(logChecks, allHooks, equalLength = false) {
   }
 }
 
+function helperCurrentConfig(normal, ms, msProxy) {
+  if (process.env.TEST_CRUD_PROXY) {
+    return msProxy;
+  }
+  if (process.env.CRUD_CURRENT_MS) {
+    return ms;
+  }
+  return normal;
+}
+
 async function findAllHooks(createMessage, hookLogService) {
   const createHookLogs = await hookLogService.$find(
     { message: createMessage },
@@ -293,7 +303,7 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
-    expect(allHooks.length).toBe(6 + (process.env.CRUD_CURRENT_MS ? 4 : 0));
+    expect(allHooks.length).toBe(helperCurrentConfig(6, 10, 8));
     const logCheck = [
       {
         pos: 'before',
@@ -314,7 +324,7 @@ describe('AppController', () => {
         pos: 'after',
         type: 'controller',
         expectedMessage:
-          createMessage + (process.env.CRUD_CURRENT_MS ? '' : ' - hooked'),
+          createMessage + helperCurrentConfig(' - hooked', '', ' - hooked'),
       },
       {
         pos: 'before',
@@ -384,7 +394,7 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
-    expect(allHooks.length).toBe(14 + (process.env.CRUD_CURRENT_MS ? 8 : 0));
+    expect(allHooks.length).toBe(helperCurrentConfig(14, 22, 16));
     const logCheck = [
       {
         pos: 'before',
@@ -407,7 +417,7 @@ describe('AppController', () => {
         pos: 'after',
         type: 'controller',
         expectedMessage:
-          createMessage + (process.env.CRUD_CURRENT_MS ? '' : ' - hooked'),
+          createMessage + helperCurrentConfig(' - hooked', '', ' - hooked'),
       },
       {
         pos: 'before',
@@ -470,7 +480,7 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
-    expect(allHooks.length).toBe(6 + (process.env.CRUD_CURRENT_MS ? 4 : 0));
+    expect(allHooks.length).toBe(helperCurrentConfig(6, 10, 8));
     const logCheck = [
       {
         pos: 'before',
@@ -491,7 +501,7 @@ describe('AppController', () => {
         pos: 'after',
         type: 'controller',
         expectedMessage:
-          createMessage + (process.env.CRUD_CURRENT_MS ? '' : ' - hooked'),
+          createMessage + helperCurrentConfig(' - hooked', '', ' - hooked'),
       },
       {
         pos: 'before',
@@ -569,7 +579,7 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
-    expect(allHooks.length).toBe(14 + (process.env.CRUD_CURRENT_MS ? 8 : 0));
+    expect(allHooks.length).toBe(helperCurrentConfig(14, 22, 16));
     const logCheck = [
       {
         pos: 'before',
@@ -592,7 +602,7 @@ describe('AppController', () => {
         pos: 'after',
         type: 'controller',
         expectedMessage:
-          createMessage + (process.env.CRUD_CURRENT_MS ? '' : ' - hooked'),
+          createMessage + helperCurrentConfig(' - hooked', '', ' - hooked'),
       },
       {
         pos: 'before',
@@ -660,7 +670,7 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
-    expect(allHooks.length).toBe(6 + (process.env.CRUD_CURRENT_MS ? 4 : 0));
+    expect(allHooks.length).toBe(helperCurrentConfig(6, 10, 8));
     const logCheck = [
       {
         pos: 'before',
@@ -681,7 +691,7 @@ describe('AppController', () => {
         pos: 'after',
         type: 'controller',
         expectedMessage:
-          createMessage + (process.env.CRUD_CURRENT_MS ? '' : ' - hooked'),
+          createMessage + helperCurrentConfig(' - hooked', '', ' - hooked'),
       },
       {
         pos: 'before',
@@ -747,7 +757,7 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
-    expect(allHooks.length).toBe(6 + (process.env.CRUD_CURRENT_MS ? 4 : 0));
+    expect(allHooks.length).toBe(helperCurrentConfig(6, 10, 8));
     const logCheck = [
       {
         pos: 'before',
@@ -768,7 +778,7 @@ describe('AppController', () => {
         pos: 'after',
         type: 'controller',
         expectedMessage:
-          createMessage + (process.env.CRUD_CURRENT_MS ? '' : ' - hooked'),
+          createMessage + helperCurrentConfig(' - hooked', '', ' - hooked'),
       },
       {
         pos: 'before',
@@ -833,7 +843,7 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
-    expect(allHooks.length).toBe(8 + (process.env.CRUD_CURRENT_MS ? 6 : 0));
+    expect(allHooks.length).toBe(helperCurrentConfig(8, 14, 12));
     const logCheck = [
       {
         pos: 'before',
@@ -854,8 +864,7 @@ describe('AppController', () => {
         pos: 'after',
         type: 'controller',
         expectedMessage:
-          (process.env.CRUD_CURRENT_MS ? 'replace Query with ' : '') +
-          createMessage,
+          helperCurrentConfig('', 'replace Query with ', '') + createMessage,
       },
       {
         pos: 'before',
@@ -911,7 +920,7 @@ describe('AppController', () => {
     expect(createdTriggers.data.length).toBe(0);
 
     const allHooks = await findAllHooks(createMessage, hookLogService);
-    expect(allHooks.length).toBe(8 + (process.env.CRUD_CURRENT_MS ? 6 : 0));
+    expect(allHooks.length).toBe(helperCurrentConfig(8, 14, 12));
     const logCheck = [
       {
         pos: 'before',
@@ -986,7 +995,7 @@ describe('AppController', () => {
       expect(createdTriggers.data.length).toBe(0);
 
       const allHooks = await findAllHooks(createMessage, hookLogService);
-      expect(allHooks.length).toBe(8 + (process.env.CRUD_CURRENT_MS ? 6 : 0));
+      expect(allHooks.length).toBe(helperCurrentConfig(8, 14, 12));
       const logCheck = [
         {
           pos: 'before',
@@ -1097,7 +1106,8 @@ describe('AppController', () => {
       ...createHookLogs3.data,
       ...createHookLogs4.data,
     ];
-    expect(allHooks.length).toBe(6 + (process.env.CRUD_CURRENT_MS ? 4 : 0));
+
+    expect(allHooks.length).toBe(helperCurrentConfig(6, 10, 6));
     const logCheck = [
       {
         pos: 'before',
@@ -1136,7 +1146,7 @@ describe('AppController', () => {
         length: 403,
       },
     ];
-    if (process.env.CRUD_CURRENT_MS) {
+    if (helperCurrentConfig(false, true, false)) {
       logCheck.push(
         ...[
           {

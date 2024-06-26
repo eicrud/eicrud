@@ -85,6 +85,14 @@ export type Inheritance = {
   [K in ExcludedInheritanceKeys]?: never;
 };
 
+export interface CrudServiceConfig<T extends CrudEntity> {
+  cacheOptions?: CacheOptions;
+  entityManager?: EntityManager;
+  dbAdapter?: CrudDbAdapter;
+  cacheManager?: CrudCache;
+  hooks?: CrudHooks<T>;
+}
+
 export class CrudService<T extends CrudEntity> {
   protected entityManager: EntityManager;
   public serviceName: string;
@@ -105,13 +113,7 @@ export class CrudService<T extends CrudEntity> {
     protected moduleRef: ModuleRef,
     public entity: EntityClass<T>,
     public security: CrudSecurity,
-    protected config?: {
-      cacheOptions?: CacheOptions;
-      entityManager?: EntityManager;
-      dbAdapter?: CrudDbAdapter;
-      cacheManager?: CrudCache;
-      hooks?: CrudHooks<T>;
-    },
+    protected config?: CrudServiceConfig<T>,
   ) {
     this.config = this.config || {};
     if (!this.config?.hooks) {

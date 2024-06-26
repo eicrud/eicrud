@@ -320,7 +320,7 @@ export class Generate {
       defContent = defContent.replace(new RegExp(key, 'g'), value);
     }
 
-    const importLine = `import ${keys.tk_cmd_dto_name} from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
+    const importLine = `import { ${keys.tk_cmd_dto_name} } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
 
     serviceFileContent =
       importLine +

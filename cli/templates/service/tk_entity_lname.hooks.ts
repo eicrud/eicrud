@@ -1,6 +1,7 @@
 import { CrudContext, CrudHooks } from "@eicrud/core/crud";
 import { tk_entity_name } from "./tk_entity_lname.entity";
 import { tk_entity_nameService } from "./tk_entity_lname.service";
+import { FindResponseDto } from "@eicrud/shared/interfaces";
 
 export class tk_entity_nameHooks extends CrudHooks<tk_entity_name> {
 
@@ -11,7 +12,7 @@ export class tk_entity_nameHooks extends CrudHooks<tk_entity_name> {
         return data;
     }
 
-    override async $afterCreateHook(this: tk_entity_nameService, result: any[], data: Partial<tk_entity_name>[], ctx: CrudContext): Promise<T[]>  {
+    override async $afterCreateHook(this: tk_entity_nameService, result: any[], data: Partial<tk_entity_name>[], ctx: CrudContext): Promise<tk_entity_name[]>  {
         // after tk_entity_name creation
 
 

@@ -7,7 +7,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { LRUCache } from 'mnemonist';
-import { CrudService, Inheritance } from '../crud/crud.service';
+import {
+  CrudService,
+  CrudServiceConfig,
+  Inheritance,
+} from '../crud/crud.service';
 import { CrudSecurity } from './model/CrudSecurity';
 import { _utils } from '../utils';
 import { CrudUser } from './model/CrudUser';
@@ -197,9 +201,10 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     protected moduleRef: ModuleRef,
     private userEntityClass: new () => T,
     public security: CrudSecurity,
+    protected config?: CrudServiceConfig<T>,
   ) {
     security = security || new CrudSecurity();
-    super(moduleRef, userEntityClass, security);
+    super(moduleRef, userEntityClass, security, config);
 
     for (const cmdIndex in baseCmds) {
       const cmd = baseCmds[cmdIndex];
