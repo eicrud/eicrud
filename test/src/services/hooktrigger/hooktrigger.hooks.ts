@@ -23,7 +23,7 @@ export async function logHook(
         d.data.originalMessage,
       hookPosition: position,
       hookType: type,
-      length: parseInt(idx),
+      length: d.setLen || d.status || parseInt(idx),
     };
     logs.push(log);
   }
@@ -169,11 +169,15 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
 
   override async errorControllerHook(
     this: HookTriggerService,
-    error: Error,
+    error: any,
     ctx: CrudContext,
   ): Promise<any> {
     //after HookTrigger error
     await logHook(this, error, 'error', 'crud', ctx);
+
+    if (error.status == 403) {
+      return true;
+    }
 
     return Promise.resolve();
   }

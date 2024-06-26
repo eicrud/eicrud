@@ -1,7 +1,11 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsInt } from 'class-validator';
 
 export class TestTriggerDto {
   @IsString()
   @IsOptional()
-  myArg: string;
+  message: string;
+
+  @IsInt()
+  @IsOptional()
+  setLen: number;
 }

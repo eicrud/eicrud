@@ -661,7 +661,7 @@ describe('AppController', () => {
       query,
       crudConfig,
     });
-  }, 5000);
+  });
 
   it('should trim and lowercase email on login', async () => {
     const user = users['Michael Doe'];

@@ -22,6 +22,8 @@ import { HookLogService } from './services/hooklog/hooklog.service';
 import { logHook } from './services/hooktrigger/hooktrigger.hooks';
 import { HookTriggerService } from './services/hooktrigger/hooktrigger.service';
 import { UserProfileService } from './services/userprofile/userprofile.service';
+import { HookTrigger } from './services/hooktrigger/hooktrigger.entity';
+import { HookLog } from './services/hooklog/hooklog.entity';
 
 const roles: CrudRole[] = [
   {
@@ -67,7 +69,7 @@ msOptions.microServices = {
     proxyCrudController: PROXY_TEST ? true : false,
   },
   user: {
-    services: [MyUser],
+    services: [MyUser, HookTrigger],
     openBackDoor: true,
     openController: PROXY_TEST ? true : false,
     url: 'http://localhost:3005',
@@ -81,7 +83,7 @@ msOptions.microServices = {
     url: 'http://localhost:3006',
   },
   email: {
-    services: [FakeEmail],
+    services: [FakeEmail, HookLog],
     openBackDoor: true,
     openController: PROXY_TEST ? true : false,
     url: 'http://localhost:3007',

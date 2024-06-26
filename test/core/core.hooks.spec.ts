@@ -39,6 +39,7 @@ import { HookTrigger } from '../src/services/hooktrigger/hooktrigger.entity';
 import { HookLogService } from '../src/services/hooklog/hooklog.service';
 import { _utils } from '@eicrud/core/utils';
 import { HookTriggerService } from '../src/services/hooktrigger/hooktrigger.service';
+import { TestTriggerDto } from '../src/services/hooktrigger/cmds/test_trigger/test_trigger.dto';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -60,13 +61,38 @@ function subCheckHookLogs(allHooks, check, len) {
   expect(log.message).toBe(check.expectedMessage);
 }
 
-function checkHookLogs(logChecks, allHooks) {
+function checkHookLogs(logChecks, allHooks, equalLength = false) {
   for (const check of logChecks) {
+    if (equalLength) {
+      subCheckHookLogs(allHooks, check, check.length);
+      continue;
+    }
     subCheckHookLogs(allHooks, check, 0);
     for (let i = 1; i < check.length; i++) {
       subCheckHookLogs(allHooks, check, i);
     }
   }
+}
+
+async function findAllHooks(createMessage, hookLogService) {
+  const createHookLogs = await hookLogService.$find(
+    { message: createMessage },
+    null,
+  );
+  const createHookLogs2 = await hookLogService.$find(
+    { message: createMessage + ' - hooked' },
+    null,
+  );
+  const createHookLogs3 = await hookLogService.$find(
+    { message: 'replace Query with ' + createMessage },
+    null,
+  );
+  const allHooks = [
+    ...createHookLogs.data,
+    ...createHookLogs2.data,
+    ...createHookLogs3.data,
+  ];
+  return allHooks;
 }
 
 describe('AppController', () => {
@@ -297,7 +323,7 @@ describe('AppController', () => {
       },
     ];
     checkHookLogs(logCheck, allHooks);
-  }, 8000);
+  });
 
   it('should call hooks on createBatch and find', async () => {
     const user = users['Michael Doe'];
@@ -389,7 +415,7 @@ describe('AppController', () => {
       },
     ];
     checkHookLogs(logCheck, allHooks);
-  }, 8000);
+  });
 
   it('should call hooks on patchOne and findOne', async () => {
     const user = users['Michael Doe'];
@@ -472,7 +498,7 @@ describe('AppController', () => {
       },
     ];
     checkHookLogs(logCheck, allHooks);
-  }, 8000);
+  });
 
   it('should call hooks on patchBatch and findIn', async () => {
     const user = users['Michael Doe'];
@@ -572,7 +598,7 @@ describe('AppController', () => {
       },
     ];
     checkHookLogs(logCheck, allHooks);
-  }, 8000);
+  });
 
   it('should call hooks on patchIn and find', async () => {
     const user = users['Michael Doe'];
@@ -660,7 +686,7 @@ describe('AppController', () => {
       },
     ];
     checkHookLogs(logCheck, allHooks);
-  }, 8000);
+  });
 
   it('should call hooks on patchMany and findIn', async () => {
     const user = users['Michael Doe'];
@@ -746,7 +772,7 @@ describe('AppController', () => {
       },
     ];
     checkHookLogs(logCheck, allHooks);
-  }, 8000);
+  });
 
   it('should call hooks on deleteOne and findOne', async () => {
     const user = users['Michael Doe'];
@@ -831,7 +857,7 @@ describe('AppController', () => {
       },
     ];
     checkHookLogs(logCheck, allHooks);
-  }, 8000);
+  });
 
   it('should call hooks on deleteIn and find', async () => {
     const user = users['Michael Doe'];
@@ -872,23 +898,7 @@ describe('AppController', () => {
     );
     expect(createdTriggers.data.length).toBe(0);
 
-    const createHookLogs = await hookLogService.$find(
-      { message: createMessage },
-      null,
-    );
-    const createHookLogs2 = await hookLogService.$find(
-      { message: createMessage + ' - hooked' },
-      null,
-    );
-    const createHookLogs3 = await hookLogService.$find(
-      { message: 'replace Query with ' + createMessage },
-      null,
-    );
-    const allHooks = [
-      ...createHookLogs.data,
-      ...createHookLogs2.data,
-      ...createHookLogs3.data,
-    ];
+    const allHooks = await findAllHooks(createMessage, hookLogService);
     expect(allHooks.length).toBe(8);
     const logCheck = [
       {
@@ -923,7 +933,7 @@ describe('AppController', () => {
       },
     ];
     checkHookLogs(logCheck, allHooks);
-  }, 8000);
+  });
 
   it('should call hooks on deleteMany and find', async () => {
     const user = users['Michael Doe'];
@@ -961,23 +971,7 @@ describe('AppController', () => {
     );
     expect(createdTriggers.data.length).toBe(0);
 
-    const createHookLogs = await hookLogService.$find(
-      { message: createMessage },
-      null,
-    );
-    const createHookLogs2 = await hookLogService.$find(
-      { message: createMessage + ' - hooked' },
-      null,
-    );
-    const createHookLogs3 = await hookLogService.$find(
-      { message: 'replace Query with ' + createMessage },
-      null,
-    );
-    const allHooks = [
-      ...createHookLogs.data,
-      ...createHookLogs2.data,
-      ...createHookLogs3.data,
-    ];
+    const allHooks = await findAllHooks(createMessage, hookLogService);
     expect(allHooks.length).toBe(8);
     const logCheck = [
       {
@@ -1012,5 +1006,104 @@ describe('AppController', () => {
       },
     ];
     checkHookLogs(logCheck, allHooks);
+  });
+
+  it('should call hook error hooks on error', async () => {
+    const user = users['Michael Doe'];
+    const createMessage = '400';
+    const payload: TestTriggerDto = {
+      message: createMessage,
+      setLen: 400,
+    };
+    const query: CrudQuery = {
+      service: 'hook-trigger',
+      cmd: 'test_trigger',
+    };
+
+    let error;
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'PATCH',
+      expectedCode: 400,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+    payload.message = '403';
+    payload.setLen = 403;
+    const res = await testMethod({
+      url: '/crud/cmd',
+      method: 'PATCH',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+    expect(res).toBe(true);
+    const createHookLogs = await hookLogService.$find({ message: '400' }, null);
+    const createHookLogs2 = await hookLogService.$find(
+      { message: 'error 400' },
+      null,
+    );
+    const createHookLogs3 = await hookLogService.$find(
+      { message: '403' },
+      null,
+    );
+    const createHookLogs4 = await hookLogService.$find(
+      { message: 'error 403' },
+      null,
+    );
+    const allHooks = [
+      ...createHookLogs.data,
+      ...createHookLogs2.data,
+      ...createHookLogs3.data,
+      ...createHookLogs4.data,
+    ];
+    expect(allHooks.length).toBe(6);
+    const logCheck = [
+      {
+        pos: 'before',
+        type: 'controller',
+        expectedMessage: '400',
+        length: 400,
+      },
+      {
+        pos: 'before',
+        type: 'controller',
+        expectedMessage: '403',
+        length: 403,
+      },
+      {
+        pos: 'error',
+        type: 'controller',
+        expectedMessage: '400',
+        length: 400,
+      },
+      {
+        pos: 'error',
+        type: 'controller',
+        expectedMessage: '403',
+        length: 403,
+      },
+      {
+        pos: 'error',
+        type: 'crud',
+        expectedMessage: 'error 400',
+        length: 400,
+      },
+      {
+        pos: 'error',
+        type: 'crud',
+        expectedMessage: 'error 403',
+        length: 403,
+      },
+    ];
+    checkHookLogs(logCheck, allHooks, true);
   }, 8000);
 });

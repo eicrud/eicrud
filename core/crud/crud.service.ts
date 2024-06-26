@@ -1019,7 +1019,7 @@ export class CrudService<T extends CrudEntity> {
     return this.config.hooks.$afterDeleteHook.call(this, result, queries, ctx);
   }
 
-  async errorControllerHook(error: Error, ctx: CrudContext): Promise<any> {
+  async errorControllerHook(error: any, ctx: CrudContext): Promise<any> {
     return this.config.hooks.errorControllerHook.call(this, error, ctx);
   }
 }
@@ -1095,7 +1095,7 @@ export class CrudHooks<T extends CrudEntity> {
 
   async errorControllerHook(
     this: CrudService<T>,
-    error: Error,
+    error: any,
     ctx: CrudContext,
   ): Promise<any> {
     return Promise.resolve();

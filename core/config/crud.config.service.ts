@@ -234,7 +234,7 @@ export class CrudConfigService {
     return Promise.resolve();
   }
 
-  async errorControllerHook(error: Error, ctx: CrudContext) {
+  async errorControllerHook(error: any, ctx: CrudContext) {
     return Promise.resolve();
   }
 

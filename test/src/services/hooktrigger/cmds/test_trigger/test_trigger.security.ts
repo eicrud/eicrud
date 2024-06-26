@@ -9,6 +9,7 @@ const getCmdSecurity = (test_trigger, hooktrigger): CmdSecurity => {
       user: {
         async defineCMDAbility(can, cannot, ctx) {
           // Define abilities for user
+          can('test_trigger', hooktrigger);
         },
       },
     },
