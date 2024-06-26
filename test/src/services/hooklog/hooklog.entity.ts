@@ -28,6 +28,9 @@ export class HookLog implements CrudEntity {
   @Property()
   length: number;
 
+  @Property({ nullable: true })
+  backDoorQuery: any;
+
   @Property()
   hookType: HookType;
 

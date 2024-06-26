@@ -908,9 +908,9 @@ export class CrudController {
           'Backdoor method not found: ' + query.methodName,
         );
       }
-      await this.crudConfig.beforeBackdoorHook(ctx);
+      await this.crudConfig.beforeBackdoorHook(ctx, query, data.args);
       const res = await currentService[query.methodName](...data.args);
-      await this.crudConfig.afterBackdoorHook(res, ctx);
+      await this.crudConfig.afterBackdoorHook(res, ctx, query, data.args);
 
       const returnCtxFields = ['setCookies'];
       const response: any = { res };
@@ -922,7 +922,7 @@ export class CrudController {
       }
       return response;
     } catch (e) {
-      await this.crudConfig.errorBackdoorHook(e, ctx);
+      await this.crudConfig.errorBackdoorHook(e, ctx, query, data.args);
       throw e;
     }
   }

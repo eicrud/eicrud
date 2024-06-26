@@ -17,7 +17,7 @@ import { DragonFruit } from './services/dragonfruit/dragonfruit.entity';
 import { FakeEmail } from './services/fakeemail/fakeemail.entity';
 import { MyUserService } from './services/myuser/myuser.service';
 import { FakeEmailService } from './services/fakeemail/fakeemail.service';
-import { CrudContext, CrudService } from '@eicrud/core/crud';
+import { BackdoorQuery, CrudContext, CrudService } from '@eicrud/core/crud';
 import { HookLogService } from './services/hooklog/hooklog.service';
 import { logHook } from './services/hooktrigger/hooktrigger.hooks';
 import { HookTriggerService } from './services/hooktrigger/hooktrigger.service';
@@ -170,8 +170,13 @@ export class MyConfigService extends CrudConfigService {
     );
   }
 
-  override async afterBackdoorHook(res: any, ctx: CrudContext) {
-    if (ctx.serviceName != 'hook-trigger') {
+  override async afterBackdoorHook(
+    res: any,
+    ctx: CrudContext,
+    query: BackdoorQuery,
+    args: any[],
+  ) {
+    if (query.service != 'hook-trigger' || (ctx as any).skipBackDoorHooks) {
       return;
     }
     await logHook(
@@ -180,11 +185,16 @@ export class MyConfigService extends CrudConfigService {
       'after',
       'backdoor',
       ctx,
+      query,
     );
   }
 
-  override async beforeBackdoorHook(ctx: CrudContext) {
-    if (ctx.serviceName != 'hook-trigger') {
+  override async beforeBackdoorHook(
+    ctx: CrudContext,
+    query: BackdoorQuery,
+    args: any[],
+  ) {
+    if (query.service != 'hook-trigger' || (ctx as any).skipBackDoorHooks) {
       return;
     }
     await logHook(
@@ -193,11 +203,17 @@ export class MyConfigService extends CrudConfigService {
       'before',
       'backdoor',
       ctx,
+      query,
     );
   }
 
-  override async errorBackdoorHook(error: Error, ctx: CrudContext) {
-    if (ctx.serviceName != 'hook-trigger') {
+  override async errorBackdoorHook(
+    error: Error,
+    ctx: CrudContext,
+    query: BackdoorQuery,
+    args: any[],
+  ) {
+    if (query.service != 'hook-trigger' || (ctx as any).skipBackDoorHooks) {
       return;
     }
     await logHook(
@@ -206,6 +222,7 @@ export class MyConfigService extends CrudConfigService {
       'error',
       'backdoor',
       ctx,
+      query,
     );
   }
 }

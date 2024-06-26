@@ -48,15 +48,15 @@ override async errorControllerHook(error: Error, ctx: CrudContext){
 
 **Backdoor hooks** are called before and after a backdoor request is received in a [microservice](../microservices/configuration.md).
 ```typescript
-override async afterBackdoorHook(res: any, ctx: CrudContext) {
+override async afterBackdoorHook(res: any, ctx: CrudContext, query: BackdoorQuery, args: any[]) {
     return Promise.resolve();
 }
 
-override async beforeBackdoorHook(ctx: CrudContext){
+override async beforeBackdoorHook(ctx: CrudContext, query: BackdoorQuery, args: any[]){
     return Promise.resolve();
 }
 
-override async errorBackdoorHook(error: Error, ctx: CrudContext){
+override async errorBackdoorHook(error: Error, ctx: CrudContext, query: BackdoorQuery, args: any[]){
     return Promise.resolve();
 }
 ```

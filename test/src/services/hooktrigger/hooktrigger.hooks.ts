@@ -1,4 +1,4 @@
-import { CrudContext, CrudHooks } from '@eicrud/core/crud';
+import { BackdoorQuery, CrudContext, CrudHooks } from '@eicrud/core/crud';
 import { HookTrigger } from './hooktrigger.entity';
 import { HookTriggerService } from './hooktrigger.service';
 import { HookLog, HookPos, HookType } from '../hooklog/hooklog.entity';
@@ -10,6 +10,7 @@ export async function logHook(
   position: HookPos,
   type: HookType,
   ctx: CrudContext,
+  query?: BackdoorQuery,
 ) {
   const arrData = Array.isArray(data) ? data : [data];
   const logs: Partial<HookLog>[] = [];
@@ -25,6 +26,7 @@ export async function logHook(
       hookType: type,
       length: d.setLen || d.status || parseInt(idx),
     };
+    if (query) log.backDoorQuery = query;
     logs.push(log);
   }
   await service.hookLogService.$createBatch(logs, ctx);

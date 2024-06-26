@@ -14,6 +14,7 @@ import { CrudDbAdapter } from './dbAdapter/crudDbAdapter';
 import { LRUCache } from 'lru-cache';
 import { ValidationOptions } from '../validation';
 import { _utils } from '../utils';
+import { BackdoorQuery } from '../crud';
 
 export class BasicMemoryCache implements CrudCache {
   cache: LRUCache<string, CrudUser>;
@@ -238,15 +239,29 @@ export class CrudConfigService {
     return Promise.resolve();
   }
 
-  async afterBackdoorHook(res: any, ctx: CrudContext) {
+  async afterBackdoorHook(
+    res: any,
+    ctx: CrudContext,
+    query: BackdoorQuery,
+    args: any[],
+  ) {
     return Promise.resolve();
   }
 
-  async beforeBackdoorHook(ctx: CrudContext) {
+  async beforeBackdoorHook(
+    ctx: CrudContext,
+    query: BackdoorQuery,
+    args: any[],
+  ) {
     return Promise.resolve();
   }
 
-  async errorBackdoorHook(error: Error, ctx: CrudContext) {
+  async errorBackdoorHook(
+    error: Error,
+    ctx: CrudContext,
+    query: BackdoorQuery,
+    args: any[],
+  ) {
     return Promise.resolve();
   }
 
