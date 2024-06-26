@@ -4,7 +4,7 @@ import { tk_entity_nameService } from "./tk_entity_lname.service";
 
 export class tk_entity_nameHooks extends CrudHooks<tk_entity_name> {
 
-    override async $beforeCreateHook(this: tk_entity_nameService, data: Partial<tk_entity_name>[], ctx: CrudContext): Promise<Partial<T>[]> {
+    override async $beforeCreateHook(this: tk_entity_nameService, data: Partial<tk_entity_name>[], ctx: CrudContext): Promise<Partial<tk_entity_name>[]> {
         // before tk_entity_name creation
 
 
@@ -18,14 +18,14 @@ export class tk_entity_nameHooks extends CrudHooks<tk_entity_name> {
         return result;
     }
 
-    override async $beforeReadHook(this: tk_entity_nameService, query: Partial<tk_entity_name>, ctx: CrudContext): Promise<Partial<T>> {
+    override async $beforeReadHook(this: tk_entity_nameService, query: Partial<tk_entity_name>, ctx: CrudContext): Promise<Partial<tk_entity_name>> {
         // before tk_entity_name read
 
 
         return query;
     }
 
-    override async $afterReadHook(this: tk_entity_nameService, result, query: Partial<tk_entity_name>, ctx: CrudContext): Promise<FindResponseDto<T>> {
+    override async $afterReadHook(this: tk_entity_nameService, result, query: Partial<tk_entity_name>, ctx: CrudContext): Promise<FindResponseDto<tk_entity_name>> {
         // after tk_entity_name read
 
 
@@ -35,7 +35,7 @@ export class tk_entity_nameHooks extends CrudHooks<tk_entity_name> {
     override async $beforeUpdateHook(this: tk_entity_nameService, 
         updates: { query: Partial<tk_entity_name>; data: Partial<tk_entity_name> }[],
         ctx: CrudContext,
-    ): Promise<{ query: Partial<T>; data: Partial<T> }[]>  {
+    ): Promise<{ query: Partial<tk_entity_name>; data: Partial<tk_entity_name> }[]>  {
         // before tk_entity_name update
 
 
@@ -53,7 +53,7 @@ export class tk_entity_nameHooks extends CrudHooks<tk_entity_name> {
         return results;
     }
 
-    override async $beforeDeleteHook(this: tk_entity_nameService, queries: Partial<tk_entity_name>[], ctx: CrudContext): Promise<Partial<T>[]> {
+    override async $beforeDeleteHook(this: tk_entity_nameService, queries: Partial<tk_entity_name>[], ctx: CrudContext): Promise<Partial<tk_entity_name>[]> {
         // before tk_entity_name remove
 
 

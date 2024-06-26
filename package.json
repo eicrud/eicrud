@@ -19,7 +19,7 @@
     "start:ms:proxy-user": "cross-env TEST_CRUD_PROXY=true CRUD_CURRENT_MS=user PORT=3005 nest start",
     "start:ms:proxy-melon": "cross-env TEST_CRUD_PROXY=true CRUD_CURRENT_MS=melon PORT=3006 nest start",
     "start:ms:proxy-email": "cross-env TEST_CRUD_PROXY=true CRUD_CURRENT_MS=email PORT=3007 nest start",
-    "test:ms": "wait-on http://localhost:3005/crud/rdy && wait-on http://localhost:3006/crud/rdy && wait-on http://localhost:3007/crud/rdy && cross-env CRUD_CURRENT_MS=entry jest hooks --runInBand --forceExit",
+    "test:ms": "wait-on http://localhost:3005/crud/rdy && wait-on http://localhost:3006/crud/rdy && wait-on http://localhost:3007/crud/rdy && cross-env CRUD_CURRENT_MS=entry jest --runInBand --forceExit",
     "test:ms:proxy": "wait-on http://localhost:3004/crud/rdy && wait-on http://localhost:3005/crud/rdy && wait-on http://localhost:3006/crud/rdy && wait-on http://localhost:3007/crud/rdy && cross-env CRUD_CURRENT_MS=entry TEST_CRUD_PROXY=true jest --testPathIgnorePatterns=traffic- --runInBand --forceExit",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",

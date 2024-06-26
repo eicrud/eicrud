@@ -186,6 +186,7 @@ export class MyConfigService extends CrudConfigService {
       'backdoor',
       ctx,
       query,
+      args,
     );
   }
 
@@ -204,6 +205,7 @@ export class MyConfigService extends CrudConfigService {
       'backdoor',
       ctx,
       query,
+      args,
     );
   }
 
@@ -223,6 +225,7 @@ export class MyConfigService extends CrudConfigService {
       'backdoor',
       ctx,
       query,
+      args,
     );
   }
 }

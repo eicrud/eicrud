@@ -835,7 +835,7 @@ export class CrudController {
     }
   }
 
-  addCountToCmdMap(ctx: CrudContext, ct, timestamp = false) {
+  addCountToCmdMap(ctx: CrudContext, ct: number, timestamp = false) {
     if (this.crudConfig.userService.notGuest(ctx?.user)) {
       const increments = {
         ['cmdUserCountMap.' + ctx.serviceName + '_' + ctx.cmdName]: ct,

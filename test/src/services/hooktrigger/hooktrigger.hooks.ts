@@ -11,11 +11,22 @@ export async function logHook(
   type: HookType,
   ctx: CrudContext,
   query?: BackdoorQuery,
+  args?: any[],
 ) {
+  if (!data) {
+    data = {
+      message:
+        args[0].message ||
+        args[0].originalMessage ||
+        args[1].message ||
+        args[1].originalMessage,
+    };
+  }
   const arrData = Array.isArray(data) ? data : [data];
   const logs: Partial<HookLog>[] = [];
   for (const idx in arrData) {
     const d = arrData[idx];
+
     const log: Partial<HookLog> = {
       message:
         d.message ||
@@ -164,7 +175,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     // after HookTrigger remove
     await logHook(this, queries, 'after', 'delete', ctx);
 
-    result = 'replaced in hook (delete)';
+    result = 5311373;
 
     return result;
   }
