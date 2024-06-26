@@ -44,7 +44,7 @@ export async function logHook(
 }
 
 export class HookTriggerHooks extends CrudHooks<HookTrigger> {
-  override async $beforeCreateHook(
+  override async beforeCreateHook(
     this: HookTriggerService,
     data: Partial<HookTrigger>[],
     ctx: CrudContext,
@@ -59,7 +59,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     return data;
   }
 
-  override async $afterCreateHook(
+  override async afterCreateHook(
     this: HookTriggerService,
     result: any[],
     data: Partial<HookTrigger>[],
@@ -74,7 +74,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     return result;
   }
 
-  override async $beforeReadHook(
+  override async beforeReadHook(
     this: HookTriggerService,
     query: Partial<HookTrigger>,
     ctx: CrudContext,
@@ -93,7 +93,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     return query;
   }
 
-  override async $afterReadHook(
+  override async afterReadHook(
     this: HookTriggerService,
     result: FindResponseDto<HookTrigger>,
     query: Partial<HookTrigger>,
@@ -109,7 +109,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     return result;
   }
 
-  override async $beforeUpdateHook(
+  override async beforeUpdateHook(
     this: HookTriggerService,
     updates: { query: Partial<HookTrigger>; data: Partial<HookTrigger> }[],
     ctx: CrudContext,
@@ -125,7 +125,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     return updates;
   }
 
-  override async $afterUpdateHook(
+  override async afterUpdateHook(
     this: HookTriggerService,
     results: any[],
     updates: { query: Partial<HookTrigger>; data: Partial<HookTrigger> }[],
@@ -145,16 +145,16 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     return results;
   }
 
-  override async $beforeDeleteHook(
+  override async beforeDeleteHook(
     this: HookTriggerService,
-    queries: Partial<HookTrigger>[],
+    queries: Partial<HookTrigger>,
     ctx: CrudContext,
   ) {
     // before HookTrigger remove
 
     await logHook(this, queries, 'before', 'delete', ctx);
 
-    for (const q of queries) {
+    for (const q of [queries]) {
       if (q.message) q.message = q.message.replace('replace Query with ', '');
       if (q.originalMessage)
         q.originalMessage = q.originalMessage.replace(
@@ -166,10 +166,10 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     return queries;
   }
 
-  override async $afterDeleteHook(
+  override async afterDeleteHook(
     this: HookTriggerService,
     result: any,
-    queries: Partial<HookTrigger>[],
+    queries: Partial<HookTrigger>,
     ctx: CrudContext,
   ) {
     // after HookTrigger remove

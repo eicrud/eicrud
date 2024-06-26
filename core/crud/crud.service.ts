@@ -321,7 +321,7 @@ export class CrudService<T extends CrudEntity> {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
     const hooks = opOpts?.hooks;
     if (hooks) {
-      [newEntity] = await this.$beforeCreateHook([newEntity], ctx);
+      [newEntity] = await this.beforeCreateHook([newEntity], ctx);
     }
 
     this.checkObjectForIds(newEntity);
@@ -350,7 +350,7 @@ export class CrudService<T extends CrudEntity> {
     }
 
     if (hooks) {
-      [entity] = await this.$afterCreateHook([entity], [newEntity], ctx);
+      [entity] = await this.afterCreateHook([entity], [newEntity], ctx);
     }
     return entity;
   }
@@ -367,7 +367,7 @@ export class CrudService<T extends CrudEntity> {
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
     if (opOpts.hooks) {
-      newEntities = await this.$beforeCreateHook(newEntities, ctx);
+      newEntities = await this.beforeCreateHook(newEntities, ctx);
     }
     const subOpOpts = {
       hooks: false,
@@ -382,7 +382,7 @@ export class CrudService<T extends CrudEntity> {
     }
     await subOpOpts.em.flush();
     if (opOpts.hooks) {
-      results = await this.$afterCreateHook(results, newEntities, ctx);
+      results = await this.afterCreateHook(results, newEntities, ctx);
     }
     return results;
   }
@@ -399,7 +399,7 @@ export class CrudService<T extends CrudEntity> {
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
     if (opOpts.hooks) {
-      data = await this.$beforeUpdateHook(data, ctx);
+      data = await this.beforeUpdateHook(data, ctx);
     }
     let results = [];
     const subOpOpts = { em: this.entityManager.fork(), hooks: false };
@@ -409,7 +409,7 @@ export class CrudService<T extends CrudEntity> {
     }
     results = await Promise.all(proms);
     if (opOpts.hooks) {
-      results = await this.$afterUpdateHook(results, data, ctx);
+      results = await this.afterUpdateHook(results, data, ctx);
     }
     return results;
   }
@@ -447,7 +447,7 @@ export class CrudService<T extends CrudEntity> {
   ): Promise<FindResponseDto<T>> {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
     if (opOpts.hooks) {
-      entity = await this.$beforeReadHook(entity, ctx);
+      entity = await this.beforeReadHook(entity, ctx);
     }
     this.checkObjectForIds(entity);
 
@@ -462,7 +462,7 @@ export class CrudService<T extends CrudEntity> {
       result = { data: res };
     }
     if (opOpts.hooks) {
-      result = await this.$afterReadHook(result, entity, ctx);
+      result = await this.afterReadHook(result, entity, ctx);
     }
 
     return result;
@@ -515,7 +515,7 @@ export class CrudService<T extends CrudEntity> {
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
     if (opOpts.hooks) {
-      entity = await this.$beforeReadHook(entity, ctx);
+      entity = await this.beforeReadHook(entity, ctx);
     }
     this.checkObjectForIds(entity);
     const em = this.entityManager.fork();
@@ -523,7 +523,7 @@ export class CrudService<T extends CrudEntity> {
     let result: T = await em.findOne(this.entity, entity, opts as any);
     if (opOpts.hooks) {
       const fDto: FindResponseDto<T> = { data: [result], total: 1, limit: 1 };
-      const resHook = await this.$afterReadHook(fDto, entity, ctx);
+      const resHook = await this.afterReadHook(fDto, entity, ctx);
       result = resHook.data[0];
     }
     return result;
@@ -541,7 +541,7 @@ export class CrudService<T extends CrudEntity> {
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
     if (opOpts.hooks) {
-      entity = await this.$beforeReadHook(entity, ctx);
+      entity = await this.beforeReadHook(entity, ctx);
     }
     if (!entity[this.crudConfig.id_field]) {
       throw new BadRequestException('id field is required for findOneCached');
@@ -556,7 +556,7 @@ export class CrudService<T extends CrudEntity> {
       }
     }
     if (opOpts.hooks) {
-      result = await this.$afterReadHook(result, entity, ctx);
+      result = await this.afterReadHook(result, entity, ctx);
     }
     return result;
   }
@@ -596,7 +596,7 @@ export class CrudService<T extends CrudEntity> {
     const hooks = opOpts?.hooks;
 
     if (hooks) {
-      [{ query, data }] = await this.$beforeUpdateHook([{ query, data }], ctx);
+      [{ query, data }] = await this.beforeUpdateHook([{ query, data }], ctx);
     }
 
     this.checkObjectForIds(query);
@@ -606,11 +606,7 @@ export class CrudService<T extends CrudEntity> {
     let results = await this.doQueryPatch(query, data, ctx, em);
 
     if (hooks) {
-      [results] = await this.$afterUpdateHook(
-        [results],
-        [{ query, data }],
-        ctx,
-      );
+      [results] = await this.afterUpdateHook([results], [{ query, data }], ctx);
     }
     return results;
   }
@@ -710,13 +706,13 @@ export class CrudService<T extends CrudEntity> {
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
     if (opOpts.hooks) {
-      [{ data, query }] = await this.$beforeUpdateHook([{ query, data }], ctx);
+      [{ data, query }] = await this.beforeUpdateHook([{ query, data }], ctx);
     }
     const em = this.entityManager.fork();
     let result = await this.doOnePatch(query, data, ctx, em, opOpts.secure);
     await em.flush();
     if (opOpts.hooks) {
-      [result] = await this.$afterUpdateHook([result], [{ data, query }], ctx);
+      [result] = await this.afterUpdateHook([result], [{ data, query }], ctx);
     }
     return result;
   }
@@ -826,14 +822,14 @@ export class CrudService<T extends CrudEntity> {
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
     if (opOpts.hooks) {
-      [query] = await this.$beforeDeleteHook([query], ctx);
+      query = await this.beforeDeleteHook(query, ctx);
     }
     this.checkObjectForIds(query);
     const em = this.entityManager.fork();
     const opts = this.getReadOptions(ctx);
     let length = await em.nativeDelete(this.entity, query, opts);
     if (opOpts.hooks) {
-      length = await this.$afterDeleteHook(length, [query], ctx);
+      length = await this.afterDeleteHook(length, [query], ctx);
     }
     return length;
   }
@@ -850,7 +846,7 @@ export class CrudService<T extends CrudEntity> {
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
     if (opOpts.hooks) {
-      [query] = await this.$beforeDeleteHook([query], ctx);
+      query = await this.beforeDeleteHook(query, ctx);
     }
     this.checkObjectForIds(query);
     const em = this.entityManager.fork();
@@ -862,7 +858,7 @@ export class CrudService<T extends CrudEntity> {
 
     await em.flush();
     if (opOpts.hooks) {
-      let result = await this.$afterDeleteHook(1, [query], ctx);
+      let result = await this.afterDeleteHook(1, [query], ctx);
       return result;
     }
     return 1;
@@ -982,43 +978,43 @@ export class CrudService<T extends CrudEntity> {
     return ret;
   }
 
-  async $beforeCreateHook(data: Partial<T>[], ctx: CrudContext) {
-    return this.config.hooks.$beforeCreateHook.call(this, data, ctx);
+  async beforeCreateHook(data: Partial<T>[], ctx: CrudContext) {
+    return this.config.hooks.beforeCreateHook.call(this, data, ctx);
   }
 
-  async $afterCreateHook(result: any[], data: Partial<T>[], ctx: CrudContext) {
-    return this.config.hooks.$afterCreateHook.call(this, result, data, ctx);
+  async afterCreateHook(result: any[], data: Partial<T>[], ctx: CrudContext) {
+    return this.config.hooks.afterCreateHook.call(this, result, data, ctx);
   }
 
-  async $beforeReadHook(query: Partial<T>, ctx: CrudContext) {
-    return this.config.hooks.$beforeReadHook.call(this, query, ctx);
+  async beforeReadHook(query: Partial<T>, ctx: CrudContext) {
+    return this.config.hooks.beforeReadHook.call(this, query, ctx);
   }
 
-  async $afterReadHook(result, query: Partial<T>, ctx: CrudContext) {
-    return this.config.hooks.$afterReadHook.call(this, result, query, ctx);
+  async afterReadHook(result, query: Partial<T>, ctx: CrudContext) {
+    return this.config.hooks.afterReadHook.call(this, result, query, ctx);
   }
 
-  async $beforeUpdateHook(
+  async beforeUpdateHook(
     updates: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
   ) {
-    return this.config.hooks.$beforeUpdateHook.call(this, updates, ctx);
+    return this.config.hooks.beforeUpdateHook.call(this, updates, ctx);
   }
 
-  async $afterUpdateHook(
+  async afterUpdateHook(
     results: any[],
     updates: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
   ) {
-    return this.config.hooks.$afterUpdateHook.call(this, results, updates, ctx);
+    return this.config.hooks.afterUpdateHook.call(this, results, updates, ctx);
   }
 
-  async $beforeDeleteHook(queries: Partial<T>[], ctx: CrudContext) {
-    return this.config.hooks.$beforeDeleteHook.call(this, queries, ctx);
+  async beforeDeleteHook(query: Partial<T>, ctx: CrudContext) {
+    return this.config.hooks.beforeDeleteHook.call(this, query, ctx);
   }
 
-  async $afterDeleteHook(result: any, queries: Partial<T>[], ctx: CrudContext) {
-    return this.config.hooks.$afterDeleteHook.call(this, result, queries, ctx);
+  async afterDeleteHook(result: any, query: Partial<T>, ctx: CrudContext) {
+    return this.config.hooks.afterDeleteHook.call(this, result, query, ctx);
   }
 
   async errorControllerHook(error: any, ctx: CrudContext): Promise<any> {
@@ -1027,7 +1023,7 @@ export class CrudService<T extends CrudEntity> {
 }
 
 export class CrudHooks<T extends CrudEntity> {
-  async $beforeCreateHook(
+  async beforeCreateHook(
     this: CrudService<T>,
     data: Partial<T>[],
     ctx: CrudContext,
@@ -1035,7 +1031,7 @@ export class CrudHooks<T extends CrudEntity> {
     return data;
   }
 
-  async $afterCreateHook(
+  async afterCreateHook(
     this: CrudService<T>,
     result: any[],
     data: Partial<T>[],
@@ -1044,7 +1040,7 @@ export class CrudHooks<T extends CrudEntity> {
     return result;
   }
 
-  async $beforeReadHook(
+  async beforeReadHook(
     this: CrudService<T>,
     query: Partial<T>,
     ctx: CrudContext,
@@ -1052,7 +1048,7 @@ export class CrudHooks<T extends CrudEntity> {
     return query;
   }
 
-  async $afterReadHook(
+  async afterReadHook(
     this: CrudService<T>,
     result: FindResponseDto<T>,
     query: Partial<T>,
@@ -1061,7 +1057,7 @@ export class CrudHooks<T extends CrudEntity> {
     return result;
   }
 
-  async $beforeUpdateHook(
+  async beforeUpdateHook(
     this: CrudService<T>,
     updates: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
@@ -1069,7 +1065,7 @@ export class CrudHooks<T extends CrudEntity> {
     return updates;
   }
 
-  async $afterUpdateHook(
+  async afterUpdateHook(
     this: CrudService<T>,
     results: any[],
     updates: { query: Partial<T>; data: Partial<T> }[],
@@ -1078,18 +1074,18 @@ export class CrudHooks<T extends CrudEntity> {
     return results;
   }
 
-  async $beforeDeleteHook(
+  async beforeDeleteHook(
     this: CrudService<T>,
-    queries: Partial<T>[],
+    query: Partial<T>,
     ctx: CrudContext,
-  ): Promise<Partial<T>[]> {
-    return queries;
+  ): Promise<Partial<T>> {
+    return query;
   }
 
-  async $afterDeleteHook(
+  async afterDeleteHook(
     this: CrudService<T>,
     result: number,
-    queries: Partial<T>[],
+    query: Partial<T>,
     ctx: CrudContext,
   ): Promise<number> {
     return result;

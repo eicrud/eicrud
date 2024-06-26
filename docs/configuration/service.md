@@ -31,7 +31,7 @@ You can override some of your `CrudConfigService`'s methods, to define global ho
 
 **Controller hooks** are called before and after [CRUD](../services/operations.md) and [CMD](../services/commands.md) operations (at the controller level).
 ```typescript
-override async afterControllerHook(res: any, ctx: CrudContext) {
+override async afterControllerHook(res, ctx: CrudContext) {
     return Promise.resolve();
 }
     
@@ -39,16 +39,16 @@ override async beforeControllerHook(ctx: CrudContext){
     return Promise.resolve();
 }
 
-override async errorControllerHook(error: Error, ctx: CrudContext){
+override async errorControllerHook(error, ctx: CrudContext){
     return Promise.resolve();
 }
 ```
 !!! note
-    **Controller hooks** will only trigger on operations initiated by the [client](../client/setup.md). Internal service calls will not trigger.
+    **Controller hooks** will only trigger on operations initiated by the [client](../client/setup.md). Unlike [service-specific hooks](../services/hooks.md) that trigger on internal service calls.
 
 **Backdoor hooks** are called before and after a backdoor request is received in a [microservice](../microservices/configuration.md).
 ```typescript
-override async afterBackdoorHook(res: any, ctx: CrudContext, query: BackdoorQuery, args: any[]) {
+override async afterBackdoorHook(res, ctx: CrudContext, query: BackdoorQuery, args: any[]) {
     return Promise.resolve();
 }
 
@@ -56,7 +56,7 @@ override async beforeBackdoorHook(ctx: CrudContext, query: BackdoorQuery, args: 
     return Promise.resolve();
 }
 
-override async errorBackdoorHook(error: Error, ctx: CrudContext, query: BackdoorQuery, args: any[]){
+override async errorBackdoorHook(error, ctx: CrudContext, query: BackdoorQuery, args: any[]){
     return Promise.resolve();
 }
 ```
@@ -69,7 +69,7 @@ override async errorBackdoorHook(error: Error, ctx: CrudContext, query: Backdoor
 The `CrudConfigService` has access to all your [CrudServices](../services/definition.md) via the `servicesMap` property.
 
 ```typescript
-override async afterControllerHook(res: any, ctx: CrudContext) {
+override async afterControllerHook(res, ctx: CrudContext) {
     const profileService: CrudService<Profile> = this.servicesMap['profile'];
 }
 ```

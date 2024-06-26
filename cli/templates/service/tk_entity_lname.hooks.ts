@@ -5,65 +5,57 @@ import { FindResponseDto } from "@eicrud/shared/interfaces";
 
 export class tk_entity_nameHooks extends CrudHooks<tk_entity_name> {
 
-    override async $beforeCreateHook(this: tk_entity_nameService, data: Partial<tk_entity_name>[], ctx: CrudContext): Promise<Partial<tk_entity_name>[]> {
+    override async beforeCreateHook(this: tk_entity_nameService, data: Partial<tk_entity_name>[], ctx: CrudContext): Promise<Partial<tk_entity_name>[]> {
         // before tk_entity_name creation
-
 
         return data;
     }
 
-    override async $afterCreateHook(this: tk_entity_nameService, result: any[], data: Partial<tk_entity_name>[], ctx: CrudContext): Promise<tk_entity_name[]>  {
+    override async afterCreateHook(this: tk_entity_nameService, result: any[], data: Partial<tk_entity_name>[], ctx: CrudContext): Promise<tk_entity_name[]>  {
         // after tk_entity_name creation
-
 
         return result;
     }
 
-    override async $beforeReadHook(this: tk_entity_nameService, query: Partial<tk_entity_name>, ctx: CrudContext): Promise<Partial<tk_entity_name>> {
+    override async beforeReadHook(this: tk_entity_nameService, query: Partial<tk_entity_name>, ctx: CrudContext): Promise<Partial<tk_entity_name>> {
         // before tk_entity_name read
-
 
         return query;
     }
 
-    override async $afterReadHook(this: tk_entity_nameService, result, query: Partial<tk_entity_name>, ctx: CrudContext): Promise<FindResponseDto<tk_entity_name>> {
+    override async afterReadHook(this: tk_entity_nameService, result, query: Partial<tk_entity_name>, ctx: CrudContext): Promise<FindResponseDto<tk_entity_name>> {
         // after tk_entity_name read
-
 
         return result;
     }
 
-    override async $beforeUpdateHook(this: tk_entity_nameService, 
+    override async beforeUpdateHook(this: tk_entity_nameService, 
         updates: { query: Partial<tk_entity_name>; data: Partial<tk_entity_name> }[],
         ctx: CrudContext,
     ): Promise<{ query: Partial<tk_entity_name>; data: Partial<tk_entity_name> }[]>  {
         // before tk_entity_name update
 
-
         return updates;
     }
 
-    override async $afterUpdateHook(this: tk_entity_nameService, 
+    override async afterUpdateHook(this: tk_entity_nameService, 
         results: any[],
         updates: { query: Partial<tk_entity_name>; data: Partial<tk_entity_name> }[],
         ctx: CrudContext,
     ): Promise<any[]> {
         // after tk_entity_name update
 
-
         return results;
     }
 
-    override async $beforeDeleteHook(this: tk_entity_nameService, queries: Partial<tk_entity_name>[], ctx: CrudContext): Promise<Partial<tk_entity_name>[]> {
-        // before tk_entity_name remove
+    override async beforeDeleteHook(this: tk_entity_nameService, query: Partial<tk_entity_name>, ctx: CrudContext): Promise<Partial<tk_entity_name>> {
+        // before tk_entity_name delete
 
-
-        return queries;
+        return query;
     }
 
-    override async $afterDeleteHook(this: tk_entity_nameService, result: any, queries: Partial<tk_entity_name>[], ctx: CrudContext): Promise<number> {
-        // after tk_entity_name remove
-
+    override async afterDeleteHook(this: tk_entity_nameService, result: any, query: Partial<tk_entity_name>, ctx: CrudContext): Promise<number> {
+        // after tk_entity_name delete
 
         return result;
     }
@@ -71,8 +63,6 @@ export class tk_entity_nameHooks extends CrudHooks<tk_entity_name> {
     override async errorControllerHook(this: tk_entity_nameService, error: any, ctx: CrudContext): Promise<any> {
         //after tk_entity_name error
 
-
-        return Promise.resolve();
     }
 };
 
