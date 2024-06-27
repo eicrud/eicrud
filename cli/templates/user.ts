@@ -2,7 +2,7 @@ import {  Entity, PrimaryKey, Property, Unique } from "@mikro-orm/core";
 import { CrudUser } from "@eicrud/core/config";
 
 @Entity()
-export default class User implements CrudUser {
+export class User implements CrudUser {
 
     @PrimaryKey({ name: '_id'})
     id: string;

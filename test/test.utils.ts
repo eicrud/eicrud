@@ -3,13 +3,13 @@ import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { CrudConfigService } from '../core/config/crud.config.service';
 import { CrudUserService } from '../core/config/crud-user.service';
 import { CrudUser } from '../core/config/model/CrudUser';
-import Picture from './src/services/picture/picture.entity';
+import { Picture } from './src/services/picture/picture.entity';
 
 import { create } from 'domain';
 import { CrudClient } from '@eicrud/client';
-import DragonFruit from './src/services/dragonfruit/dragonfruit.entity';
-import Melon from './src/services/melon/melon.entity';
-import UserProfile from './src/services/userprofile/userprofile.entity';
+import { DragonFruit } from './src/services/dragonfruit/dragonfruit.entity';
+import { Melon } from './src/services/melon/melon.entity';
+import { UserProfile } from './src/services/userprofile/userprofile.entity';
 
 export interface TestUser {
   email: string;

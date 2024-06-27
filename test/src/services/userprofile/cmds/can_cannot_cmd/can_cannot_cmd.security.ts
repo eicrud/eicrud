@@ -1,6 +1,6 @@
 import { CmdSecurity } from '@eicrud/core/config';
-import can_cannot_cmd from './can_cannot_cmd.action';
-import CanCannotCmdDto from './can_cannot_cmd.dto';
+import { can_cannot_cmd } from './can_cannot_cmd.action';
+import { CanCannotCmdDto } from './can_cannot_cmd.dto';
 
 const getCmdSecurity = (can_cannot_cmd, userprofile): CmdSecurity => {
   return {

@@ -7,7 +7,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { LRUCache } from 'mnemonist';
-import { CrudService } from '../crud/crud.service';
+import {
+  CrudService,
+  CrudServiceConfig,
+  Inheritance,
+} from '../crud/crud.service';
 import { CrudSecurity } from './model/CrudSecurity';
 import { _utils } from '../utils';
 import { CrudUser } from './model/CrudUser';
@@ -195,11 +199,12 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
   constructor(
     protected moduleRef: ModuleRef,
-    private userEntityClass: new () => T,
-    public security: CrudSecurity,
+    entity: new () => T,
+    security: CrudSecurity,
+    config?: CrudServiceConfig<T>,
   ) {
     security = security || new CrudSecurity();
-    super(moduleRef, userEntityClass, security);
+    super(moduleRef, entity, security, config);
 
     for (const cmdIndex in baseCmds) {
       const cmd = baseCmds[cmdIndex];
@@ -795,7 +800,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   async $create_account(
     dto: CreateAccountDto,
     ctx: CrudContext,
-    inheritance: any = {},
+    inheritance?: Inheritance,
   ) {
     const { email, password, role } = dto;
     if (
@@ -803,7 +808,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     ) {
       throw new BadRequestException(CrudErrors.PASSWORD_TOO_LONG.str());
     }
-    const user = new this.userEntityClass();
+    const user = new this.entity();
     user.email = email.toLowerCase().trim();
     user.password = password;
     user.role = role;
@@ -915,7 +920,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     } as LoginResponseDto;
   }
 
-  async $login(dto: LoginDto, ctx: CrudContext, inheritance: any = {}) {
+  async $login(dto: LoginDto, ctx: CrudContext, inheritance?: Inheritance) {
     const lastLogingAttempt: Date = this.userLastLoginAttemptMap.get(dto.email);
     const now = new Date();
     if (
@@ -977,7 +982,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   async $logout_everywhere(
     dto: UserIdDto,
     ctx: CrudContext,
-    inheritance: any = {},
+    inheritance?: Inheritance,
   ) {
     const query: any = { [this.crudConfig.id_field]: dto.userId };
     const user =

@@ -1,5 +1,5 @@
 import { ModuleRef } from '@nestjs/core';
-import FakeEmail from './fakeemail.entity';
+import { FakeEmail } from './fakeemail.entity';
 import { Injectable } from '@nestjs/common';
 import { getSecurity } from './fakeemail.security';
 import { CrudService } from '@eicrud/core/crud';

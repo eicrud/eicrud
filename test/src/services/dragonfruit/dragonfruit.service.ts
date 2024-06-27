@@ -1,5 +1,5 @@
 import { ModuleRef } from '@nestjs/core';
-import DragonFruit from './dragonfruit.entity';
+import { DragonFruit } from './dragonfruit.entity';
 import { Injectable } from '@nestjs/common';
 import { getSecurity } from './dragonfruit.security';
 import { CrudService } from '@eicrud/core/crud';

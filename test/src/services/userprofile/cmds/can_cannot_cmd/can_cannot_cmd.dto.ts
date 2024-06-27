@@ -13,7 +13,7 @@ class subTestCmdDto {
   subfield: string;
 }
 
-export default class CanCannotCmdDto {
+export class CanCannotCmdDto {
   @IsString()
   @MaxLength(30)
   @$Transform((value: string) => value.toUpperCase())

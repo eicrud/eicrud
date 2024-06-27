@@ -3,7 +3,7 @@ import { IsString, IsOptional } from 'class-validator';
 import { CrudEntity } from '@eicrud/core/crud';
 
 @Entity()
-export default class FakeEmail implements CrudEntity {
+export class FakeEmail implements CrudEntity {
   @PrimaryKey({ name: '_id' })
   id: string;
 

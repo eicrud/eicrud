@@ -8,7 +8,7 @@ Fields that you annotate with [Mikro-orm](https://mikro-orm.io){:target="_blank"
 import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
 
 @Entity()
-export default class Profile implements CrudEntity {
+export class Profile implements CrudEntity {
 
     @PrimaryKey({ name: '_id' })
     id: string;
@@ -38,7 +38,7 @@ Fields that you annotate with [class-validator](https://mikro-orm.io){:target="_
 ```typescript title="services/profile/profile.entity.ts"
 import { IsString, IsOptional } from "class-validator";
 
-export default class Profile implements CrudEntity {
+export class Profile implements CrudEntity {
     
     @IsOptional()
     @IsString()
@@ -64,7 +64,7 @@ Fields that you annotate with Eicrud's [transform decorators](../validation/tran
 ```typescript title="services/profile/profile.entity.ts"
 import { $Transform } from '@eicrud/core/validation';
 
-export default class Profile implements CrudEntity {
+export class Profile implements CrudEntity {
     
     id: string;
 
@@ -93,7 +93,7 @@ import { IsString, IsOptional, IsInt } from "class-validator";
 import { $Transform } from '@eicrud/core/validation';
 
 @Entity()
-export default class Profile implements CrudEntity {
+export class Profile implements CrudEntity {
     @IsOptional()
     @IsString()
     @PrimaryKey({ name: '_id' })

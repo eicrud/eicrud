@@ -6,7 +6,7 @@ A `User` entity must be registered in a `CrudUserService` and passed to the [Cru
 
 ```typescript title="services/user/user.entity.ts"
 @Entity()
-export default class User implements CrudUser {
+export class User implements CrudUser {
 
     @PrimaryKey({ name: '_id'})
     id: string;
@@ -66,7 +66,7 @@ To keep your [authorization](../security/definition.md) fast, you might want to 
 
 ```typescript 
 @Entity()
-export default class User implements CrudUser {
+export class User implements CrudUser {
 
    @Property()
    moderationRights: string[];

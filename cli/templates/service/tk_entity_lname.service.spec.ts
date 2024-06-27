@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { tk_entity_nameService } from './tk_entity_lname.service';
 import { EICRUDModule } from '@eicrud/core';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import tk_entity_name from './tk_entity_lname.entity';
+import { tk_entity_name } from './tk_entity_lname.entity';
 import { MyConfigService } from 'tk_config_path_from_service';
 import { CRUD_CONFIG_KEY } from '@eicrud/core/config';
 

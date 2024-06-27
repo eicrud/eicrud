@@ -9,11 +9,11 @@ import {
 } from '@mikro-orm/core';
 import { IsString, IsOptional, Equals } from 'class-validator';
 import { CrudEntity } from '@eicrud/core/crud';
-import Melon from '../melon/melon.entity';
-import UserProfile from '../userprofile/userprofile.entity';
+import { Melon } from '../melon/melon.entity';
+import { UserProfile } from '../userprofile/userprofile.entity';
 
 @Entity()
-export default class MyUser implements CrudEntity {
+export class MyUser implements CrudEntity {
   @OneToMany(() => Melon, (mel) => mel.owner)
   @Equals(undefined)
   melons = new Collection<Melon>(this);

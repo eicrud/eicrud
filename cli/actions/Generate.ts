@@ -70,6 +70,7 @@ export class Generate {
       'tk_entity_lname.entity.ts',
       'tk_entity_lname.security.ts',
       'tk_entity_lname.service.ts',
+      'tk_entity_lname.hooks.ts',
     ];
 
     Generate.copyTemplateFiles(template_folder, files, keys, dir);
@@ -137,7 +138,7 @@ export class Generate {
     const serviceName = `${name}Service`;
     const importLines = [
       `import { ${serviceName} } from './${keys.tk_entity_lname}/${keys.tk_entity_lname}.service';`,
-      `import ${name} from './${keys.tk_entity_lname}/${keys.tk_entity_lname}.entity';`,
+      `import { ${name} } from './${keys.tk_entity_lname}/${keys.tk_entity_lname}.entity';`,
     ];
 
     const replaces = [
@@ -319,7 +320,7 @@ export class Generate {
       defContent = defContent.replace(new RegExp(key, 'g'), value);
     }
 
-    const importLine = `import ${keys.tk_cmd_dto_name} from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
+    const importLine = `import { ${keys.tk_cmd_dto_name} } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
 
     serviceFileContent =
       importLine +

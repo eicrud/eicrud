@@ -3,7 +3,7 @@ Eicrud's validation happens at the controller level (between the client, and you
 [Entities](../services/entity.md) and [commands DTOs](../services/commands.md) are validated the same way.
 
 ```typescript 
-export default class CmdDto {
+export class CmdDto {
     @IsString()
     @IsOptional()
     arg: string;
@@ -22,7 +22,7 @@ You can use any [class-validator decorator](https://github.com/typestack/class-v
 ```typescript 
 import { $Type } from '@eicrud/core/validation'
 
-export default class CmdDto {
+export class CmdDto {
     @$Type(Slice)
     @ValidateNested()
     firstSlice: Slice;
@@ -48,7 +48,7 @@ Specify the max length of the stringified argument.
 ```typescript 
 import { $MaxSize } from '@eicrud/core/validation'
 
-export default class CmdDto {
+export class CmdDto {
     @$MaxSize(300)
     bio: string;
 }
@@ -63,7 +63,7 @@ Specify the max length of an array argument.
 ```typescript 
 import { $MaxArLength } from '@eicrud/core/validation'
 
-export default class CmdDto {
+export class CmdDto {
     @$Type(Seed)
     @$MaxArLength(5)
     seeds: Seed[];

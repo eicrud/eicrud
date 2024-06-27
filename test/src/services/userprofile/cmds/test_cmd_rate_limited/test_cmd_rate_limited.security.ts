@@ -1,6 +1,6 @@
 import { CmdSecurity } from '@eicrud/core/config';
-import test_cmd_rate_limited from './test_cmd_rate_limited.action';
-import Test_cmd_rate_limitedDto from './test_cmd_rate_limited.dto';
+import { test_cmd_rate_limited } from './test_cmd_rate_limited.action';
+import { Test_cmd_rate_limitedDto } from './test_cmd_rate_limited.dto';
 
 const getCmdSecurity = (test_cmd_rate_limited, userprofile): CmdSecurity => {
   return {

@@ -1,6 +1,6 @@
-import CallTestCmdDto from './cmds/call_test_cmd/call_test_cmd.dto';
+import { CallTestCmdDto } from './cmds/call_test_cmd/call_test_cmd.dto';
 import { ModuleRef } from '@nestjs/core';
-import MyUser from './myuser.entity';
+import { MyUser } from './myuser.entity';
 import { Injectable } from '@nestjs/common';
 import { getSecurity } from './myuser.security';
 import { CrudService } from '@eicrud/core/crud';

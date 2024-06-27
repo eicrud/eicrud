@@ -1,14 +1,15 @@
 import { ModuleRef } from '@nestjs/core';
-import SearchDto from './search.dto';
+import { SearchDto } from './search.dto';
 import { UserProfileService } from '../../userprofile.service';
-import { CrudContext } from '@eicrud/core/crud';
-import UserProfile from '../../userprofile.entity';
+import { CrudContext, CrudService, Inheritance } from '@eicrud/core/crud';
+import { UserProfile } from '../../userprofile.entity';
 
-export default async function search(
+export async function search(
+  this: CrudService<UserProfile>,
   dto: SearchDto,
   service: UserProfileService,
   ctx: CrudContext,
-  inheritance?: any,
+  inheritance?: Inheritance,
 ) {
   const query: Partial<UserProfile> = {
     userName: new RegExp(dto.userNameLike, 'i') as any,
@@ -28,5 +29,5 @@ export default async function search(
 
   await this.crudAuthorization.authorize(fakeCtx, this.security);
 
-  return this.$find(query, fakeCtx, inheritance);
+  return this.$find(query, fakeCtx);
 }

@@ -839,7 +839,7 @@ export class CrudClient<T> {
     return res;
   }
 
-  async removeOne(
+  async deleteOne(
     query: object,
     options: ICrudOptions = undefined,
   ): Promise<1> {
@@ -857,7 +857,7 @@ export class CrudClient<T> {
     return res;
   }
 
-  async removeIn(
+  async deleteIn(
     ids: any[],
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
@@ -883,7 +883,7 @@ export class CrudClient<T> {
     return res?.reduce((acc, val) => acc + val, 0);
   }
 
-  async remove(
+  async delete(
     query: object,
     options: ICrudOptions = undefined,
   ): Promise<number> {

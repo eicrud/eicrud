@@ -29,10 +29,10 @@ import {
 import { format } from 'path';
 import exp from 'constants';
 import { MyUserService } from '../src/services/myuser/myuser.service';
-import UserProfile from '../src/services/userprofile/userprofile.entity';
-import Melon from '../src/services/melon/melon.entity';
+import { UserProfile } from '../src/services/userprofile/userprofile.entity';
+import { Melon } from '../src/services/melon/melon.entity';
 import { UserProfileService as MyProfileService } from '../src/services/userprofile/userprofile.service';
-import TestCmdDto from '../src/services/userprofile/cmds/test_cmd/test_cmd.dto';
+import { Test_cmdDto as TestCmdDto } from '../src/services/userprofile/cmds/test_cmd/test_cmd.dto';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',

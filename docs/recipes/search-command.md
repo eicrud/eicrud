@@ -58,7 +58,7 @@ const getCmdSecurity = (search, profile): CmdSecurity => {
 We can now implement the command action, to make things simpler we use the [CrudService->$find](../services/operations.md#read-operations) method.
 
 ```typescript title="search.action.ts"
-export default async function search(dto: SearchDto, service: ProfileService, ctx: CrudContext, inheritance?: any ){
+export async function search(this: ProfileService, dto: SearchDto, ctx: CrudContext, inheritance?: any ){
     const query: Partial<Profile> = {
       userName: new RegExp(dto.userNameLike, 'i') as any,
     };
@@ -75,9 +75,9 @@ export default async function search(dto: SearchDto, service: ProfileService, ct
       method: 'GET',
     };
 
-    await service.crudAuthorization.authorize(fakeCtx, service.security);
+    await this.crudAuthorization.authorize(fakeCtx, this.security);
 
-    return service.$find(query, fakeCtx, inheritance);
+    return this.$find(query, fakeCtx);
 }
 ```
 !!! note

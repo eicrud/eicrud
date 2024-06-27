@@ -26,42 +26,53 @@ export class MyConfigService extends CrudConfigService {
 }
 ```
 
-## Hooks
-You can override some of your `CrudConfigService`'s methods, to define hooks for your applications.
+## Global Hooks
+You can override some of your `CrudConfigService`'s methods, to define global hooks for your application.
 
-**Crud hooks** are called before and after [CRUD](../services/operations.md) and [CMD](../services/commands.md) operations (at the controller level).
+**Controller hooks** are called before and after [CRUD](../services/operations.md) and [CMD](../services/commands.md) operations (at the controller level).
 ```typescript
-override async afterCrudHook(res: any, ctx: CrudContext) {
+override async afterControllerHook(res, ctx: CrudContext) {
     return Promise.resolve();
 }
     
-override async beforeCrudHook(ctx: CrudContext){
+override async beforeControllerHook(ctx: CrudContext){
     return Promise.resolve();
 }
 
-override async errorCrudHook(error: Error, ctx: CrudContext){
+override async errorControllerHook(error, ctx: CrudContext){
     return Promise.resolve();
 }
 ```
 !!! note
-    **Crud hooks** will only trigger on operations initiated form the [client](../client/setup.md). Internal service calls will not trigger.
+    **Controller hooks** will only trigger on operations initiated by the [client](../client/setup.md). Unlike [service-specific hooks](../services/hooks.md) that trigger on internal service calls.
 
 **Backdoor hooks** are called before and after a backdoor request is received in a [microservice](../microservices/configuration.md).
 ```typescript
-override async afterBackdoorHook(res: any, ctx: CrudContext) {
+override async afterBackdoorHook(res, ctx: CrudContext, query: BackdoorQuery, args: any[]) {
     return Promise.resolve();
 }
 
-override async beforeBackdoorHook(ctx: CrudContext){
+override async beforeBackdoorHook(ctx: CrudContext, query: BackdoorQuery, args: any[]){
     return Promise.resolve();
 }
 
-override async errorBackdoorHook(error: Error, ctx: CrudContext){
+override async errorBackdoorHook(error, ctx: CrudContext, query: BackdoorQuery, args: any[]){
     return Promise.resolve();
 }
 ```
 !!! note
-    It's better not to await function calls inside hooks when possible, this way errors won't prevent a request from returning data.
+    It's better not to await function calls inside hooks when possible, this way errors won't prevent requests from returning data.
+
+
+## Services
+
+The `CrudConfigService` has access to all your [CrudServices](../services/definition.md) via the `servicesMap` property.
+
+```typescript
+override async afterControllerHook(res, ctx: CrudContext) {
+    const profileService: CrudService<Profile> = this.servicesMap['profile'];
+}
+```
 
 
 ## Events

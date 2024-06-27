@@ -186,7 +186,7 @@ Delete an entity.
 const query: Partial<Profile> = {
     userName: "Jon Doe",
 }
-await profileClient.removeOne(query);
+await profileClient.deleteOne(query);
 ```
 !!! note
     `removeOne` will throw if the queried entity doesn't exist.
@@ -199,7 +199,7 @@ const query: Partial<Profile> = {
     astroSign: "Aries"
 }
 
-await profileClient.remove(query, ctx);
+await profileClient.delete(query, ctx);
 ```
 !!! note
     `remove` returns the number of entities affected by the operation
@@ -209,7 +209,7 @@ Remove entities with IDs included in the provided list.
 ```typescript
 const ids = ['4d3ed089fb60ab534684b7e9', '4d3ed089fb60ab534684b7ff']
 
-await profileClient.removeIn(query, ctx);
+await profileClient.deleteIn(query, ctx);
 ```
 
 ## Commands

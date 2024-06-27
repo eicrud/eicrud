@@ -20,7 +20,7 @@ import {
   $Transform,
   $MaxArLength,
 } from '@eicrud/core/validation';
-import MyUser from '../myuser/myuser.entity';
+import { MyUser } from '../myuser/myuser.entity';
 
 @Embeddable()
 export class Slice {
@@ -49,7 +49,7 @@ export class Seed {
 }
 
 @Entity()
-export default class Melon implements CrudEntity {
+export class Melon implements CrudEntity {
   @PrimaryKey({ name: '_id' })
   @IsString()
   @IsOptional()

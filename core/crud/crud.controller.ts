@@ -156,11 +156,11 @@ export class CrudController {
 
   async beforeHooks(service: CrudService<any>, ctx: CrudContext) {
     //await service.beforeControllerHook(ctx);
-    await this.crudConfig.beforeCrudHook(ctx);
+    await this.crudConfig.beforeControllerHook(ctx);
   }
 
   async afterHooks(service: CrudService<any>, res, ctx: CrudContext) {
-    await this.crudConfig.afterCrudHook(res, ctx);
+    await this.crudConfig.afterControllerHook(res, ctx);
     if (ctx.setCookies) {
       const fastifyReply = ctx.getHttpResponse();
       for (const key in ctx.setCookies) {
@@ -175,7 +175,8 @@ export class CrudController {
     ctx: CrudContext,
   ) {
     //await service.errorControllerHook(e, ctx);
-    await this.crudConfig.errorCrudHook(e, ctx);
+    let res: any = await this.crudConfig.errorControllerHook(e, ctx);
+    res = (await service.errorControllerHook(e, ctx)) || res;
     const notGuest = this.crudConfig.userService.notGuest(ctx?.user);
     if (notGuest) {
       let patch;
@@ -209,6 +210,9 @@ export class CrudController {
         ...patch,
       };
       this.crudConfig.userService.$setCached(ctx.user, ctx);
+    }
+    if (res) {
+      return res;
     }
     throw e;
   }
@@ -246,7 +250,7 @@ export class CrudController {
 
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -306,7 +310,7 @@ export class CrudController {
 
       return results;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -373,7 +377,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -401,7 +405,7 @@ export class CrudController {
         currentService,
       );
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -433,7 +437,7 @@ export class CrudController {
       res.data = res.data.map((d) => d[this.crudConfig.id_field]);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -492,7 +496,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -522,7 +526,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -543,12 +547,12 @@ export class CrudController {
     );
     try {
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      await currentService.$removeOne_(ctx);
+      const result = await currentService.$deleteOne_(ctx);
       await this.afterHooks(currentService, 1, ctx);
       this.addCountToDataMap(ctx, -1);
-      return 1;
+      return result;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -569,12 +573,12 @@ export class CrudController {
     );
     try {
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      const res = await currentService.$remove_(ctx);
+      const res = await currentService.$delete_(ctx);
       await this.afterHooks(currentService, res, ctx);
       this.addCountToDataMap(ctx, -res);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -610,12 +614,12 @@ export class CrudController {
       ctx.ids = ids;
       delete ctx.query[this.crudConfig.id_field];
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      const res = await currentService.$removeIn_(ctx);
+      const res = await currentService.$deleteIn_(ctx);
       await this.afterHooks(currentService, res, ctx);
       this.addCountToDataMap(ctx, -res);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -646,7 +650,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -687,7 +691,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -713,7 +717,7 @@ export class CrudController {
       await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -770,7 +774,7 @@ export class CrudController {
 
       return results;
     } catch (e) {
-      await this.errorHooks(currentService, e, ctx);
+      return this.errorHooks(currentService, e, ctx);
     }
   }
 
@@ -831,7 +835,7 @@ export class CrudController {
     }
   }
 
-  addCountToCmdMap(ctx: CrudContext, ct, timestamp = false) {
+  addCountToCmdMap(ctx: CrudContext, ct: number, timestamp = false) {
     if (this.crudConfig.userService.notGuest(ctx?.user)) {
       const increments = {
         ['cmdUserCountMap.' + ctx.serviceName + '_' + ctx.cmdName]: ct,
@@ -904,9 +908,9 @@ export class CrudController {
           'Backdoor method not found: ' + query.methodName,
         );
       }
-      await this.crudConfig.beforeBackdoorHook(ctx);
+      await this.crudConfig.beforeBackdoorHook(ctx, query, data.args);
       const res = await currentService[query.methodName](...data.args);
-      await this.crudConfig.afterBackdoorHook(res, ctx);
+      await this.crudConfig.afterBackdoorHook(res, ctx, query, data.args);
 
       const returnCtxFields = ['setCookies'];
       const response: any = { res };
@@ -918,7 +922,7 @@ export class CrudController {
       }
       return response;
     } catch (e) {
-      await this.crudConfig.errorBackdoorHook(e, ctx);
+      await this.crudConfig.errorBackdoorHook(e, ctx, query, data.args);
       throw e;
     }
   }
