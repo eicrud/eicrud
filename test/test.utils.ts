@@ -356,6 +356,8 @@ export async function createAccountsAndProfiles(
   if (process.env.TEST_CRUD_DB == 'postgre') {
     // Is there some propagation delay with postgres? some tests fail without this
     await new Promise((r) => setTimeout(r, 50));
+  } else {
+    await new Promise((r) => setTimeout(r, 15));
   }
 }
 
