@@ -956,98 +956,94 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it(
-    'should call hooks on deleteMany and find',
-    async () => {
-      const user = users['Michael Doe'];
-      const createMessage = 'delete me many';
-      const search: Partial<HookTrigger> = {
-        message: 'replace Query with ' + createMessage,
-      };
-      const createdTriggers0: any = await hookTriggerService.$find(
-        { ...search },
-        null,
+  it('should call hooks on deleteMany and find', async () => {
+    const user = users['Michael Doe'];
+    const createMessage = 'delete me many';
+    const search: Partial<HookTrigger> = {
+      message: 'replace Query with ' + createMessage,
+    };
+    const createdTriggers0: any = await hookTriggerService.$find(
+      { ...search },
+      null,
+    );
+    expect(createdTriggers0.data.length).toBe(3);
+
+    const payload = {};
+    const query: CrudQuery = {
+      service: 'hook-trigger',
+      query: JSON.stringify({ message: createMessage }),
+    };
+    const res = await testMethod({
+      url: '/crud/many',
+      method: 'DELETE',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    expect(res).toBe(5311373);
+    const createdTriggers: any = await hookTriggerService.$find(
+      { ...search },
+      null,
+    );
+    expect(createdTriggers.data.length).toBe(0);
+
+    const allHooks = await findAllHooks(createMessage, hookLogService);
+    expect(allHooks.length).toBe(helperCurrentConfig(8, 14, 12));
+    const logCheck = [
+      {
+        pos: 'before',
+        type: 'controller',
+        expectedMessage: createMessage,
+      },
+      {
+        pos: 'before',
+        type: 'delete',
+        expectedMessage: createMessage,
+      },
+      {
+        pos: 'after',
+        type: 'delete',
+        expectedMessage: createMessage,
+      },
+      {
+        pos: 'after',
+        type: 'controller',
+        expectedMessage: createMessage,
+      },
+      {
+        pos: 'before',
+        type: 'read',
+        expectedMessage: 'replace Query with ' + createMessage,
+      },
+      {
+        pos: 'after',
+        type: 'read',
+        expectedMessage: createMessage,
+      },
+    ];
+    if (process.env.CRUD_CURRENT_MS) {
+      allHooks.push(
+        ...[
+          {
+            pos: 'before',
+            type: 'backdoor',
+            expectedMessage: 'replace Query with ' + createMessage,
+          },
+          {
+            pos: 'after',
+            type: 'backdoor',
+            expectedMessage: createMessage,
+          },
+        ],
       );
-      expect(createdTriggers0.data.length).toBe(3);
-
-      const payload = {};
-      const query: CrudQuery = {
-        service: 'hook-trigger',
-        query: JSON.stringify({ message: createMessage }),
-      };
-      const res = await testMethod({
-        url: '/crud/many',
-        method: 'DELETE',
-        expectedCode: 200,
-        app,
-        jwt: user.jwt,
-        entityManager,
-        payload,
-        query,
-        crudConfig,
-      });
-
-      expect(res).toBe(5311373);
-      const createdTriggers: any = await hookTriggerService.$find(
-        { ...search },
-        null,
-      );
-      expect(createdTriggers.data.length).toBe(0);
-
-      const allHooks = await findAllHooks(createMessage, hookLogService);
-      expect(allHooks.length).toBe(helperCurrentConfig(8, 14, 12));
-      const logCheck = [
-        {
-          pos: 'before',
-          type: 'controller',
-          expectedMessage: createMessage,
-        },
-        {
-          pos: 'before',
-          type: 'delete',
-          expectedMessage: createMessage,
-        },
-        {
-          pos: 'after',
-          type: 'delete',
-          expectedMessage: createMessage,
-        },
-        {
-          pos: 'after',
-          type: 'controller',
-          expectedMessage: createMessage,
-        },
-        {
-          pos: 'before',
-          type: 'read',
-          expectedMessage: 'replace Query with ' + createMessage,
-        },
-        {
-          pos: 'after',
-          type: 'read',
-          expectedMessage: createMessage,
-        },
-      ];
-      if (process.env.CRUD_CURRENT_MS) {
-        allHooks.push(
-          ...[
-            {
-              pos: 'before',
-              type: 'backdoor',
-              expectedMessage: 'replace Query with ' + createMessage,
-            },
-            {
-              pos: 'after',
-              type: 'backdoor',
-              expectedMessage: createMessage,
-            },
-          ],
-        );
-      }
-      checkHookLogs(logCheck, allHooks);
-    },
-    8000 * 100,
-  );
+    }
+    checkHookLogs(logCheck, allHooks);
+  }, 8000);
 
   it('should call hook error hooks on error', async () => {
     const user = users['Michael Doe'];

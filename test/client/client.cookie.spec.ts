@@ -272,22 +272,18 @@ describe('AppController', () => {
     expect(profile2.bio).toBe(user.bio);
   }, 10000);
 
-  it(
-    '401 should unset jwt cookie',
-    async () => {
-      const myClient = getProfileClient();
-      myClient.config.globalOptions = { jwtCookie: true };
+  it('401 should unset jwt cookie', async () => {
+    const myClient = getProfileClient();
+    myClient.config.globalOptions = { jwtCookie: true };
 
-      myClient.setJwt('badjwt');
+    myClient.setJwt('badjwt');
 
-      const res = await myClient.userServiceCmd('check_jwt', {}, true, false);
-      const matchLogout = parseJwtCookieFromRes(
-        res.response,
-        /eicrud-jwt=; Max-Age=([^;]*);/,
-      );
-      expect(matchLogout).toBeTruthy();
-      expect(matchLogout[1]).toBe('0');
-    },
-    6000 * 100,
-  );
+    const res = await myClient.userServiceCmd('check_jwt', {}, true, false);
+    const matchLogout = parseJwtCookieFromRes(
+      res.response,
+      /eicrud-jwt=; Max-Age=([^;]*);/,
+    );
+    expect(matchLogout).toBeTruthy();
+    expect(matchLogout[1]).toBe('0');
+  }, 6000);
 });
