@@ -7,7 +7,12 @@
       "name": "npm run test",
       "command": "npm run test"
     },
-
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test postgre",
+      "command": "npm run test:postgre"
+    },
     {
       "type": "node-terminal",
       "request": "launch",

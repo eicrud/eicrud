@@ -246,8 +246,7 @@ describe('AppController', () => {
 
   it('should auto fetch melon search cmd (limit & batch)', async () => {
     if (process.env.TEST_CRUD_DB == 'postgre') {
-      //wait 100ms
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      jest.retryTimes(1);
     }
 
     const user = users['Moderator Funky'];
@@ -309,8 +308,7 @@ describe('AppController', () => {
 
   it('should auto fetch melon search cmd (specified batch)', async () => {
     if (process.env.TEST_CRUD_DB == 'postgre') {
-      //wait 100ms
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      jest.retryTimes(1);
     }
 
     const user = users['Moderator Pal'];
