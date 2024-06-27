@@ -111,7 +111,7 @@ export class CrudService<T extends CrudEntity> {
 
   constructor(
     protected moduleRef: ModuleRef,
-    public entity: EntityClass<T>,
+    public entity: EntityClass<T> & (new () => T),
     public security: CrudSecurity,
     protected config?: CrudServiceConfig<T>,
   ) {
@@ -829,7 +829,7 @@ export class CrudService<T extends CrudEntity> {
     const opts = this.getReadOptions(ctx);
     let length = await em.nativeDelete(this.entity, query, opts);
     if (opOpts.hooks) {
-      length = await this.afterDeleteHook(length, [query], ctx);
+      length = await this.afterDeleteHook(length, query, ctx);
     }
     return length;
   }
@@ -858,7 +858,7 @@ export class CrudService<T extends CrudEntity> {
 
     await em.flush();
     if (opOpts.hooks) {
-      let result = await this.afterDeleteHook(1, [query], ctx);
+      let result = await this.afterDeleteHook(1, query, ctx);
       return result;
     }
     return 1;

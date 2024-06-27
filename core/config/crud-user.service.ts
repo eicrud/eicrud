@@ -199,12 +199,12 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
   constructor(
     protected moduleRef: ModuleRef,
-    private userEntityClass: new () => T,
-    public security: CrudSecurity,
-    protected config?: CrudServiceConfig<T>,
+    entity: new () => T,
+    security: CrudSecurity,
+    config?: CrudServiceConfig<T>,
   ) {
     security = security || new CrudSecurity();
-    super(moduleRef, userEntityClass, security, config);
+    super(moduleRef, entity, security, config);
 
     for (const cmdIndex in baseCmds) {
       const cmd = baseCmds[cmdIndex];
@@ -808,7 +808,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     ) {
       throw new BadRequestException(CrudErrors.PASSWORD_TOO_LONG.str());
     }
-    const user = new this.userEntityClass();
+    const user = new this.entity();
     user.email = email.toLowerCase().trim();
     user.password = password;
     user.role = role;
