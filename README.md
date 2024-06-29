@@ -19,7 +19,7 @@ Most of the time, a web app has some CRUD functionality as its base. Eicrud atte
 Under the hood, **Eicrud** uses [MikroOrm](https://mikro-orm.io/) entities guarded with [CASL](https://casl.js.org) and [class-validator](https://github.com/typestack/class-validator).
 
 ### Here's a quick example 
-You first define your entity with validations and transforms (what the data can be) :
+You first define your entity with validations and transforms (what the data can be).
 
 ```typescript
 @Entity()
@@ -40,7 +40,7 @@ export class Profile {
 }
 ```
 
-Then define your security (who can access the data):
+Then define your security (who can access the data).
 
 ```typescript
 const security: CrudSecurity = {
@@ -60,7 +60,7 @@ const security: CrudSecurity = {
 };
 ```
 
-And finally, register your service :
+And finally, register your service.
 
 ```typescript
 @Injectable()
@@ -71,7 +71,7 @@ export class ProfileService extends CrudService<Profile> {
 }
 ```
 
-**That's it**, `profile` is now a fully operational CRUD service that you can query with the [client](https://docs.eicrud.com/client/setup/) :
+**That's it**, `profile` is now a fully operational CRUD service that you can query with the [client](https://docs.eicrud.com/client/setup/).
 
 ```typescript
 const client = new CrudClient({ serviceName: 'profile' });
