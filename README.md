@@ -2,10 +2,10 @@
   <img width="200" src="https://raw.githubusercontent.com/eicrud/eicrud/develop/docs/planet.svg" alt="@eicrud/eicrud logo">
 </p>
 <p align="center">
+  <a href="https://docs.eicrud.com" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/Documentation-purple"></a>
   <a href="https://npmjs.com/package/@eicrud/core" target="_blank"><img src="https://img.shields.io/npm/v/%40eicrud%2Fcore?color=%232AAA8A%09" alt="npm package"></a>
   <a href="https://npmjs.com/package/@eicrud/core" target="_blank"><img src="https://img.shields.io/npm/dw/%40eicrud%2Fcore.svg" alt="downloads"></a>
   <a href="https://npmjs.com/package/@eicrud/core" target="_blank"><img alt="NPM Unpacked Size" src="https://img.shields.io/npm/unpacked-size/%40eicrud%2Fcore"></a>
-  <a href="https://docs.eicrud.com" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/Documentation-purple"></a>
   <a href="https://x.com/eicrud" target="_blank"><img alt="X (formerly Twitter) Follow" src="https://img.shields.io/twitter/follow/eicrud"></a>
 </p>
 <p align="center"><b>Eicrud</b> is CRUD/Authorization framework extending <a href="https://github.com/nestjs/nest" target="_blank">NestJS</a>.<br/> It's a tool for building scalable, secure <a href="https://nodejs.org" target="_blank">Node.js</a> server applications in record time.</p>
