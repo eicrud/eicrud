@@ -133,4 +133,4 @@ Check out the [documentation](https://docs.eicrud.com/installation) to get start
 
 ## Support
 
-**Eicrud** is in active development and issues are taken seriously. Don't hesitate to create an [ticket](https://github.com/eicrud/eicrud/issues) or join the [Discord](https://discord.gg/VaGPqE7bn9) if you need help.
+**Eicrud** is in active development and issues are taken seriously. Don't hesitate to create a [ticket](https://github.com/eicrud/eicrud/issues) or join the [Discord](https://discord.gg/VaGPqE7bn9) if you need help.
