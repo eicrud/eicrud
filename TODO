@@ -42,8 +42,9 @@
 ---
 
 [x] csrf token
-[ ] add helmet ?
 [ ] add a way to rotate JWT/backdoor key 
 
 [x] error hooks test
-[ ] hooks change by reference ?
+[ ] add typing for can && cannot function
+[ ] global @$Hook (transform) decorator
+[ ] throw specific error if user already exist for account_creation
