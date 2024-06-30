@@ -9,6 +9,13 @@
     "url": "https://github.com/eicrud/eicrud.git",
     "directory": "client"
   },
+  "keywords": [
+    "eicrud",
+    "client",
+    "nodejs",
+    "crud",
+    "framework"
+  ],
   "scripts": {
     "compile": "npm run clean && tsc",
     "publish:package": "npm i && npm run compile && npm publish",

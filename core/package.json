@@ -44,5 +44,12 @@
     "@types/node": "^20.12.12",
     "del-cli": "^5.1.0",
     "typescript": "^5.3.3"
-  }
+  },
+  "keywords": [
+    "eicrud",
+    "authorization",
+    "nodejs",
+    "crud",
+    "framework"
+  ]
 }

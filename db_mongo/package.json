@@ -23,5 +23,12 @@
   },
   "devDependencies": {
     "del-cli": "^5.1.0"
-  }
+  },
+  "keywords": [
+    "eicrud",
+    "mongodb",
+    "nodejs",
+    "crud",
+    "framework"
+  ]
 }
