@@ -15,6 +15,24 @@
 
 Most of the time, a web app has some CRUD functionality as its base. Eicrud attempts to abstract this into a simple and easy-to-use API, so you don't have to re-write boilerplate code (controllers, validations, db queries...) every time you need a new service. By centering everything around CRUD entities, Eicrud provides a framework for writing complex applications that are easy to read, test and maintain. Eicrud also emphasizes "default security" for its components, where everything is forbidden until allowed.
 
+## Features
+
+- ⚙️ Out of the box [CRUD services](https://docs.eicrud.com/services/definition)
+
+- 🔑 [Authentication & user management](https://docs.eicrud.com/user/service/)
+
+- 🔒 [Authorization](https://docs.eicrud.com/security/definition/)
+
+- ✔️ [Validation/Transform](https://docs.eicrud.com/validation/definition/)
+
+- 🗃️ [Database control](https://docs.eicrud.com/configuration/limits)
+
+- 🚀 Easy to use [client](https://docs.eicrud.com/client/setup)
+
+- 🌐 [Monolithic/Microservices](https://docs.eicrud.com/microservices/configuration/)
+
+- And more!
+
 ## How it works
 
 Under the hood, **Eicrud** uses [MikroOrm](https://mikro-orm.io/) entities guarded with [CASL](https://casl.js.org) and [class-validator](https://github.com/typestack/class-validator).
@@ -106,39 +124,13 @@ msOptions.microServices = {
 }
 ```
 
-## Features
+## Start building
 
-- Out of the box CRUD Services
-  - No need to write controllers
-  - Extensible using CMDs
-- Authorization
-  - Secure by default (all operations are forbidden until allowed)
-  - Based on roles with inheritance
-- Authentication
-  - JWT based
-  - Bruteforce protection
-  - Timeout system (ban)
-  - Session kick
-  - Extensible for 3rd party auth
-- Validation/Transform
-  - Entities are DTOs
-  - CMDs have their DTOs
-  - Custom $Transform decorators
-- Database Control
-  - Max entities per user
-  - Max entities in db
-  - Object size is always validated
-- Easy to use Client
-  - Handle login and session
-  - Handle expired JWT (disconnect)
-  - Handle limited results (auto-fetching)
-- Monolithic/Microservices structure
-  - Group your CRUD services into microservices
-  - Simple (dynamic) configuration
-  - Application can be both monolithic and distributed
-- And more!
-  - Rate limiting
-  - DDOS protection
-  - ...
+**Eicrud** is made for code simplicity, you can build your applications in record time using the [CLI](https://www.npmjs.com/package/@eicrud/cli) that will do the heavy work for you.
 
 Check out the [documentation](https://docs.eicrud.com/installation) to get started.
+
+
+## Support
+
+**Eicrud** is in active development and issues are taken seriously. Don't hesitate to create an [ticket](https://github.com/eicrud/eicrud/issues) or join the [Discord](https://discord.gg/VaGPqE7bn9) if you need help.
