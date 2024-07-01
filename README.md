@@ -23,6 +23,8 @@ Most of the time, a web app has some CRUD functionality as its base. Eicrud atte
 
 - 🔒 [Authorization](https://docs.eicrud.com/security/definition/)
 
+- 🖥️ [Commands](https://docs.eicrud.com/services/commands/)
+
 - ✔️ [Validation/Transform](https://docs.eicrud.com/validation/definition/)
 
 - 🗃️ [Database control](https://docs.eicrud.com/configuration/limits)
