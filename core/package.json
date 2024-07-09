@@ -47,6 +47,7 @@
   },
   "keywords": [
     "eicrud",
+    "core",
     "authorization",
     "nodejs",
     "crud",
