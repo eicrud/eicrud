@@ -4,7 +4,7 @@ import { AbilityBuilder, createAliasResolver } from '@casl/ability';
 /**
  * Security applied to a cmd.
  */
-export interface CmdSecurity {
+export interface CmdSecurity<T = any> {
   /**
    * Allow guest to use command always
    * @usageNotes
@@ -75,10 +75,17 @@ export interface CmdSecurity {
    */
   batchField?: string;
 
-  rolesRights?: Record<string, CmdSecurityRights>;
+  rolesRights?: Record<string, CmdSecurityRights<T>>;
 }
 
-export interface CmdSecurityRights {
+export type CanCannot<T> = (
+  action: string,
+  subject: string,
+  a?: string[] | T,
+  b?: T,
+) => void;
+
+export interface CmdSecurityRights<T = any> {
   /**
    *  The max allowed length of the batch array (specified with the batchField)
    *  @type {number}
@@ -88,14 +95,14 @@ export interface CmdSecurityRights {
   fields?: string[];
 
   defineCMDAbility?(
-    can: AbilityBuilder<any>['can'],
-    cannot: AbilityBuilder<any>['cannot'],
+    can: CanCannot<T>,
+    cannot: CanCannot<T>,
     ctx: CrudContext,
   ): Promise<any>;
 
   defineOPTAbility?(
-    can: AbilityBuilder<any>['can'],
-    cannot: AbilityBuilder<any>['cannot'],
+    can: CanCannot<T>,
+    cannot: CanCannot<T>,
     ctx: CrudContext,
   ): Promise<any>;
 }
@@ -103,7 +110,7 @@ export interface CmdSecurityRights {
 /**
  * Security applied to a service
  */
-export class CrudSecurity {
+export class CrudSecurity<T = any> {
   /**
    * Allow guest to read all entities
    * @usageNotes
@@ -151,7 +158,7 @@ export class CrudSecurity {
    * @type {Record<string, CmdSecurity>}
    * @public
    */
-  cmdSecurityMap?: Record<string, CmdSecurity> = {};
+  cmdSecurityMap?: Record<string, CmdSecurity<T>> = {};
 
   /**
    * Map of {@link CrudSecurityRights}.
@@ -166,7 +173,7 @@ export class CrudSecurity {
    * @type {Record<string, CrudSecurityRights>}
    * @public
    */
-  rolesRights?: Record<string, CrudSecurityRights> = {};
+  rolesRights?: Record<string, CrudSecurityRights<T>> = {};
 }
 
 export const httpAliasResolver = createAliasResolver({
@@ -190,20 +197,20 @@ export const httpAliasResolver = createAliasResolver({
 /**
  * Security rights for a specific role
  */
-export interface CrudSecurityRights {
+export interface CrudSecurityRights<T = any> {
   maxBatchSize?: number;
 
   fields?: string[];
 
   defineCRUDAbility?(
-    can: AbilityBuilder<any>['can'],
-    cannot: AbilityBuilder<any>['cannot'],
+    can: CanCannot<T>,
+    cannot: CanCannot<T>,
     ctx: CrudContext,
   ): Promise<any>;
 
   defineOPTAbility?(
-    can: AbilityBuilder<any>['can'],
-    cannot: AbilityBuilder<any>['cannot'],
+    can: CanCannot<T>,
+    cannot: CanCannot<T>,
     ctx: CrudContext,
   ): Promise<any>;
 }

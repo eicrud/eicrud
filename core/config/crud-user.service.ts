@@ -200,7 +200,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   constructor(
     protected moduleRef: ModuleRef,
     entity: new () => T,
-    security: CrudSecurity,
+    security: CrudSecurity<T>,
     config?: CrudServiceConfig<T>,
   ) {
     security = security || new CrudSecurity();
