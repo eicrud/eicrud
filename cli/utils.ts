@@ -33,6 +33,16 @@ export class _utils_cli {
     console.log('UPDATED:', file);
   }
 
+  static createCmdsFile(fs, path, template_folder, dir) {
+    const cmdsFile = dir + `/cmds.ts`;
+    if (!fs.existsSync(cmdsFile)) {
+      const templateIndex = path.join(template_folder, '/service/cmds.ts');
+      fs.copyFileSync(templateIndex, cmdsFile);
+      console.log('CREATED:', cmdsFile);
+    }
+    return cmdsFile;
+  }
+
   static addSecurityToCmdIndex(
     fs,
     path,
@@ -40,12 +50,8 @@ export class _utils_cli {
     serviceName,
     keysArray,
   ) {
-    const cmdsFile = `./src/services/${serviceName}/cmds.ts`;
-    if (!fs.existsSync(cmdsFile)) {
-      const templateIndex = path.join(template_folder, '/service/cmds.ts');
-      fs.copyFileSync(templateIndex, cmdsFile);
-      console.log('CREATED:', cmdsFile);
-    }
+    const dir = `./src/services/${serviceName}`;
+    const cmdsFile = _utils_cli.createCmdsFile(fs, path, template_folder, dir);
 
     let importLines = [];
 

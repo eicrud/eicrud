@@ -1,8 +1,9 @@
 import { CmdSecurity, CrudSecurity, baseCmds } from '@eicrud/core/config';
 import { serviceCmds } from './cmds';
 import { ITimeoutUserDto } from '@eicrud/shared/interfaces';
+import { MyUser } from './myuser.entity';
 
-export function getSecurity(myuser: string): CrudSecurity {
+export function getSecurity(myuser: string): CrudSecurity<MyUser> {
   return {
     rolesRights: {
       guest: {
@@ -75,7 +76,7 @@ export function getSecurity(myuser: string): CrudSecurity {
                 },
               },
             },
-          } as CmdSecurity;
+          } as CmdSecurity<MyUser>;
           return acc;
         }, {}),
       },

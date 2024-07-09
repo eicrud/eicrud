@@ -112,7 +112,7 @@ export class CrudService<T extends CrudEntity> {
   constructor(
     protected moduleRef: ModuleRef,
     public entity: EntityClass<T> & (new () => T),
-    public security: CrudSecurity,
+    public security: CrudSecurity<T>,
     protected config?: CrudServiceConfig<T>,
   ) {
     this.config = this.config || {};

@@ -4,7 +4,7 @@ import { AbilityBuilder, createAliasResolver } from '@casl/ability';
 /**
  * Security applied to a cmd.
  */
-export interface CmdSecurity<T = any> {
+export interface CmdSecurity<TDto = any, TEntity = any> {
   /**
    * Allow guest to use command always
    * @usageNotes
@@ -71,38 +71,38 @@ export interface CmdSecurity<T = any> {
 
   /**
    *  The batch field name in the dto if present.
-   *  @type {number}
+   *  @type {string}
    */
-  batchField?: string;
+  batchField?: keyof TDto;
 
-  rolesRights?: Record<string, CmdSecurityRights<T>>;
+  rolesRights?: Record<string, CmdSecurityRights<TDto, TEntity>>;
 }
 
 export type CanCannot<T> = (
   action: string,
   subject: string,
-  a?: string[] | T,
-  b?: T,
+  a?: string[] | Partial<T>,
+  b?: Partial<T>,
 ) => void;
 
-export interface CmdSecurityRights<T = any> {
+export interface CmdSecurityRights<TDto = any, TEntity = any> {
   /**
    *  The max allowed length of the batch array (specified with the batchField)
    *  @type {number}
    */
   maxBatchSize?: number;
 
-  fields?: string[];
+  fields?: (keyof TEntity)[];
 
   defineCMDAbility?(
-    can: CanCannot<T>,
-    cannot: CanCannot<T>,
+    can: CanCannot<TDto>,
+    cannot: CanCannot<TDto>,
     ctx: CrudContext,
   ): Promise<any>;
 
   defineOPTAbility?(
-    can: CanCannot<T>,
-    cannot: CanCannot<T>,
+    can: CanCannot<TDto>,
+    cannot: CanCannot<TDto>,
     ctx: CrudContext,
   ): Promise<any>;
 }
@@ -158,7 +158,7 @@ export class CrudSecurity<T = any> {
    * @type {Record<string, CmdSecurity>}
    * @public
    */
-  cmdSecurityMap?: Record<string, CmdSecurity<T>> = {};
+  cmdSecurityMap?: Record<string, CmdSecurity<any, T>> = {};
 
   /**
    * Map of {@link CrudSecurityRights}.
