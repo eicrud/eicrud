@@ -106,14 +106,14 @@ export class CrudAuthorizationService {
     if (batchSize > maxBatchSize) {
       const msg: MaxBatchSizeExceededDto = { maxBatchSize, batchSize };
       if (ctx.origin == 'cmd' && (security as CmdSecurity).batchField) {
-        msg.field = (security as CmdSecurity).batchField;
+        msg.field = (security as CmdSecurity).batchField as string;
       }
       throw new BadRequestException(
         CrudErrors.MAX_BATCH_SIZE_EXCEEDED.str(msg),
       );
     }
 
-    this.checkmaxItemsPerUser(ctx, security, batchSize);
+    this.checkmaxItemsPerUser(ctx, security as CrudSecurity, batchSize);
   }
 
   async getOrComputeTrust(user: CrudUser, ctx: CrudContext) {

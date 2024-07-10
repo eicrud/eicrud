@@ -81,7 +81,7 @@ export interface CmdSecurity<TDto = any, TEntity = any> {
 export type CanCannot<T> = (
   action: string,
   subject: string,
-  a?: string[] | Partial<T>,
+  a?: string | string[] | Partial<T>,
   b?: Partial<T>,
 ) => void;
 
