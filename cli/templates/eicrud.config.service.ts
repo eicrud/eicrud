@@ -5,7 +5,6 @@ import { EmailService } from "./services/email/email.service";
 import { UserService } from "./services/user/user.service";
 import { tk_db_adapter } from tk_db_adapter_path
 import { roles } from "./roles";
-import { serviceCmds } from './cmds';
 
 @Injectable()
 export class MyConfigService extends CrudConfigService {
