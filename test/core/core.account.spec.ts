@@ -187,7 +187,7 @@ describe('AppController', () => {
   it('should authorize createAccount for guest and provide working accessToken', async () => {
     const user = users['Sarah Doe'];
     const payload: CreateAccountDto = {
-      email: 'newguy@mail.com',
+      email: user.email,
       password: 'p4ssw0rd',
       role: 'user',
       logMeIn: true,
@@ -197,6 +197,21 @@ describe('AppController', () => {
       cmd: 'create_account',
     };
     let jwt = null;
+
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.EMAIL_ALREADY_TAKEN.code,
+      app,
+      jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    payload.email = 'newguy@mail.com';
 
     const { userId, accessToken } = await testMethod({
       url: '/crud/cmd',

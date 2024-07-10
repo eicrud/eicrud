@@ -802,14 +802,21 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     ctx: CrudContext,
     inheritance?: Inheritance,
   ) {
-    const { email, password, role } = dto;
+    let { email, password, role } = dto;
     if (
       password?.length > this.crudConfig.authenticationOptions.passwordMaxLength
     ) {
       throw new BadRequestException(CrudErrors.PASSWORD_TOO_LONG.str());
     }
+
+    email = email.toLowerCase().trim();
+    const userWithNewEmail = await this.$findOne({ email } as any, ctx);
+    if (userWithNewEmail) {
+      throw new BadRequestException(CrudErrors.EMAIL_ALREADY_TAKEN.str());
+    }
+
     const user = new this.entity();
-    user.email = email.toLowerCase().trim();
+    user.email = email;
     user.password = password;
     user.role = role;
 
