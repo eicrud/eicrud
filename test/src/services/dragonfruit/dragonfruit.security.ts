@@ -1,7 +1,8 @@
 import { CrudSecurity } from '@eicrud/core/config';
 import { serviceCmds } from './cmds';
+import { DragonFruit } from './dragonfruit.entity';
 
-export function getSecurity(dragonfruit: string): CrudSecurity {
+export function getSecurity(dragonfruit: string): CrudSecurity<DragonFruit> {
   return {
     rolesRights: {
       super_admin: {},

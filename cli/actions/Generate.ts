@@ -64,7 +64,8 @@ export class Generate {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    const template_folder = path.join(__dirname, '../templates/service');
+    const template_folder = path.join(__dirname, '../templates');
+    const template_folder_service = path.join(template_folder, '/service');
 
     const files = [
       'tk_entity_lname.entity.ts',
@@ -73,13 +74,13 @@ export class Generate {
       'tk_entity_lname.hooks.ts',
     ];
 
-    Generate.copyTemplateFiles(template_folder, files, keys, dir);
+    Generate.copyTemplateFiles(template_folder_service, files, keys, dir);
 
     const serviceIndexDir = `./src/services/`;
     const serviceIndexFile = serviceIndexDir + `index.ts`;
     if (!fs.existsSync(serviceIndexFile)) {
       Generate.copyTemplateFiles(
-        template_folder,
+        template_folder_service,
         ['index.ts'],
         { tk_ms_name: '' },
         serviceIndexDir,
@@ -90,7 +91,7 @@ export class Generate {
     const indexFile = indexDir + `index.ts`;
     if (!fs.existsSync(indexFile)) {
       Generate.copyTemplateFiles(
-        template_folder,
+        template_folder_service,
         ['index.ts'],
         { tk_ms_name: msName },
         indexDir,
@@ -128,12 +129,7 @@ export class Generate {
       );
     }
 
-    const cmdsFile = dir + `/cmds.ts`;
-    if (!fs.existsSync(cmdsFile)) {
-      const templateIndex = path.join(template_folder, '/cmds.ts');
-      fs.copyFileSync(templateIndex, cmdsFile);
-      console.log('CREATED:', cmdsFile);
-    }
+    const cmdsFile = _utils_cli.createCmdsFile(fs, path, template_folder, dir);
 
     const serviceName = `${name}Service`;
     const importLines = [
@@ -223,7 +219,7 @@ export class Generate {
     const importsTestFile = [];
     Setup.getMikroOrmDriver(dbType, keys, importsTestFile, []);
     const testFileTemplate = path.join(
-      template_folder,
+      template_folder_service,
       'tk_entity_lname.service.spec.ts',
     );
     let testContent =

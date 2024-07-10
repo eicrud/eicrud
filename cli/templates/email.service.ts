@@ -33,4 +33,7 @@ export class EmailService extends CrudService<Email> implements BaseEmailService
         console.log('Sending account creation email to', to);
         return Promise.resolve();
     }
+
+    // GENERATED START - do not remove
+    
 }

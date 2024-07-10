@@ -10,6 +10,7 @@ import { CrudClient } from '@eicrud/client';
 import { DragonFruit } from './src/services/dragonfruit/dragonfruit.entity';
 import { Melon } from './src/services/melon/melon.entity';
 import { UserProfile } from './src/services/userprofile/userprofile.entity';
+import { MyUser } from './src/services/myuser/myuser.entity';
 
 export interface TestUser {
   email: string;
@@ -266,7 +267,7 @@ export function createPictures(
 
 export async function createAccountsAndProfiles(
   users: Record<string, TestUser>,
-  userService: CrudUserService<CrudUser>,
+  userService: CrudUserService<MyUser>,
   crudConfig: CrudConfigService,
   config: {
     usersWithoutProfiles?: string[];

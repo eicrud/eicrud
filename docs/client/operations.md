@@ -1,3 +1,7 @@
+---
+description: Eicrud's client allows you to call service methods and commands over HTTP. It uses Axios under the hood.
+---
+
 Eicrud's **client** allows you to call [service methods](../services/operations.md) and [commands](../services/commands.md) over HTTP. It uses [Axios](https://axios-http.com/){:target="_blank"} under the hood.
 
 !!! note

@@ -50,3 +50,4 @@ verdaccio/storage/
 
 nohup.out
 test/cli-app/
+site/

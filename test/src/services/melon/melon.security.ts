@@ -1,7 +1,8 @@
 import { CrudSecurity, CrudUser } from '@eicrud/core/config';
 import { serviceCmds } from './cmds';
+import { Melon } from './melon.entity';
 
-export function getSecurity(MELON: string): CrudSecurity {
+export function getSecurity(MELON: string): CrudSecurity<Melon> {
   return {
     rolesRights: {
       super_admin: {

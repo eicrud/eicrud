@@ -6,7 +6,6 @@ import { UserService } from "./services/user/user.service";
 import { tk_db_adapter } from tk_db_adapter_path
 import { roles } from "./roles";
 
-
 @Injectable()
 export class MyConfigService extends CrudConfigService {
 

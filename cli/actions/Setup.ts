@@ -149,6 +149,7 @@ export class Setup {
         tk_cmd_lname: snaked,
         tk_cmd_name: snaked,
         tk_entity_lname: 'user',
+        tk_entity_name: 'User',
       };
       const dir = `./src/services/user/cmds/${snaked}`;
       if (!fs.existsSync(dir)) {
