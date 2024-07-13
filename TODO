@@ -47,4 +47,5 @@
 [x] error hooks test
 [x] add typing for can && cannot function
 [ ] global @$Hook (transform) decorator
-[ ] throw specific error if user already exist for account_creation
+[x] throw specific error if user already exist for account_creation
+[ ] make patchOneBatch methods (that use doOnePatch)

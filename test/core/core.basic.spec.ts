@@ -341,8 +341,21 @@ describe('AppController', () => {
     );
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ id: formatedId }),
+      query: JSON.stringify({ id: '507f191e810c19729de860ea' }), //fake id
     };
+
+    // should trhow if entity not found
+    await testMethod({
+      url: '/crud/one',
+      method: 'PATCH',
+      app,
+      jwt,
+      entityManager,
+      payload,
+      query,
+      expectedCode: 400,
+      crudConfig,
+    });
 
     const expectedObject = {
       ...payload,
@@ -350,6 +363,8 @@ describe('AppController', () => {
     };
 
     const fetchEntity = { entity: UserProfile, id: sarahDoeProfile.id };
+
+    query.query = JSON.stringify({ id: formatedId });
 
     let res = await testMethod({
       url: '/crud/one',
