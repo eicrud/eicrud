@@ -344,7 +344,7 @@ describe('AppController', () => {
       query: JSON.stringify({ id: '507f191e810c19729de860ea' }), //fake id
     };
 
-    // should trhow if entity not found
+    // should throw if entity not found
     await testMethod({
       url: '/crud/one',
       method: 'PATCH',

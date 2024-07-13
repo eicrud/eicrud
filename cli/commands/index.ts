@@ -7,6 +7,7 @@ const program = new Command();
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
+import { Export } from '../actions/Export.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -48,6 +49,17 @@ program
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
     return Setup.action.apply(this, this.args);
+  });
+
+program
+  .command('export')
+  .description('Export dtos or generate superclient')
+  .argument('<type>', 'dtos | superclient')
+  .option('-rv, --remove-validators', 'will remove class-validator decorators')
+  .action(function () {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    return Export.action.apply(this, this.args);
   });
 
 program.parse(process.argv);
