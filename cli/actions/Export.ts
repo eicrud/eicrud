@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import { Setup } from './Setup.js';
 import { toKebabCase } from '@eicrud/shared/utils.js';
+import XRegExp from 'xregexp';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -46,7 +47,7 @@ export class Export {
   }
 
   static removeDecoratorsFromFiles(files, library) {
-    const libraryRegexStr = `import[\\s\\S]*{([\\s\\S]+)}[\\s\\S]+${library}.+;`;
+    const libraryRegexStr = `import[^{;]*{([^{;]+)}[^{;]+${library}.+;`;
     //console.log('libraryRegexStr', libraryRegexStr);
     const libraryRegex = new RegExp(libraryRegexStr, 'gm');
     // loop through all files in the exported_dtos directory
@@ -57,15 +58,39 @@ export class Export {
       const group1 = match ? match[1] : '';
       const imports = group1.split(',').map((str) => str.trim());
       // replace mikro-orm imports
-      let result = data.replace(libraryRegex, '');
-      const decoratorRegexStr = '@XXX\\([^\\)]*\\)$';
+      let result = data.replace(libraryRegex, '//delete-this-line');
+      const decoratorRegexStr = '@XXX\\([\\s\\S]*';
       for (const imp of imports) {
         if (!imp) continue;
         const replaced = decoratorRegexStr.replace('XXX', imp);
-        //console.log('replaced', replaced);
-
-        const decoratorRegex = new RegExp(replaced, 'gm');
-        result = result.replace(decoratorRegex, '//delete-this-line');
+        console.log('replaced', filePath);
+        console.log('replaced', replaced);
+        const replacedRegex = new RegExp(replaced, 'gm');
+        const match = replacedRegex.exec(result);
+        const matchRecursively = XRegExp.matchRecursive(
+          match[0],
+          '\\(',
+          '\\)',
+          'gm',
+          {
+            valueNames: ['literal', null, 'value', null],
+          },
+        );
+        const formated = [];
+        let prev = null;
+        for (const match of matchRecursively) {
+          if (!prev) {
+            prev = match.value;
+            continue;
+          }
+          prev = null;
+          formated.push({ prev, match: match.value });
+        }
+        console.log('matchRecursively', matchRecursively);
+        throw new Error('stop');
+        for (const match of matchRecursively) {
+          result = result.replace(match, '//delete-this-line');
+        }
 
         // get current system line break
         const lineBreak = result.includes('\r\n') ? '\r\n' : '\n';
