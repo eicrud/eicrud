@@ -55,7 +55,10 @@ program
   .command('export')
   .description('Export dtos or generate superclient')
   .argument('<type>', 'dtos | superclient')
-  .option('-rv, --remove-validators', 'will remove class-validator decorators')
+  .option(
+    '-kv, --keep-validators',
+    'will keep class-validator decorators when exporting',
+  )
   .action(function () {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore

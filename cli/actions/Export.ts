@@ -36,12 +36,13 @@ export class Export {
       str.endsWith('.dto.ts') || str.endsWith('.entity.ts');
     // delete dest recursively
     if (fs.existsSync(dest)) {
-      fs.rmdirSync(dest, { recursive: true });
+      fs.rmSync(dest, { recursive: true });
     }
     const copiedFiles = copyDirectory(src, dest, conditionFun);
     Export.removeDecoratorsFromFiles(copiedFiles, '@mikro-orm');
+    Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/validation');
 
-    if (options?.removeValidators) {
+    if (!options?.keepValidators) {
       Export.removeDecoratorsFromFiles(copiedFiles, 'class-validator');
     }
   }
@@ -60,39 +61,37 @@ export class Export {
       // replace mikro-orm imports
       let result = data.replace(libraryRegex, '//delete-this-line');
       const decoratorRegexStr = '@XXX\\([\\s\\S]*';
+      const matchRecursively = XRegExp.matchRecursive(
+        result,
+        '\\(',
+        '\\)',
+        'gm',
+        {
+          valueNames: ['literal', null, 'value', null],
+        },
+      );
+      const formated = [];
+      let prev = null;
+      for (const match of matchRecursively) {
+        if (!prev) {
+          prev = match.value;
+          continue;
+        }
+        formated.push({ prev, match: match.value });
+        prev = null;
+      }
+      // console.log('matchRecursively', matchRecursively);
+      // console.log('formated', formated);
       for (const imp of imports) {
         if (!imp) continue;
-        const replaced = decoratorRegexStr.replace('XXX', imp);
-        console.log('replaced', filePath);
-        console.log('replaced', replaced);
-        const replacedRegex = new RegExp(replaced, 'gm');
-        const match = replacedRegex.exec(result);
-        const matchRecursively = XRegExp.matchRecursive(
-          match[0],
-          '\\(',
-          '\\)',
-          'gm',
-          {
-            valueNames: ['literal', null, 'value', null],
-          },
-        );
-        const formated = [];
-        let prev = null;
-        for (const match of matchRecursively) {
-          if (!prev) {
-            prev = match.value;
-            continue;
-          }
-          prev = null;
-          formated.push({ prev, match: match.value });
-        }
-        console.log('matchRecursively', matchRecursively);
-        throw new Error('stop');
-        for (const match of matchRecursively) {
-          result = result.replace(match, '//delete-this-line');
+        const matchings = formated.filter((f) => f.prev.endsWith('@' + imp));
+        for (const match of matchings) {
+          result = result.replace(
+            '@' + imp + '(' + match.match + ')',
+            '//delete-this-line',
+          );
         }
 
-        // get current system line break
         const lineBreak = result.includes('\r\n') ? '\r\n' : '\n';
         result = result
           .split(lineBreak)
