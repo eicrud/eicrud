@@ -1,8 +1,8 @@
 import { ClientOptions, CrudClient } from "@eicrud/client";
-import { User } from "../dtos/user.dto";
 import { ICrudOptions } from "@eicrud/shared/interfaces";
+import { tk_entity_name } from "tk_entity_path";
 
 
-export class UserClient extends CrudClient<User> {
+export class tk_entity_nameClient extends CrudClient<tk_entity_lname> {
 
 }

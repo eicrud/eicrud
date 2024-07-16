@@ -244,8 +244,9 @@ export class Generate {
     serviceName = serviceName.charAt(0).toUpperCase() + serviceName.slice(1);
 
     const tk_cmd_bname = name;
-    const tk_cmd_dto_name =
-      name.charAt(0).toUpperCase() + name.slice(1) + 'Dto';
+    const dtoBase = name.charAt(0).toUpperCase() + name.slice(1);
+    const tk_cmd_dto_name = dtoBase + 'Dto';
+    const tk_cmd_return_dto_name = dtoBase + 'ReturnDto';
 
     name = toKebabCase(name);
 
@@ -259,6 +260,7 @@ export class Generate {
       tk_cmd_lname: name.toLowerCase(),
       tk_cmd_uname: name.toUpperCase(),
       tk_cmd_dto_name,
+      tk_cmd_return_dto_name,
       tk_cmd_bname,
     };
 
@@ -316,7 +318,7 @@ export class Generate {
       defContent = defContent.replace(new RegExp(key, 'g'), value);
     }
 
-    const importLine = `import { ${keys.tk_cmd_dto_name} } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
+    const importLine = `import { ${keys.tk_cmd_dto_name}, ${keys.tk_cmd_return_dto_name} } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
 
     serviceFileContent =
       importLine +
