@@ -3,8 +3,9 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import { Setup } from './Setup.js';
-import { toKebabCase } from '@eicrud/shared/utils.js';
+import { kebabToCamelCase, kebakToPascalCase } from '@eicrud/shared/utils.js';
 import XRegExp from 'xregexp';
+import { Generate } from './Generate.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,14 +17,43 @@ export class Export {
       case 'dtos':
         return Export.dtos(opts);
       case 'superclient':
-        return Export.superclient(name, opts);
+        return Export.superclient(opts);
       default:
         return Promise.resolve();
     }
   }
 
-  static superclient(name, options?): Promise<any> {
+  static superclient(options?): Promise<any> {
     //console.log('Generating service', name);
+    const src = path.join('./exported_dtos');
+
+    if (!fs.existsSync(src)) {
+      throw new Error(
+        `${src} does not exist (did you forgot to run 'eicrud export dtos'?)`,
+      );
+    }
+
+    const conditionFun = (str) => str.endsWith('.entity.ts');
+    const files = getFiles(src, conditionFun);
+
+    for (const file of files) {
+      //get dir from file path
+      const dir = path.dirname(file);
+      const fileName = path.basename(file);
+      const entity_kebab_name = fileName.replace('.entity.ts', '');
+
+      const tk_entity_name = kebakToPascalCase(entity_kebab_name);
+
+      const template_folder = path.join(__dirname, '../templates/superclient');
+      const template_files = ['tk_entity_lname.client.ts'];
+
+      const keys = {
+        tk_entity_lname: entity_kebab_name,
+        tk_entity_name,
+      };
+
+      Generate.copyTemplateFiles(template_folder, template_files, keys, dir);
+    }
 
     return Promise.resolve();
   }
@@ -41,13 +71,20 @@ export class Export {
     const copiedFiles = copyDirectory(src, dest, conditionFun);
     Export.removeDecoratorsFromFiles(copiedFiles, '@mikro-orm');
     Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/validation');
+    Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/crud', [
+      { regex: /.implements.+CrudEntity/g, replace: '' },
+    ]);
 
     if (!options?.keepValidators) {
       Export.removeDecoratorsFromFiles(copiedFiles, 'class-validator');
     }
+
+    for (const copied of copiedFiles) {
+      console.log('EXPORTED: ' + copied);
+    }
   }
 
-  static removeDecoratorsFromFiles(files, library) {
+  static removeDecoratorsFromFiles(files, library, replaces = []) {
     const libraryRegexStr = `import[^{;]*{([^{;]+)}[^{;]+${library}.+;`;
     //console.log('libraryRegexStr', libraryRegexStr);
     const libraryRegex = new RegExp(libraryRegexStr, 'gm');
@@ -98,6 +135,11 @@ export class Export {
           .filter((line) => !line.includes('//delete-this-line'))
           .join(lineBreak);
       }
+
+      for (const replace of replaces) {
+        result = result.replace(replace.regex, replace.replace);
+      }
+
       fs.writeFileSync(filePath, result, 'utf8');
     }
   }
@@ -132,4 +174,28 @@ const copyDirectory = (src, dest, conditionFun: (str: string) => boolean) => {
   });
 
   return copiedFiles;
+};
+
+// Get pathes of all files that end with the specific string
+const getFiles = (src, conditionFun: (str: string) => boolean) => {
+  const files = [];
+
+  // Read all items in the source directory
+  const items = fs.readdirSync(src);
+
+  items.forEach((item) => {
+    const srcPath = path.join(src, item);
+
+    if (fs.statSync(srcPath).isDirectory()) {
+      // If item is a directory, recurse
+      files.push(...getFiles(srcPath, conditionFun));
+    } else {
+      // If item is a file, check if it ends with the specific string
+      if (conditionFun(item)) {
+        files.push(srcPath);
+      }
+    }
+  });
+
+  return files;
 };

@@ -3,7 +3,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import { Setup } from './Setup.js';
-import { toKebabCase } from '@eicrud/shared/utils.js';
+import { kebakToPascalCase, toKebabCase } from '@eicrud/shared/utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -44,17 +44,21 @@ export class Generate {
     });
   }
 
+  static validateServiceName(name) {
+    return kebakToPascalCase(name.replace('_', '-'));
+  }
+
   static service(name, options?): Promise<any> {
     //console.log('Generating service', name);
 
     const msName = options?.ms ? options.ms : '';
     const msPath = options?.ms ? `${options.ms}-ms/` : '';
 
-    name = name.charAt(0).toUpperCase() + name.slice(1);
+    name = Generate.validateServiceName(name);
 
     const keys = {
       tk_entity_name: name,
-      tk_entity_lname: name.toLowerCase(),
+      tk_entity_lname: toKebabCase(name),
       tk_entity_uname: name.toUpperCase(),
       tk_config_path_from_service: `../../${options?.ms ? '../' : ''}eicrud.config.service`,
     };
@@ -241,7 +245,7 @@ export class Generate {
     //console.log('Generating service', name);
     const msPath = options?.ms ? `${options.ms}-ms/` : '';
 
-    serviceName = serviceName.charAt(0).toUpperCase() + serviceName.slice(1);
+    serviceName = Generate.validateServiceName(serviceName);
 
     const tk_cmd_bname = name;
     const dtoBase = name.charAt(0).toUpperCase() + name.slice(1);
@@ -254,7 +258,7 @@ export class Generate {
 
     const keys = {
       tk_entity_name: serviceName,
-      tk_entity_lname: serviceName.toLowerCase(),
+      tk_entity_lname: toKebabCase(serviceName),
       tk_entity_uname: serviceName.toUpperCase(),
       tk_cmd_name: name,
       tk_cmd_lname: name.toLowerCase(),
