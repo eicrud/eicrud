@@ -6,9 +6,11 @@ export function toKebabCase(str: string) {
 }
 
 export function kebabToCamelCase(str: string) {
+  str = str.replace('_', '-');
   return str.replace(/-./g, (g) => g[1].toUpperCase());
 }
 
 export function kebakToPascalCase(str: string) {
+  str = str.replace('_', '-');
   return str.charAt(0).toUpperCase() + kebabToCamelCase(str).slice(1);
 }

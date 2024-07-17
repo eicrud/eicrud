@@ -49,10 +49,44 @@ export class Export {
 
       const keys = {
         tk_entity_lname: entity_kebab_name,
+        tk_entity_camel_name: kebabToCamelCase(entity_kebab_name),
         tk_entity_name,
       };
 
       Generate.copyTemplateFiles(template_folder, template_files, keys, dir);
+
+      const cmdDir = path.join(dir, 'cmds');
+      if (!fs.existsSync(cmdDir)) {
+        continue;
+      }
+      const cmdFiles = getFiles(cmdDir, (str) => str.endsWith('.dto.ts'));
+      const clientFilePath = file.replace('.entity.ts', '.client.ts');
+      let clientFileContent = fs.readFileSync(clientFilePath, 'utf8');
+      for (const cmdFile of cmdFiles) {
+        const cmdFileName = path.basename(cmdFile);
+        const tk_cmd_name = cmdFileName.replace('.dto.ts', '');
+        const baseCmdDto = kebakToPascalCase(tk_cmd_name);
+        const keys = {
+          tk_cmd_dto_name: baseCmdDto + 'Dto',
+          tk_cmd_return_dto_name: baseCmdDto + 'ReturnDto',
+          tk_cmd_name,
+          tk_cmd_lname: tk_cmd_name,
+        };
+
+        const clientCmdTemplatePath = path.join(
+          template_folder,
+          'client_cmd.ts',
+        );
+
+        _utils_cli.splitAndAddTemplateContent(
+          fs,
+          path,
+          clientCmdTemplatePath,
+          keys,
+          clientFilePath,
+          clientFileContent,
+        );
+      }
     }
 
     return Promise.resolve();

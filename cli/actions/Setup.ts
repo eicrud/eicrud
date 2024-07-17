@@ -145,10 +145,11 @@ export class Setup {
       const snaked = toKebabCase(baseCmd).replaceAll('-', '_');
 
       const bKeys = {
-        tk_cmd_bname: baseCmd,
+        tk_cmd_camel_name: baseCmd,
         tk_cmd_lname: snaked,
         tk_cmd_name: snaked,
         tk_entity_lname: 'user',
+        tk_entity_camel_name: 'user',
         tk_entity_name: 'User',
       };
       const dir = `./src/services/user/cmds/${snaked}`;

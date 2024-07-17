@@ -58,7 +58,7 @@ export class _utils_cli {
     for (const keys of keysArray) {
       importLines = [
         ...importLines,
-        `import { ${keys.tk_cmd_bname}Security } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.security';`,
+        `import { ${keys.tk_cmd_camel_name}Security } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.security';`,
       ];
     }
 
@@ -74,7 +74,7 @@ export class _utils_cli {
           regex:
             /export[ ]{1,}const[ ]{1,}serviceCmds[ ]{1,}=[ ]{1,}\{([^\}]*)\}/,
           getReplaceString: (array) => {
-            const newLine = `    ${keys.tk_cmd_name}: ${keys.tk_cmd_bname}Security,`;
+            const newLine = `    ${keys.tk_cmd_name}: ${keys.tk_cmd_camel_name}Security,`;
             let rep = array.trim();
             rep = rep ? '    ' + rep + '\n' : '';
             return `export const serviceCmds =  {\n${newLine}\n${rep}}`;
@@ -97,5 +97,40 @@ export class _utils_cli {
     fs.writeFileSync(cmdsFile, content);
 
     console.log('UPDATED:', cmdsFile);
+  }
+
+  static splitAndAddTemplateContent(
+    fs,
+    path,
+    defTemplateFile,
+    keys,
+    servicePath,
+    serviceFileContent,
+  ) {
+    const [before, rest, after] =
+      serviceFileContent.split(/GENERATED START(.*)/);
+
+    let defContent = fs.readFileSync(defTemplateFile, 'utf8');
+    for (const key in keys) {
+      const value = keys[key];
+      defContent = defContent.replace(new RegExp(key, 'g'), value);
+    }
+
+    const importLine = `import { ${keys.tk_cmd_dto_name}, ${keys.tk_cmd_return_dto_name} } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
+
+    serviceFileContent =
+      importLine +
+      '\n' +
+      before +
+      'GENERATED START' +
+      rest +
+      '\n' +
+      defContent +
+      '\n' +
+      after;
+
+    //write content
+    fs.writeFileSync(servicePath, serviceFileContent);
+    console.log('UPDATED:', servicePath);
   }
 }
