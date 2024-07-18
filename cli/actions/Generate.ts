@@ -318,6 +318,8 @@ export class Generate {
       template_folder,
       '/service/cmd_definition.ts',
     );
+
+    const importLine = `import { ${keys.tk_cmd_dto_name}, ${keys.tk_cmd_return_dto_name} } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
     _utils_cli.splitAndAddTemplateContent(
       fs,
       path,
@@ -325,6 +327,7 @@ export class Generate {
       keys,
       servicePath,
       serviceFileContent,
+      importLine,
     );
 
     return Promise.resolve();

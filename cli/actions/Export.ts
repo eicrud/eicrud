@@ -33,6 +33,11 @@ export class Export {
       );
     }
 
+    //copy super client template
+    const template_folder = path.join(__dirname, '../templates/superclient');
+    const template_file = ['super_client.ts'];
+    Generate.copyTemplateFiles(template_folder, template_file, {}, src);
+
     const conditionFun = (str) => str.endsWith('.entity.ts');
     const files = getFiles(src, conditionFun);
 
@@ -44,50 +49,93 @@ export class Export {
 
       const tk_entity_name = kebakToPascalCase(entity_kebab_name);
 
-      const template_folder = path.join(__dirname, '../templates/superclient');
       const template_files = ['tk_entity_lname.client.ts'];
 
       const keys = {
         tk_entity_lname: entity_kebab_name,
         tk_entity_camel_name: kebabToCamelCase(entity_kebab_name),
         tk_entity_name,
+        tk_client_class_name: tk_entity_name + 'Client',
       };
 
       Generate.copyTemplateFiles(template_folder, template_files, keys, dir);
 
-      const cmdDir = path.join(dir, 'cmds');
-      if (!fs.existsSync(cmdDir)) {
-        continue;
-      }
-      const cmdFiles = getFiles(cmdDir, (str) => str.endsWith('.dto.ts'));
       const clientFilePath = file.replace('.entity.ts', '.client.ts');
-      let clientFileContent = fs.readFileSync(clientFilePath, 'utf8');
-      for (const cmdFile of cmdFiles) {
-        const cmdFileName = path.basename(cmdFile);
-        const tk_cmd_name = cmdFileName.replace('.dto.ts', '');
-        const baseCmdDto = kebakToPascalCase(tk_cmd_name);
-        const keys = {
-          tk_cmd_dto_name: baseCmdDto + 'Dto',
-          tk_cmd_return_dto_name: baseCmdDto + 'ReturnDto',
-          tk_cmd_name,
-          tk_cmd_lname: tk_cmd_name,
-        };
+      const cmdDir = path.join(dir, 'cmds');
+      if (fs.existsSync(cmdDir)) {
+        const cmdFiles = getFiles(cmdDir, (str) => str.endsWith('.dto.ts'));
+        let clientFileContent = fs.readFileSync(clientFilePath, 'utf8');
+        for (const cmdFile of cmdFiles) {
+          const cmdFileName = path.basename(cmdFile);
+          const tk_cmd_name = cmdFileName.replace('.dto.ts', '');
+          const baseCmdDto = kebakToPascalCase(tk_cmd_name);
+          const keys = {
+            tk_cmd_dto_name: baseCmdDto + 'Dto',
+            tk_cmd_return_dto_name: baseCmdDto + 'ReturnDto',
+            tk_cmd_name,
+            tk_cmd_lname: tk_cmd_name,
+          };
 
-        const clientCmdTemplatePath = path.join(
-          template_folder,
-          'client_cmd.ts',
-        );
+          const clientCmdTemplatePath = path.join(
+            template_folder,
+            'client_cmd.ts',
+          );
 
-        _utils_cli.splitAndAddTemplateContent(
-          fs,
-          path,
-          clientCmdTemplatePath,
-          keys,
-          clientFilePath,
-          clientFileContent,
-        );
+          const importLine = `import { ${keys.tk_cmd_dto_name}, ${keys.tk_cmd_return_dto_name} } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
+          _utils_cli.splitAndAddTemplateContent(
+            fs,
+            path,
+            clientCmdTemplatePath,
+            keys,
+            clientFilePath,
+            clientFileContent,
+            importLine,
+          );
+        }
       }
+
+      const superClientFilePath = path.join(src, 'super_client.ts');
+      let superClientFileContent = fs.readFileSync(superClientFilePath, 'utf8');
+      const clientFileUpdatedPath =
+        '.' +
+        clientFilePath
+          .replace('exported_dtos', '')
+          .replaceAll('\\', '/')
+          .replace('.ts', '');
+      const importLine = `import { ${keys.tk_client_class_name} } from '${clientFileUpdatedPath}';`;
+      superClientFileContent = _utils_cli.splitAndAddTemplateContent(
+        fs,
+        path,
+        path.join(template_folder, 'client_instanciation.ts'),
+        keys,
+        superClientFilePath,
+        superClientFileContent,
+        importLine,
+        'GENERATED START 1',
+        { noWrite: true, noNewLine: true },
+      );
+
+      _utils_cli.splitAndAddTemplateContent(
+        fs,
+        path,
+        path.join(template_folder, 'client_declaration.ts'),
+        keys,
+        superClientFilePath,
+        superClientFileContent,
+        '',
+        'GENERATED START 2',
+        { noWrite: false, noNewLine: true },
+      );
     }
+
+    // remoce super_client folder if exist
+    const superClientDir = path.join('./super_client');
+    if (fs.existsSync(superClientDir)) {
+      fs.rmSync(superClientDir, { recursive: true });
+    }
+
+    //rename exported_dtos to super_client
+    fs.renameSync(src, superClientDir);
 
     return Promise.resolve();
   }
@@ -103,6 +151,7 @@ export class Export {
       fs.rmSync(dest, { recursive: true });
     }
     const copiedFiles = copyDirectory(src, dest, conditionFun);
+    copiedFiles.push(...copyBaseCmdDtos(src, dest));
     Export.removeDecoratorsFromFiles(copiedFiles, '@mikro-orm');
     Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/validation');
     Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/crud', [

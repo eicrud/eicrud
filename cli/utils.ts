@@ -106,9 +106,12 @@ export class _utils_cli {
     keys,
     servicePath,
     serviceFileContent,
+    importLine,
+    pattern = 'GENERATED START',
+    opts = { noWrite: false, noNewLine: false },
   ) {
-    const [before, rest, after] =
-      serviceFileContent.split(/GENERATED START(.*)/);
+    const regex = new RegExp(pattern + '(.*)');
+    const [before, rest, after] = serviceFileContent.split(regex);
 
     let defContent = fs.readFileSync(defTemplateFile, 'utf8');
     for (const key in keys) {
@@ -116,21 +119,34 @@ export class _utils_cli {
       defContent = defContent.replace(new RegExp(key, 'g'), value);
     }
 
-    const importLine = `import { ${keys.tk_cmd_dto_name}, ${keys.tk_cmd_return_dto_name} } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
+    const newLine = '\n';
+    const ifNewLine = opts?.noNewLine ? '' : newLine;
 
     serviceFileContent =
       importLine +
-      '\n' +
+      (importLine ? newLine : '') +
       before +
-      'GENERATED START' +
+      pattern +
       rest +
-      '\n' +
+      newLine +
       defContent +
-      '\n' +
+      ifNewLine +
       after;
 
-    //write content
-    fs.writeFileSync(servicePath, serviceFileContent);
-    console.log('UPDATED:', servicePath);
+    if (!opts?.noWrite) {
+      //write content
+      fs.writeFileSync(servicePath, serviceFileContent);
+      console.log('UPDATED:', servicePath);
+    }
+    return serviceFileContent;
+  }
+
+  normalizeLineEndings(text) {
+    const originalLineBreak = text.includes('\r\n') ? '\r\n' : '\n';
+    if (originalLineBreak === '\r\n') {
+      text = text.replaceAll('\r\n', '\n');
+      text = text.replaceAll('\n', '\r\n');
+    }
+    return text;
   }
 }
