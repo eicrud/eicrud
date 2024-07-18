@@ -68,10 +68,15 @@ export class Export {
         for (const cmdFile of cmdFiles) {
           const cmdFileName = path.basename(cmdFile);
           const tk_cmd_name = cmdFileName.replace('.dto.ts', '');
+
           const baseCmdDto = kebakToPascalCase(tk_cmd_name);
+          const cmdFileNameContent = fs.readFileSync(cmdFile, 'utf8');
+          const hasReturnDto = cmdFileNameContent.includes('ReturnDto');
           const keys = {
             tk_cmd_dto_name: baseCmdDto + 'Dto',
-            tk_cmd_return_dto_name: baseCmdDto + 'ReturnDto',
+            tk_cmd_return_dto_name: hasReturnDto
+              ? baseCmdDto + 'ReturnDto'
+              : 'any',
             tk_cmd_name,
             tk_cmd_lname: tk_cmd_name,
           };
@@ -81,8 +86,9 @@ export class Export {
             'client_cmd.ts',
           );
 
-          const importLine = `import { ${keys.tk_cmd_dto_name}, ${keys.tk_cmd_return_dto_name} } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
-          _utils_cli.splitAndAddTemplateContent(
+          const importLine = `import { ${keys.tk_cmd_dto_name}${hasReturnDto ? ', ' + keys.tk_cmd_return_dto_name : ''} } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
+
+          clientFileContent = _utils_cli.splitAndAddTemplateContent(
             fs,
             path,
             clientCmdTemplatePath,
@@ -90,8 +96,11 @@ export class Export {
             clientFilePath,
             clientFileContent,
             importLine,
+            'GENERATED START',
+            { noWrite: true, noNewLine: false },
           );
         }
+        fs.writeFileSync(clientFilePath, clientFileContent, 'utf8');
       }
 
       const superClientFilePath = path.join(src, 'super_client.ts');
@@ -151,7 +160,21 @@ export class Export {
       fs.rmSync(dest, { recursive: true });
     }
     const copiedFiles = copyDirectory(src, dest, conditionFun);
-    copiedFiles.push(...copyBaseCmdDtos(src, dest));
+
+    const eicrud_core_dir = path.join(
+      './node_modules/@eicrud/core/config/basecmd_dtos',
+    );
+    if (!fs.existsSync(eicrud_core_dir)) {
+      throw new Error(
+        '@eicrud/core package outdated / not found in node_modules',
+      );
+    }
+    copiedFiles.push(
+      ...copyDirectory(eicrud_core_dir, dest, conditionFun, {
+        makeSubDir: true,
+      }),
+    );
+
     Export.removeDecoratorsFromFiles(copiedFiles, '@mikro-orm');
     Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/validation');
     Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/crud', [
@@ -229,7 +252,12 @@ export class Export {
 }
 
 // Recursively copy files that end with the specific string
-const copyDirectory = (src, dest, conditionFun: (str: string) => boolean) => {
+const copyDirectory = (
+  src,
+  dest,
+  conditionFun: (str: string) => boolean,
+  options = { makeSubDir: false },
+) => {
   // Ensure destination directory exists
   if (!fs.existsSync(dest)) {
     fs.mkdirSync(dest, { recursive: true });
@@ -246,12 +274,24 @@ const copyDirectory = (src, dest, conditionFun: (str: string) => boolean) => {
 
     if (fs.statSync(srcPath).isDirectory()) {
       // If item is a directory, recurse
-      copiedFiles.push(...copyDirectory(srcPath, destPath, conditionFun));
+      copiedFiles.push(
+        ...copyDirectory(srcPath, destPath, conditionFun, options),
+      );
     } else {
       // If item is a file, check if it ends with the specific string
       if (conditionFun(item)) {
-        fs.copyFileSync(srcPath, destPath);
-        copiedFiles.push(destPath);
+        let destination = destPath;
+        if (options?.makeSubDir) {
+          const fileName = path.basename(destPath);
+          const cmdName = fileName.replace('.dto.ts', '');
+          // const cmdDir = path.join(dest, cmdName);
+          // if (!fs.existsSync(cmdDir)) {
+          //   fs.mkdirSync(cmdDir, { recursive: true });
+          // }
+          destination = path.join(dest, 'cmds', cmdName, fileName);
+        }
+        fs.copyFileSync(srcPath, destination);
+        copiedFiles.push(destination);
       }
     }
   });
