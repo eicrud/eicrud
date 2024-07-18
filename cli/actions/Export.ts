@@ -6,6 +6,8 @@ import { Setup } from './Setup.js';
 import { kebabToCamelCase, kebakToPascalCase } from '@eicrud/shared/utils.js';
 import XRegExp from 'xregexp';
 import { Generate } from './Generate.js';
+import { CliOptions } from '@eicrud/core/config/index.js';
+import wildcard from 'wildcard';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -13,9 +15,19 @@ const __dirname = dirname(__filename);
 export class Export {
   static action(type, name, cmd): Promise<any> {
     const opts = (this as any).opts();
+    const cliConfig = Setup.getCliConfig();
     switch (type) {
       case 'dtos':
-        return Export.dtos(opts);
+        try {
+          return Export.dtos(opts, cliConfig);
+        } catch (e) {
+          // delete exported_dtos folder if present
+          const dest = path.join('./exported_dtos');
+          if (fs.existsSync(dest)) {
+            fs.rmSync(dest, { recursive: true });
+          }
+          throw e;
+        }
       case 'superclient':
         return Export.superclient(opts);
       default:
@@ -149,12 +161,21 @@ export class Export {
     return Promise.resolve();
   }
 
-  static async dtos(options?): Promise<any> {
+  static async dtos(options?, cliOptions?: CliOptions): Promise<any> {
+    let excludeServices = cliOptions?.export?.excludeServices || [];
+    excludeServices = excludeServices.map((se) => se.name || se);
     //console.log('Generating service', name);
     const src = path.join('./src/services');
     const dest = path.join('./exported_dtos');
     const conditionFun = (str) =>
-      str.endsWith('.dto.ts') || str.endsWith('.entity.ts');
+      (str.endsWith('.dto.ts') ||
+        str.endsWith('.entity.ts') ||
+        cliOptions?.export?.includePatterns?.some((pattern) =>
+          wildcard(pattern, str),
+        )) &&
+      !cliOptions?.export?.excludePatterns?.some((pattern) =>
+        wildcard(pattern, str),
+      );
     // delete dest recursively
     if (fs.existsSync(dest)) {
       fs.rmSync(dest, { recursive: true });
@@ -174,6 +195,46 @@ export class Export {
         makeSubDir: true,
       }),
     );
+
+    const removeFiles = [];
+    for (const file of copiedFiles) {
+      const fileContent = fs.readFileSync(file, 'utf8');
+      const hideDirective = fileContent.includes('@eicrud:cli:export:hide');
+      const excludeDirective = fileContent.includes(
+        '@eicrud:cli:export:exclude',
+      );
+      if (file.endsWith('.entity.ts')) {
+        const serviceName = path.basename(file).replace('.entity.ts', '');
+        const pascalEntityName = kebakToPascalCase(serviceName);
+        if (excludeDirective || excludeServices.includes(serviceName)) {
+          removeFiles.push(file);
+        } else if (hideDirective) {
+          const fileContent = 'export type ' + pascalEntityName + ' = any;';
+          fs.writeFileSync(file, fileContent, 'utf8');
+        }
+      } else if (file.endsWith('.dto.ts')) {
+        if (hideDirective) {
+          // delete file
+          removeFiles.push(file);
+        } else {
+          const matchDtoServiceRegex = /([^\\/]+)[\\/]cmds[\\/].+\.dto\.ts/;
+          const matchDtoService = matchDtoServiceRegex.exec(file);
+          const serviceName = matchDtoService ? matchDtoService[1] : null;
+          if (!serviceName) {
+            //TODO: remove this check
+            console.error('Service name not found for file: ' + file);
+          }
+          if (excludeServices.includes(serviceName)) {
+            removeFiles.push(file);
+          }
+        }
+      }
+    }
+
+    for (const file of removeFiles) {
+      fs.rmSync(file);
+      copiedFiles.splice(copiedFiles.indexOf(file), 1);
+    }
 
     Export.removeDecoratorsFromFiles(copiedFiles, '@mikro-orm');
     Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/validation');
@@ -256,7 +317,7 @@ const copyDirectory = (
   src,
   dest,
   conditionFun: (str: string) => boolean,
-  options = { makeSubDir: false },
+  opts = { makeSubDir: false },
 ) => {
   // Ensure destination directory exists
   if (!fs.existsSync(dest)) {
@@ -274,14 +335,12 @@ const copyDirectory = (
 
     if (fs.statSync(srcPath).isDirectory()) {
       // If item is a directory, recurse
-      copiedFiles.push(
-        ...copyDirectory(srcPath, destPath, conditionFun, options),
-      );
+      copiedFiles.push(...copyDirectory(srcPath, destPath, conditionFun, opts));
     } else {
       // If item is a file, check if it ends with the specific string
       if (conditionFun(item)) {
         let destination = destPath;
-        if (options?.makeSubDir) {
+        if (opts?.makeSubDir) {
           const fileName = path.basename(destPath);
           const cmdName = fileName.replace('.dto.ts', '');
           // const cmdDir = path.join(dest, cmdName);

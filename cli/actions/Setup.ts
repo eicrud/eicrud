@@ -5,10 +5,17 @@ import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import child_process from 'child_process';
 import { toKebabCase } from '@eicrud/shared/utils.js';
+import { CliOptions } from '@eicrud/core/config/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 export class Setup {
+  static getCliConfig(): CliOptions {
+    if (fs.existsSync('.eicrud-cli.json')) {
+      const content = fs.readFileSync('.eicrud-cli.json', 'utf8');
+      return JSON.parse(content);
+    }
+  }
   static getMikroOrmDriver(type, keys, moduleImports, packages?) {
     if (type === 'mongo') {
       packages?.push('@eicrud/mongodb');
