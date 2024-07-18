@@ -27,8 +27,7 @@ import {
   CrudConfigService,
 } from '../../core/config/crud.config.service';
 import { TestUser } from '../test.utils';
-import { CreateAccountDto } from '../../core/config/crud-user.service';
-
+import { ICreateAccountDto } from '../../shared/interfaces';
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
@@ -118,7 +117,7 @@ describe('AppController', () => {
       usersWithoutProfiles,
       testAdminCreds,
     });
-    const createAccountDto: CreateAccountDto = {
+    const createAccountDto: ICreateAccountDto = {
       logMeIn: true,
       email: testAdminCreds.email,
       password: testAdminCreds.password,

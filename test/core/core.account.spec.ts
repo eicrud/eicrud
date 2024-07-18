@@ -26,7 +26,6 @@ import {
   CrudConfigService,
 } from '../../core/config/crud.config.service';
 import { TestUser } from '../test.utils';
-import { CreateAccountDto } from '../../core/config/crud-user.service';
 import { MyUser } from '../src/services/myuser/myuser.entity';
 import exp from 'constants';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
@@ -34,6 +33,7 @@ import { LoginDto } from '../../core/crud/model/dtos';
 import {
   FindResponseDto,
   IChangePasswordDto,
+  ICreateAccountDto,
   IResetPasswordDto,
   ISendPasswordResetEmailDto,
   ISendVerificationEmailDto,
@@ -186,7 +186,7 @@ describe('AppController', () => {
   //@Post('/crud/one')
   it('should authorize createAccount for guest and provide working accessToken', async () => {
     const user = users['Sarah Doe'];
-    const payload: CreateAccountDto = {
+    const payload: ICreateAccountDto = {
       email: user.email,
       password: 'p4ssw0rd',
       role: 'user',
@@ -717,7 +717,7 @@ describe('AppController', () => {
   });
 
   it('should trim and lowercase email on create_account', async () => {
-    const payload: CreateAccountDto = {
+    const payload: ICreateAccountDto = {
       email: ' nonTriMMed@mail.com ',
       password: testAdminCreds.password,
       role: 'user',
