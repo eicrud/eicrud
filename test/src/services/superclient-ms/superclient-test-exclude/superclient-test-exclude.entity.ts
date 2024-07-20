@@ -3,7 +3,7 @@ import { IsString, IsOptional } from 'class-validator';
 import { CrudEntity } from '@eicrud/core/crud';
 
 @Entity()
-export class SuperclientTest implements CrudEntity {
+export class SuperclientTestExclude implements CrudEntity {
   @PrimaryKey({ name: '_id' })
   @IsString()
   @IsOptional()
@@ -13,6 +13,5 @@ export class SuperclientTest implements CrudEntity {
   createdAt: Date;
 
   @Property()
-  //@eicrud:cli:export:delete:next-line
   updatedAt: Date;
 }

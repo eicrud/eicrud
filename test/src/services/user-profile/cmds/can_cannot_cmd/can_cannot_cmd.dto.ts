@@ -13,6 +13,7 @@ class subTestCmdDto {
   subfield: string;
 }
 
+//@eicrud:cli:export:hide
 export class CanCannotCmdDto {
   @IsString()
   @MaxLength(30)

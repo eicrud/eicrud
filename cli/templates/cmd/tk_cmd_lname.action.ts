@@ -1,4 +1,3 @@
-import { ModuleRef } from "@nestjs/core";
 import { tk_cmd_dto_name, tk_cmd_return_dto_name } from "./tk_cmd_lname.dto";
 import { tk_entity_nameService } from "../../tk_entity_lname.service";
 import { CrudContext, Inheritance } from "@eicrud/core/crud";

@@ -14,6 +14,7 @@ export class DragonFruit implements CrudEntity {
   @IsString()
   owner: MyUser | string;
 
+  //@eicrud:cli:export:delete:start
   @Property()
   @IsString()
   ownerEmail: string;
@@ -22,6 +23,7 @@ export class DragonFruit implements CrudEntity {
   @IsInt()
   @IsOptional()
   size: number = 1;
+  //@eicrud:cli:export:delete:end
 
   @Property()
   @IsString()

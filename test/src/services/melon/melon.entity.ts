@@ -49,6 +49,7 @@ export class Seed {
 }
 
 @Entity()
+//@eicrud:cli:export:exclude
 export class Melon implements CrudEntity {
   @PrimaryKey({ name: '_id' })
   @IsString()

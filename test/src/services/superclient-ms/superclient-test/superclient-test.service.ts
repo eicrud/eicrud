@@ -1,3 +1,4 @@
+import { PingCmdDto, PingCmdReturnDto } from './cmds/ping_cmd/ping_cmd.dto';
 import { ModuleRef } from '@nestjs/core';
 import { SuperclientTest } from './superclient-test.entity';
 import { Injectable } from '@nestjs/common';
@@ -14,4 +15,11 @@ export class SuperclientTestService extends CrudService<SuperclientTest> {
   }
 
   // GENERATED START - do not remove
+  async $ping_cmd(
+    dto: PingCmdDto,
+    ctx: CrudContext,
+    inheritance?: Inheritance,
+  ) {
+    return serviceCmds.ping_cmd.action.call(this, dto, ctx, inheritance);
+  }
 }

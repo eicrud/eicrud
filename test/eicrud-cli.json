@@ -1,6 +1,6 @@
 {
     "export": {
-        "excludeServices": [],
+        "excludeServices": ["superclient-test-exclude", "SuperclientTestExclude2"],
         "includePatterns": [],
         "excludePatterns": [],
         "removeImports": [],

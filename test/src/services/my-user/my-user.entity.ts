@@ -13,6 +13,7 @@ import { Melon } from '../melon/melon.entity';
 import { UserProfile } from '../user-profile/user-profile.entity';
 
 @Entity()
+//@eicrud:cli:export:hide
 export class MyUser implements CrudEntity {
   @OneToMany(() => Melon, (mel) => mel.owner)
   @Equals(undefined)
