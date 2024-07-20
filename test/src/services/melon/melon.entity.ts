@@ -20,7 +20,7 @@ import {
   $Transform,
   $MaxArLength,
 } from '@eicrud/core/validation';
-import { MyUser } from '../myuser/myuser.entity';
+import { MyUser } from '../my-user/my-user.entity';
 
 @Embeddable()
 export class Slice {

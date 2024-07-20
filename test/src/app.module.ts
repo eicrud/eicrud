@@ -1,3 +1,4 @@
+import { CRUDServices } from './services/index';
 import { CRUDEntities, CRUDServices } from './services/index';
 import { Module } from '@nestjs/common';
 import { MyConfigService } from './eicrud.config.service';

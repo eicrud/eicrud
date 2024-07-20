@@ -7,14 +7,14 @@ import {
   dropDatabases,
 } from '../src/app.module';
 import { CrudController } from '@eicrud/core/crud/crud.controller';
-import { MyUserService } from '../src/services/myuser/myuser.service';
+import { MyUserService } from '../src/services/my-user/my-user.service';
 import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
-import { UserProfile } from '../src/services/userprofile/userprofile.entity';
+import { UserProfile } from '../src/services/user-profile/user-profile.entity';
 import { CrudQuery } from '@eicrud/core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,
@@ -22,8 +22,8 @@ import {
   createNewProfileTest,
   testMethod,
 } from '../test.utils';
-import { UserProfileService as MyProfileService } from '../src/services/userprofile/userprofile.service';
-import { Test_cmdDto as TestCmdDto } from '../src/services/userprofile/cmds/test_cmd/test_cmd.dto';
+import { UserProfileService as MyProfileService } from '../src/services/user-profile/user-profile.service';
+import { Test_cmdDto as TestCmdDto } from '../src/services/user-profile/cmds/test_cmd/test_cmd.dto';
 import { Melon } from '../src/services/melon/melon.entity';
 import { CrudService } from '@eicrud/core/crud/crud.service';
 import { TestUser } from '../test.utils';
@@ -35,11 +35,11 @@ import { format } from 'path';
 import exp from 'constants';
 import { Picture } from '../src/services/picture/picture.entity';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
-import { HookTrigger } from '../src/services/hooktrigger/hooktrigger.entity';
-import { HookLogService } from '../src/services/hooklog/hooklog.service';
+import { HookTrigger } from '../src/services/hook-trigger/hook-trigger.entity';
+import { HookLogService } from '../src/services/hook-log/hook-log.service';
 import { _utils } from '@eicrud/core/utils';
-import { HookTriggerService } from '../src/services/hooktrigger/hooktrigger.service';
-import { TestTriggerDto } from '../src/services/hooktrigger/cmds/test_trigger/test_trigger.dto';
+import { HookTriggerService } from '../src/services/hook-trigger/hook-trigger.service';
+import { TestTriggerDto } from '../src/services/hook-trigger/cmds/test_trigger/test_trigger.dto';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',

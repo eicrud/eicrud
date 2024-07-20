@@ -1,0 +1,9 @@
+{
+    "export": {
+        "excludeServices": [],
+        "includePatterns": [],
+        "excludePatterns": [],
+        "removeImports": [],
+        "outputDir": "test_exports"
+    }
+}

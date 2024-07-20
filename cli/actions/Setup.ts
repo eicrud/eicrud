@@ -11,9 +11,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 export class Setup {
   static getCliConfig(): CliOptions {
-    if (fs.existsSync('.eicrud-cli.json')) {
-      const content = fs.readFileSync('.eicrud-cli.json', 'utf8');
+    const configPath = path.join(process.cwd(), 'eicrud-cli.json');
+    if (fs.existsSync(configPath)) {
+      const content = fs.readFileSync(configPath, 'utf8');
       return JSON.parse(content);
+    } else {
+      console.warn('No eicrud-cli.json file found in the current directory');
     }
   }
   static getMikroOrmDriver(type, keys, moduleImports, packages?) {
@@ -208,6 +211,11 @@ export class Setup {
     const userPath = './src/services/user/user.entity.ts';
     fs.copyFileSync(userTemplateFile, userPath);
     console.log('UPDATED:', userPath);
+
+    const cliCongigTemplateFile = path.join(templateDir, '/eicrud-cli.json');
+    const cliConfigPath = './eicrud-cli.json';
+    fs.copyFileSync(cliCongigTemplateFile, cliConfigPath);
+    console.log('CREATED:', cliConfigPath);
 
     const emailServiceTemplateFile = path.join(
       templateDir,

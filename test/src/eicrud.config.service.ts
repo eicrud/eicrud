@@ -9,21 +9,21 @@ import { CrudRole } from '@eicrud/core/config/model/CrudRole';
 import { MongoDbAdapter } from '@eicrud/mongodb/mongoDbAdapter';
 
 import { PostgreDbAdapter } from '@eicrud/postgresql/postgreDbAdapter';
-import { UserProfile } from './services/userprofile/userprofile.entity';
+import { UserProfile } from './services/user-profile/user-profile.entity';
 import { Picture } from './services/picture/picture.entity';
-import { MyUser } from './services/myuser/myuser.entity';
+import { MyUser } from './services/my-user/my-user.entity';
 import { Melon } from './services/melon/melon.entity';
-import { DragonFruit } from './services/dragonfruit/dragonfruit.entity';
-import { FakeEmail } from './services/fakeemail/fakeemail.entity';
-import { MyUserService } from './services/myuser/myuser.service';
-import { FakeEmailService } from './services/fakeemail/fakeemail.service';
+import { DragonFruit } from './services/dragon-fruit/dragon-fruit.entity';
+import { FakeEmail } from './services/fake-email/fake-email.entity';
+import { MyUserService } from './services/my-user/my-user.service';
+import { FakeEmailService } from './services/fake-email/fake-email.service';
 import { BackdoorQuery, CrudContext, CrudService } from '@eicrud/core/crud';
-import { HookLogService } from './services/hooklog/hooklog.service';
-import { logHook } from './services/hooktrigger/hooktrigger.hooks';
-import { HookTriggerService } from './services/hooktrigger/hooktrigger.service';
-import { UserProfileService } from './services/userprofile/userprofile.service';
-import { HookTrigger } from './services/hooktrigger/hooktrigger.entity';
-import { HookLog } from './services/hooklog/hooklog.entity';
+import { HookLogService } from './services/hook-log/hook-log.service';
+import { logHook } from './services/hook-trigger/hook-trigger.hooks';
+import { HookTriggerService } from './services/hook-trigger/hook-trigger.service';
+import { UserProfileService } from './services/user-profile/user-profile.service';
+import { HookTrigger } from './services/hook-trigger/hook-trigger.entity';
+import { HookLog } from './services/hook-log/hook-log.entity';
 
 const roles: CrudRole[] = [
   {
