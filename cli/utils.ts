@@ -141,6 +141,24 @@ export class _utils_cli {
     return serviceFileContent;
   }
 
+  static removeEnclosedContent(
+    fileContent: string,
+    beforeString: string,
+    afterString: string,
+  ): string {
+    const regex = new RegExp(
+      beforeString + '[\\s\\S]*?' + afterString + '.*',
+      'gm',
+    );
+    return fileContent.replace(regex, '');
+  }
+
+  static removeLineAfterMarker(fileContent: string, marker: string): string {
+    const afterRegex = '.*[\\r\\n]+([^\\r\\n]+)';
+    const nextLineRegex = new RegExp(marker + afterRegex, 'gm');
+    return fileContent.replace(nextLineRegex, '');
+  }
+
   normalizeLineEndings(text) {
     const originalLineBreak = text.includes('\r\n') ? '\r\n' : '\n';
     if (originalLineBreak === '\r\n') {

@@ -18,6 +18,18 @@ export interface ExportOptions {
    * @example ['*secret-ms*.dto.ts']
    */
   excludePatterns?: Array<string>;
+
+  /**
+   * Remove given imports from the exported files.
+   * @example ['@mypackage/core', 'rxjs']
+   */
+  removeImports?: Array<string>;
+
+  /**
+   * Output directory for the exported files.
+   * @default 'eicrud_exports'
+   */
+  outputDir?: string;
 }
 
 export interface CliOptions {

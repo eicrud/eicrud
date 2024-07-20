@@ -21,8 +21,9 @@ export class Export {
         try {
           return Export.dtos(opts, cliConfig);
         } catch (e) {
-          // delete exported_dtos folder if present
-          const dest = path.join('./exported_dtos');
+          // delete eicrud_exports folder if present
+          const exportPath = cliConfig?.export?.outputDir || 'eicrud_exports';
+          const dest = path.join(exportPath);
           if (fs.existsSync(dest)) {
             fs.rmSync(dest, { recursive: true });
           }
@@ -35,9 +36,10 @@ export class Export {
     }
   }
 
-  static superclient(options?): Promise<any> {
+  static superclient(options?, cliOptions?: CliOptions): Promise<any> {
     //console.log('Generating service', name);
-    const src = path.join('./exported_dtos');
+    const exportPath = cliOptions?.export?.outputDir || 'eicrud_exports';
+    const src = path.join(exportPath);
 
     if (!fs.existsSync(src)) {
       throw new Error(
@@ -120,7 +122,7 @@ export class Export {
       const clientFileUpdatedPath =
         '.' +
         clientFilePath
-          .replace('exported_dtos', '')
+          .replace(exportPath, '')
           .replaceAll('\\', '/')
           .replace('.ts', '');
       const importLine = `import { ${keys.tk_client_class_name} } from '${clientFileUpdatedPath}';`;
@@ -149,15 +151,6 @@ export class Export {
       );
     }
 
-    // remoce super_client folder if exist
-    const superClientDir = path.join('./super_client');
-    if (fs.existsSync(superClientDir)) {
-      fs.rmSync(superClientDir, { recursive: true });
-    }
-
-    //rename exported_dtos to super_client
-    fs.renameSync(src, superClientDir);
-
     return Promise.resolve();
   }
 
@@ -166,7 +159,9 @@ export class Export {
     excludeServices = excludeServices.map((se) => se.name || se);
     //console.log('Generating service', name);
     const src = path.join('./src/services');
-    const dest = path.join('./exported_dtos');
+    const exportPath = cliOptions?.export?.outputDir || 'eicrud_exports';
+    const dest = path.join(exportPath);
+
     const conditionFun = (str) =>
       (str.endsWith('.dto.ts') ||
         str.endsWith('.entity.ts') ||
@@ -198,7 +193,7 @@ export class Export {
 
     const removeFiles = [];
     for (const file of copiedFiles) {
-      const fileContent = fs.readFileSync(file, 'utf8');
+      let fileContent = fs.readFileSync(file, 'utf8');
       const hideDirective = fileContent.includes('@eicrud:cli:export:hide');
       const excludeDirective = fileContent.includes(
         '@eicrud:cli:export:exclude',
@@ -209,13 +204,15 @@ export class Export {
         if (excludeDirective || excludeServices.includes(serviceName)) {
           removeFiles.push(file);
         } else if (hideDirective) {
-          const fileContent = 'export type ' + pascalEntityName + ' = any;';
+          fileContent = 'export type ' + pascalEntityName + ' = any;';
           fs.writeFileSync(file, fileContent, 'utf8');
+          continue;
         }
       } else if (file.endsWith('.dto.ts')) {
         if (hideDirective) {
           // delete file
           removeFiles.push(file);
+          continue;
         } else {
           const matchDtoServiceRegex = /([^\\/]+)[\\/]cmds[\\/].+\.dto\.ts/;
           const matchDtoService = matchDtoServiceRegex.exec(file);
@@ -226,9 +223,28 @@ export class Export {
           }
           if (excludeServices.includes(serviceName)) {
             removeFiles.push(file);
+            continue;
           }
         }
       }
+
+      //const regex = /@eicrud:cli:export:delete:start[\s\S]*?@eicrud:cli:export:delete:end/
+      const beforeString = '@eicrud:cli:export:delete:start';
+      const afterString = '@eicrud:cli:export:delete:end';
+      fileContent = _utils_cli.removeEnclosedContent(
+        fileContent,
+        beforeString,
+        afterString,
+      );
+
+      const beforeNextLine = '@eicrud:cli:export:delete:next-line';
+      fileContent = _utils_cli.removeLineAfterMarker(
+        fileContent,
+        beforeNextLine,
+      );
+
+      // write file
+      fs.writeFileSync(file, fileContent, 'utf8');
     }
 
     for (const file of removeFiles) {
@@ -237,13 +253,18 @@ export class Export {
     }
 
     Export.removeDecoratorsFromFiles(copiedFiles, '@mikro-orm');
-    Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/validation');
-    Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/crud', [
+    // Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/validation');
+    Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core', [
       { regex: /.implements.+CrudEntity/g, replace: '' },
+      { regex: /.implements.+CrudUser/g, replace: '' },
     ]);
 
     if (!options?.keepValidators) {
       Export.removeDecoratorsFromFiles(copiedFiles, 'class-validator');
+    }
+
+    for (const importToRemove of cliOptions?.export?.removeImports || []) {
+      Export.removeDecoratorsFromFiles(copiedFiles, importToRemove);
     }
 
     for (const copied of copiedFiles) {
@@ -255,13 +276,17 @@ export class Export {
     const libraryRegexStr = `import[^{;]*{([^{;]+)}[^{;]+${library}.+;`;
     //console.log('libraryRegexStr', libraryRegexStr);
     const libraryRegex = new RegExp(libraryRegexStr, 'gm');
-    // loop through all files in the exported_dtos directory
+    // loop through all files in the eicrud_exports directory
     for (const filePath of files) {
       const data = fs.readFileSync(filePath, 'utf8');
-
-      const match = libraryRegex.exec(data);
-      const group1 = match ? match[1] : '';
-      const imports = group1.split(',').map((str) => str.trim());
+      const imports = [];
+      let match;
+      while (null != (match = libraryRegex.exec(data))) {
+        if (match[1]) {
+          imports.push(...match[1].split(',').map((str) => str.trim()));
+        }
+      }
+      console.log('imports', imports);
       // replace mikro-orm imports
       let result = data.replace(libraryRegex, '//delete-this-line');
       const decoratorRegexStr = '@XXX\\([\\s\\S]*';
@@ -285,10 +310,14 @@ export class Export {
         prev = null;
       }
       // console.log('matchRecursively', matchRecursively);
-      // console.log('formated', formated);
-      for (const imp of imports) {
+      //console.log('formated', formated);
+      //console.log('imports', imports);
+      for (let imp of imports) {
         if (!imp) continue;
+        //escape regex characters in imp
         const matchings = formated.filter((f) => f.prev.endsWith('@' + imp));
+        // const impEscaped = imp.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        //console.log('imp', imp);
         for (const match of matchings) {
           result = result.replace(
             '@' + imp + '(' + match.match + ')',

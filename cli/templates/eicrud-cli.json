@@ -2,6 +2,8 @@
     "export": {
         "excludeServices": [],
         "includePatterns": [],
-        "excludePatterns": []
+        "excludePatterns": [],
+        "removeImports": [],
+        "outputDir": "eicrud_exports"
     }
 }
