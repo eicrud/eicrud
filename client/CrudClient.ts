@@ -66,6 +66,8 @@ export class LocalStorage implements ClientStorage {
   }
 }
 
+export type SuperClientConfig = Omit<ClientConfig, 'serviceName'>;
+
 export interface ClientConfig {
   serviceName: string;
   url: string;

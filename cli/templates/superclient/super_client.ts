@@ -1,8 +1,8 @@
-import { ClientConfig } from "@eicrud/client";
+import { SuperClientConfig } from "@eicrud/client";
 
 export class SuperClient {
 
-    constructor(config: ClientConfig) {
+    constructor(config: SuperClientConfig) {
 
         // GENERATED START 1
     }
