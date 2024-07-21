@@ -3,7 +3,11 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import { Setup } from './Setup.js';
-import { kebabToCamelCase, kebakToPascalCase } from '@eicrud/shared/utils.js';
+import {
+  kebabToCamelCase,
+  kebakToPascalCase,
+  toKebabCase,
+} from '@eicrud/shared/utils.js';
 import XRegExp from 'xregexp';
 import { Generate } from './Generate.js';
 import { CliOptions } from '@eicrud/core/config/index.js';
@@ -39,7 +43,7 @@ export class Export {
 
   static async dtos(options?, cliOptions?: CliOptions) {
     let excludeServices = cliOptions?.export?.excludeServices || [];
-    excludeServices = excludeServices.map((se) => se.name || se);
+    excludeServices = excludeServices.map((se) => toKebabCase(se.name || se));
     //console.log('Generating service', name);
     const inputDir = cliOptions?.export?.inputDir || './src/services';
     const src = path.join(inputDir);
