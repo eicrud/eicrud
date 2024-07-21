@@ -1,8 +1,15 @@
-import { Entity, PrimaryKey, Property, ManyToOne } from '@mikro-orm/core';
-import { IsString, IsOptional, IsInt } from 'class-validator';
+import {
+  Entity,
+  PrimaryKey,
+  Property,
+  ManyToOne,
+  Embedded,
+} from '@mikro-orm/core';
+import { IsString, IsOptional, IsInt, ValidateNested } from 'class-validator';
 import { CrudEntity } from '@eicrud/core/crud';
 import { MyUser } from '../my-user/my-user.entity';
-
+import { SharedEmbeddable } from '../superclient-ms/shared-dto';
+import { $Type } from '@eicrud/core/validation';
 @Entity()
 export class DragonFruit implements CrudEntity {
   @PrimaryKey({ name: '_id' })
@@ -38,4 +45,10 @@ export class DragonFruit implements CrudEntity {
 
   @Property()
   updatedAt: Date;
+
+  @Embedded(() => SharedEmbeddable, { nullable: true })
+  @$Type(SharedEmbeddable)
+  @IsOptional()
+  @ValidateNested()
+  testEmbedded: SharedEmbeddable;
 }

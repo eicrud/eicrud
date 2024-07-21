@@ -48,14 +48,22 @@ export class Generate {
     });
   }
 
+  static formatServiceNameToPascal(name) {
+    name = kebakToPascalCase(name);
+    const entity_kebab_name = toKebabCase(name);
+    name = kebakToPascalCase(entity_kebab_name);
+    return name;
+  }
+
   static service(name, options?): Promise<any> {
     //console.log('Generating service', name);
 
     const msName = options?.ms ? options.ms : '';
     const msPath = options?.ms ? `${options.ms}-ms/` : '';
 
-    name = kebakToPascalCase(name);
+    name = Generate.formatServiceNameToPascal(name);
     const entity_kebab_name = toKebabCase(name);
+
     const keys = {
       tk_entity_name: name,
       tk_entity_lname: entity_kebab_name,
@@ -246,10 +254,10 @@ export class Generate {
     //console.log('Generating service', name);
     const msPath = options?.ms ? `${options.ms}-ms/` : '';
 
-    serviceName = kebakToPascalCase(serviceName);
+    serviceName = Generate.formatServiceNameToPascal(serviceName);
+    const dtoBase = Generate.formatServiceNameToPascal(name);
 
-    const tk_cmd_camel_name = kebabToCamelCase(name);
-    const dtoBase = kebakToPascalCase(name);
+    const tk_cmd_camel_name = kebabToCamelCase(dtoBase);
     const tk_cmd_dto_name = dtoBase + 'Dto';
     const tk_cmd_return_dto_name = dtoBase + 'ReturnDto';
 

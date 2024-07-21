@@ -1,3 +1,9 @@
+import {
+  PresentCmdDto,
+  PresentCmdReturnDto,
+} from './cmds/present_cmd/present_cmd.dto';
+import { GhostCmdDto, GhostCmdReturnDto } from './cmds/ghost_cmd/ghost_cmd.dto';
+import { GhostCMDDto, GhostCMDReturnDto } from './cmds/ghost_cmd/ghost_cmd.dto';
 import { ModuleRef } from '@nestjs/core';
 import { FakeEmail } from './fake-email.entity';
 import { Injectable } from '@nestjs/common';
@@ -64,4 +70,27 @@ export class FakeEmailService
   }
 
   // GENERATED START - do not remove
+  async $present_cmd(
+    dto: PresentCmdDto,
+    ctx: CrudContext,
+    inheritance?: Inheritance,
+  ) {
+    return serviceCmds.present_cmd.action.call(this, dto, ctx, inheritance);
+  }
+
+  async $ghost_cmd(
+    dto: GhostCmdDto,
+    ctx: CrudContext,
+    inheritance?: Inheritance,
+  ) {
+    return serviceCmds.ghost_cmd.action.call(this, dto, ctx, inheritance);
+  }
+
+  async $ghost_cmd(
+    dto: GhostCMDDto,
+    ctx: CrudContext,
+    inheritance?: Inheritance,
+  ) {
+    return serviceCmds.ghost_cmd.action.call(this, dto, ctx, inheritance);
+  }
 }

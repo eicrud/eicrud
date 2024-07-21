@@ -2,7 +2,6 @@
 /dist
 /node_modules
 
-/test/exported_dtos
 
 *.js
 *.d.ts
@@ -53,3 +52,4 @@ verdaccio/storage/
 nohup.out
 test/cli-app/
 site/
+test/test_exports

@@ -41,9 +41,14 @@ export class Export {
     let excludeServices = cliOptions?.export?.excludeServices || [];
     excludeServices = excludeServices.map((se) => se.name || se);
     //console.log('Generating service', name);
-    const src = path.join('./src/services');
+    const inputDir = cliOptions?.export?.inputDir || './src/services';
+    const src = path.join(inputDir);
     const exportPath = cliOptions?.export?.outputDir || 'eicrud_exports';
     const dest = path.join(exportPath);
+
+    const nodeModulesDir = cliOptions?.export?.modulesDir || './node_modules';
+
+    const userServiceDir = cliOptions?.export?.userServiceDir || 'user';
 
     const conditionFun = (str) =>
       (str.endsWith('.dto.ts') ||
@@ -61,7 +66,8 @@ export class Export {
     const copiedFiles = copyDirectory(src, dest, conditionFun);
 
     const eicrud_core_dir = path.join(
-      './node_modules/@eicrud/core/config/basecmd_dtos',
+      nodeModulesDir,
+      '@eicrud/core/config/basecmd_dtos',
     );
     if (!fs.existsSync(eicrud_core_dir)) {
       throw new Error(
@@ -71,6 +77,7 @@ export class Export {
     copiedFiles.push(
       ...copyDirectory(eicrud_core_dir, dest, conditionFun, {
         makeSubDir: true,
+        pathReplaces: [{ regex: /user$/g, replace: userServiceDir }],
       }),
     );
 
@@ -241,7 +248,7 @@ export class Export {
       const clientFileUpdatedPath =
         '.' +
         clientFilePath
-          .replace(exportPath, '')
+          .replace(src, '')
           .replaceAll('\\', '/')
           .replace('.ts', '');
       const importLine = `import { ${keys.tk_client_class_name} } from '${clientFileUpdatedPath}';`;
@@ -345,7 +352,7 @@ const copyDirectory = (
   src,
   dest,
   conditionFun: (str: string) => boolean,
-  opts = { makeSubDir: false },
+  opts = { makeSubDir: false, pathReplaces: [] },
 ) => {
   // Ensure destination directory exists
   if (!fs.existsSync(dest)) {
@@ -359,7 +366,13 @@ const copyDirectory = (
 
   items.forEach((item) => {
     const srcPath = path.join(src, item);
-    const destPath = path.join(dest, item);
+    let destItem = item;
+    for (const replace of opts?.pathReplaces || []) {
+      destItem = destItem.replace(replace.regex, replace.replace);
+      // normalize slashes
+      destItem = destItem.replace(/\\/g, '/');
+    }
+    const destPath = path.join(dest, destItem);
 
     if (fs.statSync(srcPath).isDirectory()) {
       // If item is a directory, recurse
@@ -371,11 +384,11 @@ const copyDirectory = (
         if (opts?.makeSubDir) {
           const fileName = path.basename(destPath);
           const cmdName = fileName.replace('.dto.ts', '');
-          // const cmdDir = path.join(dest, cmdName);
-          // if (!fs.existsSync(cmdDir)) {
-          //   fs.mkdirSync(cmdDir, { recursive: true });
-          // }
-          destination = path.join(dest, 'cmds', cmdName, fileName);
+          const cmdDir = path.join(dest, 'cmds', cmdName);
+          if (!fs.existsSync(cmdDir)) {
+            fs.mkdirSync(cmdDir, { recursive: true });
+          }
+          destination = path.join(cmdDir, fileName);
         }
         fs.copyFileSync(srcPath, destination);
         copiedFiles.push(destination);

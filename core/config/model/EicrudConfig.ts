@@ -26,10 +26,24 @@ export interface ExportOptions {
   removeImports?: Array<string>;
 
   /**
-   * Output directory for the exported files.
+   * Output directory
    * @default 'eicrud_exports'
    */
   outputDir?: string;
+
+  /**
+   * Input directory
+   * @default
+   **/
+  inputDir?: string;
+
+  /**
+   * Location of the node_modules directory.
+   * @default './node_modules'
+   */
+  modulesDir?: string;
+
+  userServiceDir?: string;
 }
 
 export interface CliOptions {
