@@ -3,9 +3,9 @@ import { MicroServicesOptions } from '../crud.config.service';
 export interface ExportOptions {
   /**
    * Exclude the given services from the export.
-   * @example [User, 'user-profile', 'Email']
+   * @example ['user-profile', 'Email']
    */
-  excludeServices?: Array<string | any>;
+  excludeServices?: Array<string>;
 
   /**
    * Include files that match the given patterns into the output directory.
@@ -33,7 +33,7 @@ export interface ExportOptions {
 
   /**
    * Input directory
-   * @default
+   * @default './src/services'
    **/
   inputDir?: string;
 
@@ -43,6 +43,10 @@ export interface ExportOptions {
    */
   modulesDir?: string;
 
+  /**
+   * Name of the user service directory.
+   * @default 'user'
+   */
   userServiceDir?: string;
 }
 

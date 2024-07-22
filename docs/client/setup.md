@@ -68,7 +68,7 @@ await profileClient.logout();
 
 ## Dynamic client
 
-You can make the client dynamic by defining a wrapper class.
+You can make the client dynamic by putting it in a wrapper class.
 ```typescript
 import { ClientConfig, ClientStorage, CrudClient } from "@eicrud/client";
 
@@ -89,12 +89,13 @@ export class DynamicClient {
         return new CrudClient({...this.config, serviceName, storage: this.storage});
     }
 }
-
+```
+```typescript
 // Usage:
 const client = new DynamicClient();
 await client.get('user').checkJwt();
 ```
 
-For an even better experience check out the [super-client](../recipes/super-client.md) which comes with all your Entities/DTOs types.
+For an even better experience check out the [super-client](../recipes/super-client.md) which comes with all your Entity/DTO types.
 
 

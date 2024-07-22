@@ -6,7 +6,7 @@ CLI (Command line interface) package for the [Eicrud framework](https://github.c
 npm i -g @eicrud/cli
 ```
 
-## Usage
+## Generate
 
 Initialise Eicrud on a Nestjs application.
 
@@ -30,4 +30,72 @@ Generate a new command for a service.
 
 ```
 eicrud generate cmd myService myCmd (-ms myFolder)
+```
+
+### Export
+
+Copy all your `.dto.ts` and `.entity.ts` to the `eicrud_exports` directory and strips them of their decorators.
+```bash
+eicrud export dtos
+```
+Build a typed class for each of your exported entities and instantiate them in a main `SuperClient` class.
+
+```bash
+eicrud export superclient
+```
+
+
+
+## Config
+You can specify ExportOptions in a `eicrud-cli.json` file at the root of your project.
+```typescript
+export interface ExportOptions {
+  /**
+   * Exclude the given services from the export.
+   * @example ['user-profile', 'Email']
+   */
+  excludeServices?: Array<string>;
+
+  /**
+   * Include files that match the given patterns into the output directory.
+   * @example ['*.shared.ts', '*.md']
+   */
+  includePatterns?: Array<string>;
+
+  /**
+   * Exclude files that match the given patterns from the output directory.
+   * @example ['*secret-ms*.dto.ts']
+   */
+  excludePatterns?: Array<string>;
+
+  /**
+   * Remove given imports from the exported files.
+   * @example ['@mypackage/core', 'rxjs']
+   */
+  removeImports?: Array<string>;
+
+  /**
+   * Output directory
+   * @default 'eicrud_exports'
+   */
+  outputDir?: string;
+
+  /**
+   * Input directory
+   * @default './src/services'
+   **/
+  inputDir?: string;
+
+  /**
+   * Location of the node_modules directory.
+   * @default './node_modules'
+   */
+  modulesDir?: string;
+
+  /**
+   * Name of the user service directory.
+   * @default 'user'
+   */
+  userServiceDir?: string;
+}
 ```

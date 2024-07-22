@@ -135,6 +135,9 @@ describe('AppController', () => {
     expect(sp['superclientTestExclude2']).toBeUndefined();
     expect(sp['superclientTest']).toBeDefined();
 
+    expect(sp.fakeEmail.present_cmd).toBeDefined();
+    expect(sp.fakeEmail['ghost_cmd']).toBeUndefined();
+
     // comments
     expect(sp['melon']).toBeUndefined();
     const melonCmdDtoPath = path.join(
