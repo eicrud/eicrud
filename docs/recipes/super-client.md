@@ -37,6 +37,16 @@ export class SuperClient {
     user: UserClient;
 }
 ```
+!!! note 
+    This command requires the [@eicrud/core](https://www.npmjs.com/package/@eicrud/core) package to be present in your `node_modules` directories. 
+    ```json title="eicrud-cli.json"
+    {
+        "export": {
+            "modulesDir": "./node_modules",
+            // ...
+        }
+    }
+    ```
 At this point, all you need to do is copy the `eicrud_exports` directory and you can enjoy the `SuperClient`'s autocompletion into your front-end or anywhere else.
 
 ```typescript
@@ -61,7 +71,6 @@ You can remove a service entirely (entity + commands) from the export by includi
 ```json title="eicrud-cli.json"
 {
     "export": {
-        // ...
         "excludeServices": ["profile", "secret-data"],
         // ...
     }

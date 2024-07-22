@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install Dependencies
-        run: npm install
+        run: npm run setup:tests
 
       - name: Build
         run: npm run build
@@ -65,7 +65,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install Dependencies
-        run: npm install
+        run: npm run setup:tests
 
       - name: Build
         run: npm run build

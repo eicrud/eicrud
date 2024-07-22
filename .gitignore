@@ -53,3 +53,4 @@ nohup.out
 test/cli-app/
 site/
 test/test_exports
+test/eicrud_exports/
