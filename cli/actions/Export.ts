@@ -211,7 +211,9 @@ export class Export {
       copiedFiles.splice(copiedFiles.indexOf(file), 1);
     }
 
-    Export.removeDecoratorsFromFiles(copiedFiles, '@mikro-orm');
+    Export.removeDecoratorsFromFiles(copiedFiles, '@mikro-orm', [], {
+      replaceNews: true,
+    });
     // Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/validation');
     Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core', [
       { regex: /.implements.+CrudEntity/g, replace: '' },
@@ -349,7 +351,12 @@ export class Export {
     }
   }
 
-  static removeDecoratorsFromFiles(files, library, replaces = []) {
+  static removeDecoratorsFromFiles(
+    files,
+    library,
+    replaces = [],
+    opts = { replaceNews: false },
+  ) {
     const libraryRegexStr = `import[^{;]*{([^{;]+)}[^{;]+${library}.+;`;
     //console.log('libraryRegexStr', libraryRegexStr);
     const libraryRegex = new RegExp(libraryRegexStr, 'gm');
@@ -400,6 +407,11 @@ export class Export {
             '@' + imp + '(' + match.match + ')',
             '//delete-this-line',
           );
+        }
+
+        if (opts.replaceNews) {
+          const newsRegex = '\\s*=.*new\\s+' + imp + '.+';
+          result = result.replace(new RegExp(newsRegex, 'gm'), ';');
         }
 
         const lineBreak = result.includes('\r\n') ? '\r\n' : '\n';

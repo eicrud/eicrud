@@ -1,5 +1,5 @@
 import { IsString, IsOptional } from 'class-validator';
-
+import { Collection } from '@mikro-orm/core';
 export class PingCmdDto {
   @IsString()
   @IsOptional()
@@ -7,6 +7,8 @@ export class PingCmdDto {
 
   //@eicrud:cli:export:delete:next-line
   missingArg: string;
+
+  testNewsArg? = new Collection<any>(this);
 }
 
 //used by super-client, update me here

@@ -7,6 +7,8 @@ import {
   readyApp,
   dropDatabases,
 } from '../src/app.module';
+import { SuperclientTest as ExportedSuperclientTest } from '../test_exports/superclient-ms/superclient-test/superclient-test.entity';
+import { DragonFruit as ExportedDragonFruit } from '../test_exports/dragon-fruit/dragon-fruit.entity';
 import { CrudController } from '@eicrud/core/crud/crud.controller';
 import { MyUserService } from '../src/services/my-user/my-user.service';
 import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
@@ -20,8 +22,7 @@ import {
   testMethod,
 } from '../test.utils';
 import { UserProfileService as MyProfileService } from '../src/services/user-profile/user-profile.service';
-import { SearchDto as SearchCmdDto } from '../src/services/user-profile/cmds/search/search.dto';
-
+import { PingCmdDto as ExportedPingCmdDto } from '../test_exports/superclient-ms/superclient-test/cmds/ping_cmd/ping_cmd.dto';
 import { Melon } from '../src/services/melon/melon.entity';
 import { TestUser } from '../test.utils';
 import {
@@ -33,9 +34,9 @@ import {
   ClientConfig,
   CrudClient,
   MemoryStorage,
-} from '../../client/CrudClient';
+} from '@eicrud/client/CrudClient';
 import { LoginDto } from '@eicrud/core/crud/model/dtos';
-import { FindResponseDto } from '../../shared/interfaces';
+import { FindResponseDto } from '@eicrud/shared/interfaces';
 import { CrudOptions } from '@eicrud/core/crud';
 import { SearchDto as SearchMelonDto } from '../src/services/melon/cmds/search/search.dto';
 import { SuperClient } from '../test_exports/super_client';
@@ -45,6 +46,9 @@ import {
   PingCmdDto,
   PingCmdReturnDto,
 } from '../src/services/superclient-ms/superclient-test/cmds/ping_cmd/ping_cmd.dto';
+import { MyUser } from '../src/services/my-user/my-user.entity';
+import { TestCmdDto } from '../test_exports/user-profile/cmds/test_cmd/test_cmd.dto';
+import { SharedEmbeddable } from '../test_exports/superclient-ms/shared-dto';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -52,51 +56,15 @@ const testAdminCreds = {
 };
 
 const users: Record<string, TestUser> = {
-  'Michael Doe': {
-    email: 'michael.doe@test.com',
-    role: 'user',
-    bio: 'I am Michael Doe, a cool guy! ',
-    melons: 10000,
-  },
+
   'Jon Doe': {
     email: 'jon.doe@test.com',
-    role: 'trusted_user',
+    role: 'super_admin',
     bio: 'I am a cool guy.',
     melons: 5,
     dragonfruits: 3,
   },
-  'Super Admin Dude': {
-    email: 'sadmin.dude@mail.com',
-    role: 'super_admin',
-    bio: 'I am a sys admin.',
-    profileType: 'admin',
-  },
-  'Moderator Dude': {
-    email: 'Moderator.dude@mail.com',
-    role: 'moderator',
-    bio: 'I am a discord mod.',
-  },
-  'Moderator Funky': {
-    email: 'Moderator.Funky@mail.com',
-    role: 'moderator',
-    bio: 'I am a discord mod.',
-  },
-  'Moderator Buddy': {
-    email: 'Moderator.Buddy@mail.com',
-    role: 'moderator',
-    bio: 'I am a discord mod.',
-  },
-  'Moderator Pal': {
-    email: 'Moderator.Pal@mail.com',
-    role: 'moderator',
-    bio: 'I am a reddit mod.',
-  },
-  'Melon Many': {
-    email: 'melon.many@test.com',
-    role: 'user',
-    bio: 'I am a cool guy.',
-    melons: 7,
-  },
+ 
 };
 
 describe('AppController', () => {
@@ -112,7 +80,7 @@ describe('AppController', () => {
   let crudConfig: CrudConfigService;
   const baseName = path.basename(__filename);
 
-  const port = 3003;
+  const port = 2998;
 
   const clientConfig = (): ClientConfig => {
     return {
@@ -198,6 +166,10 @@ describe('AppController', () => {
       await sp.superclientTest.create({});
     expect(resSuperclientTest['updatedAt']).toBeDefined();
 
+    //will not compile if testNewsArg is initialized
+    const testRemoveNews = new ExportedPingCmdDto();
+    expect(testRemoveNews).toBeDefined();
+
     type expectedPingCmdDto = Omit<PingCmdDto, 'missingArg'>;
     let dto: expectedPingCmdDto = { myArg: 'hello' };
     let resPingCmd: PingCmdReturnDto;
@@ -211,5 +183,25 @@ describe('AppController', () => {
     expect(error).toBeDefined();
     resPingCmd = await sp.superclientTest.ping_cmdS(dto);
     expect(resPingCmd).toEqual('ping_cmd');
+
+    interface expectedProfile {
+    }
+    const resUser: expectedProfile = await sp.userProfile.findOne({ user: jonDoe.id, userName: 'Jon Doe' });
+    expect(resUser['bio']).toBeDefined();
+
+    const testCmdDto: TestCmdDto = { returnMessage: 'hello' };
+    const resTestCmd = await sp.userProfile.test_cmdS(testCmdDto);
+    expect(resTestCmd).toEqual('HELLO');
+
+    //Will not compile if shared file is not exported
+    const testExportedSharedEmbedded = new ExportedSuperclientTest();
+    const testExportedSharedEmbedded2 = new ExportedDragonFruit();
+    expect(testExportedSharedEmbedded).toBeDefined();
+    expect(testExportedSharedEmbedded2).toBeDefined();
+
+    //Will not compile if my-user.security import isn't removed
+    const testExcludePatern = new SharedEmbeddable();
+    expect(testExcludePatern).toBeDefined();
+
   });
 });

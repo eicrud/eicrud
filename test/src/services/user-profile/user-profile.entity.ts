@@ -51,6 +51,7 @@ export class Geoloc {
 }
 
 @Entity()
+//@eicrud:cli:export:hide
 export class UserProfile implements CrudEntity {
   @PrimaryKey({ name: '_id' })
   @IsString()

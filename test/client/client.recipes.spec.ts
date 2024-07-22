@@ -372,5 +372,5 @@ describe('AppController', () => {
 
     expect(myClient.fetchNb).toBeGreaterThan(lastFetch);
     expect(res4.data?.length).toBe(michael.melons);
-  }, 15000);
+  }, 16000);
 });

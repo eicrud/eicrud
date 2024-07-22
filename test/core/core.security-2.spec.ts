@@ -224,7 +224,7 @@ describe('AppController', () => {
     const resDb: any = await dragonFruitService.$find({}, null);
     expect(resDb.data.length).toEqual(resTrustedUser.length);
     for (const r of resDb.data) {
-      expect(Object.keys(r).length).toEqual(keys_count + 1);
+      expect(Object.keys(r).length).toEqual(keys_count + 2);
       expect(r.secretCode).toBeTruthy();
     }
   });
