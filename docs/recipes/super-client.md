@@ -7,13 +7,14 @@ You can generate a **super-[client](../client/setup.md)** with Eicrud's [CLI](ht
 ## How to export the super-client
 
 Generating the super-client is a two-step process. 
-### One
+
+**1.**
 ```bash
 eicrud export dtos
 ```
-This command copies all your `.dto.ts` and `.entity.ts` to the `eicrud_exports` directory and strips them of their decorators.
+This command copies all your `.dto.ts` and `.entity.ts` files to the `eicrud_exports` directory and strips them of their decorators.
 
-### Two
+**2.**
 ```bash
 eicrud export superclient
 ```
