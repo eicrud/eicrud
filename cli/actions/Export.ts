@@ -86,7 +86,7 @@ export class Export {
 
   static async dtos(options?, cliOptions?: CliOptions) {
     let excludeServices = cliOptions?.export?.excludeServices || [];
-    excludeServices = excludeServices.map((se) => toKebabCase(se.name || se));
+    excludeServices = excludeServices.map((se) => toKebabCase(se));
     //console.log('Generating service', name);
     const inputDir = cliOptions?.export?.inputDir || './src/services';
     const src = path.join(inputDir);
