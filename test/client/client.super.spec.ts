@@ -56,7 +56,6 @@ const testAdminCreds = {
 };
 
 const users: Record<string, TestUser> = {
-
   'Jon Doe': {
     email: 'jon.doe@test.com',
     role: 'super_admin',
@@ -64,7 +63,6 @@ const users: Record<string, TestUser> = {
     melons: 5,
     dragonfruits: 3,
   },
- 
 };
 
 describe('AppController', () => {
@@ -184,9 +182,11 @@ describe('AppController', () => {
     resPingCmd = await sp.superclientTest.ping_cmdS(dto);
     expect(resPingCmd).toEqual('ping_cmd');
 
-    interface expectedProfile {
-    }
-    const resUser: expectedProfile = await sp.userProfile.findOne({ user: jonDoe.id, userName: 'Jon Doe' });
+    interface expectedProfile {}
+    const resUser: expectedProfile = await sp.userProfile.findOne({
+      user: jonDoe.id,
+      userName: 'Jon Doe',
+    });
     expect(resUser['bio']).toBeDefined();
 
     const testCmdDto: TestCmdDto = { returnMessage: 'hello' };
@@ -202,6 +202,5 @@ describe('AppController', () => {
     //Will not compile if my-user.security import isn't removed
     const testExcludePatern = new SharedEmbeddable();
     expect(testExcludePatern).toBeDefined();
-
   });
 });

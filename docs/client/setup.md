@@ -66,4 +66,35 @@ It is possible to manually log out.
 await profileClient.logout();
 ```
 
+## Dynamic client
+
+You can make the client dynamic by defining a wrapper class.
+```typescript
+import { ClientConfig, ClientStorage, CrudClient } from "@eicrud/client";
+
+export class DynamicClient {
+    storage: ClientStorage;
+    config: ClientConfig;
+    constructor(conf: Partial<ClientConfig> = {}) {
+        this.config = {
+            url: 'http://localhost:3000',
+            serviceName: 'user',
+            ...conf
+        }
+        const client = new CrudClient(this.config);
+        this.storage = client.config.storage;
+    }
+
+    get(serviceName){
+        return new CrudClient({...this.config, serviceName, storage: this.storage});
+    }
+}
+
+// Usage:
+const client = new DynamicClient();
+await client.get('user').checkJwt();
+```
+
+For an even better experience check out the [super-client](../recipes/super-client.md) which comes with all your Entities/DTOs types.
+
 
