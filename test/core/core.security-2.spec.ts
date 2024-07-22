@@ -223,8 +223,9 @@ describe('AppController', () => {
 
     const resDb: any = await dragonFruitService.$find({}, null);
     expect(resDb.data.length).toEqual(resTrustedUser.length);
+    const addKeyCount = process.env.TEST_CRUD_DB == 'postgre' ? 1 : 2;
     for (const r of resDb.data) {
-      expect(Object.keys(r).length).toEqual(keys_count + 2);
+      expect(Object.keys(r).length).toEqual(keys_count + addKeyCount);
       expect(r.secretCode).toBeTruthy();
     }
   });

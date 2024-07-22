@@ -310,7 +310,7 @@ export class Export {
             clientFileContent,
             importLine,
             'GENERATED START',
-            { noWrite: true, noNewLine: false },
+            { noWrite: true, noNewLine: false, mute: true },
           );
         }
         fs.writeFileSync(clientFilePath, clientFileContent, 'utf8');
@@ -334,7 +334,7 @@ export class Export {
         superClientFileContent,
         importLine,
         'GENERATED START 1',
-        { noWrite: true, noNewLine: true },
+        { noWrite: true, noNewLine: true, mute: true },
       );
 
       _utils_cli.splitAndAddTemplateContent(
@@ -346,7 +346,11 @@ export class Export {
         superClientFileContent,
         '',
         'GENERATED START 2',
-        { noWrite: false, noNewLine: true },
+        {
+          noWrite: false,
+          noNewLine: true,
+          mute: files.indexOf(file) < files.length - 1,
+        },
       );
     }
   }

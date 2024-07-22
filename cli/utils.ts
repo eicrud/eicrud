@@ -108,7 +108,7 @@ export class _utils_cli {
     serviceFileContent,
     importLine,
     pattern = 'GENERATED START',
-    opts = { noWrite: false, noNewLine: false },
+    opts = { noWrite: false, noNewLine: false, mute: false },
   ) {
     const regex = new RegExp(pattern + '(.*)');
     const [before, rest, after] = serviceFileContent.split(regex);
@@ -136,7 +136,9 @@ export class _utils_cli {
     if (!opts?.noWrite) {
       //write content
       fs.writeFileSync(servicePath, serviceFileContent);
-      console.log('UPDATED:', servicePath);
+      if (!opts?.mute) {
+        console.log('UPDATED:', servicePath);
+      }
     }
     return serviceFileContent;
   }
