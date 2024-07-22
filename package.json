@@ -36,7 +36,7 @@
     "clean:deep": "del-cli **.js **.d.ts **.js.map !node_modules !**/node_modules && del-cli **/package-lock.json && del-cli test/cli-app/** && del-cli core/node_modules shared/node_modules db_mongo/node_modules db_postgre/node_modules client/node_modules cli/node_modules",
     "prepare": "husky install",
     "setup:cli": " cd shared && npm run compile && cd ../cli && npm run compile && npm remove -g @eicrud/cli && npm i -g ./ && cd ..",
-    "setup:tests": "npm run setup:cli && npm i && eicrud export dtos && eicrud export superclient"
+    "setup:tests": "npm i && npm run setup:cli && eicrud export dtos && eicrud export superclient"
   },
   "dependencies": {
     "@eicrud/client": "file:client",
