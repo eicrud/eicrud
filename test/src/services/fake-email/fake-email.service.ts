@@ -3,12 +3,11 @@ import {
   PresentCmdReturnDto,
 } from './cmds/present_cmd/present_cmd.dto';
 import { GhostCmdDto, GhostCmdReturnDto } from './cmds/ghost_cmd/ghost_cmd.dto';
-import { GhostCMDDto, GhostCMDReturnDto } from './cmds/ghost_cmd/ghost_cmd.dto';
 import { ModuleRef } from '@nestjs/core';
 import { FakeEmail } from './fake-email.entity';
 import { Injectable } from '@nestjs/common';
 import { getSecurity } from './fake-email.security';
-import { CrudService } from '@eicrud/core/crud';
+import { CrudService, Inheritance } from '@eicrud/core/crud';
 import { serviceCmds } from './cmds';
 import { CrudContext } from '@eicrud/core/crud';
 import { EmailService } from '@eicrud/core/config';
@@ -80,14 +79,6 @@ export class FakeEmailService
 
   async $ghost_cmd(
     dto: GhostCmdDto,
-    ctx: CrudContext,
-    inheritance?: Inheritance,
-  ) {
-    return serviceCmds.ghost_cmd.action.call(this, dto, ctx, inheritance);
-  }
-
-  async $ghost_cmd(
-    dto: GhostCMDDto,
     ctx: CrudContext,
     inheritance?: Inheritance,
   ) {

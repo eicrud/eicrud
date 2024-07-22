@@ -19,7 +19,7 @@
       options: ICrudOptions = undefined,
       copts?: ClientOptions,
     ): Promise<tk_cmd_return_dto_name> {
-      return super.cmdL('tk_cmd_name', dto, options, copts);
+      return super.cmdL('tk_cmd_name', dto, options, copts) as any;
   }
 
   async tk_cmd_nameSL(
@@ -27,5 +27,5 @@
       options: ICrudOptions = undefined,
       copts?: ClientOptions,
     ): Promise<tk_cmd_return_dto_name> {
-      return super.cmdSL('tk_cmd_name', dto, options, copts);
+      return super.cmdSL('tk_cmd_name', dto, options, copts) as any;
   }

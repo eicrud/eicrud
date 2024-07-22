@@ -200,7 +200,7 @@ export class Generate {
     const importServicesLine = `import { CRUDServices } from './services/index';`;
 
     //add import line at beginning of file if not already there
-    if (!content.includes(importServicesLine)) {
+    if (!content.includes('./services/index')) {
       content = importServicesLine + '\n' + content;
     }
 

@@ -2,7 +2,7 @@ import { TestTriggerDto } from './cmds/test_trigger/test_trigger.dto';
 import { ModuleRef } from '@nestjs/core';
 import { HookTrigger } from './hook-trigger.entity';
 import { Injectable } from '@nestjs/common';
-import { getSecurity } from './hooktrigger.security';
+import { getSecurity } from './hook-trigger.security';
 import { CrudService } from '@eicrud/core/crud';
 import { serviceCmds } from './cmds';
 import { CrudContext } from '@eicrud/core/crud';

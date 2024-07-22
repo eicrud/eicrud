@@ -1,11 +1,11 @@
 import { ModuleRef } from '@nestjs/core';
 import { HookLog } from './hook-log.entity';
 import { Injectable } from '@nestjs/common';
-import { getSecurity } from './hooklog.security';
+import { getSecurity } from './hook-log.security';
 import { CrudService } from '@eicrud/core/crud';
 import { serviceCmds } from './cmds';
 import { CrudContext } from '@eicrud/core/crud';
-import { hooks } from './hooklog.hooks';
+import { hooks } from './hook-log.hooks';
 
 @Injectable()
 export class HookLogService extends CrudService<HookLog> {

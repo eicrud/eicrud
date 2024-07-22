@@ -1,11 +1,11 @@
 import { SearchDto } from './cmds/search/search.dto';
-import { Test_cmd_rate_limitedDto } from './cmds/test_cmd_rate_limited/test_cmd_rate_limited.dto';
+import { TestCmdRateLimitedDto } from './cmds/test_cmd_rate_limited/test_cmd_rate_limited.dto';
 import { CanCannotCmdDto } from './cmds/can_cannot_cmd/can_cannot_cmd.dto';
-import { Test_cmdDto } from './cmds/test_cmd/test_cmd.dto';
+import { TestCmdDto } from './cmds/test_cmd/test_cmd.dto';
 import { ModuleRef } from '@nestjs/core';
 import { UserProfile } from './user-profile.entity';
 import { Injectable } from '@nestjs/common';
-import { getSecurity } from './userprofile.security';
+import { getSecurity } from './user-profile.security';
 import { CrudService } from '@eicrud/core/crud';
 import { serviceCmds } from './cmds';
 import { CrudContext } from '@eicrud/core/crud';
@@ -29,7 +29,7 @@ export class UserProfileService extends CrudService<UserProfile> {
   }
 
   async $test_cmd_rate_limited(
-    dto: Test_cmd_rate_limitedDto,
+    dto: TestCmdRateLimitedDto,
     ctx: CrudContext,
     inheritance?: any,
   ) {
@@ -49,7 +49,7 @@ export class UserProfileService extends CrudService<UserProfile> {
     return await serviceCmds.can_cannot_cmd.action(dto, this, ctx, inheritance);
   }
 
-  async $test_cmd(dto: Test_cmdDto, ctx: CrudContext, inheritance?: any) {
+  async $test_cmd(dto: TestCmdDto, ctx: CrudContext, inheritance?: any) {
     return await serviceCmds.test_cmd.action(dto, this, ctx, inheritance);
   }
 }

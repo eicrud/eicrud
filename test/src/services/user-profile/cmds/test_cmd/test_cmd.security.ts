@@ -1,10 +1,10 @@
 import { CmdSecurity } from '@eicrud/core/config';
 import { test_cmd } from './test_cmd.action';
-import { Test_cmdDto } from './test_cmd.dto';
+import { TestCmdDto } from './test_cmd.dto';
 
 const getCmdSecurity = (test_cmd, USER_PROFILE): CmdSecurity => {
   return {
-    dto: Test_cmdDto,
+    dto: TestCmdDto,
     maxUsesPerUser: 10,
     additionalUsesPerTrustPoint: 1,
     rolesRights: {

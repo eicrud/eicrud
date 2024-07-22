@@ -16,6 +16,49 @@ import wildcard from 'wildcard';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+function cleanFileContent(fileContent: string): string {
+  const beforeString = '@eicrud:cli:export:delete:start';
+  const afterString = '@eicrud:cli:export:delete:end';
+  fileContent = _utils_cli.removeEnclosedContent(
+    fileContent,
+    beforeString,
+    afterString,
+  );
+
+  const beforeNextLine = '@eicrud:cli:export:delete:next-line';
+  fileContent = _utils_cli.removeLineAfterMarker(fileContent, beforeNextLine);
+
+  return fileContent;
+}
+
+function getFileDirectives(file: string) {
+  let fileContent = fs.readFileSync(file, 'utf8');
+  const hideDirective = fileContent.includes('@eicrud:cli:export:hide');
+  const excludeDirective = fileContent.includes('@eicrud:cli:export:exclude');
+  return { hideDirective, excludeDirective, fileContent };
+}
+
+function cleanEmptyDirectories(dir) {
+  const isDir = fs.statSync(dir).isDirectory();
+  if (!isDir) {
+    return;
+  }
+  let files = fs.readdirSync(dir);
+  if (files.length > 0) {
+    files.forEach(function (file) {
+      const filePath = path.join(dir, file);
+      cleanEmptyDirectories(filePath);
+    });
+
+    files = fs.readdirSync(dir);
+  }
+
+  if (files.length === 0) {
+    fs.rmdirSync(dir);
+    return;
+  }
+}
+
 export class Export {
   static action(type, name, cmd): Promise<any> {
     const opts = (this as any).opts();
@@ -86,56 +129,78 @@ export class Export {
     );
 
     const removeFiles = [];
+    const excludedServices = [];
     for (const file of copiedFiles) {
-      let fileContent = fs.readFileSync(file, 'utf8');
-      const hideDirective = fileContent.includes('@eicrud:cli:export:hide');
-      const excludeDirective = fileContent.includes(
-        '@eicrud:cli:export:exclude',
-      );
-      if (file.endsWith('.entity.ts')) {
-        const serviceName = path.basename(file).replace('.entity.ts', '');
-        const pascalEntityName = kebakToPascalCase(serviceName);
-        if (excludeDirective || excludeServices.includes(serviceName)) {
-          removeFiles.push(file);
-        } else if (hideDirective) {
-          fileContent = 'export type ' + pascalEntityName + ' = any;';
-          fs.writeFileSync(file, fileContent, 'utf8');
-          continue;
+      if (!file.endsWith('.entity.ts')) {
+        continue;
+      }
+      let { hideDirective, excludeDirective, fileContent } =
+        getFileDirectives(file);
+
+      const serviceName = path.basename(file).replace('.entity.ts', '');
+      const pascalEntityName = kebakToPascalCase(serviceName);
+      if (excludeDirective || excludeServices.includes(serviceName)) {
+        removeFiles.push(file);
+        excludedServices.push(serviceName);
+      } else if (hideDirective) {
+        fileContent = 'export type ' + pascalEntityName + ' = any;';
+        fs.writeFileSync(file, fileContent, 'utf8');
+        continue;
+      }
+
+      fileContent = cleanFileContent(fileContent);
+
+      // write file
+      fs.writeFileSync(file, fileContent, 'utf8');
+    }
+
+    for (const file of copiedFiles) {
+      if (!file.endsWith('.dto.ts')) {
+        continue;
+      }
+
+      let { hideDirective, excludeDirective, fileContent } =
+        getFileDirectives(file);
+
+      if (hideDirective || excludeDirective) {
+        // delete file
+        removeFiles.push(file);
+        continue;
+      } else {
+        const matchDtoServiceRegex = /([^\\/]+)[\\/]cmds[\\/].+\.dto\.ts/;
+        const matchDtoService = matchDtoServiceRegex.exec(file);
+        const serviceName = matchDtoService ? matchDtoService[1] : null;
+        if (!serviceName) {
+          //TODO: remove this check
+          console.error('Service name not found for file: ' + file);
         }
-      } else if (file.endsWith('.dto.ts')) {
-        if (hideDirective) {
-          // delete file
+        if (excludedServices.includes(serviceName)) {
           removeFiles.push(file);
           continue;
-        } else {
-          const matchDtoServiceRegex = /([^\\/]+)[\\/]cmds[\\/].+\.dto\.ts/;
-          const matchDtoService = matchDtoServiceRegex.exec(file);
-          const serviceName = matchDtoService ? matchDtoService[1] : null;
-          if (!serviceName) {
-            //TODO: remove this check
-            console.error('Service name not found for file: ' + file);
-          }
-          if (excludeServices.includes(serviceName)) {
-            removeFiles.push(file);
-            continue;
-          }
         }
       }
 
-      //const regex = /@eicrud:cli:export:delete:start[\s\S]*?@eicrud:cli:export:delete:end/
-      const beforeString = '@eicrud:cli:export:delete:start';
-      const afterString = '@eicrud:cli:export:delete:end';
-      fileContent = _utils_cli.removeEnclosedContent(
-        fileContent,
-        beforeString,
-        afterString,
-      );
+      fileContent = cleanFileContent(fileContent);
 
-      const beforeNextLine = '@eicrud:cli:export:delete:next-line';
-      fileContent = _utils_cli.removeLineAfterMarker(
-        fileContent,
-        beforeNextLine,
-      );
+      // write file
+      fs.writeFileSync(file, fileContent, 'utf8');
+    }
+
+    for (const file of copiedFiles) {
+      if (file.endsWith('.dto.ts') || file.endsWith('.entity.ts')) {
+        continue;
+      }
+
+      let { hideDirective, excludeDirective, fileContent } =
+        getFileDirectives(file);
+
+      if (hideDirective || excludeDirective) {
+        // delete file
+        removeFiles.push(file);
+        continue;
+      }
+
+      fileContent = cleanFileContent(fileContent);
 
       // write file
       fs.writeFileSync(file, fileContent, 'utf8');
@@ -160,6 +225,8 @@ export class Export {
     for (const importToRemove of cliOptions?.export?.removeImports || []) {
       Export.removeDecoratorsFromFiles(copiedFiles, importToRemove);
     }
+
+    cleanEmptyDirectories(dest);
 
     for (const copied of copiedFiles) {
       console.log('EXPORTED: ' + copied);

@@ -1,10 +1,10 @@
 import { ModuleRef } from '@nestjs/core';
-import { Test_cmdDto } from './test_cmd.dto';
+import { TestCmdDto } from './test_cmd.dto';
 import { UserProfileService } from '../../user-profile.service';
 import { CrudContext } from '@eicrud/core/crud';
 
 export async function test_cmd(
-  dto: Test_cmdDto,
+  dto: TestCmdDto,
   service: UserProfileService,
   ctx: CrudContext,
   inheritance?: any,

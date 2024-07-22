@@ -13,7 +13,7 @@ class subTestCmdDto {
   subfield: string;
 }
 
-export class Test_cmd_rate_limitedDto {
+export class TestCmdRateLimitedDto {
   @IsString()
   @MaxLength(30)
   @$Transform((value: string) => value.toUpperCase())

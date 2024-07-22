@@ -4,11 +4,9 @@
         "includePatterns": [],
         "excludePatterns": [],
         "removeImports": [],
-        "outputDir": "./test_exports",
-        "inputDir": "./src/services",
-        "modulesDir": "../node_modules",
+        "outputDir": "./test/test_exports",
+        "inputDir": "./test/src/services",
+        "modulesDir": "./node_modules",
         "userServiceDir": "my-user"
-
-
     }
 }

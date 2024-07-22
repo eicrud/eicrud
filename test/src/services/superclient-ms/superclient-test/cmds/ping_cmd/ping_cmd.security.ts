@@ -9,10 +9,12 @@ const getCmdSecurity = (
 ): CmdSecurity<PingCmdDto, SuperclientTest> => {
   return {
     dto: PingCmdDto,
+    secureOnly: true,
     rolesRights: {
-      user: {
+      guest: {
         async defineCMDAbility(can, cannot, ctx) {
           // Define abilities for user
+          can(ping_cmd, superclientTest);
         },
       },
     },

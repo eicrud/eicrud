@@ -8,5 +8,5 @@ export async function ping_cmd(
   ctx: CrudContext,
   inheritance?: Inheritance,
 ): Promise<PingCmdReturnDto> {
-  throw new Error('Not implemented');
+  return 'ping_cmd';
 }

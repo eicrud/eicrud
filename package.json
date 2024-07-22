@@ -34,7 +34,8 @@
     "generate:typedoc": "typedoc --plugin typedoc-plugin-markdown --out \"docs/Ξ Api\" && del-cli \"docs/Ξ Api/README.md\"",
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules !**/node_modules",
     "clean:deep": "del-cli **.js **.d.ts **.js.map !node_modules !**/node_modules && del-cli **/package-lock.json && del-cli test/cli-app/** && del-cli core/node_modules shared/node_modules db_mongo/node_modules db_postgre/node_modules client/node_modules cli/node_modules",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "setup:tests": "npm i && eicrud export dtos && eicrud export superclient"
   },
   "dependencies": {
     "@eicrud/client": "file:client",

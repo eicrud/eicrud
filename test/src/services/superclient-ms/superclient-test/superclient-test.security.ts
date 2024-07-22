@@ -10,6 +10,7 @@ export function getSecurity(
       guest: {
         async defineCRUDAbility(can, cannot, ctx) {
           // Define abilities for guest
+          can('crud', superclientTest);
         },
       },
     },

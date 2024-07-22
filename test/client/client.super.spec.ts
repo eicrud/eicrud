@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-
+const path = require('path');
+const fs = require('fs');
 import {
   getModule,
   createNestApplication,
@@ -38,6 +39,12 @@ import { FindResponseDto } from '../../shared/interfaces';
 import { CrudOptions } from '@eicrud/core/crud';
 import { SearchDto as SearchMelonDto } from '../src/services/melon/cmds/search/search.dto';
 import { SuperClient } from '../test_exports/super_client';
+import { DragonFruit } from '../src/services/dragon-fruit/dragon-fruit.entity';
+import { SuperclientTest } from '../src/services/superclient-ms/superclient-test/superclient-test.entity';
+import {
+  PingCmdDto,
+  PingCmdReturnDto,
+} from '../src/services/superclient-ms/superclient-test/cmds/ping_cmd/ping_cmd.dto';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -53,9 +60,10 @@ const users: Record<string, TestUser> = {
   },
   'Jon Doe': {
     email: 'jon.doe@test.com',
-    role: 'user',
+    role: 'trusted_user',
     bio: 'I am a cool guy.',
     melons: 5,
+    dragonfruits: 3,
   },
   'Super Admin Dude': {
     email: 'sadmin.dude@mail.com',
@@ -102,7 +110,7 @@ describe('AppController', () => {
   let entityManager: EntityManager;
 
   let crudConfig: CrudConfigService;
-  const baseName = require('path').basename(__filename);
+  const baseName = path.basename(__filename);
 
   const port = 3003;
 
@@ -151,14 +159,57 @@ describe('AppController', () => {
   });
 
   it('should check exclusions when exporting superclient', async () => {
-    const sp: SuperClient = new SuperClient(clientConfig());
+    const sharedConfig = clientConfig();
+    const sp: SuperClient = new SuperClient(sharedConfig);
+    const jonDoe = users['Jon Doe'];
+
+    await sp.myUser.login({ email: jonDoe.email, password: 'testpassword' });
 
     expect(sp['superclientTestExclude']).toBeUndefined();
     expect(sp['superclientTestExclude2']).toBeUndefined();
     expect(sp['superclientTest']).toBeDefined();
 
     // comments
-    expect(sp['melon']).toBeDefined();
+    expect(sp['melon']).toBeUndefined();
+    const melonCmdDtoPath = path.join(
+      'test/test_exports/melon/cmds/search/search.dto.ts',
+    );
+    expect(fs.existsSync(melonCmdDtoPath)).toBeFalsy();
+
+    const melonFolderPath = path.join('test/test_exports/melon');
+    expect(fs.existsSync(melonFolderPath)).toBeFalsy();
+
     expect(sp['picture']).toBeDefined();
+    const pictureCmdDtoPath = path.join(
+      'test/src/services/picture/cmds/present_cmd/present_cmd.dto.ts',
+    );
+    expect(fs.existsSync(pictureCmdDtoPath)).toBeTruthy();
+
+    type expectedDragonFruit = Omit<DragonFruit, 'ownerEmail' | 'size'>;
+    // will fail to compile if ownerEmail or size is included
+    let resDragonFruit: expectedDragonFruit = await sp.dragonFruit.findOne({
+      owner: jonDoe.id,
+    });
+    console.log(resDragonFruit);
+    expect(resDragonFruit['ownerEmail']).toEqual(jonDoe.email);
+
+    type expectedSuperclientTest = Omit<SuperclientTest, 'updatedAt'>;
+    let resSuperclientTest: expectedSuperclientTest =
+      await sp.superclientTest.create({});
+    expect(resSuperclientTest['updatedAt']).toBeDefined();
+
+    type expectedPingCmdDto = Omit<PingCmdDto, 'missingArg'>;
+    let dto: expectedPingCmdDto = { myArg: 'hello' };
+    let resPingCmd: PingCmdReturnDto;
+    let error = null;
+    try {
+      resPingCmd = await sp.superclientTest.ping_cmd(dto);
+    } catch (e) {
+      expect(e.response.status).toEqual(403);
+      error = e;
+    }
+    expect(error).toBeDefined();
+    resPingCmd = await sp.superclientTest.ping_cmdS(dto);
+    expect(resPingCmd).toEqual('ping_cmd');
   });
 });
