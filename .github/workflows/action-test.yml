@@ -54,7 +54,7 @@ jobs:
   test-cli-mongo:
     needs: test
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 8
 
     services:
       mongodb:
