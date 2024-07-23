@@ -54,3 +54,4 @@ test/cli-app/
 site/
 test/test_exports
 test/eicrud_exports/
+verdaccio/htpasswd
