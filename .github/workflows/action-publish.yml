@@ -106,7 +106,14 @@ jobs:
     
     - name: Publish
       working-directory: ./${{ matrix.dir }}
-      # if: steps.filter.outputs.matched == 'true'
+      if: contains(github.ref_name, 'beta') == false
       run: npm run publish:package --provenance --access public 
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: Publish beta
+      working-directory: ./${{ matrix.dir }}
+      if: contains(github.ref_name, 'beta')
+      run: npm run publish:package --provenance --access public --tag beta
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
