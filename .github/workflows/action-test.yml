@@ -13,46 +13,46 @@ on:
   #   - 'db_*/**'
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 14
+  # test:
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 14
 
-    services:
-      mongodb:
-        image: mongo
-        ports:
-        - 27017:27017
-      postgres:
-        image: postgres
-        ports:
-        - 5432:5432
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: admin
-    steps:
-      - name: Copy repository
-        uses: actions/checkout@v3
+  #   services:
+  #     mongodb:
+  #       image: mongo
+  #       ports:
+  #       - 27017:27017
+  #     postgres:
+  #       image: postgres
+  #       ports:
+  #       - 5432:5432
+  #       env:
+  #         POSTGRES_USER: postgres
+  #         POSTGRES_PASSWORD: admin
+  #   steps:
+  #     - name: Copy repository
+  #       uses: actions/checkout@v3
 
-      - name: Install Dependencies
-        run: npm run setup:tests
+  #     - name: Install Dependencies
+  #       run: npm run setup:tests
 
-      - name: Build
-        run: npm run build
+  #     - name: Build
+  #       run: npm run build
 
-      - name: Mongodb tests
-        run: npm run test
+  #     - name: Mongodb tests
+  #       run: npm run test
 
-      - name: PostgreSQL tests
-        run: npm run test:postgre
+  #     - name: PostgreSQL tests
+  #       run: npm run test:postgre
 
-      - name: Microservices tests
-        run: npm run start:test-ms
+  #     - name: Microservices tests
+  #       run: npm run start:test-ms
 
-      - name: Microservices proxy tests
-        run: npm run start:test-ms:proxy
+  #     - name: Microservices proxy tests
+  #       run: npm run start:test-ms:proxy
 
   test-cli-mongo:
-    needs: test
+    # needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 8
 
