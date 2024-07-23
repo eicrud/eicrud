@@ -720,17 +720,22 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     }
 
     email = email.toLowerCase().trim();
-    const userWithNewEmail = await this.$findOne({ email } as any, ctx);
-    if (userWithNewEmail) {
-      throw new BadRequestException(CrudErrors.EMAIL_ALREADY_TAKEN.str());
-    }
 
     const user = new this.entity();
     user.email = email;
     user.password = password;
     user.role = role;
+    let res;
+    try {
+      res = await this.$create(user, ctx);
+    } catch (e) {
+      console.error('Error creating user: ', e);
+      if (['duplicate', 'key', 'email'].every((k) => e.message?.includes(k))) {
+        throw new BadRequestException(CrudErrors.EMAIL_ALREADY_TAKEN.str());
+      }
+      throw e;
+    }
 
-    const res = await this.$create(user, ctx);
     this.crudConfig.emailService?.sendAccountCreationEmail(
       user.email,
       res,
