@@ -24,6 +24,9 @@ import { HookTriggerService } from './services/hook-trigger/hook-trigger.service
 import { UserProfileService } from './services/user-profile/user-profile.service';
 import { HookTrigger } from './services/hook-trigger/hook-trigger.entity';
 import { HookLog } from './services/hook-log/hook-log.entity';
+import { SuperclientTest } from './services/superclient-ms/superclient-test/superclient-test.entity';
+import { SuperclientTestExclude } from './services/superclient-ms/superclient-test-exclude/superclient-test-exclude.entity';
+import { SuperclientTestExclude2 } from './services/superclient-ms/superclient-test-exclude2/superclient-test-exclude2.entity';
 
 const roles: CrudRole[] = [
   {
@@ -69,7 +72,13 @@ msOptions.microServices = {
     proxyCrudController: PROXY_TEST ? true : false,
   },
   user: {
-    services: [MyUser, HookTrigger],
+    services: [
+      MyUser,
+      HookTrigger,
+      SuperclientTest,
+      SuperclientTestExclude,
+      SuperclientTestExclude2,
+    ],
     openBackDoor: true,
     openController: PROXY_TEST ? true : false,
     url: 'http://localhost:3005',

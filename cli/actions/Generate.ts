@@ -199,8 +199,10 @@ export class Generate {
 
     const importServicesLine = `import { CRUDServices } from './services/index';`;
 
+    const importCRUDServiceRegex = /import.+CRUDServices.+from.+/;
     //add import line at beginning of file if not already there
-    if (!content.includes('./services/index')) {
+    const importCRUDServiceMatch = content.match(importCRUDServiceRegex);
+    if (!importCRUDServiceMatch) {
       content = importServicesLine + '\n' + content;
     }
 
