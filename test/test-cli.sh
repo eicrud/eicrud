@@ -10,14 +10,14 @@ for i in "${arr[@]}"
 do
     echo "publishing $i..." && cd $i && \
     npm version "0.0.1" --no-git-tag-version && sed -i 's/"@eicrud\/\(.\+\)":.\+"/"@eicrud\/\1":\ "^0.0.1"/g' ./package.json && \
-    rm .npmrc ; echo @eicrud:registry=http://localhost:4873/ > .npmrc && echo //localhost:4873/:_authToken=fooBar >> .npmrc && npm i && npm run compile && npm publish && cd .. 
+    rm .npmrc ; echo @eicrud:registry=http://127.0.0.1:4873/ > .npmrc && echo //127.0.0.1:4873/:_authToken=fooBar >> .npmrc && npm i && npm run compile && npm publish && cd .. 
 done
 
 cd test && 
 npm i -g @nestjs/cli &&
 nest new cli-app --skip-install --package-manager npm && 
 cd cli-app && 
-echo @eicrud:registry=http://localhost:4873/ > .npmrc && echo //localhost:4873/:_authToken=fooBar >> .npmrc &&
+echo @eicrud:registry=http://127.0.0.1:4873/ > .npmrc && echo //127.0.0.1:4873/:_authToken=fooBar >> .npmrc &&
 npm i -g ../../cli &&
 eicrud -V &&
 eicrud setup $1 cli-app && 
