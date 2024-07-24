@@ -29,7 +29,7 @@ Most of the time, a web app has some CRUD functionality as its base. Eicrud atte
 
 - 🗃️ [Database control](https://docs.eicrud.com/configuration/limits)
 
-- 🚀 Easy to use [client](https://docs.eicrud.com/client/setup)
+- 🚀 Easy to use (RPC) [client](https://docs.eicrud.com/client/setup)
 
 - 🌐 [Monolithic/Microservices](https://docs.eicrud.com/microservices/configuration/)
 
@@ -126,7 +126,7 @@ msOptions.microServices = {
 }
 ```
 
-## Powerful typed client (RPC)
+## Powerful typed client (remote procedure call)
 **Eicrud** lets you generate a powerful client that holds all your DTOs and commands. Allowing auto-completion and type safety directly in your front-end.  
 ```typescript
 // in your profile service
