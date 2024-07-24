@@ -79,7 +79,7 @@ jobs:
     timeout-minutes: 7
     strategy:
       matrix:
-        dir: ['core', 'cli', 'client', 'db_mongo', 'db_postgre']
+        dir: ['shared', 'core', 'cli', 'client', 'db_mongo', 'db_postgre']
       max-parallel: 1
     permissions:
       contents: read

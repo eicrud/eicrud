@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import child_process from 'child_process';
 import { toKebabCase } from '@eicrud/shared/utils.js';
-import { CliOptions } from '@eicrud/core/config/index.js';
+import { CliOptions } from '@eicrud/shared/config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

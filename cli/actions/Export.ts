@@ -10,7 +10,7 @@ import {
 } from '@eicrud/shared/utils.js';
 import XRegExp from 'xregexp';
 import { Generate } from './Generate.js';
-import { CliOptions } from '@eicrud/core/config/index.js';
+import { CliOptions } from '@eicrud/shared/config';
 import wildcard from 'wildcard';
 
 const __filename = fileURLToPath(import.meta.url);
