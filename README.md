@@ -127,7 +127,7 @@ msOptions.microServices = {
 ```
 
 ## Powerful typed client (remote procedure call)
-**Eicrud** lets you generate a powerful client that holds all your DTOs and commands. Allowing auto-completion and type safety directly in your front-end.  
+**Eicrud** lets you generate a powerful super-client that holds all your DTOs and commands. Allowing auto-completion and type safety directly in your front-end.  
 ```typescript
 // in your profile service
 async $say_hello(dto: SayHelloDto, ctx: CrudContext) {
