@@ -2,6 +2,7 @@ import {  Entity, PrimaryKey, Property, Unique } from "@mikro-orm/core";
 import { CrudUser } from "@eicrud/core/config";
 
 @Entity()
+//@eicrud:cli:export:hide
 export class User implements CrudUser {
 
     @PrimaryKey({ name: '_id'})

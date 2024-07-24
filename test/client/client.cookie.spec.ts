@@ -7,11 +7,11 @@ import {
   dropDatabases,
 } from '../src/app.module';
 import { CrudController } from '@eicrud/core/crud/crud.controller';
-import { MyUserService } from '../src/services/myuser/myuser.service';
+import { MyUserService } from '../src/services/my-user/my-user.service';
 import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { EntityManager } from '@mikro-orm/mongodb';
-import { UserProfile } from '../src/services/userprofile/userprofile.entity';
+import { UserProfile } from '../src/services/user-profile/user-profile.entity';
 import {
   createAccountsAndProfiles,
   createMelons,
@@ -20,7 +20,7 @@ import {
   parseJwtCookieFromRes,
   testMethod,
 } from '../test.utils';
-import { UserProfileService as MyProfileService } from '../src/services/userprofile/userprofile.service';
+import { UserProfileService as MyProfileService } from '../src/services/user-profile/user-profile.service';
 import { Melon } from '../src/services/melon/melon.entity';
 import { TestUser } from '../test.utils';
 import {

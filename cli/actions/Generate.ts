@@ -3,7 +3,11 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import { Setup } from './Setup.js';
-import { toKebabCase } from '@eicrud/shared/utils.js';
+import {
+  kebabToCamelCase,
+  kebakToPascalCase,
+  toKebabCase,
+} from '@eicrud/shared/utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -44,17 +48,26 @@ export class Generate {
     });
   }
 
+  static formatServiceNameToPascal(name) {
+    name = kebakToPascalCase(name);
+    const entity_kebab_name = toKebabCase(name);
+    name = kebakToPascalCase(entity_kebab_name);
+    return name;
+  }
+
   static service(name, options?): Promise<any> {
     //console.log('Generating service', name);
 
     const msName = options?.ms ? options.ms : '';
     const msPath = options?.ms ? `${options.ms}-ms/` : '';
 
-    name = name.charAt(0).toUpperCase() + name.slice(1);
+    name = Generate.formatServiceNameToPascal(name);
+    const entity_kebab_name = toKebabCase(name);
 
     const keys = {
       tk_entity_name: name,
-      tk_entity_lname: name.toLowerCase(),
+      tk_entity_lname: entity_kebab_name,
+      tk_entity_camel_name: kebabToCamelCase(entity_kebab_name),
       tk_entity_uname: name.toUpperCase(),
       tk_config_path_from_service: `../../${options?.ms ? '../' : ''}eicrud.config.service`,
     };
@@ -186,8 +199,10 @@ export class Generate {
 
     const importServicesLine = `import { CRUDServices } from './services/index';`;
 
+    const importCRUDServiceRegex = /import.+CRUDServices.+from.+/;
     //add import line at beginning of file if not already there
-    if (!content.includes(importServicesLine)) {
+    const importCRUDServiceMatch = content.match(importCRUDServiceRegex);
+    if (!importCRUDServiceMatch) {
       content = importServicesLine + '\n' + content;
     }
 
@@ -241,25 +256,31 @@ export class Generate {
     //console.log('Generating service', name);
     const msPath = options?.ms ? `${options.ms}-ms/` : '';
 
-    serviceName = serviceName.charAt(0).toUpperCase() + serviceName.slice(1);
+    serviceName = Generate.formatServiceNameToPascal(serviceName);
+    const dtoBase = Generate.formatServiceNameToPascal(name);
 
-    const tk_cmd_bname = name;
-    const tk_cmd_dto_name =
-      name.charAt(0).toUpperCase() + name.slice(1) + 'Dto';
+    const tk_cmd_camel_name = kebabToCamelCase(dtoBase);
+    const tk_cmd_dto_name = dtoBase + 'Dto';
+    const tk_cmd_return_dto_name = dtoBase + 'ReturnDto';
 
     name = toKebabCase(name);
 
     name = name.replaceAll('-', '_');
+    name = name.replaceAll('__', '_');
+
+    const entity_kebab_name = toKebabCase(serviceName);
 
     const keys = {
       tk_entity_name: serviceName,
-      tk_entity_lname: serviceName.toLowerCase(),
+      tk_entity_lname: entity_kebab_name,
+      tk_entity_camel_name: kebabToCamelCase(entity_kebab_name),
       tk_entity_uname: serviceName.toUpperCase(),
       tk_cmd_name: name,
       tk_cmd_lname: name.toLowerCase(),
       tk_cmd_uname: name.toUpperCase(),
       tk_cmd_dto_name,
-      tk_cmd_bname,
+      tk_cmd_return_dto_name,
+      tk_cmd_camel_name,
     };
 
     let dir = `./src/services/${msPath}${keys.tk_entity_lname}`;
@@ -303,35 +324,21 @@ export class Generate {
       );
     }
 
-    const [before, rest, after] =
-      serviceFileContent.split(/GENERATED START(.+)/);
-
     const defTemplateFile = path.join(
       template_folder,
       '/service/cmd_definition.ts',
     );
-    let defContent = fs.readFileSync(defTemplateFile, 'utf8');
-    for (const key in keys) {
-      const value = keys[key];
-      defContent = defContent.replace(new RegExp(key, 'g'), value);
-    }
 
-    const importLine = `import { ${keys.tk_cmd_dto_name} } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
-
-    serviceFileContent =
-      importLine +
-      '\n' +
-      before +
-      'GENERATED START' +
-      rest +
-      '\n' +
-      defContent +
-      '\n' +
-      after;
-
-    //write content
-    fs.writeFileSync(servicePath, serviceFileContent);
-    console.log('UPDATED:', servicePath);
+    const importLine = `import { ${keys.tk_cmd_dto_name}, ${keys.tk_cmd_return_dto_name} } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.dto';`;
+    _utils_cli.splitAndAddTemplateContent(
+      fs,
+      path,
+      defTemplateFile,
+      keys,
+      servicePath,
+      serviceFileContent,
+      importLine,
+    );
 
     return Promise.resolve();
   }

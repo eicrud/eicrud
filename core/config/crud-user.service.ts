@@ -16,9 +16,8 @@ import { CrudSecurity } from './model/CrudSecurity';
 import { _utils } from '../utils';
 import { CrudUser } from './model/CrudUser';
 import { CrudContext } from '../crud/model/CrudContext';
-import { CrudConfigService } from './crud.config.service';
 import { CrudAuthorizationService } from '../crud/crud.authorization.service';
-import { Loaded, Type } from '@mikro-orm/core';
+import { Loaded } from '@mikro-orm/core';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { CrudAuthService } from '../authentication/auth.service';
 import {
@@ -31,105 +30,16 @@ import {
   MinLength,
 } from 'class-validator';
 import { ModuleRef } from '@nestjs/core';
-import { $Transform } from '../validation/decorators';
 import { LoginDto, UserIdDto } from '../crud/model/dtos';
-import {
-  LoginResponseDto,
-  IResetPasswordDto,
-  ISendPasswordResetEmailDto,
-  IChangePasswordDto,
-  ICreateAccountDto,
-  ISendVerificationEmailDto,
-  IVerifyTokenDto,
-  ITimeoutUserDto,
-} from '@eicrud/shared/interfaces';
+import { LoginResponseDto } from '@eicrud/shared/interfaces';
 import * as bcrypt from 'bcrypt';
-import { CrudRole } from './model/CrudRole';
-import { access } from 'fs';
-
-export class CreateAccountDto implements ICreateAccountDto {
-  @IsOptional()
-  @IsBoolean()
-  logMeIn?: boolean;
-
-  @IsString()
-  @$Transform((value) => {
-    return value.toLowerCase().trim();
-  })
-  email: string;
-
-  @IsString()
-  password: string;
-
-  @IsString()
-  role: string;
-}
-
-export class ResetPasswordDto implements IResetPasswordDto {
-  @IsOptional()
-  @IsBoolean()
-  logMeIn: boolean;
-
-  @IsString()
-  token_id: string;
-
-  @IsString()
-  newPassword: string;
-
-  @IsOptional()
-  @IsInt()
-  expiresInSec: number;
-}
-
-export class TimeoutUserDto implements ITimeoutUserDto {
-  @IsString()
-  userId: string;
-
-  @IsInt()
-  timeoutDurationMinutes: number;
-
-  @IsString({ each: true })
-  allowedRoles: string[];
-}
-export class ChangePasswordDto implements IChangePasswordDto {
-  @IsOptional()
-  @IsBoolean()
-  logMeIn: boolean;
-
-  @IsString()
-  oldPassword: string;
-
-  @IsString()
-  newPassword: string;
-
-  @IsOptional()
-  @IsInt()
-  expiresInSec: number;
-}
-
-export class VerifyTokenDto implements IVerifyTokenDto {
-  @IsOptional()
-  @IsBoolean()
-  logMeIn: boolean;
-
-  @IsString()
-  token_id: string;
-}
-
-export class SendVerificationEmailDto implements ISendVerificationEmailDto {
-  @IsEmail()
-  @IsOptional()
-  newEmail: string;
-
-  @IsOptional()
-  @IsString()
-  password: string;
-}
-
-export class SendPasswordResetEmailDto implements ISendPasswordResetEmailDto {
-  @IsEmail()
-  email: string;
-}
+import { TimeoutUserDto } from './basecmd_dtos/user/timeout_user.dto';
+import { ChangePasswordDto } from './basecmd_dtos/user/change_password.dto';
+import { CreateAccountDto } from './basecmd_dtos/user/create_account.dto';
+import { ResetPasswordDto } from './basecmd_dtos/user/reset_password.dto';
+import { SendPasswordResetEmailDto } from './basecmd_dtos/user/send_password_reset_email.dto';
+import { SendVerificationEmailDto } from './basecmd_dtos/user/send_verification_email.dto';
+import { VerifyEmailDto } from './basecmd_dtos/user/verify_email.dto';
 
 export class EmptyDto {
   @IsOptional()
@@ -162,7 +72,7 @@ export const baseCmds = {
   },
   verifyEmail: {
     name: 'verify_email',
-    dto: VerifyTokenDto,
+    dto: VerifyEmailDto,
   },
   sendPasswordResetEmail: {
     name: 'send_password_reset_email',
@@ -572,7 +482,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     );
   }
 
-  async $verify_email(dto: VerifyTokenDto, ctx: CrudContext) {
+  async $verify_email(dto: VerifyEmailDto, ctx: CrudContext) {
     const { token_id } = dto;
     const [token, userId] = token_id.split('_', 2);
     //Doing this for type checking
@@ -810,17 +720,22 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     }
 
     email = email.toLowerCase().trim();
-    const userWithNewEmail = await this.$findOne({ email } as any, ctx);
-    if (userWithNewEmail) {
-      throw new BadRequestException(CrudErrors.EMAIL_ALREADY_TAKEN.str());
-    }
 
     const user = new this.entity();
     user.email = email;
     user.password = password;
     user.role = role;
+    let res;
+    try {
+      res = await this.$create(user, ctx);
+    } catch (e) {
+      console.error('Error creating user: ', e);
+      if (['duplicate', 'key', 'email'].every((k) => e.message?.includes(k))) {
+        throw new BadRequestException(CrudErrors.EMAIL_ALREADY_TAKEN.str());
+      }
+      throw e;
+    }
 
-    const res = await this.$create(user, ctx);
     this.crudConfig.emailService?.sendAccountCreationEmail(
       user.email,
       res,

@@ -1,23 +1,28 @@
-import { HookTrigger } from './hooktrigger/hooktrigger.entity';
-import { HookTriggerService } from './hooktrigger/hooktrigger.service';
-import { HookLog } from './hooklog/hooklog.entity';
-import { HookLogService } from './hooklog/hooklog.service';
-import { DragonFruit } from './dragonfruit/dragonfruit.entity';
-import { DragonFruitService } from './dragonfruit/dragonfruit.service';
-import { FakeEmail } from './fakeemail/fakeemail.entity';
-import { FakeEmailService } from './fakeemail/fakeemail.service';
+import {
+  superclientCRUDServices,
+  superclientCRUDEntities,
+} from './superclient-ms/index';
+import { HookTrigger } from './hook-trigger/hook-trigger.entity';
+import { HookTriggerService } from './hook-trigger/hook-trigger.service';
+import { HookLog } from './hook-log/hook-log.entity';
+import { HookLogService } from './hook-log/hook-log.service';
+import { DragonFruit } from './dragon-fruit/dragon-fruit.entity';
+import { DragonFruitService } from './dragon-fruit/dragon-fruit.service';
+import { FakeEmail } from './fake-email/fake-email.entity';
+import { FakeEmailService } from './fake-email/fake-email.service';
 import { Melon } from './melon/melon.entity';
 import { MelonService } from './melon/melon.service';
 import { Picture } from './picture/picture.entity';
 import { PictureService } from './picture/picture.service';
-import { UserProfile } from './userprofile/userprofile.entity';
-import { UserProfileService } from './userprofile/userprofile.service';
-import { MyUser } from './myuser/myuser.entity';
-import { MyUserService } from './myuser/myuser.service';
+import { UserProfile } from './user-profile/user-profile.entity';
+import { UserProfileService } from './user-profile/user-profile.service';
+import { MyUser } from './my-user/my-user.entity';
+import { MyUserService } from './my-user/my-user.service';
 
 //Auto generated file
 
 export const CRUDServices = [
+  ...superclientCRUDServices,
   HookTriggerService,
   HookLogService,
   DragonFruitService,
@@ -29,6 +34,7 @@ export const CRUDServices = [
 ];
 
 export const CRUDEntities = [
+  ...superclientCRUDEntities,
   HookTrigger,
   HookLog,
   DragonFruit,

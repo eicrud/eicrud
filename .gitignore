@@ -2,6 +2,8 @@
 /dist
 /node_modules
 
+*/package-lock.json
+
 *.js
 *.d.ts
 
@@ -51,3 +53,6 @@ verdaccio/storage/
 nohup.out
 test/cli-app/
 site/
+test/test_exports
+test/eicrud_exports/
+verdaccio/htpasswd

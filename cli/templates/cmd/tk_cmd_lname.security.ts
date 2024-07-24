@@ -4,7 +4,7 @@ import { tk_cmd_dto_name } from "./tk_cmd_lname.dto";
 import { tk_entity_name } from "../../tk_entity_lname.entity";
 
 
-const getCmdSecurity = (tk_cmd_lname, tk_entity_lname): CmdSecurity<tk_cmd_dto_name, tk_entity_name> => { 
+const getCmdSecurity = (tk_cmd_lname, tk_entity_camel_name): CmdSecurity<tk_cmd_dto_name, tk_entity_name> => { 
     return {
         dto: tk_cmd_dto_name,
         rolesRights: {
@@ -18,7 +18,7 @@ const getCmdSecurity = (tk_cmd_lname, tk_entity_lname): CmdSecurity<tk_cmd_dto_n
     }
 }
 
-export const tk_cmd_bnameSecurity = {
+export const tk_cmd_camel_nameSecurity = {
     getCmdSecurity,
     action: tk_cmd_name
 }

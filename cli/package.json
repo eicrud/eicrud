@@ -29,8 +29,10 @@
     "del-cli": "^5.1.0"
   },
   "dependencies": {
-    "commander": "^12.0.0",
     "@eicrud/shared": "0.0.1",
-    "@types/node": "^20.12.12"
+    "@types/node": "^20.12.12",
+    "commander": "^12.0.0",
+    "xregexp": "^5.1.1",
+    "wildcard": "^2.0.1"
   }
 }

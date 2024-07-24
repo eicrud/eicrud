@@ -19,14 +19,14 @@
     "start:ms:proxy-user": "cross-env TEST_CRUD_PROXY=true CRUD_CURRENT_MS=user PORT=3005 nest start",
     "start:ms:proxy-melon": "cross-env TEST_CRUD_PROXY=true CRUD_CURRENT_MS=melon PORT=3006 nest start",
     "start:ms:proxy-email": "cross-env TEST_CRUD_PROXY=true CRUD_CURRENT_MS=email PORT=3007 nest start",
-    "test:ms": "wait-on http-get://localhost:3005/crud/rdy && wait-on http-get://localhost:3006/crud/rdy && wait-on http-get://localhost:3007/crud/rdy && cross-env CRUD_CURRENT_MS=entry jest --runInBand --forceExit",
-    "test:ms:proxy": "wait-on http-get://localhost:3004/crud/rdy && wait-on http-get://localhost:3005/crud/rdy && wait-on http-get://localhost:3006/crud/rdy && wait-on http-get://localhost:3007/crud/rdy && cross-env CRUD_CURRENT_MS=entry TEST_CRUD_PROXY=true jest --testPathIgnorePatterns=traffic- --runInBand --forceExit",
+    "test:ms": "wait-on http-get://localhost:3005/crud/rdy && wait-on http-get://localhost:3006/crud/rdy && wait-on http-get://localhost:3007/crud/rdy && cross-env CRUD_CURRENT_MS=entry jest --runInBand --forceExit --testPathIgnorePatterns=client.super",
+    "test:ms:proxy": "wait-on http-get://localhost:3004/crud/rdy && wait-on http-get://localhost:3005/crud/rdy && wait-on http-get://localhost:3006/crud/rdy && wait-on http-get://localhost:3007/crud/rdy && cross-env CRUD_CURRENT_MS=entry TEST_CRUD_PROXY=true jest --testPathIgnorePatterns=traffic- --testPathIgnorePatterns=client.super --runInBand --forceExit",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{core,client,shared,test,db_*}/**/*.ts\" --fix --ignore-pattern test/cli-app/** --ignore-pattern cli/templates/**",
     "test": "jest --forceExit --maxWorkers=50%",
-    "test:postgre": "cross-env TEST_CRUD_DB=postgre jest --forceExit --maxWorkers=50%",
+    "test:postgre": "cross-env TEST_CRUD_DB=postgre jest --forceExit --maxWorkers=30%",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
@@ -34,7 +34,9 @@
     "generate:typedoc": "typedoc --plugin typedoc-plugin-markdown --out \"docs/Ξ Api\" && del-cli \"docs/Ξ Api/README.md\"",
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules !**/node_modules",
     "clean:deep": "del-cli **.js **.d.ts **.js.map !node_modules !**/node_modules && del-cli **/package-lock.json && del-cli test/cli-app/** && del-cli core/node_modules shared/node_modules db_mongo/node_modules db_postgre/node_modules client/node_modules cli/node_modules",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "setup:cli": " cd shared && npm run compile && cd ../cli && npm run compile && npm remove -g @eicrud/cli && npm i -g ./ && cd ..",
+    "setup:tests": "npm i && npm run setup:cli && eicrud export dtos && eicrud export superclient"
   },
   "dependencies": {
     "@eicrud/client": "file:client",

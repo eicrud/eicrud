@@ -58,7 +58,7 @@ export class _utils_cli {
     for (const keys of keysArray) {
       importLines = [
         ...importLines,
-        `import { ${keys.tk_cmd_bname}Security } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.security';`,
+        `import { ${keys.tk_cmd_camel_name}Security } from './cmds/${keys.tk_cmd_lname}/${keys.tk_cmd_lname}.security';`,
       ];
     }
 
@@ -74,7 +74,7 @@ export class _utils_cli {
           regex:
             /export[ ]{1,}const[ ]{1,}serviceCmds[ ]{1,}=[ ]{1,}\{([^\}]*)\}/,
           getReplaceString: (array) => {
-            const newLine = `    ${keys.tk_cmd_name}: ${keys.tk_cmd_bname}Security,`;
+            const newLine = `    ${keys.tk_cmd_name}: ${keys.tk_cmd_camel_name}Security,`;
             let rep = array.trim();
             rep = rep ? '    ' + rep + '\n' : '';
             return `export const serviceCmds =  {\n${newLine}\n${rep}}`;
@@ -97,5 +97,76 @@ export class _utils_cli {
     fs.writeFileSync(cmdsFile, content);
 
     console.log('UPDATED:', cmdsFile);
+  }
+
+  static splitAndAddTemplateContent(
+    fs,
+    path,
+    defTemplateFile,
+    keys,
+    servicePath,
+    serviceFileContent,
+    importLine,
+    pattern = 'GENERATED START',
+    opts = { noWrite: false, noNewLine: false, mute: false },
+  ) {
+    const regex = new RegExp(pattern + '(.*)');
+    const [before, rest, after] = serviceFileContent.split(regex);
+
+    let defContent = fs.readFileSync(defTemplateFile, 'utf8');
+    for (const key in keys) {
+      const value = keys[key];
+      defContent = defContent.replace(new RegExp(key, 'g'), value);
+    }
+
+    const newLine = '\n';
+    const ifNewLine = opts?.noNewLine ? '' : newLine;
+
+    serviceFileContent =
+      importLine +
+      (importLine ? newLine : '') +
+      before +
+      pattern +
+      rest +
+      newLine +
+      defContent +
+      ifNewLine +
+      after;
+
+    if (!opts?.noWrite) {
+      //write content
+      fs.writeFileSync(servicePath, serviceFileContent);
+      if (!opts?.mute) {
+        console.log('UPDATED:', servicePath);
+      }
+    }
+    return serviceFileContent;
+  }
+
+  static removeEnclosedContent(
+    fileContent: string,
+    beforeString: string,
+    afterString: string,
+  ): string {
+    const regex = new RegExp(
+      beforeString + '[\\s\\S]*?' + afterString + '.*',
+      'gm',
+    );
+    return fileContent.replace(regex, '');
+  }
+
+  static removeLineAfterMarker(fileContent: string, marker: string): string {
+    const afterRegex = '.*[\\r\\n]+([^\\r\\n]+)';
+    const nextLineRegex = new RegExp(marker + afterRegex, 'gm');
+    return fileContent.replace(nextLineRegex, '');
+  }
+
+  normalizeLineEndings(text) {
+    const originalLineBreak = text.includes('\r\n') ? '\r\n' : '\n';
+    if (originalLineBreak === '\r\n') {
+      text = text.replaceAll('\r\n', '\n');
+      text = text.replaceAll('\n', '\r\n');
+    }
+    return text;
   }
 }

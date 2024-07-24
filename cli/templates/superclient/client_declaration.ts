@@ -1,0 +1,1 @@
+    tk_entity_camel_name: tk_client_class_name;

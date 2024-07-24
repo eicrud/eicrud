@@ -143,6 +143,12 @@
       "request": "launch",
       "name": "npm run test options",
       "command": "npm run test options"
+    },    
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test client.super",
+      "command": "npm run test client.super"
     },
     {
       "type": "node-terminal",

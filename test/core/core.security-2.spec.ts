@@ -7,14 +7,14 @@ import {
   dropDatabases,
 } from '../src/app.module';
 import { CrudController } from '@eicrud/core/crud/crud.controller';
-import { MyUserService } from '../src/services/myuser/myuser.service';
+import { MyUserService } from '../src/services/my-user/my-user.service';
 import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
-import { UserProfile } from '../src/services/userprofile/userprofile.entity';
+import { UserProfile } from '../src/services/user-profile/user-profile.entity';
 import { BackdoorQuery, CrudQuery } from '@eicrud/core/crud/model/CrudQuery';
 import { createAccountsAndProfiles, testMethod } from '../test.utils';
 import { CrudService } from '@eicrud/core/crud/crud.service';
@@ -28,9 +28,9 @@ import exp from 'constants';
 import { MelonService } from '../src/services/melon/melon.service';
 import axios from 'axios';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
-import { DragonFruit } from '../src/services/dragonfruit/dragonfruit.entity';
+import { DragonFruit } from '../src/services/dragon-fruit/dragon-fruit.entity';
 import { FindResponseDto } from '../../shared/interfaces';
-import { DragonFruitService } from '../src/services/dragonfruit/dragonfruit.service';
+import { DragonFruitService } from '../src/services/dragon-fruit/dragon-fruit.service';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -223,8 +223,12 @@ describe('AppController', () => {
 
     const resDb: any = await dragonFruitService.$find({}, null);
     expect(resDb.data.length).toEqual(resTrustedUser.length);
+    const addKeyCount =
+      process.env.TEST_CRUD_DB == 'postgre' || process.env.CRUD_CURRENT_MS
+        ? 1
+        : 2;
     for (const r of resDb.data) {
-      expect(Object.keys(r).length).toEqual(keys_count + 1);
+      expect(Object.keys(r).length).toEqual(keys_count + addKeyCount);
       expect(r.secretCode).toBeTruthy();
     }
   });
