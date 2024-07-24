@@ -7,11 +7,11 @@ import {
   dropDatabases,
 } from '../src/app.module';
 import { CrudController } from '../../core/crud/crud.controller';
-import { MyUserService } from '../src/services/myuser/myuser.service';
+import { MyUserService } from '../src/services/my-user/my-user.service';
 import { CrudAuthService } from '../../core/authentication/auth.service';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { EntityManager } from '@mikro-orm/mongodb';
-import { UserProfile } from '../src/services/userprofile/userprofile.entity';
+import { UserProfile } from '../src/services/user-profile/user-profile.entity';
 import {
   createAccountsAndProfiles,
   createMelons,
@@ -19,7 +19,7 @@ import {
   parseJwtCookieFromRes,
   testMethod,
 } from '../test.utils';
-import { UserProfileService as MyProfileService } from '../src/services/userprofile/userprofile.service';
+import { UserProfileService as MyProfileService } from '../src/services/user-profile/user-profile.service';
 import { Melon } from '../src/services/melon/melon.entity';
 import { TestUser } from '../test.utils';
 import {
@@ -35,7 +35,7 @@ import {
 import { LoginDto } from '../../core/crud/model/dtos';
 import { MelonService } from '../src/services/melon/melon.service';
 import exp from 'constants';
-import { MyUser } from '../src/services/myuser/myuser.entity';
+import { MyUser } from '../src/services/my-user/my-user.entity';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',

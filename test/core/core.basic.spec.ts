@@ -7,29 +7,28 @@ import {
   dropDatabases,
 } from '../src/app.module';
 import { CrudController } from '../../core/crud/crud.controller';
-import { MyUserService } from '../src/services/myuser/myuser.service';
+import { MyUserService } from '../src/services/my-user/my-user.service';
 import { CrudAuthService } from '../../core/authentication/auth.service';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager } from '@mikro-orm/mongodb';
-import { UserProfile } from '../src/services/userprofile/userprofile.entity';
+import { UserProfile } from '../src/services/user-profile/user-profile.entity';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,
   createNewProfileTest,
   testMethod,
 } from '../test.utils';
-import { UserProfileService as MyProfileService } from '../src/services/userprofile/userprofile.service';
+import { UserProfileService as MyProfileService } from '../src/services/user-profile/user-profile.service';
 import {
   CRUD_CONFIG_KEY,
   CrudConfigService,
 } from '../../core/config/crud.config.service';
 import { TestUser } from '../test.utils';
 import exp from 'constants';
-import { CreateAccountDto } from '../../core/config/crud-user.service';
-
+import { ICreateAccountDto } from '../../shared/interfaces';
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
@@ -152,7 +151,7 @@ describe('AppController', () => {
       usersWithoutProfiles,
       testAdminCreds,
     });
-    const dto: CreateAccountDto = {
+    const dto: ICreateAccountDto = {
       logMeIn: true,
       email: testAdminCreds.email,
       password: testAdminCreds.password,
@@ -341,8 +340,21 @@ describe('AppController', () => {
     );
     const query: CrudQuery = {
       service: 'user-profile',
-      query: JSON.stringify({ id: formatedId }),
+      query: JSON.stringify({ id: '507f191e810c19729de860ea' }), //fake id
     };
+
+    // should throw if entity not found
+    await testMethod({
+      url: '/crud/one',
+      method: 'PATCH',
+      app,
+      jwt,
+      entityManager,
+      payload,
+      query,
+      expectedCode: 400,
+      crudConfig,
+    });
 
     const expectedObject = {
       ...payload,
@@ -350,6 +362,8 @@ describe('AppController', () => {
     };
 
     const fetchEntity = { entity: UserProfile, id: sarahDoeProfile.id };
+
+    query.query = JSON.stringify({ id: formatedId });
 
     let res = await testMethod({
       url: '/crud/one',

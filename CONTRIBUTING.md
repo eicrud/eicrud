@@ -28,6 +28,8 @@ If you want to implement a new feature of bugfix please submit an issue with a p
 Make sure to run all the test suites to ensure your setup is working :
 
 ```
+npm run setup:tests
+
 npm run test 
 
 npm run test:postgre

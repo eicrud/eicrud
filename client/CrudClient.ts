@@ -66,6 +66,8 @@ export class LocalStorage implements ClientStorage {
   }
 }
 
+export type SuperClientConfig = Omit<ClientConfig, 'serviceName'>;
+
 export interface ClientConfig {
   serviceName: string;
   url: string;
@@ -341,7 +343,7 @@ export class CrudClient<T> {
     return res;
   }
 
-  async findOne(query: any, options: ICrudOptions = {}): Promise<T> {
+  async findOne(query: Partial<T>, options: ICrudOptions = {}): Promise<T> {
     options.mockRole = this.config.globalMockRole;
     const ICrudQuery: ICrudQuery = {
       options: JSON.stringify(options) as any,
@@ -922,7 +924,7 @@ export class CrudClient<T> {
     dto: any,
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
-  ): Promise<FindResponseDto<T>> {
+  ): Promise<FindResponseDto<any>> {
     return await this._doCmd(cmdName, dto, options, false, true, copts);
   }
 
@@ -940,7 +942,7 @@ export class CrudClient<T> {
     dto: any,
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
-  ): Promise<FindResponseDto<T>> {
+  ): Promise<FindResponseDto<any>> {
     return await this._doCmd(cmdName, dto, options, true, true, copts);
   }
 }

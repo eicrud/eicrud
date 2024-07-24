@@ -4,7 +4,7 @@
 <p align="center">
   <a href="https://docs.eicrud.com" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/Documentation-purple"></a>
   <a href="https://npmjs.com/package/@eicrud/core" target="_blank"><img src="https://img.shields.io/npm/v/%40eicrud%2Fcore?color=%232AAA8A%09" alt="npm package"></a>
-  <a href="https://npmjs.com/package/@eicrud/core" target="_blank"><img src="https://img.shields.io/npm/dw/%40eicrud%2Fcore.svg" alt="downloads"></a>
+  <!-- <a href="https://npmjs.com/package/@eicrud/core" target="_blank"><img src="https://img.shields.io/npm/dw/%40eicrud%2Fcore.svg" alt="downloads"></a> -->
   <!--<a href="https://npmjs.com/package/@eicrud/core" target="_blank"><img alt="NPM Unpacked Size" src="https://img.shields.io/npm/unpacked-size/%40eicrud%2Fcore"></a>-->
   <a href="https://discord.gg/VaGPqE7bn9" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/Discord-%235865F2"></a>
   <a href="https://x.com/eicrud" target="_blank"><img alt="X (formerly Twitter) Follow" src="https://img.shields.io/twitter/follow/eicrud"></a>
@@ -14,6 +14,26 @@
 ## Philosophy
 
 Most of the time, a web app has some CRUD functionality as its base. Eicrud attempts to abstract this into a simple and easy-to-use API, so you don't have to re-write boilerplate code (controllers, validations, db queries...) every time you need a new service. By centering everything around CRUD entities, Eicrud provides a framework for writing complex applications that are easy to read, test and maintain. Eicrud also emphasizes "default security" for its components, where everything is forbidden until allowed.
+
+## Features
+
+- ⚙️ Out of the box [CRUD services](https://docs.eicrud.com/services/definition)
+
+- 🔑 [Authentication & user management](https://docs.eicrud.com/user/service/)
+
+- 🔒 [Authorization](https://docs.eicrud.com/security/definition/)
+
+- 🖥️ [Commands](https://docs.eicrud.com/services/commands/)
+
+- ✔️ [Validation/Transform](https://docs.eicrud.com/validation/definition/)
+
+- 🗃️ [Database control](https://docs.eicrud.com/configuration/limits)
+
+- 🚀 Easy to use (RPC) [client](https://docs.eicrud.com/client/setup)
+
+- 🌐 [Monolithic/Microservices](https://docs.eicrud.com/microservices/configuration/)
+
+- And more!
 
 ## How it works
 
@@ -106,39 +126,26 @@ msOptions.microServices = {
 }
 ```
 
-## Features
+## Powerful typed client (remote procedure call)
+**Eicrud** lets you generate a powerful client that holds all your DTOs and commands. Allowing auto-completion and type safety directly in your front-end.  
+```typescript
+// in your profile service
+async $say_hello(dto: SayHelloDto, ctx: CrudContext) {
+    return `Hello ${dto.arg}!`
+}
 
-- Out of the box CRUD Services
-  - No need to write controllers
-  - Extensible using CMDs
-- Authorization
-  - Secure by default (all operations are forbidden until allowed)
-  - Based on roles with inheritance
-- Authentication
-  - JWT based
-  - Bruteforce protection
-  - Timeout system (ban)
-  - Session kick
-  - Extensible for 3rd party auth
-- Validation/Transform
-  - Entities are DTOs
-  - CMDs have their DTOs
-  - Custom $Transform decorators
-- Database Control
-  - Max entities per user
-  - Max entities in db
-  - Object size is always validated
-- Easy to use Client
-  - Handle login and session
-  - Handle expired JWT (disconnect)
-  - Handle limited results (auto-fetching)
-- Monolithic/Microservices structure
-  - Group your CRUD services into microservices
-  - Simple (dynamic) configuration
-  - Application can be both monolithic and distributed
-- And more!
-  - Rate limiting
-  - DDOS protection
-  - ...
+// in your frontend
+const sp = new SuperClient({url: 'http://localhost:3004'});
+sp.profile.say_hello({myArg: 'world'}).then(console.log);
+```
+
+## Start building
+
+**Eicrud** is made for code simplicity, you can build your applications in record time using the [CLI](https://www.npmjs.com/package/@eicrud/cli) that will do the heavy work for you.
 
 Check out the [documentation](https://docs.eicrud.com/installation) to get started.
+
+
+## Support
+
+**Eicrud** is in active development and issues are taken seriously. Don't hesitate to create a [ticket](https://github.com/eicrud/eicrud/issues) or join the [Discord](https://discord.gg/VaGPqE7bn9) if you need help.

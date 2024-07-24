@@ -7,14 +7,14 @@ import {
   dropDatabases,
 } from '../src/app.module';
 import { CrudController } from '../../core/crud/crud.controller';
-import { MyUserService } from '../src/services/myuser/myuser.service';
+import { MyUserService } from '../src/services/my-user/my-user.service';
 import { CrudAuthService } from '../../core/authentication/auth.service';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
-import { UserProfile } from '../src/services/userprofile/userprofile.entity';
+import { UserProfile } from '../src/services/user-profile/user-profile.entity';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,
@@ -22,8 +22,8 @@ import {
   createNewProfileTest,
   testMethod,
 } from '../test.utils';
-import { UserProfileService as MyProfileService } from '../src/services/userprofile/userprofile.service';
-import { Test_cmdDto as TestCmdDto } from '../src/services/userprofile/cmds/test_cmd/test_cmd.dto';
+import { UserProfileService as MyProfileService } from '../src/services/user-profile/user-profile.service';
+import { TestCmdDto as TestCmdDto } from '../src/services/user-profile/cmds/test_cmd/test_cmd.dto';
 import { Melon } from '../src/services/melon/melon.entity';
 import { CrudService } from '../../core/crud/crud.service';
 import { TestUser } from '../test.utils';

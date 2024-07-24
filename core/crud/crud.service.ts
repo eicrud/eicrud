@@ -112,7 +112,7 @@ export class CrudService<T extends CrudEntity> {
   constructor(
     protected moduleRef: ModuleRef,
     public entity: EntityClass<T> & (new () => T),
-    public security: CrudSecurity,
+    public security: CrudSecurity<T>,
     protected config?: CrudServiceConfig<T>,
   ) {
     this.config = this.config || {};
@@ -767,7 +767,7 @@ export class CrudService<T extends CrudEntity> {
 
     const opts = this.getReadOptions(ctx);
     let result = query;
-    if (secure) {
+    if (secure || !query[this.crudConfig.id_field]) {
       const tempEm = em.fork();
       result = await tempEm.findOne(this.entity, query, opts as any);
       if (!result) {

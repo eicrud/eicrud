@@ -1,0 +1,12 @@
+{
+    "export": {
+        "excludeServices": ["superclient-test-exclude", "SuperclientTestExclude2"],
+        "includePatterns": ["*shared-dto.ts"],
+        "excludePatterns": ["*hook-trigger*"],
+        "removeImports": ["my-user.security"],
+        "outputDir": "./test/test_exports",
+        "inputDir": "./test/src/services",
+        "modulesDir": "./node_modules",
+        "userServiceDir": "my-user"
+    }
+}

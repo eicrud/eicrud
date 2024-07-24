@@ -28,11 +28,11 @@ import {
 } from '../../core/config/crud.config.service';
 import { format } from 'path';
 import exp from 'constants';
-import { MyUserService } from '../src/services/myuser/myuser.service';
-import { UserProfile } from '../src/services/userprofile/userprofile.entity';
+import { MyUserService } from '../src/services/my-user/my-user.service';
+import { UserProfile } from '../src/services/user-profile/user-profile.entity';
 import { Melon } from '../src/services/melon/melon.entity';
-import { UserProfileService as MyProfileService } from '../src/services/userprofile/userprofile.service';
-import { Test_cmdDto as TestCmdDto } from '../src/services/userprofile/cmds/test_cmd/test_cmd.dto';
+import { UserProfileService as MyProfileService } from '../src/services/user-profile/user-profile.service';
+import { TestCmdDto as TestCmdDto } from '../src/services/user-profile/cmds/test_cmd/test_cmd.dto';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
