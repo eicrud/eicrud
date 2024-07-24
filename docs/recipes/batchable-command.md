@@ -20,6 +20,8 @@ export class MigrateDto {
   @IsString()
   direction: 'up' | 'down';
 }
+
+export type MigrateReturnDto = any;
 ```
 
 Then, let's allow admins to use the migrate command in the security. We also specify the `batchField` and the `maxBatchSize` an admin can perform.
@@ -42,7 +44,7 @@ const getCmdSecurity = (migrate, profile): CmdSecurity => {
 ```
 
 !!! note
-    DTO's `$MaxSize(-1)` is important to prevent the validation of the `profileIds` array size which is already handled by `maxBatchSize`. Alternatively you can use `@$MaxArLength(-1)` combined with `@$Type()`. See [Eicrud's decorators](../validation/definition.md#eicrud-decorators).
+    DTO's `$MaxSize(-1)` is important to prevent the validation of the `profileIds` array size which is already handled by `maxBatchSize`. Alternatively, you can use `@$MaxArLength(-1)` combined with `@$Type()`. See [Eicrud's decorators](../validation/definition.md#eicrud-decorators).
 
 ## Implementation
 

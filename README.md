@@ -4,7 +4,7 @@
 <p align="center">
   <a href="https://docs.eicrud.com" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/Documentation-purple"></a>
   <a href="https://npmjs.com/package/@eicrud/core" target="_blank"><img src="https://img.shields.io/npm/v/%40eicrud%2Fcore?color=%232AAA8A%09" alt="npm package"></a>
-  <a href="https://npmjs.com/package/@eicrud/core" target="_blank"><img src="https://img.shields.io/npm/dw/%40eicrud%2Fcore.svg" alt="downloads"></a>
+  <!-- <a href="https://npmjs.com/package/@eicrud/core" target="_blank"><img src="https://img.shields.io/npm/dw/%40eicrud%2Fcore.svg" alt="downloads"></a> -->
   <!--<a href="https://npmjs.com/package/@eicrud/core" target="_blank"><img alt="NPM Unpacked Size" src="https://img.shields.io/npm/unpacked-size/%40eicrud%2Fcore"></a>-->
   <a href="https://discord.gg/VaGPqE7bn9" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/Discord-%235865F2"></a>
   <a href="https://x.com/eicrud" target="_blank"><img alt="X (formerly Twitter) Follow" src="https://img.shields.io/twitter/follow/eicrud"></a>
@@ -124,6 +124,19 @@ msOptions.microServices = {
     url: "http://localhost:3006",
   },
 }
+```
+
+## Powerful typed client (RPC)
+**Eicrud** lets you generate a powerful client that holds all your DTOs and commands. Allowing auto-completion and type safety directly in your front-end.  
+```typescript
+// in your profile service
+async $say_hello(dto: SayHelloDto, ctx: CrudContext) {
+    return `Hello ${dto.arg}!`
+}
+
+// in your frontend
+const sp = new SuperClient({url: 'http://localhost:3004'});
+sp.profile.say_hello({myArg: 'world'}).then(console.log);
 ```
 
 ## Start building

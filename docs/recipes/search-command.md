@@ -22,6 +22,8 @@ export class SearchDto {
   @IsString()
   visibility?: 'public' | 'private';
 }
+
+export type SearchReturnDto = any;
 ```
 !!! note
     We escape `userNameLike` of any regex character to avoid potential regex attacks (ReDoS).
