@@ -1,5 +1,7 @@
 # ignore the .ts files
 *.ts
+!*.dto.ts
+
 # include the .d.ts files
 !*.d.ts
 

@@ -121,6 +121,7 @@ export class Export {
         '@eicrud/core package outdated / not found in node_modules',
       );
     }
+    debugger;
     copiedFiles.push(
       ...copyDirectory(eicrud_core_dir, dest, conditionFun, {
         makeSubDir: true,
