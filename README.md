@@ -136,7 +136,7 @@ async $say_hello(dto: SayHelloDto, ctx: CrudContext) {
 
 // in your frontend
 const sp = new SuperClient({url: 'http://localhost:3004'});
-sp.profile.say_hello({myArg: 'world'}).then(console.log);
+sp.profile.say_hello({arg: 'world'}).then(console.log);
 ```
 
 ## Start building
