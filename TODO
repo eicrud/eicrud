@@ -46,5 +46,8 @@
 
 [x] error hooks test
 [x] add typing for can && cannot function
-[ ] global @$Hook (transform) decorator
+[ ] global @$Hook (transform) decorator?
 [x] throw specific error if user already exist for account_creation
+
+[ ] test cmd dto == any
+[ ] cmd get

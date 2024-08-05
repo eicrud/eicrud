@@ -4,6 +4,7 @@ import { CrudUser } from '../../config/model/CrudUser';
 import { CrudSecurity } from '../../config/model/CrudSecurity';
 import { CrudConfigService } from '../../config/crud.config.service';
 import { CrudService } from '../crud.service';
+import { FastifyReply, FastifyRequest } from 'fastify';
 
 /**
  * A context assigned to every request.
@@ -14,7 +15,7 @@ export interface CrudContext {
   user?: CrudUser;
   userId?: string;
   userTrust?: number;
-  method?: string;
+  method?: 'POST' | 'GET' | 'PATCH' | 'GET';
   query?: any;
   data?: any;
   origin?: 'crud' | 'cmd' | 'webhook' | string;
@@ -35,8 +36,8 @@ export interface CrudContext {
 
   setCookies?: Record<string, CookieToSet>;
   getCurrentService?: () => CrudService<any>;
-  getHttpRequest?: () => any;
-  getHttpResponse?: () => any;
+  getHttpRequest?: () => FastifyRequest;
+  getHttpResponse?: () => FastifyReply;
 }
 
 export interface CookieToSet {
