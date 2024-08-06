@@ -1099,3 +1099,31 @@ export class CrudHooks<T extends CrudEntity> {
     return Promise.resolve();
   }
 }
+
+export class CmdHooks<TDto, TReturnDto> {
+  async beforeControllerHook(
+    this: CrudService<any>,
+    dto: TDto,
+    ctx: CrudContext,
+  ): Promise<any> {
+    return dto;
+  }
+
+  async afterControllerHook(
+    this: CrudService<any>,
+    dto: TDto,
+    result: TReturnDto,
+    ctx: CrudContext,
+  ): Promise<any> {
+    return result;
+  }
+
+  async errorControllerHook(
+    this: CrudService<any>,
+    dto: TDto,
+    error: any,
+    ctx: CrudContext,
+  ): Promise<any> {
+    return Promise.resolve();
+  }
+}

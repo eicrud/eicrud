@@ -160,7 +160,17 @@ export class CrudController {
   }
 
   async afterHooks(service: CrudService<any>, res, ctx: CrudContext) {
-    await this.crudConfig.afterControllerHook(res, ctx);
+    if (ctx.origin == 'cmd') {
+      const cmdSecurity: CmdSecurity =
+        service.security?.cmdSecurityMap?.[ctx.cmdName];
+      res = await cmdSecurity.hooks.afterControllerHook.call(
+        service,
+        ctx.data,
+        res,
+        ctx,
+      );
+    }
+    res = await this.crudConfig.afterControllerHook(res, ctx);
     if (ctx.setCookies) {
       const fastifyReply = ctx.getHttpResponse();
       for (const key in ctx.setCookies) {
@@ -168,6 +178,7 @@ export class CrudController {
         fastifyReply.setCookie(key, cookie.value, cookie);
       }
     }
+    return res;
   }
   async errorHooks(
     service: CrudService<any>,

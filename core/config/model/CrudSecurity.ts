@@ -1,10 +1,11 @@
+import { CmdHooks } from '../../crud';
 import { CrudContext } from '../../crud/model/CrudContext';
 import { AbilityBuilder, createAliasResolver } from '@casl/ability';
 
 /**
  * Security applied to a cmd.
  */
-export interface CmdSecurity<TDto = any, TEntity = any> {
+export interface CmdSecurity<TDto = any, TEntity = any, TReturnDto = any> {
   /**
    * Allow guest to use command always
    * @usageNotes
@@ -86,6 +87,8 @@ export interface CmdSecurity<TDto = any, TEntity = any> {
   allowGetMethod?: boolean;
 
   rolesRights?: Record<string, CmdSecurityRights<TDto, TEntity>>;
+
+  hooks: CmdHooks<TDto, TReturnDto>;
 }
 
 export type CanCannot<T> = (

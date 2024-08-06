@@ -228,7 +228,7 @@ export class CrudConfigService {
   }
 
   async afterControllerHook(res: any, ctx: CrudContext) {
-    return Promise.resolve();
+    return res;
   }
 
   async beforeControllerHook(ctx: CrudContext) {
