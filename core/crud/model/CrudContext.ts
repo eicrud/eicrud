@@ -15,7 +15,7 @@ export interface CrudContext {
   user?: CrudUser;
   userId?: string;
   userTrust?: number;
-  method?: 'POST' | 'GET' | 'PATCH' | 'GET';
+  method?: 'POST' | 'GET' | 'PATCH' | 'DELETE';
   query?: any;
   data?: any;
   origin?: 'crud' | 'cmd' | 'webhook' | string;

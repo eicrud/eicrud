@@ -75,6 +75,16 @@ export interface CmdSecurity<TDto = any, TEntity = any> {
    */
   batchField?: keyof TDto;
 
+  /**
+   * Allow the command to be used with GET methods.
+   * @usageNotes
+   * Usefull for triggering a command with a simple URL.
+   * @warning
+   * CSRF protection is not enforced on GET requests, make sure your command doesn't change your application state when enabling this.
+   *
+   */
+  allowGetMethod?: boolean;
+
   rolesRights?: Record<string, CmdSecurityRights<TDto, TEntity>>;
 }
 

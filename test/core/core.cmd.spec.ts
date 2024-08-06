@@ -33,6 +33,7 @@ import { UserProfile } from '../src/services/user-profile/user-profile.entity';
 import { Melon } from '../src/services/melon/melon.entity';
 import { UserProfileService as MyProfileService } from '../src/services/user-profile/user-profile.service';
 import { TestCmdDto as TestCmdDto } from '../src/services/user-profile/cmds/test_cmd/test_cmd.dto';
+import { CrudErrors } from '../../shared/CrudErrors';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -140,6 +141,19 @@ describe('AppController', () => {
       service: 'user-profile',
       cmd: 'test_cmd',
     };
+
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'GET',
+      expectedCode: 403,
+      expectedCrudCode: CrudErrors.GET_METHOD_NOT_ALLOWED.code,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
 
     const res = await testMethod({
       url: '/crud/cmd',

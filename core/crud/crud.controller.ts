@@ -340,6 +340,19 @@ export class CrudController {
     return this.subCMD(query, data, ctx, 'PATCH');
   }
 
+  @Get('s/:service/cmd/:cmd')
+  async _readCMD(
+    @Query(new CrudValidationPipe()) query: CrudQuery,
+    @Param('service') service: string,
+    @Param('cmd') cmd: string,
+    @Body() data,
+    @Context() ctx: CrudContext,
+  ) {
+    query.service = service;
+    query.cmd = cmd;
+    return this.subCMD(query, query.query, ctx, 'GET');
+  }
+
   async subCMD(query: CrudQuery, data, ctx: CrudContext, METHOD: string) {
     const currentService = await this.assignContext(
       METHOD,
@@ -356,6 +369,9 @@ export class CrudController {
         throw new ForbiddenException(
           `Command ${ctx.cmdName} not found in security map`,
         );
+      }
+      if (ctx.method == 'GET' && !cmdSecurity.allowGetMethod) {
+        throw new ForbiddenException(CrudErrors.GET_METHOD_NOT_ALLOWED.str());
       }
       if (cmdSecurity.batchField && data?.[cmdSecurity.batchField]) {
         await this.crudAuthorization.authorizeBatch(

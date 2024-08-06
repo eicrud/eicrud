@@ -250,7 +250,7 @@ export class CrudAuthGuard implements CanActivate {
     const options: CrudOptions = request.query?.query?.options || {};
     if (token && this.extractUserCheck(url)) {
       const payload = await this.authService.getJwtPayload(token);
-      if (payload.csrf) {
+      if (payload.csrf && request.method != 'GET') {
         const csrfHash = this.extractCSRF(request);
         if (this.authService.hmacCSRFToken(payload.csrf) != csrfHash) {
           throw new UnauthorizedException('CSRF token JWT mismatch.');
