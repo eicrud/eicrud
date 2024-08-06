@@ -116,7 +116,6 @@ export class MyConfigService extends CrudConfigService {
       cacheManager: new BasicMemoryCache(),
       orm,
       id_field: 'id',
-      captchaService: true,
       watchTrafficOptions: {
         userTrafficProtection: PROXY_TEST ? false : true,
         ddosProtection: PROXY_TEST ? false : true,

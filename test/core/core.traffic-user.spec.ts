@@ -105,6 +105,7 @@ describe('AppController', () => {
 
     const promises = [];
 
+    crudConfig.captchaService = 'captcha';
     let didCaptcha = false;
 
     for (
@@ -249,5 +250,7 @@ describe('AppController', () => {
       expectedCode: 200,
       crudConfig,
     });
+
+    crudConfig.captchaService = null;
   }, 30000);
 });

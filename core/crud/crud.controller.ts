@@ -127,7 +127,7 @@ export class CrudController {
   }
 
   assignContext(
-    method: string,
+    method: 'POST' | 'GET' | 'PATCH' | 'DELETE',
     crudQuery: CrudQuery,
     query: any,
     data: any,
@@ -353,7 +353,12 @@ export class CrudController {
     return this.subCMD(query, query.query, ctx, 'GET');
   }
 
-  async subCMD(query: CrudQuery, data, ctx: CrudContext, METHOD: string) {
+  async subCMD(
+    query: CrudQuery,
+    data,
+    ctx: CrudContext,
+    METHOD: 'POST' | 'GET' | 'PATCH' | 'DELETE',
+  ) {
     const currentService = await this.assignContext(
       METHOD,
       query,
