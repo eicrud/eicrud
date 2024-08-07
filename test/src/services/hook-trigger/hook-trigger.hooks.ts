@@ -1,4 +1,4 @@
-import { BackdoorQuery, CrudContext, CrudHooks } from '@eicrud/core/crud';
+import { MsLinkQuery, CrudContext, CrudHooks } from '@eicrud/core/crud';
 import { HookTrigger } from './hook-trigger.entity';
 import { HookTriggerService } from './hook-trigger.service';
 import { HookLog, HookPos, HookType } from '../hook-log/hook-log.entity';
@@ -10,7 +10,7 @@ export async function logHook(
   position: HookPos,
   type: HookType,
   ctx: CrudContext,
-  query?: BackdoorQuery,
+  query?: MsLinkQuery,
   args?: any[],
 ) {
   if (!data) {
@@ -37,7 +37,7 @@ export async function logHook(
       hookType: type,
       length: d.setLen || d.status || parseInt(idx),
     };
-    if (query) log.backDoorQuery = query;
+    if (query) log.MsLinkQuery = query;
     logs.push(log);
   }
   await service.hookLogService.$createBatch(logs, ctx);

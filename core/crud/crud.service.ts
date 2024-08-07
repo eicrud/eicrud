@@ -18,7 +18,7 @@ import {
 } from '../config/crud.config.service';
 import { ModuleRef } from '@nestjs/core';
 import { CrudTransformer } from '../validation/CrudTransformer';
-import { BackdoorQuery } from '../crud/model/CrudQuery';
+import { MsLinkQuery } from '../crud/model/CrudQuery';
 import axios from 'axios';
 import { CrudDbAdapter } from '../config/dbAdapter/crudDbAdapter';
 import { FindResponseDto } from '@eicrud/shared/interfaces';
@@ -181,7 +181,7 @@ export class CrudService<T extends CrudEntity> {
 
         matches = matches
           .map((m) => msConfig.microServices[m])
-          .filter((m) => m.openBackDoor);
+          .filter((m) => m.openMsLink);
         if (matches.length > 1) {
           console.warn(
             'More than one MicroServiceConfig found for service:' +
@@ -220,7 +220,7 @@ export class CrudService<T extends CrudEntity> {
         }
 
         this[methodName] = async (...args) => {
-          const res = await this.forwardToBackdoor(
+          const res = await this.forwardToMsLink(
             args,
             methodName,
             targetServiceConfig,
@@ -233,14 +233,14 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
-  async forwardToBackdoor(
+  async forwardToMsLink(
     args: any[],
     methodName: string,
     msConfig: MicroServiceConfig,
     ctxPos: number,
     inheritancePos: number,
   ) {
-    const query: Partial<BackdoorQuery> = {
+    const query: Partial<MsLinkQuery> = {
       methodName,
       ctxPos,
       inheritancePos,
@@ -257,7 +257,7 @@ export class CrudService<T extends CrudEntity> {
       query.undefinedArgs = JSON.stringify(query.undefinedArgs);
     }
 
-    const url = msConfig.url + '/crud/backdoor/' + this.serviceName;
+    const url = msConfig.url + '/crud/ms-link/' + this.serviceName;
 
     const payload = {
       args: [...(args || [])] as any,

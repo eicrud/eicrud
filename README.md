@@ -110,17 +110,17 @@ You can extend it using [commands](https://docs.eicrud.com/services/commands/) (
 msOptions.microServices = {
   "entry": {
     services: [],
-    openBackDoor: false, openController: true,
+    openMsLink: false, openController: true,
     url: "http://localhost:3004",
   },
   "users": {
     services: [User, Profile],
-    openBackDoor: true, openController: false,
+    openMsLink: true, openController: false,
     url: "http://localhost:3005",
   },
   "orders": {
     services: [Order],
-    openBackDoor: true, openController: false,
+    openMsLink: true, openController: false,
     url: "http://localhost:3006",
   },
 }

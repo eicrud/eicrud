@@ -15,7 +15,7 @@ import {
 import { CrudService } from './crud.service';
 import { CrudContext } from './model/CrudContext';
 import { Context } from '../authentication/auth.utils';
-import { BackdoorQuery, CrudQuery } from '../crud/model/CrudQuery';
+import { MsLinkQuery, CrudQuery } from '../crud/model/CrudQuery';
 import { CrudAuthorizationService } from './crud.authorization.service';
 import { setImmediate } from 'timers/promises';
 import replyFrom from '@fastify/reply-from';
@@ -913,17 +913,17 @@ export class CrudController {
     }
   }
 
-  @Patch('backdoor/:service')
-  async backdoor(
+  @Patch('ms-link/:service')
+  async msLink(
     @Query(new CrudValidationPipe({ skipValidation: true }))
-    query: BackdoorQuery,
+    query: MsLinkQuery,
     @Param('service') service,
     @Body() data,
-    @Context() backdoorCtx: CrudContext,
+    @Context() msLinkCtx: CrudContext,
   ) {
-    if (!backdoorCtx.backdoorGuarded) {
+    if (!msLinkCtx.msLinkGuarded) {
       throw new UnauthorizedException(
-        'Backdoor not guarded : (something is wrong with your auth guard.)',
+        'MsLink not guarded : (something is wrong with your auth guard.)',
       );
     }
     query.service = service;
@@ -939,12 +939,12 @@ export class CrudController {
       const currentService = this.crudConfig.servicesMap[query.service];
       if (!currentService[query.methodName]) {
         throw new BadRequestException(
-          'Backdoor method not found: ' + query.methodName,
+          'MsLink method not found: ' + query.methodName,
         );
       }
-      await this.crudConfig.beforeBackdoorHook(ctx, query, data.args);
+      await this.crudConfig.beforeMsLinkHook(ctx, query, data.args);
       const res = await currentService[query.methodName](...data.args);
-      await this.crudConfig.afterBackdoorHook(res, ctx, query, data.args);
+      await this.crudConfig.afterMsLinkHook(res, ctx, query, data.args);
 
       const returnCtxFields = ['setCookies'];
       const response: any = { res };
@@ -956,7 +956,7 @@ export class CrudController {
       }
       return response;
     } catch (e) {
-      await this.crudConfig.errorBackdoorHook(e, ctx, query, data.args);
+      await this.crudConfig.errorMsLinkHook(e, ctx, query, data.args);
       throw e;
     }
   }

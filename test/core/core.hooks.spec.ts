@@ -205,12 +205,12 @@ describe('AppController', () => {
     ];
     await hookTriggerService.$createBatch(
       [hookToUpdate, ...hooksToUpdateMany, hookToDelete, ...hooksToDeleteMany],
-      { skipBackDoorHooks: true } as any,
+      { skipMsLinkHooks: true } as any,
       { hooks: false },
     );
     hooksToUpdateBatch = await hookTriggerService.$createBatch(
       hooksToUpdateBatch,
-      { skipBackDoorHooks: true } as any,
+      { skipMsLinkHooks: true } as any,
       { hooks: false },
     );
 
@@ -230,7 +230,7 @@ describe('AppController', () => {
     ];
     hooksToUpdateIn = await hookTriggerService.$createBatch(
       hooksToUpdateIn,
-      { skipBackDoorHooks: true } as any,
+      { skipMsLinkHooks: true } as any,
       { hooks: false },
     );
 
@@ -250,7 +250,7 @@ describe('AppController', () => {
     ];
     hooksToDeleteIn = await hookTriggerService.$createBatch(
       hooksToDeleteIn,
-      { skipBackDoorHooks: true } as any,
+      { skipMsLinkHooks: true } as any,
       { hooks: false },
     );
 
@@ -1031,12 +1031,12 @@ describe('AppController', () => {
         ...[
           {
             pos: 'before',
-            type: 'backdoor',
+            type: 'ms-link',
             expectedMessage: 'replace Query with ' + createMessage,
           },
           {
             pos: 'after',
-            type: 'backdoor',
+            type: 'ms-link',
             expectedMessage: createMessage,
           },
         ],
@@ -1147,25 +1147,25 @@ describe('AppController', () => {
         ...[
           {
             pos: 'before',
-            type: 'backdoor',
+            type: 'ms-link',
             expectedMessage: '400',
             length: 400,
           },
           {
             pos: 'error',
-            type: 'backdoor',
+            type: 'ms-link',
             expectedMessage: '400',
             length: 400,
           },
           {
             pos: 'before',
-            type: 'backdoor',
+            type: 'ms-link',
             expectedMessage: '403',
             length: 403,
           },
           {
             pos: 'error',
-            type: 'backdoor',
+            type: 'ms-link',
             expectedMessage: '403',
             length: 403,
           },

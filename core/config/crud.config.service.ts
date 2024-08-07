@@ -14,7 +14,7 @@ import { CrudDbAdapter } from './dbAdapter/crudDbAdapter';
 import { LRUCache } from 'lru-cache';
 import { ValidationOptions } from '../validation';
 import { _utils } from '../utils';
-import { BackdoorQuery } from '../crud';
+import { MsLinkQuery } from '../crud';
 
 export class BasicMemoryCache implements CrudCache {
   cache: LRUCache<string, CrudUser>;
@@ -54,7 +54,7 @@ export const CRUD_CONFIG_KEY = 'CRUD_CONFIG_U4u7YojMIZ';
 
 export interface MicroServiceConfig {
   services: EntityClass<any>[];
-  openBackDoor: boolean;
+  openMsLink: boolean;
   openController: boolean;
   proxyCrudController?: boolean;
   url: string;
@@ -239,27 +239,23 @@ export class CrudConfigService {
     return Promise.resolve();
   }
 
-  async afterBackdoorHook(
+  async afterMsLinkHook(
     res: any,
     ctx: CrudContext,
-    query: BackdoorQuery,
+    query: MsLinkQuery,
     args: any[],
   ) {
     return Promise.resolve();
   }
 
-  async beforeBackdoorHook(
-    ctx: CrudContext,
-    query: BackdoorQuery,
-    args: any[],
-  ) {
+  async beforeMsLinkHook(ctx: CrudContext, query: MsLinkQuery, args: any[]) {
     return Promise.resolve();
   }
 
-  async errorBackdoorHook(
+  async errorMsLinkHook(
     error: Error,
     ctx: CrudContext,
-    query: BackdoorQuery,
+    query: MsLinkQuery,
     args: any[],
   ) {
     return Promise.resolve();

@@ -42,7 +42,7 @@
 ---
 
 [x] csrf token
-[ ] add a way to rotate JWT/backdoor key 
+[ ] add a way to rotate JWT/ms-link key 
 
 [x] error hooks test
 [x] add typing for can && cannot function

@@ -46,17 +46,17 @@ override async errorControllerHook(error, ctx: CrudContext){
 !!! note
     **Controller hooks** will only trigger on operations initiated by the [client](../client/setup.md). Unlike [service-specific hooks](../services/hooks.md) that trigger on internal service calls.
 
-**Backdoor hooks** are called before and after a backdoor request is received in a [microservice](../microservices/configuration.md).
+**MsLink hooks** are called before and after a ms-link request is received in a [microservice](../microservices/configuration.md).
 ```typescript
-override async afterBackdoorHook(res, ctx: CrudContext, query: BackdoorQuery, args: any[]) {
+override async afterMsLinkHook(res, ctx: CrudContext, query: MsLinkQuery, args: any[]) {
     return Promise.resolve();
 }
 
-override async beforeBackdoorHook(ctx: CrudContext, query: BackdoorQuery, args: any[]){
+override async beforeMsLinkHook(ctx: CrudContext, query: MsLinkQuery, args: any[]){
     return Promise.resolve();
 }
 
-override async errorBackdoorHook(error, ctx: CrudContext, query: BackdoorQuery, args: any[]){
+override async errorMsLinkHook(error, ctx: CrudContext, query: MsLinkQuery, args: any[]){
     return Promise.resolve();
 }
 ```

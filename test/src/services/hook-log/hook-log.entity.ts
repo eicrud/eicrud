@@ -10,7 +10,7 @@ export type HookType =
   | 'delete'
   | 'crud'
   | 'controller'
-  | 'backdoor';
+  | 'ms-link';
 
 @Entity()
 export class HookLog implements CrudEntity {
@@ -29,7 +29,7 @@ export class HookLog implements CrudEntity {
   length: number;
 
   @Property({ nullable: true })
-  backDoorQuery: any;
+  MsLinkQuery: any;
 
   @Property()
   hookType: HookType;

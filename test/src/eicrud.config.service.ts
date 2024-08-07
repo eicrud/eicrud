@@ -17,7 +17,7 @@ import { DragonFruit } from './services/dragon-fruit/dragon-fruit.entity';
 import { FakeEmail } from './services/fake-email/fake-email.entity';
 import { MyUserService } from './services/my-user/my-user.service';
 import { FakeEmailService } from './services/fake-email/fake-email.service';
-import { BackdoorQuery, CrudContext, CrudService } from '@eicrud/core/crud';
+import { MsLinkQuery, CrudContext, CrudService } from '@eicrud/core/crud';
 import { HookLogService } from './services/hook-log/hook-log.service';
 import { logHook } from './services/hook-trigger/hook-trigger.hooks';
 import { HookTriggerService } from './services/hook-trigger/hook-trigger.service';
@@ -58,7 +58,7 @@ const roles: CrudRole[] = [
 
 const msOptions = new MicroServicesOptions();
 
-msOptions.username = 'backDoorUser';
+msOptions.username = 'MsLinkUser';
 msOptions.password = 'zMaXZAAQlqfZWkvm4545za';
 
 const PROXY_TEST = process.env.TEST_CRUD_PROXY;
@@ -66,7 +66,7 @@ const PROXY_TEST = process.env.TEST_CRUD_PROXY;
 msOptions.microServices = {
   entry: {
     services: PROXY_TEST ? [UserProfile, Picture] : [],
-    openBackDoor: PROXY_TEST ? true : false,
+    openMsLink: PROXY_TEST ? true : false,
     openController: true,
     url: 'http://localhost:3004',
     proxyCrudController: PROXY_TEST ? true : false,
@@ -79,7 +79,7 @@ msOptions.microServices = {
       SuperclientTestExclude,
       SuperclientTestExclude2,
     ],
-    openBackDoor: true,
+    openMsLink: true,
     openController: PROXY_TEST ? true : false,
     url: 'http://localhost:3005',
   },
@@ -87,13 +87,13 @@ msOptions.microServices = {
     services: PROXY_TEST
       ? [Melon, DragonFruit]
       : [Melon, DragonFruit, UserProfile, Picture],
-    openBackDoor: true,
+    openMsLink: true,
     openController: PROXY_TEST ? true : false,
     url: 'http://localhost:3006',
   },
   email: {
     services: [FakeEmail, HookLog],
-    openBackDoor: true,
+    openMsLink: true,
     openController: PROXY_TEST ? true : false,
     url: 'http://localhost:3007',
   },
@@ -178,59 +178,59 @@ export class MyConfigService extends CrudConfigService {
     );
   }
 
-  override async afterBackdoorHook(
+  override async afterMsLinkHook(
     res: any,
     ctx: CrudContext,
-    query: BackdoorQuery,
+    query: MsLinkQuery,
     args: any[],
   ) {
-    if (query.service != 'hook-trigger' || (ctx as any).skipBackDoorHooks) {
+    if (query.service != 'hook-trigger' || (ctx as any).skipMsLinkHooks) {
       return;
     }
     await logHook(
       this.hookTriggerService,
       ctx.data || ctx.query,
       'after',
-      'backdoor',
+      'ms-link',
       ctx,
       query,
       args,
     );
   }
 
-  override async beforeBackdoorHook(
+  override async beforeMsLinkHook(
     ctx: CrudContext,
-    query: BackdoorQuery,
+    query: MsLinkQuery,
     args: any[],
   ) {
-    if (query.service != 'hook-trigger' || (ctx as any).skipBackDoorHooks) {
+    if (query.service != 'hook-trigger' || (ctx as any).skipMsLinkHooks) {
       return;
     }
     await logHook(
       this.hookTriggerService,
       ctx.data || ctx.query,
       'before',
-      'backdoor',
+      'ms-link',
       ctx,
       query,
       args,
     );
   }
 
-  override async errorBackdoorHook(
+  override async errorMsLinkHook(
     error: Error,
     ctx: CrudContext,
-    query: BackdoorQuery,
+    query: MsLinkQuery,
     args: any[],
   ) {
-    if (query.service != 'hook-trigger' || (ctx as any).skipBackDoorHooks) {
+    if (query.service != 'hook-trigger' || (ctx as any).skipMsLinkHooks) {
       return;
     }
     await logHook(
       this.hookTriggerService,
       ctx.data || ctx.query,
       'error',
-      'backdoor',
+      'ms-link',
       ctx,
       query,
       args,

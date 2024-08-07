@@ -26,9 +26,9 @@ export interface CrudContext {
   jwtPayload?: any;
   url?: string;
   currentMs?: string;
-  backdoorGuarded?: boolean;
+  msLinkGuarded?: boolean;
   /**
-   * Temp object that will not be serialized to backdoors, set to {} for every request
+   * Temp object that will not be serialized to ms-links, set to {} for every request
    * @UsageNotes You can use it to cache data during authorization process (useful for batch operations)
    * @type {object}
    */
