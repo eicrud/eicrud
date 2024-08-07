@@ -163,12 +163,14 @@ export class CrudController {
     if (ctx.origin == 'cmd') {
       const cmdSecurity: CmdSecurity =
         service.security?.cmdSecurityMap?.[ctx.cmdName];
-      res = await cmdSecurity.hooks.afterControllerHook.call(
-        service,
-        ctx.data,
-        res,
-        ctx,
-      );
+      if (cmdSecurity.hooks) {
+        res = await cmdSecurity.hooks?.afterControllerHook.call(
+          service,
+          ctx.data,
+          res,
+          ctx,
+        );
+      }
     }
     res = await this.crudConfig.afterControllerHook(res, ctx);
     if (ctx.setCookies) {

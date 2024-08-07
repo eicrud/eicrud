@@ -1,3 +1,7 @@
+import {
+  TestCmdGetDto,
+  TestCmdGetReturnDto,
+} from './cmds/test_cmd_get/test_cmd_get.dto';
 import { SearchDto } from './cmds/search/search.dto';
 import { TestCmdRateLimitedDto } from './cmds/test_cmd_rate_limited/test_cmd_rate_limited.dto';
 import { CanCannotCmdDto } from './cmds/can_cannot_cmd/can_cannot_cmd.dto';
@@ -6,7 +10,7 @@ import { ModuleRef } from '@nestjs/core';
 import { UserProfile } from './user-profile.entity';
 import { Injectable } from '@nestjs/common';
 import { getSecurity } from './user-profile.security';
-import { CrudService } from '@eicrud/core/crud';
+import { CrudService, Inheritance } from '@eicrud/core/crud';
 import { serviceCmds } from './cmds';
 import { CrudContext } from '@eicrud/core/crud';
 
@@ -18,6 +22,14 @@ export class UserProfileService extends CrudService<UserProfile> {
   }
 
   // GENERATED START - do not remove
+  async $test_cmd_get(
+    dto: TestCmdGetDto,
+    ctx: CrudContext,
+    inheritance?: Inheritance,
+  ) {
+    return serviceCmds.test_cmd_get.action.call(this, dto, ctx, inheritance);
+  }
+
   async $search(dto: SearchDto, ctx: CrudContext, inheritance?: any) {
     return await serviceCmds.search.action.call(
       this,

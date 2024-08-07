@@ -88,7 +88,7 @@ export interface CmdSecurity<TDto = any, TEntity = any, TReturnDto = any> {
 
   rolesRights?: Record<string, CmdSecurityRights<TDto, TEntity>>;
 
-  hooks: CmdHooks<TDto, TReturnDto>;
+  hooks?: CmdHooks<TDto, TReturnDto>;
 }
 
 export type CanCannot<T> = (

@@ -53,4 +53,4 @@
 [ ] cmd get (allow cmd get = false)
 [x] don't check csrf on get requests
 [ ] cmd hook - (controller)
-[ ] tests for GET cmd
+[x] tests for GET cmd
