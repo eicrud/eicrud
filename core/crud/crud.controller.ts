@@ -156,6 +156,13 @@ export class CrudController {
 
   async beforeHooks(service: CrudService<any>, ctx: CrudContext) {
     //await service.beforeControllerHook(ctx);
+    if (ctx.origin == 'cmd') {
+      const cmdSecurity: CmdSecurity =
+        service.security?.cmdSecurityMap?.[ctx.cmdName];
+      if (cmdSecurity?.hooks) {
+        await cmdSecurity.hooks?.beforeControllerHook(ctx.data, ctx);
+      }
+    }
     await this.crudConfig.beforeControllerHook(ctx);
   }
 
@@ -163,13 +170,8 @@ export class CrudController {
     if (ctx.origin == 'cmd') {
       const cmdSecurity: CmdSecurity =
         service.security?.cmdSecurityMap?.[ctx.cmdName];
-      if (cmdSecurity.hooks) {
-        res = await cmdSecurity.hooks?.afterControllerHook.call(
-          service,
-          ctx.data,
-          res,
-          ctx,
-        );
+      if (cmdSecurity?.hooks) {
+        res = await cmdSecurity.hooks?.afterControllerHook(ctx.data, res, ctx);
       }
     }
     res = await this.crudConfig.afterControllerHook(res, ctx);
@@ -188,7 +190,15 @@ export class CrudController {
     ctx: CrudContext,
   ) {
     //await service.errorControllerHook(e, ctx);
-    let res: any = await this.crudConfig.errorControllerHook(e, ctx);
+    let res: any;
+    if (ctx.origin == 'cmd') {
+      const cmdSecurity: CmdSecurity =
+        service.security?.cmdSecurityMap?.[ctx.cmdName];
+      if (cmdSecurity?.hooks) {
+        res = await cmdSecurity.hooks?.beforeControllerHook(ctx.data, ctx);
+      }
+    }
+    res = (await this.crudConfig.errorControllerHook(e, ctx)) || res;
     res = (await service.errorControllerHook(e, ctx)) || res;
     const notGuest = this.crudConfig.userService.notGuest(ctx?.user);
     if (notGuest) {
@@ -931,9 +941,9 @@ export class CrudController {
       data.args[i] = undefined;
     }
     const ctx: CrudContext = query.ctxPos ? data.args[query.ctxPos] || {} : {};
-    const inheritance = query.inheritancePos
-      ? data.args[query.inheritancePos]
-      : null;
+    // const inheritance = query.inheritancePos
+    //   ? data.args[query.inheritancePos]
+    //   : null;
     ctx.currentMs = MicroServicesOptions.getCurrentService();
     try {
       const currentService = this.crudConfig.servicesMap[query.service];

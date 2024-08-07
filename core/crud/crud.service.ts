@@ -1101,16 +1101,11 @@ export class CrudHooks<T extends CrudEntity> {
 }
 
 export class CmdHooks<TDto, TReturnDto> {
-  async beforeControllerHook(
-    this: CrudService<any>,
-    dto: TDto,
-    ctx: CrudContext,
-  ): Promise<any> {
+  async beforeControllerHook(dto: TDto, ctx: CrudContext): Promise<any> {
     return dto;
   }
 
   async afterControllerHook(
-    this: CrudService<any>,
     dto: TDto,
     result: TReturnDto,
     ctx: CrudContext,
@@ -1119,7 +1114,6 @@ export class CmdHooks<TDto, TReturnDto> {
   }
 
   async errorControllerHook(
-    this: CrudService<any>,
     dto: TDto,
     error: any,
     ctx: CrudContext,
