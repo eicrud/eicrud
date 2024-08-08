@@ -59,6 +59,7 @@ program
     '-kv, --keep-validators',
     'will keep class-validator decorators when exporting',
   )
+  .option('-cc, --convert-classes', 'will convert classes into interfaces')
   .action(function () {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
