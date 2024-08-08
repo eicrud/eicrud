@@ -212,7 +212,24 @@ export class Export {
       copiedFiles.splice(copiedFiles.indexOf(file), 1);
     }
 
-    Export.removeDecoratorsFromFiles(copiedFiles, '@mikro-orm', [], {
+    const replaces = [];
+    if (options?.convertClasses) {
+      replaces.push(
+        { regex: /.implements[^{]+/g, replace: '' },
+        { regex: /export .*class  /g, replace: 'export interface ' },
+        { regex: /;$/gm, replace: 'replaced_semicolon_5498615_1' },
+        { regex: /;/g, replace: 'replaced_semicolon_5498615_2' },
+        { regex: /replaced_semicolon_5498615_1/g, replace: ';' },
+        {
+          regex: /^(?!.*(export type )).*(=[^>][^;]+;$)/gm,
+          replace: ';',
+          onlyGroup: 2,
+        },
+        { regex: /replaced_semicolon_5498615_2/g, replace: ';' },
+      );
+    }
+
+    Export.removeDecoratorsFromFiles(copiedFiles, '@mikro-orm', replaces, {
       replaceNews: true,
     });
     // Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/validation');
@@ -427,7 +444,17 @@ export class Export {
       }
 
       for (const replace of replaces) {
-        result = result.replace(replace.regex, replace.replace);
+        if (replace.onlyGroup) {
+          //get regex group
+          let match = new RegExp(replace.regex).exec(result);
+          while (match) {
+            const group = match?.[replace.onlyGroup];
+            result = result.replace(group, replace.replace);
+            match = new RegExp(replace.regex).exec(result);
+          }
+        } else {
+          result = result.replace(replace.regex, replace.replace);
+        }
       }
 
       fs.writeFileSync(filePath, result, 'utf8');
