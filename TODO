@@ -42,9 +42,16 @@
 ---
 
 [x] csrf token
-[ ] add a way to rotate JWT/backdoor key 
+[ ] add a way to rotate JWT/ms-link key 
 
 [x] error hooks test
 [x] add typing for can && cannot function
-[ ] global @$Hook (transform) decorator
+[ ] global @$Hook (transform) decorator?
 [x] throw specific error if user already exist for account_creation
+[ ] saveBatch (one flush) alternative to patchBatch? 
+
+[ ] test cmd dto == any
+[ ] cmd get (allow cmd get = false)
+[x] don't check csrf on get requests
+[ ] cmd hook - (controller)
+[x] tests for GET cmd

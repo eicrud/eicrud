@@ -6,8 +6,8 @@ import { microServices } from './eicrud.ms';
 
 const msOptions = new MicroServicesOptions();
 
-msOptions.username = '<your_backdoor_user>';
-msOptions.password = '<your_backdoor_password>';
+msOptions.username = '<your_mslink_user>';
+msOptions.password = '<your_mslink_password>';
 
 msOptions.microServices = microServices; 
 
@@ -23,13 +23,13 @@ export class MyConfigService extends CrudConfigService {
 export const microServices: Record<string, MicroServiceConfig>  = {
     "ms-A": {
         services: [User],
-        openBackDoor: true,
+        openMsLink: true,
         openController: true,
         url: "http(s)://<ms_a_host>",
     },
     "ms-B": {
         services: [Store, Product],
-        openBackDoor: true,
+        openMsLink: true,
         openController: true,
         url: "http(s)://<ms_b_host>",
     },
@@ -38,20 +38,20 @@ export const microServices: Record<string, MicroServiceConfig>  = {
 
 The environment variable `CRUD_CURRENT_MS` tells an application instance to behave as a particular ms. 
 
-Your [CrudServices](../services/definition.md) will call each other over the network using a backdoor depending on the `services` list of its `CRUD_CURRENT_MS`.
+Your [CrudServices](../services/definition.md) will call each other over the network using a ms-link depending on the `services` list of its `CRUD_CURRENT_MS`.
 
 !!! note
     Check out [this guide](./dollar-functions.md) to make sure your application will behave the same once configured in microservices.
 
 !!! warning
-    Backdoors are protected by basic authentication (`msOptions.username` and `password`). Make sure to keep these credentials private since they allow total control over your application. Make sure your ms URLs start with `https` so that the credentials can't be sniffed over the network.
+    MsLinks are protected by basic authentication (`msOptions.username` and `password`). Make sure to keep these credentials private since they allow total control over your application. Make sure your ms URLs start with `https` so that the credentials can't be sniffed over the network.
 
 ## Config
 
 ```typescript
 export interface MicroServiceConfig {
     services: EntityClass<any>[],
-    openBackDoor: boolean,
+    openMsLink: boolean,
     openController: boolean,
     proxyCrudController?: boolean,
     url: string,

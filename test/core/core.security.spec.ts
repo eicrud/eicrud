@@ -15,7 +15,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../src/services/user-profile/user-profile.entity';
-import { BackdoorQuery, CrudQuery } from '../../core/crud/model/CrudQuery';
+import { MsLinkQuery, CrudQuery } from '../../core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,
   createMelons,
@@ -1906,7 +1906,7 @@ describe('AppController', () => {
     });
   });
 
-  it('backdoor should be guarded', async () => {
+  it('ms-link should be guarded', async () => {
     const userName = 'Admin Dude';
     const user = users[userName];
     const payload: Partial<UserProfile> = {
@@ -1914,7 +1914,7 @@ describe('AppController', () => {
         cmdName: 'test_cmd',
       },
     } as any;
-    const query: BackdoorQuery = {
+    const query: MsLinkQuery = {
       service: 'user-profile',
       methodName: '$cmdHandler',
       ctxPos: 1,
@@ -1923,7 +1923,7 @@ describe('AppController', () => {
     const expectedObject = null;
 
     const res = await testMethod({
-      url: '/crud/backdoor/user-profile',
+      url: '/crud/ms-link/user-profile',
       method: 'PATCH',
       app,
       jwt: user.jwt,
@@ -1936,8 +1936,8 @@ describe('AppController', () => {
     });
 
     const expectedArray = process.env.TEST_CRUD_PROXY
-      ? ['No credentials provided for backdoor access.']
-      : ['Microservice not found.', 'Backdoor is closed.'];
+      ? ['No credentials provided for ms-link access.']
+      : ['Microservice not found.', 'MsLink is closed.'];
 
     expect(expectedArray).toContain(res.message);
 
@@ -1947,14 +1947,14 @@ describe('AppController', () => {
 
       matches = matches
         .map((m) => msConfig.microServices[m])
-        .filter((m) => m.openBackDoor);
+        .filter((m) => m.openMsLink);
 
       const targetServiceConfig: MicroServiceConfig = matches[0];
 
-      const url = targetServiceConfig.url + '/crud/backdoor/user-profile';
+      const url = targetServiceConfig.url + '/crud/ms-link/user-profile';
 
       const data = {
-        args: ['test_cmd', { data: { returnMessage: 'backdoor ping' } }],
+        args: ['test_cmd', { data: { returnMessage: 'ms-link ping' } }],
       };
 
       const res = await axios.patch(url, data, {
@@ -1975,7 +1975,7 @@ describe('AppController', () => {
       });
 
       expect(res2.status).toEqual(200);
-      expect(res2.data?.res).toEqual('backdoor ping');
+      expect(res2.data?.res).toEqual('ms-link ping');
 
       auth.password = 'wrongpassword';
 

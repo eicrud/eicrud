@@ -76,7 +76,7 @@ export function testMethod(arg: {
     headers['Authorization'] =
       `Basic ${Buffer.from(`${arg.basicAuth.username}:${arg.basicAuth.password}`).toString('base64')}`;
   }
-  let url = ['/backdoor', '/auth'].some((r) => arg.url.includes(r))
+  let url = ['/ms-link', '/auth'].some((r) => arg.url.includes(r))
     ? arg.url
     : '/crud/s/' + arg.query.service + arg.url.replace('/crud', '');
 

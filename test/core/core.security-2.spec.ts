@@ -15,7 +15,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
 import { UserProfile } from '../src/services/user-profile/user-profile.entity';
-import { BackdoorQuery, CrudQuery } from '@eicrud/core/crud/model/CrudQuery';
+import { MsLinkQuery, CrudQuery } from '@eicrud/core/crud/model/CrudQuery';
 import { createAccountsAndProfiles, testMethod } from '../test.utils';
 import { CrudService } from '@eicrud/core/crud/crud.service';
 import { TestUser } from '../test.utils';

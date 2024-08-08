@@ -1,9 +1,13 @@
+import {
+  TestTriggerHelloDto,
+  TestTriggerHelloReturnDto,
+} from './cmds/test_trigger_hello/test_trigger_hello.dto';
 import { TestTriggerDto } from './cmds/test_trigger/test_trigger.dto';
 import { ModuleRef } from '@nestjs/core';
 import { HookTrigger } from './hook-trigger.entity';
 import { Injectable } from '@nestjs/common';
 import { getSecurity } from './hook-trigger.security';
-import { CrudService } from '@eicrud/core/crud';
+import { CrudService, Inheritance } from '@eicrud/core/crud';
 import { serviceCmds } from './cmds';
 import { CrudContext } from '@eicrud/core/crud';
 import { hooks } from './hook-trigger.hooks';
@@ -20,6 +24,19 @@ export class HookTriggerService extends CrudService<HookTrigger> {
   }
 
   // GENERATED START - do not remove
+  async $test_trigger_hello(
+    dto: TestTriggerHelloDto,
+    ctx: CrudContext,
+    inheritance?: Inheritance,
+  ) {
+    return serviceCmds.test_trigger_hello.action.call(
+      this,
+      dto,
+      ctx,
+      inheritance,
+    );
+  }
+
   async $test_trigger(
     dto: TestTriggerDto,
     ctx: CrudContext,

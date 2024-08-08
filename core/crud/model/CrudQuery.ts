@@ -27,7 +27,7 @@ export class CrudQuery implements ICrudQuery {
   cmd?: string;
 }
 
-export class BackdoorQuery {
+export class MsLinkQuery {
   service: string;
 
   methodName: string;

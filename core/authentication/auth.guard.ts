@@ -194,27 +194,27 @@ export class CrudAuthGuard implements CanActivate {
       getHttpResponse,
     };
 
-    if (url.includes('/crud/backdoor')) {
+    if (url.includes('/crud/ms-link')) {
       if (!currentMsConfig) {
         throw new UnauthorizedException('Microservice not found.');
-      } else if (currentMsConfig && !currentMsConfig.openBackDoor) {
-        throw new UnauthorizedException('Backdoor is closed.');
+      } else if (currentMsConfig && !currentMsConfig.openMsLink) {
+        throw new UnauthorizedException('MsLink is closed.');
       }
       const requiredUsername = currentMsConfig.username || msOptions.username;
       const requiredPassword = currentMsConfig.password || msOptions.password;
       const basicAuth = request.headers.authorization?.split(' ')[1];
       if (!basicAuth) {
         throw new UnauthorizedException(
-          'No credentials provided for backdoor access.',
+          'No credentials provided for ms-link access.',
         );
       }
       const [username, password] = Buffer.from(basicAuth, 'base64')
         .toString()
         .split(':');
       if (username != requiredUsername || password != requiredPassword) {
-        throw new UnauthorizedException('Invalid backdoor credentials.');
+        throw new UnauthorizedException('Invalid ms-link credentials.');
       }
-      crudContext.backdoorGuarded = true;
+      crudContext.msLinkGuarded = true;
       request['crudContext'] = crudContext;
       return true;
     } else if (url.includes('/crud')) {
@@ -250,7 +250,7 @@ export class CrudAuthGuard implements CanActivate {
     const options: CrudOptions = request.query?.query?.options || {};
     if (token && this.extractUserCheck(url)) {
       const payload = await this.authService.getJwtPayload(token);
-      if (payload.csrf) {
+      if (payload.csrf && request.method != 'GET') {
         const csrfHash = this.extractCSRF(request);
         if (this.authService.hmacCSRFToken(payload.csrf) != csrfHash) {
           throw new UnauthorizedException('CSRF token JWT mismatch.');

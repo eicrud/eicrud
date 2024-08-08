@@ -51,3 +51,13 @@ export interface ExportOptions {
 export interface CliOptions {
   export?: ExportOptions;
 }
+
+export type NotVoid =
+  | { [key: string]: NotVoid }
+  | object
+  | string
+  | boolean
+  | symbol
+  | number
+  | null
+  | undefined;

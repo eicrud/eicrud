@@ -40,6 +40,7 @@ import { HookLogService } from '../src/services/hook-log/hook-log.service';
 import { _utils } from '@eicrud/core/utils';
 import { HookTriggerService } from '../src/services/hook-trigger/hook-trigger.service';
 import { TestTriggerDto } from '../src/services/hook-trigger/cmds/test_trigger/test_trigger.dto';
+import { TestTriggerHelloDto } from '../src/services/hook-trigger/cmds/test_trigger_hello/test_trigger_hello.dto';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -205,12 +206,12 @@ describe('AppController', () => {
     ];
     await hookTriggerService.$createBatch(
       [hookToUpdate, ...hooksToUpdateMany, hookToDelete, ...hooksToDeleteMany],
-      { skipBackDoorHooks: true } as any,
+      { skipMsLinkHooks: true } as any,
       { hooks: false },
     );
     hooksToUpdateBatch = await hookTriggerService.$createBatch(
       hooksToUpdateBatch,
-      { skipBackDoorHooks: true } as any,
+      { skipMsLinkHooks: true } as any,
       { hooks: false },
     );
 
@@ -230,7 +231,7 @@ describe('AppController', () => {
     ];
     hooksToUpdateIn = await hookTriggerService.$createBatch(
       hooksToUpdateIn,
-      { skipBackDoorHooks: true } as any,
+      { skipMsLinkHooks: true } as any,
       { hooks: false },
     );
 
@@ -250,7 +251,7 @@ describe('AppController', () => {
     ];
     hooksToDeleteIn = await hookTriggerService.$createBatch(
       hooksToDeleteIn,
-      { skipBackDoorHooks: true } as any,
+      { skipMsLinkHooks: true } as any,
       { hooks: false },
     );
 
@@ -1031,12 +1032,12 @@ describe('AppController', () => {
         ...[
           {
             pos: 'before',
-            type: 'backdoor',
+            type: 'ms-link',
             expectedMessage: 'replace Query with ' + createMessage,
           },
           {
             pos: 'after',
-            type: 'backdoor',
+            type: 'ms-link',
             expectedMessage: createMessage,
           },
         ],
@@ -1103,7 +1104,7 @@ describe('AppController', () => {
       ...createHookLogs4.data,
     ];
 
-    expect(allHooks.length).toBe(helperCurrentConfig(6, 10, 6));
+    expect(allHooks.length).toBe(helperCurrentConfig(10, 14, 10));
     const logCheck = [
       {
         pos: 'before',
@@ -1130,6 +1131,30 @@ describe('AppController', () => {
         length: 403,
       },
       {
+        pos: 'before',
+        type: 'cmd',
+        expectedMessage: '400',
+        length: 400,
+      },
+      {
+        pos: 'before',
+        type: 'cmd',
+        expectedMessage: '403',
+        length: 403,
+      },
+      {
+        pos: 'error',
+        type: 'cmd',
+        expectedMessage: '400',
+        length: 400,
+      },
+      {
+        pos: 'error',
+        type: 'cmd',
+        expectedMessage: '403',
+        length: 403,
+      },
+      {
         pos: 'error',
         type: 'crud',
         expectedMessage: 'error 400',
@@ -1147,27 +1172,113 @@ describe('AppController', () => {
         ...[
           {
             pos: 'before',
-            type: 'backdoor',
+            type: 'ms-link',
             expectedMessage: '400',
             length: 400,
           },
           {
             pos: 'error',
-            type: 'backdoor',
+            type: 'ms-link',
             expectedMessage: '400',
             length: 400,
           },
           {
             pos: 'before',
-            type: 'backdoor',
+            type: 'ms-link',
             expectedMessage: '403',
             length: 403,
           },
           {
             pos: 'error',
-            type: 'backdoor',
+            type: 'ms-link',
             expectedMessage: '403',
             length: 403,
+          },
+        ],
+      );
+    }
+    checkHookLogs(logCheck, allHooks, true);
+  }, 8000);
+
+  it('should call hooks on cmd', async () => {
+    const user = users['Michael Doe'];
+    const createMessage = 'world';
+    const payload: TestTriggerHelloDto = {
+      message: createMessage,
+    };
+    const query: CrudQuery = {
+      service: 'hook-trigger',
+      cmd: 'test_trigger_hello',
+    };
+
+    let error;
+    const res = await testMethod({
+      url: '/crud/cmd',
+      method: 'PATCH',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+    expect(res).toBe('hello world!');
+
+    const createHookLogs = await hookLogService.$find(
+      { message: 'world' },
+      null,
+    );
+    const createHookLogs2 = await hookLogService.$find(
+      { message: 'world!' },
+      null,
+    );
+    const createHookLogs3 = await hookLogService.$find(
+      { message: 'hello world!' },
+      null,
+    );
+
+    const allHooks = [
+      ...createHookLogs.data,
+      ...createHookLogs2.data,
+      ...createHookLogs3.data,
+    ];
+
+    expect(allHooks.length).toBe(helperCurrentConfig(4, 6, 4));
+    const logCheck = [
+      {
+        pos: 'before',
+        type: 'cmd',
+        expectedMessage: 'world',
+      },
+      {
+        pos: 'after',
+        type: 'cmd',
+        expectedMessage: 'world!',
+      },
+      {
+        pos: 'before',
+        type: 'controller',
+        expectedMessage: 'world',
+      },
+      {
+        pos: 'after',
+        type: 'controller',
+        expectedMessage: 'world!',
+      },
+    ];
+    if (helperCurrentConfig(false, true, false)) {
+      logCheck.push(
+        ...[
+          {
+            pos: 'before',
+            type: 'ms-link',
+            expectedMessage: 'world!',
+          },
+          {
+            pos: 'after',
+            type: 'ms-link',
+            expectedMessage: 'world!',
           },
         ],
       );
