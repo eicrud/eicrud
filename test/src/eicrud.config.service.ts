@@ -148,16 +148,16 @@ export class MyConfigService extends CrudConfigService {
   }
 
   override async afterControllerHook(res: any, ctx: CrudContext) {
-    if (ctx.serviceName != 'hook-trigger') {
-      return;
+    if (ctx.serviceName == 'hook-trigger') {
+      await logHook(
+        this.hookTriggerService,
+        ctx.data || ctx.query,
+        'after',
+        'controller',
+        ctx,
+      );
     }
-    await logHook(
-      this.hookTriggerService,
-      ctx.data || ctx.query,
-      'after',
-      'controller',
-      ctx,
-    );
+    return res;
   }
 
   override async errorControllerHook(error: Error, ctx: CrudContext) {

@@ -10,6 +10,7 @@ export type HookType =
   | 'delete'
   | 'crud'
   | 'controller'
+  | 'cmd'
   | 'ms-link';
 
 @Entity()

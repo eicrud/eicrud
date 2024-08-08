@@ -13,8 +13,9 @@ import { LimitOptions } from '../crud/crud.controller';
 import { CrudDbAdapter } from './dbAdapter/crudDbAdapter';
 import { LRUCache } from 'lru-cache';
 import { ValidationOptions } from '../validation';
-import { _utils } from '../utils';
 import { MsLinkQuery } from '../crud';
+import { _utils } from '../utils';
+import { NotVoid } from '@eicrud/shared/config';
 
 export class BasicMemoryCache implements CrudCache {
   cache: LRUCache<string, CrudUser>;
@@ -227,7 +228,7 @@ export class CrudConfigService {
     );
   }
 
-  async afterControllerHook(res: any, ctx: CrudContext) {
+  async afterControllerHook(res: any, ctx: CrudContext): Promise<NotVoid> {
     return res;
   }
 

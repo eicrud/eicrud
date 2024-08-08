@@ -6,7 +6,7 @@ export class tk_cmd_nameHooks extends CmdHooks<tk_cmd_dto_name, tk_cmd_return_dt
     async beforeControllerHook(
         dto: tk_cmd_dto_name,
         ctx: CrudContext,
-      ): Promise<any> {
+      ): Promise<tk_cmd_dto_name> {
         // before tk_cmd_name (entry controller)
 
         return dto;
@@ -16,7 +16,7 @@ export class tk_cmd_nameHooks extends CmdHooks<tk_cmd_dto_name, tk_cmd_return_dt
         dto: tk_cmd_dto_name,
         result: tk_cmd_return_dto_name,
         ctx: CrudContext,
-      ): Promise<any> {
+      ): Promise<tk_cmd_return_dto_name> {
         // after tk_cmd_name (entry controller)
 
         return result;

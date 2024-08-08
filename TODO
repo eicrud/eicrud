@@ -48,6 +48,7 @@
 [x] add typing for can && cannot function
 [ ] global @$Hook (transform) decorator?
 [x] throw specific error if user already exist for account_creation
+[ ] saveBatch (one flush) alternative to patchBatch? 
 
 [ ] test cmd dto == any
 [ ] cmd get (allow cmd get = false)
