@@ -12,6 +12,7 @@ import XRegExp from 'xregexp';
 import { Generate } from './Generate.js';
 import { CliOptions } from '@eicrud/shared/config';
 import wildcard from 'wildcard';
+import lodash from 'lodash';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -212,24 +213,7 @@ export class Export {
       copiedFiles.splice(copiedFiles.indexOf(file), 1);
     }
 
-    const replaces = [];
-    if (options?.convertClasses) {
-      replaces.push(
-        { regex: /.implements[^{]+/g, replace: '' },
-        { regex: /export .*class  /g, replace: 'export interface ' },
-        { regex: /;$/gm, replace: 'replaced_semicolon_5498615_1' },
-        { regex: /;/g, replace: 'replaced_semicolon_5498615_2' },
-        { regex: /replaced_semicolon_5498615_1/g, replace: ';' },
-        {
-          regex: /^(?!.*(export type )).*(=[^>][^;]+;$)/gm,
-          replace: ';',
-          onlyGroup: 2,
-        },
-        { regex: /replaced_semicolon_5498615_2/g, replace: ';' },
-      );
-    }
-
-    Export.removeDecoratorsFromFiles(copiedFiles, '@mikro-orm', replaces, {
+    Export.removeDecoratorsFromFiles(copiedFiles, '@mikro-orm', [], {
       replaceNews: true,
     });
     // Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/validation');
@@ -244,6 +228,28 @@ export class Export {
 
     for (const importToRemove of cliOptions?.export?.removeImports || []) {
       Export.removeDecoratorsFromFiles(copiedFiles, importToRemove);
+    }
+
+    if (options?.convertClasses) {
+      const replaces = [];
+      replaces.push(
+        { regex: /.implements[^{]+/g, replace: '' },
+        { regex: /export .*class  /g, replace: 'export interface ' },
+        { regex: /;$/gm, replace: 'replaced_semicolon_5498615_1' },
+        { regex: /;/g, replace: 'replaced_semicolon_5498615_2' },
+        { regex: /replaced_semicolon_5498615_1/g, replace: ';' },
+        {
+          regex: /^(?!.*(export type )).*(=[^>][^;]+;$)/gm,
+          replace: ';',
+          onlyGroup: 2,
+        },
+        { regex: /replaced_semicolon_5498615_2/g, replace: ';' },
+      );
+      Export.removeDecoratorsFromFiles(
+        copiedFiles,
+        'fake-import-789651359',
+        replaces,
+      );
     }
 
     cleanEmptyDirectories(dest);
@@ -370,6 +376,66 @@ export class Export {
           mute: files.indexOf(file) < files.length - 1,
         },
       );
+    }
+  }
+
+  static async openapi(options?, cliOptions?: CliOptions) {
+    const specs = cliOptions?.export?.openApiBaseSpec || {};
+
+    const baseSpecs = {
+      openapi: '3.1.0',
+    };
+    lodash.merge(specs, baseSpecs);
+
+    const exportPath = cliOptions?.export?.outputDir || 'eicrud_exports';
+    const src = path.join(exportPath);
+
+    const conditionFun = (str) => str.endsWith('.entity.ts');
+    const files = getFiles(src, conditionFun);
+
+    for (const file of files) {
+      //get dir from file path
+      const dir = path.dirname(file);
+      const fileName = path.basename(file);
+      const entity_kebab_name = fileName.replace('.entity.ts', '');
+
+      const tk_entity_name = kebakToPascalCase(entity_kebab_name);
+
+      const keys = {
+        tk_entity_lname: entity_kebab_name,
+        tk_entity_camel_name: kebabToCamelCase(entity_kebab_name),
+        tk_entity_name,
+        tk_client_class_name: tk_entity_name + 'Client',
+      };
+
+      const crudServiceSpecs = {
+        paths: {
+          [`crud/s/${tk_entity_name}/one`]: {
+            post: {},
+          },
+        },
+      };
+
+      const cmdDir = path.join(dir, 'cmds');
+      if (fs.existsSync(cmdDir)) {
+        const cmdFiles = getFiles(cmdDir, (str) => str.endsWith('.dto.ts'));
+        for (const cmdFile of cmdFiles) {
+          const cmdFileName = path.basename(cmdFile);
+          const tk_cmd_name = cmdFileName.replace('.dto.ts', '');
+
+          const baseCmdDto = kebakToPascalCase(tk_cmd_name);
+          const cmdFileNameContent = fs.readFileSync(cmdFile, 'utf8');
+          const hasReturnDto = cmdFileNameContent.includes('ReturnDto');
+          const keys = {
+            tk_cmd_dto_name: baseCmdDto + 'Dto',
+            tk_cmd_return_dto_name: hasReturnDto
+              ? baseCmdDto + 'ReturnDto'
+              : 'any',
+            tk_cmd_name,
+            tk_cmd_lname: tk_cmd_name,
+          };
+        }
+      }
     }
   }
 

@@ -46,6 +46,9 @@ export interface ExportOptions {
    * @default 'user'
    */
   userServiceDir?: string;
+
+  //https://swagger.io/specification
+  openApiBaseSpec?: any;
 }
 
 export interface CliOptions {

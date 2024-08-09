@@ -54,7 +54,7 @@ program
 program
   .command('export')
   .description('Export dtos or generate superclient')
-  .argument('<type>', 'dtos | superclient')
+  .argument('<type>', 'dtos | superclient | openapi')
   .option(
     '-kv, --keep-validators',
     'will keep class-validator decorators when exporting',
