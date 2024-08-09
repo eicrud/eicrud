@@ -13,6 +13,7 @@ import { Generate } from './Generate.js';
 import { CliOptions } from '@eicrud/shared/config';
 import wildcard from 'wildcard';
 import lodash from 'lodash';
+import { OpenAPIV3 } from 'openapi-types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -234,7 +235,7 @@ export class Export {
       const replaces = [];
       replaces.push(
         { regex: /.implements[^{]+/g, replace: '' },
-        { regex: /export .*class  /g, replace: 'export interface ' },
+        { regex: /export .*class /g, replace: 'export interface ' },
         { regex: /;$/gm, replace: 'replaced_semicolon_5498615_1' },
         { regex: /;/g, replace: 'replaced_semicolon_5498615_2' },
         { regex: /replaced_semicolon_5498615_1/g, replace: ';' },
@@ -244,6 +245,9 @@ export class Export {
           onlyGroup: 2,
         },
         { regex: /replaced_semicolon_5498615_2/g, replace: ';' },
+        { regex: /([^?]):(.+);$/gm, replace: '$1?:$2;' },
+        { regex: /([^\r\n:]+ );$/gm, replace: '$1?;' },
+        { regex: / \?;$/gm, replace: '?;' },
       );
       Export.removeDecoratorsFromFiles(
         copiedFiles,
@@ -380,10 +384,10 @@ export class Export {
   }
 
   static async openapi(options?, cliOptions?: CliOptions) {
-    const specs = cliOptions?.export?.openApiBaseSpec || {};
+    const specs: OpenAPIV3.Document = cliOptions?.export?.openApiBaseSpec || {};
 
     const baseSpecs = {
-      openapi: '3.1.0',
+      openapi: '3.0.0',
     };
     lodash.merge(specs, baseSpecs);
 
@@ -408,10 +412,65 @@ export class Export {
         tk_client_class_name: tk_entity_name + 'Client',
       };
 
-      const crudServiceSpecs = {
+      const entityContent = {
+        'application/json': options.withSchemas
+          ? {
+              schema: {
+                $ref: `./${entity_kebab_name}/${entity_kebab_name}.entity.yaml`,
+              },
+            }
+          : {},
+      };
+
+      const csrf_schema: OpenAPIV3.ParameterObject = {
+        in: 'header',
+        name: 'eicrud-csrf',
+        description:
+          'Anti-csrf code provided after authentication (if CrudOptions.jwtCookie == true)',
+        schema: {
+          type: 'string',
+        },
+      };
+
+      const crudServiceSpecs: Omit<OpenAPIV3.Document, 'openapi' | 'info'> = {
         paths: {
-          [`crud/s/${tk_entity_name}/one`]: {
-            post: {},
+          [`crud/s/${entity_kebab_name}/one`]: {
+            post: {
+              summary: `Creates a ${tk_entity_name}`,
+              requestBody: {
+                required: true,
+                content: entityContent,
+              },
+              parameters: [
+                csrf_schema,
+                { ...csrf_schema, in: 'cookie' },
+                {
+                  in: 'header',
+                  name: 'authorization',
+                  description:
+                    'JWT provided after authentication (if CrudOptions.jwtCookie == false)',
+                  schema: {
+                    type: 'string',
+                    format: 'Bearer <JWT>',
+                  },
+                },
+                {
+                  in: 'eicrud-jwt',
+                  name: 'authorization',
+                  description:
+                    'JWT provided after authentication (if CrudOptions.jwtCookie == true)',
+                  schema: {
+                    type: 'string',
+                  },
+                },
+              ],
+              responses: {
+                '201': {
+                  description: `The created ${tk_entity_name}`,
+                  content: entityContent,
+                },
+              },
+            },
           },
         },
       };
