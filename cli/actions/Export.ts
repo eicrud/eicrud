@@ -114,22 +114,30 @@ export class Export {
     }
     const copiedFiles = copyDirectory(src, dest, conditionFun);
 
-    const eicrud_core_dir = path.join(
-      nodeModulesDir,
-      '@eicrud/core/config/basecmd_dtos',
+    const eicrud_core_dir = path.join(nodeModulesDir, '@eicrud/core');
+    const eicrud_core_base_cmds = path.join(
+      eicrud_core_dir,
+      '/config/basecmd_dtos',
     );
-    if (!fs.existsSync(eicrud_core_dir)) {
+    if (!fs.existsSync(eicrud_core_base_cmds)) {
       throw new Error(
         '@eicrud/core package outdated / not found in node_modules',
       );
     }
-    debugger;
     copiedFiles.push(
-      ...copyDirectory(eicrud_core_dir, dest, conditionFun, {
+      ...copyDirectory(eicrud_core_base_cmds, dest, conditionFun, {
         makeSubDir: true,
         pathReplaces: [{ regex: /user$/g, replace: userServiceDir }],
       }),
     );
+    const crud_options_path = path.join(
+      eicrud_core_dir,
+      '/crud/model/CrudOptions.d.ts',
+    );
+    // copy crud_options to dest
+    const options_dest = path.join(dest, 'CrudOptions.ts');
+    fs.copyFileSync(crud_options_path, options_dest);
+    copiedFiles.push(options_dest);
 
     const removeFiles = [];
     const excludedServices = [];
@@ -412,16 +420,33 @@ export class Export {
         tk_client_class_name: tk_entity_name + 'Client',
       };
 
+      const entityRef = `./${entity_kebab_name}/${entity_kebab_name}.entity.yaml#/components/schemas/${tk_entity_name}`;
+
       const entityContent = {
-        'application/json': options.withSchemas
-          ? {
-              schema: {
-                $ref: `./${entity_kebab_name}/${entity_kebab_name}.entity.yaml`,
-              },
-            }
-          : {},
+        'application/json': {
+          nullable: true,
+          ...(options.withSchemas
+            ? {
+                schema: {
+                  $ref: entityRef,
+                },
+              }
+            : {}),
+        },
       };
 
+      const entityQuery: OpenAPIV3.ParameterObject = {
+        in: 'query',
+        name: 'query',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: entityRef,
+            },
+          },
+        },
+        description: `The ${tk_entity_name} query`,
+      };
       const csrf_schema: OpenAPIV3.ParameterObject = {
         in: 'header',
         name: 'eicrud-csrf',
@@ -432,41 +457,81 @@ export class Export {
         },
       };
 
+      const commonParams: OpenAPIV3.ParameterObject[] = [
+        csrf_schema,
+        { ...csrf_schema, in: 'cookie' },
+        {
+          in: 'header',
+          name: 'authorization',
+          description:
+            'JWT provided after authentication (if CrudOptions.jwtCookie == false)',
+          schema: {
+            type: 'string',
+            format: 'Bearer <JWT>',
+          },
+        },
+        {
+          in: 'cookie',
+          name: 'eicrud-jwt',
+          description:
+            'JWT provided after authentication (if CrudOptions.jwtCookie == true)',
+          schema: {
+            type: 'string',
+          },
+        },
+        {
+          in: 'query',
+          name: 'options',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: './CrudOptions.yaml#/components/schemas/CrudOptions',
+              },
+            },
+          },
+          description: 'https://docs.eicrud.com/services/options',
+        },
+      ];
+
       const crudServiceSpecs: Omit<OpenAPIV3.Document, 'openapi' | 'info'> = {
         paths: {
           [`crud/s/${entity_kebab_name}/one`]: {
+            get: {
+              summary: `Find a ${tk_entity_name}`,
+              parameters: [...commonParams, entityQuery],
+              responses: {
+                '200': {
+                  description: `The found ${tk_entity_name}`,
+                  content: entityContent,
+                },
+              },
+            },
             post: {
               summary: `Creates a ${tk_entity_name}`,
               requestBody: {
+                description: `The ${tk_entity_name} to create`,
                 required: true,
                 content: entityContent,
               },
-              parameters: [
-                csrf_schema,
-                { ...csrf_schema, in: 'cookie' },
-                {
-                  in: 'header',
-                  name: 'authorization',
-                  description:
-                    'JWT provided after authentication (if CrudOptions.jwtCookie == false)',
-                  schema: {
-                    type: 'string',
-                    format: 'Bearer <JWT>',
-                  },
-                },
-                {
-                  in: 'eicrud-jwt',
-                  name: 'authorization',
-                  description:
-                    'JWT provided after authentication (if CrudOptions.jwtCookie == true)',
-                  schema: {
-                    type: 'string',
-                  },
-                },
-              ],
+              parameters: [...commonParams],
               responses: {
                 '201': {
                   description: `The created ${tk_entity_name}`,
+                  content: entityContent,
+                },
+              },
+            },
+            patch: {
+              summary: `Update a ${tk_entity_name}`,
+              requestBody: {
+                description: `The ${tk_entity_name} update`,
+                required: true,
+                content: entityContent,
+              },
+              parameters: [...commonParams, entityQuery],
+              responses: {
+                '201': {
+                  description: `The updated ${tk_entity_name}`,
                   content: entityContent,
                 },
               },
