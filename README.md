@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="200" src="https://raw.githubusercontent.com/eicrud/eicrud/develop/docs/planet.svg" alt="@eicrud/eicrud logo">
+  <a href="https://eicrud.com" target="_blank"><img width="200" src="https://raw.githubusercontent.com/eicrud/eicrud/develop/docs/planet.svg" alt="@eicrud/eicrud logo"></a>
 </p>
 <p align="center">
   <a href="https://docs.eicrud.com" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/Documentation-purple"></a>
