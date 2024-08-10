@@ -531,17 +531,12 @@ export class Export {
       console.log('CREATED: ' + crudOptionsYamlDir);
     }
     if (!options?.oapiSeparateRefs) {
-      const entityYamlContent = fs.readFileSync(entityYamlDir);
-      const entityYamlObj: OpenAPIV3.Document = yaml.load(entityYamlContent);
+      const entityYamlObj: OpenAPIV3.Document = loadEntityYaml(entityYamlDir);
       lodash.merge(specs, { components: entityYamlObj.components });
 
-      const crudOptionsYamlContent = fs.readFileSync(crudOptionsYamlDir);
-      const crudOptionsYamlObj: OpenAPIV3.Document = yaml.load(
-        crudOptionsYamlContent,
-      );
+      const crudOptionsYamlObj: OpenAPIV3.Document =
+        loadEntityYaml(crudOptionsYamlDir);
       lodash.merge(specs, { components: crudOptionsYamlObj.components });
-
-      fs.rmSync(entityYamlDir);
     }
 
     for (const file of files) {
@@ -551,17 +546,18 @@ export class Export {
       const entity_kebab_name = fileName.replace('.entity.ts', '');
 
       const tk_entity_name = kebakToPascalCase(entity_kebab_name);
-
       const entityYamlPath = path.join(dir, `${entity_kebab_name}.entity.yaml`);
       const entityYamlPresent = fs.existsSync(entityYamlPath);
       if (!options?.oapiSeparateRefs && entityYamlPresent) {
-        const entityYamlContent = fs.readFileSync(entityYamlPath);
-        const entityYamlObj: OpenAPIV3.Document = yaml.load(entityYamlContent);
+        const entityYamlObj: OpenAPIV3.Document =
+          loadEntityYaml(entityYamlPath);
         lodash.merge(specs.components, entityYamlObj.components);
       }
+
+      const basePath = dir.replace(src, '.');
       const entityRef = entityYamlPresent
         ? path.join(
-            dir,
+            basePath,
             `${entity_kebab_name}.entity.yaml#/components/schemas/${tk_entity_name}`,
           )
         : `./Entity.yaml#/components/schemas/Entity`;
@@ -942,8 +938,7 @@ export class Export {
             ? tk_entity_name + '_' + keys.tk_cmd_return_dto_name
             : keys.tk_cmd_return_dto_name;
           if (!options?.oapiSeparateRefs && dtoYamlPresent) {
-            const dtoYamlContent = fs.readFileSync(dtoYamlPath);
-            const dtoYamlObj: OpenAPIV3.Document = yaml.load(dtoYamlContent);
+            const dtoYamlObj: OpenAPIV3.Document = loadEntityYaml(dtoYamlPath);
             specs.components.schemas[dtoRefName] =
               dtoYamlObj.components.schemas[keys.tk_cmd_dto_name];
             const returnDtoSchema =
@@ -953,11 +948,12 @@ export class Export {
             } else {
               returnDtoRefName = null;
             }
-            fs.rmSync(dtoYamlPath);
           }
+
+          const baseCmdDir = cmdDir.replace(src, '.');
           const dtoRef = dtoYamlPresent
             ? path.join(
-                cmdDir,
+                baseCmdDir,
                 `${tk_cmd_kebab_name}.dto.yaml#/components/schemas/${dtoRefName}`,
               )
             : `./Entity.yaml#/components/schemas/Entity`;
@@ -965,7 +961,7 @@ export class Export {
           const returnDtoRef =
             hasReturnDto && dtoYamlPresent
               ? path.join(
-                  cmdDir,
+                  baseCmdDir,
                   `${tk_cmd_kebab_name}.dto.yaml#/components/schemas/${returnDtoRefName}`,
                 )
               : `./Entity.yaml#/components/schemas/Entity`;
@@ -1042,17 +1038,41 @@ export class Export {
       }
     }
 
+    const replaceRecursive = (obj, func: (obj, k) => void) => {
+      for (let k in obj) {
+        if (typeof obj[k] == 'object' && obj[k] !== null) {
+          replaceRecursive(obj[k], func);
+        } else {
+          func(obj, k);
+        }
+      }
+    };
+
+    if (!options?.oapiSeparateRefs) {
+      const func = (obj, k) => {
+        if (k == '$ref') {
+          obj[k] = obj[k].replace(/(.*)#/g, '#');
+        }
+      };
+      replaceRecursive(specs, func);
+    }
+
     let yamlStr = yaml.dump(specs);
     const openApiPath = path.join(exportPath, 'eicrud-open-api.yaml');
 
-    if (!options?.oapiSeparateRefs) {
-      yamlStr = yamlStr.replace(/\\/g, '/');
-      yamlStr = yamlStr.replace(/\$ref\:.+#\/(.+)/g, "$ref: '#/$1'");
-    }
+    yamlStr = yamlStr.replace(/\\/g, '/');
 
     fs.writeFileSync(openApiPath, yamlStr);
     console.log('CREATED: ' + openApiPath);
   }
+}
+
+function loadEntityYaml(entityYamlDir: string): OpenAPIV3.Document {
+  let entityYamlContent = fs.readFileSync(entityYamlDir, 'utf8');
+  const entityYamlObj: OpenAPIV3.Document = yaml.load(
+    entityYamlContent,
+  ) as OpenAPIV3.Document;
+  return entityYamlObj;
 }
 
 // Recursively copy files that end with the specific string
