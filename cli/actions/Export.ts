@@ -522,16 +522,15 @@ export class Export {
       '../templates/openapi/CrudOptions.yaml',
     );
 
-    if (options?.oapiSeparateRefs) {
-      if (!fs.existsSync(entityYamlDir)) {
-        fs.copyFileSync(entityTemplatePath, entityYamlDir);
-        console.log('CREATED: ' + entityYamlDir);
-      }
-      if (!fs.existsSync(crudOptionsYamlDir)) {
-        fs.copyFileSync(crudOptionsTemplatePath, crudOptionsYamlDir);
-        console.log('CREATED: ' + crudOptionsYamlDir);
-      }
-    } else {
+    if (!fs.existsSync(entityYamlDir)) {
+      fs.copyFileSync(entityTemplatePath, entityYamlDir);
+      console.log('CREATED: ' + entityYamlDir);
+    }
+    if (!fs.existsSync(crudOptionsYamlDir)) {
+      fs.copyFileSync(crudOptionsTemplatePath, crudOptionsYamlDir);
+      console.log('CREATED: ' + crudOptionsYamlDir);
+    }
+    if (!options?.oapiSeparateRefs) {
       const entityYamlContent = fs.readFileSync(entityYamlDir);
       const entityYamlObj: OpenAPIV3.Document = yaml.load(entityYamlContent);
       lodash.merge(specs, { components: entityYamlObj.components });
@@ -554,8 +553,7 @@ export class Export {
       const tk_entity_name = kebakToPascalCase(entity_kebab_name);
 
       const entityYamlPath = path.join(dir, `${entity_kebab_name}.entity.yaml`);
-      const entityYamlPresent =
-        !options?.oapiNoDtos && fs.existsSync(entityYamlPath);
+      const entityYamlPresent = fs.existsSync(entityYamlPath);
       if (!options?.oapiSeparateRefs && entityYamlPresent) {
         const entityYamlContent = fs.readFileSync(entityYamlPath);
         const entityYamlObj: OpenAPIV3.Document = yaml.load(entityYamlContent);
@@ -936,13 +934,14 @@ export class Export {
           };
 
           const dtoYamlPath = cmdFile.replace('.dto.ts', '.dto.yaml');
-          let dtoRefName = fs.existsSync(dtoYamlPath)
+          const dtoYamlPresent = fs.existsSync(dtoYamlPath);
+          let dtoRefName = dtoYamlPresent
             ? tk_entity_name + '_' + keys.tk_cmd_dto_name
-            : null;
-          let returnDtoRefName = fs.existsSync(dtoYamlPath)
+            : keys.tk_cmd_dto_name;
+          let returnDtoRefName = dtoYamlPresent
             ? tk_entity_name + '_' + keys.tk_cmd_return_dto_name
-            : null;
-          if (!options?.oapiSeparateRefs && dtoRefName) {
+            : keys.tk_cmd_return_dto_name;
+          if (!options?.oapiSeparateRefs && dtoYamlPresent) {
             const dtoYamlContent = fs.readFileSync(dtoYamlPath);
             const dtoYamlObj: OpenAPIV3.Document = yaml.load(dtoYamlContent);
             specs.components.schemas[dtoRefName] =
@@ -956,10 +955,7 @@ export class Export {
             }
             fs.rmSync(dtoYamlPath);
           }
-          dtoRefName = dtoRefName || keys.tk_cmd_dto_name;
-          returnDtoRefName = returnDtoRefName || keys.tk_cmd_return_dto_name;
-
-          const dtoRef = !options?.oapiNoDtos
+          const dtoRef = dtoYamlPresent
             ? path.join(
                 cmdDir,
                 `${tk_cmd_kebab_name}.dto.yaml#/components/schemas/${dtoRefName}`,
@@ -967,7 +963,7 @@ export class Export {
             : `./Entity.yaml#/components/schemas/Entity`;
 
           const returnDtoRef =
-            hasReturnDto && !options?.oapiNoDtos
+            hasReturnDto && dtoYamlPresent
               ? path.join(
                   cmdDir,
                   `${tk_cmd_kebab_name}.dto.yaml#/components/schemas/${returnDtoRefName}`,

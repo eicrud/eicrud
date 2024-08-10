@@ -64,7 +64,6 @@ program
     'will convert classes into interfaces when exporting dtos',
   )
   .option('-o-er, --oapi-separate-refs', 'keep DTOs schemas in separate files')
-  .option('-o-nd, --oapi-no-dtos', 'do not include DTOs in openapi schema')
   .action(function () {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
