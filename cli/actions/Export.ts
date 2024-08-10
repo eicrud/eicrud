@@ -508,25 +508,42 @@ export class Export {
     const exportPath = cliOptions?.export?.outputDir || 'eicrud_exports';
     const src = path.join(exportPath);
 
-    const entityYamlDir = path.join(src, 'Entity.yaml');
-    const crudOptionsYamlDir = path.join(src, 'CrudOptions.yaml');
-    if (!fs.existsSync(entityYamlDir)) {
-      fs.copyFileSync(
-        path.join(__dirname, '../templates/openapi/Entity.yaml'),
-        entityYamlDir,
-      );
-      console.log('CREATED: ' + entityYamlDir);
-    }
-    if (!fs.existsSync(crudOptionsYamlDir)) {
-      fs.copyFileSync(
-        path.join(__dirname, '../templates/openapi/CrudOptions.yaml'),
-        crudOptionsYamlDir,
-      );
-      console.log('CREATED: ' + crudOptionsYamlDir);
-    }
-
     const conditionFun = (str) => str.endsWith('.entity.ts');
     const files = getFiles(src, conditionFun);
+
+    const entityYamlDir = path.join(src, 'Entity.yaml');
+    const crudOptionsYamlDir = path.join(src, 'CrudOptions.yaml');
+    const entityTemplatePath = path.join(
+      __dirname,
+      '../templates/openapi/Entity.yaml',
+    );
+    const crudOptionsTemplatePath = path.join(
+      __dirname,
+      '../templates/openapi/CrudOptions.yaml',
+    );
+
+    if (options?.oapiSeparateRefs) {
+      if (!fs.existsSync(entityYamlDir)) {
+        fs.copyFileSync(entityTemplatePath, entityYamlDir);
+        console.log('CREATED: ' + entityYamlDir);
+      }
+      if (!fs.existsSync(crudOptionsYamlDir)) {
+        fs.copyFileSync(crudOptionsTemplatePath, crudOptionsYamlDir);
+        console.log('CREATED: ' + crudOptionsYamlDir);
+      }
+    } else {
+      const entityYamlContent = fs.readFileSync(entityYamlDir);
+      const entityYamlObj: OpenAPIV3.Document = yaml.load(entityYamlContent);
+      lodash.merge(specs, { components: entityYamlObj.components });
+
+      const crudOptionsYamlContent = fs.readFileSync(crudOptionsYamlDir);
+      const crudOptionsYamlObj: OpenAPIV3.Document = yaml.load(
+        crudOptionsYamlContent,
+      );
+      lodash.merge(specs, { components: crudOptionsYamlObj.components });
+
+      fs.rmSync(entityYamlDir);
+    }
 
     for (const file of files) {
       //get dir from file path
@@ -536,16 +553,25 @@ export class Export {
 
       const tk_entity_name = kebakToPascalCase(entity_kebab_name);
 
-      const entityRef = options?.withTypes
+      const entityYamlPath = path.join(dir, `${entity_kebab_name}.entity.yaml`);
+      const entityYamlPresent =
+        !options?.oapiNoDtos && fs.existsSync(entityYamlPath);
+      if (!options?.oapiSeparateRefs && entityYamlPresent) {
+        const entityYamlContent = fs.readFileSync(entityYamlPath);
+        const entityYamlObj: OpenAPIV3.Document = yaml.load(entityYamlContent);
+        lodash.merge(specs.components, entityYamlObj.components);
+      }
+      const entityRef = entityYamlPresent
         ? path.join(
             dir,
             `${entity_kebab_name}.entity.yaml#/components/schemas/${tk_entity_name}`,
           )
         : `./Entity.yaml#/components/schemas/Entity`;
 
-      const entityContent = {
+      const entityContent: {
+        [media: string]: OpenAPIV3.MediaTypeObject;
+      } = {
         'application/json': {
-          nullable: true,
           schema: {
             $ref: entityRef,
           },
@@ -909,18 +935,42 @@ export class Export {
             tk_cmd_lname: tk_cmd_kebab_name,
           };
 
-          const dtoRef = options?.withTypes
+          const dtoYamlPath = cmdFile.replace('.dto.ts', '.dto.yaml');
+          let dtoRefName = fs.existsSync(dtoYamlPath)
+            ? tk_entity_name + '_' + keys.tk_cmd_dto_name
+            : null;
+          let returnDtoRefName = fs.existsSync(dtoYamlPath)
+            ? tk_entity_name + '_' + keys.tk_cmd_return_dto_name
+            : null;
+          if (!options?.oapiSeparateRefs && dtoRefName) {
+            const dtoYamlContent = fs.readFileSync(dtoYamlPath);
+            const dtoYamlObj: OpenAPIV3.Document = yaml.load(dtoYamlContent);
+            specs.components.schemas[dtoRefName] =
+              dtoYamlObj.components.schemas[keys.tk_cmd_dto_name];
+            const returnDtoSchema =
+              dtoYamlObj.components.schemas[keys.tk_cmd_return_dto_name];
+            if (returnDtoSchema) {
+              specs.components.schemas[returnDtoRefName] = returnDtoSchema;
+            } else {
+              returnDtoRefName = null;
+            }
+            fs.rmSync(dtoYamlPath);
+          }
+          dtoRefName = dtoRefName || keys.tk_cmd_dto_name;
+          returnDtoRefName = returnDtoRefName || keys.tk_cmd_return_dto_name;
+
+          const dtoRef = !options?.oapiNoDtos
             ? path.join(
                 cmdDir,
-                `${tk_cmd_kebab_name}.dto.yaml#/components/schemas/${keys.tk_cmd_dto_name}`,
+                `${tk_cmd_kebab_name}.dto.yaml#/components/schemas/${dtoRefName}`,
               )
             : `./Entity.yaml#/components/schemas/Entity`;
 
           const returnDtoRef =
-            hasReturnDto && options?.withTypes
+            hasReturnDto && !options?.oapiNoDtos
               ? path.join(
                   cmdDir,
-                  `${tk_cmd_kebab_name}.dto.yaml#/components/schemas/${keys.tk_cmd_return_dto_name}`,
+                  `${tk_cmd_kebab_name}.dto.yaml#/components/schemas/${returnDtoRefName}`,
                 )
               : `./Entity.yaml#/components/schemas/Entity`;
 
@@ -996,8 +1046,14 @@ export class Export {
       }
     }
 
-    const yamlStr = yaml.dump(specs);
+    let yamlStr = yaml.dump(specs);
     const openApiPath = path.join(exportPath, 'eicrud-open-api.yaml');
+
+    if (!options?.oapiSeparateRefs) {
+      yamlStr = yamlStr.replace(/\\/g, '/');
+      yamlStr = yamlStr.replace(/\$ref\:.+#\/(.+)/g, "$ref: '#/$1'");
+    }
+
     fs.writeFileSync(openApiPath, yamlStr);
     console.log('CREATED: ' + openApiPath);
   }

@@ -53,13 +53,18 @@ program
 
 program
   .command('export')
-  .description('Export dtos or generate superclient')
+  .description('Export dtos, superclient or openapi schemas')
   .argument('<type>', 'dtos | superclient | openapi')
   .option(
     '-kv, --keep-validators',
-    'will keep class-validator decorators when exporting',
+    'will keep class-validator decorators when exporting dtos',
   )
-  .option('-cc, --convert-classes', 'will convert classes into interfaces')
+  .option(
+    '-cc, --convert-classes',
+    'will convert classes into interfaces when exporting dtos',
+  )
+  .option('-o-er, --oapi-separate-refs', 'keep DTOs schemas in separate files')
+  .option('-o-nd, --oapi-no-dtos', 'do not include DTOs in openapi schema')
   .action(function () {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
