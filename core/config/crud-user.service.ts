@@ -30,7 +30,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { ModuleRef } from '@nestjs/core';
-import { LoginDto, UserIdDto } from '../crud/model/dtos';
+import { UserIdDto } from '../crud/model/dtos';
 import { LoginResponseDto } from '@eicrud/shared/interfaces';
 import * as bcrypt from 'bcrypt';
 import { TimeoutUserDto } from './basecmd_dtos/user/timeout_user.dto';
@@ -40,6 +40,7 @@ import { ResetPasswordDto } from './basecmd_dtos/user/reset_password.dto';
 import { SendPasswordResetEmailDto } from './basecmd_dtos/user/send_password_reset_email.dto';
 import { SendVerificationEmailDto } from './basecmd_dtos/user/send_verification_email.dto';
 import { VerifyEmailDto } from './basecmd_dtos/user/verify_email.dto';
+import { LoginDto } from './basecmd_dtos/user/login.dto';
 
 export class EmptyDto {
   @IsOptional()

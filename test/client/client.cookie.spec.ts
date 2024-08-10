@@ -33,7 +33,7 @@ import {
   CrudClient,
   MemoryStorage,
 } from '../../client/CrudClient';
-import { LoginDto } from '@eicrud/core/crud/model/dtos';
+import { LoginDto } from '@eicrud/core/config/basecmd_dtos/user/login.dto';
 import { MelonService } from '../src/services/melon/melon.service';
 
 const testAdminCreds = {
