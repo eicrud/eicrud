@@ -488,9 +488,10 @@ export class Export {
   }
 
   static async openapi(options?, cliOptions?: CliOptions) {
-    const specs: OpenAPIV3.Document = cliOptions?.export?.openApiBaseSpec || {};
+    const baseSpecs: OpenAPIV3.Document =
+      cliOptions?.export?.openApiBaseSpec || {};
 
-    const baseSpecs: Omit<OpenAPIV3.Document, 'paths'> = {
+    const specs: Omit<OpenAPIV3.Document, 'paths'> = {
       openapi: '3.0.0',
       info: {
         title: 'Eicrud Server',
@@ -636,8 +637,18 @@ export class Export {
       };
 
       const commonParams: OpenAPIV3.ParameterObject[] = [
-        csrf_schema,
-        { ...csrf_schema, in: 'cookie' },
+        {
+          in: 'query',
+          name: 'options',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: './CrudOptions.yaml#/components/schemas/CrudOptions',
+              },
+            },
+          },
+          description: 'https://docs.eicrud.com/services/options',
+        },
         {
           in: 'header',
           name: 'authorization',
@@ -657,18 +668,8 @@ export class Export {
             type: 'string',
           },
         },
-        {
-          in: 'query',
-          name: 'options',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: './CrudOptions.yaml#/components/schemas/CrudOptions',
-              },
-            },
-          },
-          description: 'https://docs.eicrud.com/services/options',
-        },
+        csrf_schema,
+        { ...csrf_schema, in: 'cookie' },
       ];
 
       const crudServiceSpecs: Omit<OpenAPIV3.Document, 'openapi' | 'info'> = {
@@ -676,7 +677,7 @@ export class Export {
           [`/crud/s/${entity_kebab_name}/one`]: {
             get: {
               summary: `Find a ${tk_entity_name}`,
-              parameters: [...commonParams, entityQuery],
+              parameters: [entityQuery, ...commonParams],
               responses: {
                 '200': {
                   description: `The found ${tk_entity_name}`,
@@ -706,7 +707,7 @@ export class Export {
                 required: true,
                 content: entityContent,
               },
-              parameters: [...commonParams, entityQuery],
+              parameters: [entityQuery, ...commonParams],
               responses: {
                 '200': {
                   description: `The updated ${tk_entity_name}`,
@@ -716,7 +717,7 @@ export class Export {
             },
             delete: {
               summary: `Delete a ${tk_entity_name}`,
-              parameters: [...commonParams, entityQuery],
+              parameters: [entityQuery, ...commonParams],
               responses: {
                 '200': {
                   description: `${tk_entity_name} deleted`,
@@ -782,7 +783,7 @@ export class Export {
                   },
                 },
               },
-              parameters: [...commonParams, entityQuery],
+              parameters: [entityQuery, ...commonParams],
               responses: {
                 '200': {
                   description: `The updated ${tk_entity_name} counts`,
@@ -803,7 +804,7 @@ export class Export {
           [`/crud/s/${entity_kebab_name}/many`]: {
             get: {
               summary: `Find ${tk_entity_name}s`,
-              parameters: [...commonParams, entityQuery],
+              parameters: [entityQuery, ...commonParams],
               responses: {
                 '200': {
                   description: `The found ${tk_entity_name}s`,
@@ -818,7 +819,7 @@ export class Export {
                 required: true,
                 content: entityContent,
               },
-              parameters: [...commonParams, entityQuery],
+              parameters: [entityQuery, ...commonParams],
               responses: {
                 '200': {
                   description: `The updated ${tk_entity_name} count`,
@@ -834,7 +835,7 @@ export class Export {
             },
             delete: {
               summary: `Query delete ${tk_entity_name}s`,
-              parameters: [...commonParams, entityQuery],
+              parameters: [entityQuery, ...commonParams],
               responses: {
                 '200': {
                   description: `${tk_entity_name} deleted count`,
@@ -845,7 +846,7 @@ export class Export {
           [`/crud/s/${entity_kebab_name}/in`]: {
             get: {
               summary: `Find ${tk_entity_name}s with id in provided list`,
-              parameters: [...commonParams, inQuery],
+              parameters: [inQuery, ...commonParams],
               responses: {
                 '200': {
                   description: `The found ${tk_entity_name}s`,
@@ -860,7 +861,7 @@ export class Export {
                 required: true,
                 content: entityContent,
               },
-              parameters: [...commonParams, inQuery],
+              parameters: [inQuery, ...commonParams],
               responses: {
                 '200': {
                   description: `The updated ${tk_entity_name} count`,
@@ -876,7 +877,7 @@ export class Export {
             },
             delete: {
               summary: `Query delete ${tk_entity_name}s with id in provided list`,
-              parameters: [...commonParams, inQuery],
+              parameters: [inQuery, ...commonParams],
               responses: {
                 '200': {
                   description: `${tk_entity_name} deleted count`,
@@ -887,7 +888,7 @@ export class Export {
           [`/crud/s/${entity_kebab_name}/ids`]: {
             get: {
               summary: `Find ${tk_entity_name}s and return only ids`,
-              parameters: [...commonParams, entityQuery],
+              parameters: [entityQuery, ...commonParams],
               responses: {
                 '200': {
                   description: `The found ${tk_entity_name}s' ids`,

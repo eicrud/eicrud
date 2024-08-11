@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsBoolean, IsInt } from 'class-validator';
 import { $Transform } from '@eicrud/core/validation/decorators';
-import { ILoginDto } from '@eicrud/shared/interfaces';
+import { ILoginDto, LoginResponseDto } from '@eicrud/shared/interfaces';
 
 //@eicrud:cli:export:skip-superclient
 export class LoginDto implements ILoginDto {
@@ -20,4 +20,10 @@ export class LoginDto implements ILoginDto {
   @IsOptional()
   @IsInt()
   expiresInSec?: number;
+}
+
+export class LoginReturnDto implements LoginResponseDto {
+  userId: string;
+  accessToken?: string;
+  refreshTokenSec?: number;
 }

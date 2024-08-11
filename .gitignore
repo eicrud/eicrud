@@ -58,3 +58,4 @@ test/eicrud_exports/
 verdaccio/htpasswd
 test/oapi-client/
 openapitools.json
+test/eicrud-open-api.yaml
