@@ -17,7 +17,6 @@ import { MyUserService } from '../src/services/my-user/my-user.service';
 import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { EntityManager } from '@mikro-orm/mongodb';
-import { UserProfile } from '../src/services/user-profile/user-profile.entity';
 import {
   createAccountsAndProfiles,
   createMelons,
@@ -36,6 +35,7 @@ import { CrudAuthGuard } from '@eicrud/core/authentication/auth.guard';
 import { ClientConfig, MemoryStorage } from '@eicrud/client/CrudClient';
 import { ICrudOptions } from '../../shared/interfaces';
 import * as services from '../oapi-client/services.gen';
+import { UserProfile } from '../oapi-client';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -228,11 +228,12 @@ describe('AppController', () => {
 
       const authorization = 'Bearer ' + user.jwt;
 
-      type MyDragonFruit = Partial<DragonFruit> & { ownerEmail: string };
+      type MyDragonFruit = Partial<UserProfile> & { ownerEmail: string };
       let payload: MyDragonFruit = {
         name: 'fruit 1',
         owner: user.id as string,
         ownerEmail: user.email,
+        secretCode: 'hello',
       };
 
       let res = await services.postCrudSDragonFruitOne({

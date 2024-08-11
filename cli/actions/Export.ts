@@ -601,28 +601,32 @@ export class Export {
       const inQuery: OpenAPIV3.ParameterObject = {
         in: 'query',
         name: 'query',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                id: {
-                  type: 'array',
-                  items: {
-                    type: 'string',
+        schema: options?.oapiJsonQueryString ? { type: 'string' } : undefined,
+        content: options?.oapiJsonQueryString
+          ? undefined
+          : {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    id: {
+                      type: 'array',
+                      items: {
+                        type: 'string',
+                      },
+                    },
                   },
                 },
               },
             },
-          },
-        },
         description: `The ${tk_entity_name} query (ids)`,
       };
 
       const entityQuery: OpenAPIV3.ParameterObject = {
         in: 'query',
         name: 'query',
-        content: entityContent,
+        content: options?.oapiJsonQueryString ? undefined : entityContent,
+        schema: options?.oapiJsonQueryString ? { type: 'string' } : undefined,
         description: `The ${tk_entity_name} query`,
       };
 
@@ -640,14 +644,18 @@ export class Export {
         {
           in: 'query',
           name: 'options',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: './CrudOptions.yaml#/components/schemas/CrudOptions',
+          schema: options?.oapiJsonQueryString ? { type: 'string' } : undefined,
+          content: options?.oapiJsonQueryString
+            ? undefined
+            : {
+                'application/json': {
+                  schema: {
+                    $ref: './CrudOptions.yaml#/components/schemas/CrudOptions',
+                  },
+                },
               },
-            },
-          },
-          description: 'https://docs.eicrud.com/services/options',
+          description:
+            'CrudOptions (format: JSON) https://docs.eicrud.com/services/options',
         },
         {
           in: 'header',
@@ -978,8 +986,11 @@ export class Export {
           let dtoQuery: OpenAPIV3.ParameterObject = {
             in: 'query',
             name: 'query',
-            content: dtoContent,
-            description: `The ${keys.tk_cmd_dto_name} dto (${keys.tk_cmd_dto_name})`,
+            content: options?.oapiJsonQueryString ? undefined : dtoContent,
+            schema: options?.oapiJsonQueryString
+              ? { type: 'string' }
+              : undefined,
+            description: `The ${keys.tk_cmd_dto_name} dto (${keys.tk_cmd_dto_name}) (format: JSON)`,
           };
 
           let returnDtoContent: { [media: string]: OpenAPIV3.MediaTypeObject } =
