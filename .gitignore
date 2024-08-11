@@ -56,3 +56,5 @@ site/
 test/test_exports
 test/eicrud_exports/
 verdaccio/htpasswd
+test/oapi-client/
+openapitools.json
