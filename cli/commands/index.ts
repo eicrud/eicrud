@@ -66,7 +66,7 @@ program
   .option('-o-sr, --oapi-separate-refs', 'keep DTOs schemas in separate files')
   .option(
     '-o-jqs, --oapi-json-query-string',
-    'keep DTOs schemas in separate files',
+    'set openapi schema json query parameters type to string for compatibility with tools that do not support application/json there',
   )
   .action(function () {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
