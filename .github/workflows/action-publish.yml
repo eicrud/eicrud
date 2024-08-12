@@ -33,8 +33,8 @@ jobs:
       - name: Convert types
         run: npm i -g typeconv@2.3.1 && cd test &&  typeconv -v -f ts -t oapi -o test_exports 'test_exports/**.ts' 'test_exports/**/*.ts' && cd ..
 
-      - name: Export oapi with types & rename test
-        run: npm run export:oapi && node -e "fs.renameSync('./test/client/client.oapi-types.spec.ts.skip', './test/client/client.oapi-types.spec.ts')"
+      - name: Export oapi with types, setup client, rename test file
+        run: npm run export:oapi && setup:oapi:client && node -e "fs.renameSync('./test/client/client.oapi-types.spec.ts.skip', './test/client/client.oapi-types.spec.ts')" 
 
       - name: Build
         run: npm run build

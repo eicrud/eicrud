@@ -1,3 +1,5 @@
+import { StarFruit } from './star-fruit/star-fruit.entity';
+import { StarFruitService } from './star-fruit/star-fruit.service';
 import {
   superclientCRUDServices,
   superclientCRUDEntities,
@@ -22,6 +24,7 @@ import { MyUserService } from './my-user/my-user.service';
 //Auto generated file
 
 export const CRUDServices = [
+  StarFruitService,
   ...superclientCRUDServices,
   HookTriggerService,
   HookLogService,
@@ -34,6 +37,7 @@ export const CRUDServices = [
 ];
 
 export const CRUDEntities = [
+  StarFruit,
   ...superclientCRUDEntities,
   HookTrigger,
   HookLog,

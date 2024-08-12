@@ -1,41 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
-const path = require('path');
-const fs = require('fs');
 import {
   getModule,
   createNestApplication,
   readyApp,
   dropDatabases,
 } from '../src/app.module';
-import { SuperclientTest as ExportedSuperclientTest } from '../test_exports/superclient-ms/superclient-test/superclient-test.entity';
-import {
-  DragonFruit,
-  DragonFruit as ExportedDragonFruit,
-} from '../test_exports/dragon-fruit/dragon-fruit.entity';
 import { CrudController } from '@eicrud/core/crud/crud.controller';
 import { MyUserService } from '../src/services/my-user/my-user.service';
 import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { EntityManager } from '@mikro-orm/mongodb';
-import {
-  createAccountsAndProfiles,
-  createMelons,
-  createNewProfileTest,
-  testMethod,
-} from '../test.utils';
+import { createAccountsAndProfiles } from '../test.utils';
 import { UserProfileService as MyProfileService } from '../src/services/user-profile/user-profile.service';
-import { PingCmdDto as ExportedPingCmdDto } from '../test_exports/superclient-ms/superclient-test/cmds/ping_cmd/ping_cmd.dto';
-import { Melon } from '../src/services/melon/melon.entity';
 import { TestUser } from '../test.utils';
 import {
   CRUD_CONFIG_KEY,
   CrudConfigService,
 } from '@eicrud/core/config/crud.config.service';
 import { CrudAuthGuard } from '@eicrud/core/authentication/auth.guard';
-import { ClientConfig, MemoryStorage } from '@eicrud/client/CrudClient';
-import { ICrudOptions } from '../../shared/interfaces';
 import * as services from '../oapi-client/services.gen';
 import { UserProfile } from '../oapi-client';
+import { StarFruit } from '../src/services/star-fruit/star-fruit.entity';
+import { StarFruitService } from '../src/services/star-fruit/star-fruit.service';
+const path = require('path');
+const fs = require('fs');
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -70,8 +58,7 @@ describe('AppController', () => {
   let appController: CrudController;
   let userService: MyUserService;
   let authService: CrudAuthService;
-  let authGuard: CrudAuthGuard;
-  let profileService: MyProfileService;
+  let starFruitService: StarFruitService;
   let app: NestFastifyApplication;
 
   let entityManager: EntityManager;
@@ -96,8 +83,7 @@ describe('AppController', () => {
     appController = app.get<CrudController>(CrudController);
     userService = app.get<MyUserService>(MyUserService);
     authService = app.get<CrudAuthService>(CrudAuthService);
-    authGuard = authService._authGuard;
-    profileService = app.get<MyProfileService>(MyProfileService);
+    starFruitService = app.get<StarFruitService>(StarFruitService);
     entityManager = app.get<EntityManager>(EntityManager);
     crudConfig = app.get<CrudConfigService>(CRUD_CONFIG_KEY, { strict: false });
 
@@ -228,15 +214,12 @@ describe('AppController', () => {
 
       const authorization = 'Bearer ' + user.jwt;
 
-      type MyDragonFruit = Partial<UserProfile> & { ownerEmail: string };
-      let payload: MyDragonFruit = {
+      let payload: Partial<StarFruit> = {
         name: 'fruit 1',
-        owner: user.id as string,
         ownerEmail: user.email,
-        secretCode: 'hello',
       };
 
-      let res = await services.postCrudSDragonFruitOne({
+      let res = await services.postCrudSStarFruitOne({
         body: payload,
         query: {
           options: JSON.stringify({
@@ -248,6 +231,11 @@ describe('AppController', () => {
         },
       });
       expect(res.data.name).toBe(payload.name);
+      const fruit1 = await starFruitService.$findOne(
+        { name: payload.name },
+        null,
+      );
+      expect(fruit1.name).toBe(payload.name);
     },
     6000 * 100,
   );
