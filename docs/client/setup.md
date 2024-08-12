@@ -96,6 +96,9 @@ const client = new DynamicClient();
 await client.get('user').checkJwt();
 ```
 
-For an even better experience check out the [super-client](../recipes/super-client.md) which comes with all your Entity/DTO types.
+For an even better experience check out the [super-client](../recipes/super-client.md) which comes with all your Entity/DTO types. 
+
+!!! note
+    If you need a client for other languages (Java, Python, Swift... etc.), check out the [OpenAPI recipe](../recipes/OpenAPI-schema.md) that lets you export all your endpoints into an OpenAPI schema. From there you can use [generators](https://openapi-generator.tech/docs/generators/){:target="_blank"} or build your own client.
 
 
