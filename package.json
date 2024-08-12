@@ -36,8 +36,8 @@
     "clean:deep": "del-cli **.js **.d.ts **.js.map !node_modules !**/node_modules && del-cli **/package-lock.json && del-cli test/cli-app/** && del-cli core/node_modules shared/node_modules db_mongo/node_modules db_postgre/node_modules client/node_modules cli/node_modules",
     "prepare": "husky install",
     "setup:cli": " cd shared && npm run compile && cd ../cli && npm run compile && npm remove -g @eicrud/cli && npm i -g ./ && cd ..",
-    "setup:tests": "npm i && npm run setup:cli && eicrud export dtos && eicrud export superclient && eicrud export openapi && npm run setup:oapi:client",
-    "setup:oapi:client": "npx @hey-api/openapi-ts -i ./test/test_exports/eicrud-open-api.yaml -o ./test/oapi-client -c @hey-api/client-axios",
+    "setup:tests": "npm i && npm run setup:cli && eicrud export dtos && eicrud export superclient && eicrud export openapi -o-jqs && npm run setup:oapi:client",
+    "setup:oapi:client": "openapi-ts -i ./test/test_exports/eicrud-open-api.yaml -o ./test/oapi-client -c @hey-api/client-axios",
     "setup:typeconv": "cd test && typeconv -v -f ts -t oapi -o test_exports 'test_exports/**.ts' 'test_exports/**/*.ts' && cd .."
   },
   "dependencies": {

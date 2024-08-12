@@ -7,7 +7,43 @@ on:
   # pull_request:
   #   branches: ['develop', 'main']
 jobs:
+
+  release-pretest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    services:
+      mongodb:
+        image: mongo
+        ports:
+        - 27017:27017
+      postgres:
+        image: postgres
+        ports:
+        - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: admin
+    steps:
+      - name: Copy repository
+        uses: actions/checkout@v3
+
+      - name: Setup
+        run: npm i && npm run setup:cli && eicrud export dtos -cc
+
+      - name: Convert types
+        run: npm i -g typeconv@2.3.1 && cd test &&  typeconv -v -f ts -t oapi -o test_exports 'test_exports/**.ts' 'test_exports/**/*.ts' && cd ..
+
+      - name: Export oapi with types & rename test
+        run: npm run export:oapi && node -e "fs.renameSync('./test/client/client.oapi-types.spec.ts.skip', './test/client/client.oapi-types.spec.ts')"
+
+      - name: Build
+        run: npm run build
+
+      - name: Mongodb tests
+        run: npm run test
+
   release-test:
+    needs: release-pretest
     runs-on: ubuntu-latest
     timeout-minutes: 16
     services:
