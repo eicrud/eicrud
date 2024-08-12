@@ -21,7 +21,7 @@ const getVersion = () => {
   return packageJ.version;
 };
 
-program.name('eicrud-cli').description('CLI for Eicrud').version(getVersion());
+program.name('eicrud').description('CLI for Eicrud').version(getVersion());
 
 program
   .command('generate')

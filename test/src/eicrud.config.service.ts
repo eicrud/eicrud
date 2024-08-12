@@ -27,6 +27,7 @@ import { HookLog } from './services/hook-log/hook-log.entity';
 import { SuperclientTest } from './services/superclient-ms/superclient-test/superclient-test.entity';
 import { SuperclientTestExclude } from './services/superclient-ms/superclient-test-exclude/superclient-test-exclude.entity';
 import { SuperclientTestExclude2 } from './services/superclient-ms/superclient-test-exclude2/superclient-test-exclude2.entity';
+import { StarFruit } from './services/star-fruit/star-fruit.entity';
 
 const roles: CrudRole[] = [
   {
@@ -92,7 +93,7 @@ msOptions.microServices = {
     url: 'http://localhost:3006',
   },
   email: {
-    services: [FakeEmail, HookLog],
+    services: [FakeEmail, HookLog, StarFruit],
     openMsLink: true,
     openController: PROXY_TEST ? true : false,
     url: 'http://localhost:3007',

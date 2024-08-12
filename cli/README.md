@@ -6,13 +6,41 @@ CLI (Command line interface) package for the [Eicrud framework](https://github.c
 npm i -g @eicrud/cli
 ```
 
-## Generate
+## Setup
+```bash
+Usage: eicrud setup [options] <type> <name>
 
+Setup new project (adapt an existing nestjs application)
+
+Arguments:
+  type        mongo | postgre
+  name        project name (will be used for db)
+
+Options:
+  -h, --help  display help for command
+```
 Initialise Eicrud on a Nestjs application.
 
 ```
 cd project-name
 eicrud setup mongo project-name
+```
+
+## Generate
+```bash
+Usage: eicrud generate [options] <type> <serviceName> [cmdName]
+
+Generate new files
+
+Arguments:
+  type                service, cmd
+  serviceName
+  cmdName
+
+Options:
+  -n, --non-crud      will not create a DB table for this service
+  -ms, --ms <string>  a subfolder for the service to be created/modified in
+  -h, --help          display help for command
 ```
 
 Generate a new service.
@@ -33,6 +61,22 @@ eicrud generate cmd myService myCmd (-ms myFolder)
 ```
 
 ### Export
+```bash
+Usage: eicrud export [options] <type>
+
+Export dtos, superclient or openapi schemas
+
+Arguments:
+  type                              dtos | superclient | openapi
+
+Options:
+  -kv, --keep-validators            will keep class-validator decorators when exporting dtos
+  -cc, --convert-classes            will convert classes into interfaces when exporting dtos
+  -o-sr, --oapi-separate-refs       keep DTOs schemas in separate files
+  -o-jqs, --oapi-json-query-string  export openapi schema json query parameters with type string for      
+                                    compatibility with tools that do not support application/json there   
+  -h, --help                        display help for command
+```
 
 Copy all your `.dto.ts` and `.entity.ts` to the `eicrud_exports` directory and strip them of their decorators.
 ```bash
@@ -50,7 +94,9 @@ Export an OpenAPI schema based on your entities and commands.
 eicrud export openapi
 ```
 
-## Config
+
+
+## JSON config
 You can specify ExportOptions in a `eicrud-cli.json` file at the root of your project.
 ```typescript
 export interface ExportOptions {
