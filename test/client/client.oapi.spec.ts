@@ -444,7 +444,7 @@ describe('AppController', () => {
       }
 
       let inIds = createdStarFruitIn.map((fruit) => {
-        return fruit.id;
+        return fruit.id?.toString();
       });
       let inQuery: Partial<StarFruit> = {
         id: inIds as any,
@@ -524,13 +524,13 @@ describe('AppController', () => {
       expect(toBeDeletedOne).toBeFalsy();
 
       let inIds = deleteStarFruitIn.map((fruit) => {
-        return fruit.id;
+        return fruit.id?.toString();
       });
       let inQuery: Partial<StarFruit> = {
         id: inIds as any,
       };
 
-      let toBeDeletedIn = await starFruitService.$find(inQuery, null);
+      let toBeDeletedIn = await starFruitService.$find({ ...inQuery }, null);
       expect(toBeDeletedIn.data.length).toBeGreaterThan(0);
 
       let resIn = await services.deleteCrudSStarFruitIn({
@@ -599,7 +599,7 @@ describe('AppController', () => {
       expect(res.data.name).toBe('StarFruit Update One');
 
       let inIds = createdStarFruitIn.map((fruit) => {
-        return fruit.id;
+        return fruit.id?.toString();
       });
       let inQuery: Partial<StarFruit> = {
         id: inIds as any,
