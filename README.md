@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="200" src="https://raw.githubusercontent.com/eicrud/eicrud/develop/docs/planet.svg" alt="@eicrud/eicrud logo">
+  <a href="https://eicrud.com" target="_blank"><img width="200" src="https://raw.githubusercontent.com/eicrud/eicrud/develop/docs/planet.svg" alt="@eicrud/eicrud logo"></a>
 </p>
 <p align="center">
   <a href="https://docs.eicrud.com" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/Documentation-purple"></a>
@@ -110,28 +110,28 @@ You can extend it using [commands](https://docs.eicrud.com/services/commands/) (
 msOptions.microServices = {
   "entry": {
     services: [],
-    openBackDoor: false, openController: true,
+    openMsLink: false, openController: true,
     url: "http://localhost:3004",
   },
   "users": {
     services: [User, Profile],
-    openBackDoor: true, openController: false,
+    openMsLink: true, openController: false,
     url: "http://localhost:3005",
   },
   "orders": {
     services: [Order],
-    openBackDoor: true, openController: false,
+    openMsLink: true, openController: false,
     url: "http://localhost:3006",
   },
 }
 ```
 
 ## Powerful typed client (remote procedure call)
-**Eicrud** lets you generate a powerful client that holds all your DTOs and commands. Allowing auto-completion and type safety directly in your front-end.  
+**Eicrud** lets you generate a powerful super-client that holds all your DTOs and commands. Allowing auto-completion and type safety directly in your front-end.  
 ```typescript
 // in your profile service
 async $say_hello(dto: SayHelloDto, ctx: CrudContext) {
-    return `Hello ${dto.arg}!`
+    return `Hello ${dto.myArg}!`
 }
 
 // in your frontend

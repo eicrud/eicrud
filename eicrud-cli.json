@@ -7,6 +7,14 @@
         "outputDir": "./test/test_exports",
         "inputDir": "./test/src/services",
         "modulesDir": "./node_modules",
-        "userServiceDir": "my-user"
+        "userServiceDir": "my-user",
+        "openApiBaseSpec": {
+            "servers": [
+                {
+                  "description": "Localhost",
+                  "url": "http://localhost:2997"
+                }
+              ]
+        }
     }
 }

@@ -4,6 +4,7 @@ import { CrudUser } from '../../config/model/CrudUser';
 import { CrudSecurity } from '../../config/model/CrudSecurity';
 import { CrudConfigService } from '../../config/crud.config.service';
 import { CrudService } from '../crud.service';
+import { FastifyReply, FastifyRequest } from 'fastify';
 
 /**
  * A context assigned to every request.
@@ -14,7 +15,7 @@ export interface CrudContext {
   user?: CrudUser;
   userId?: string;
   userTrust?: number;
-  method?: string;
+  method?: 'POST' | 'GET' | 'PATCH' | 'DELETE';
   query?: any;
   data?: any;
   origin?: 'crud' | 'cmd' | 'webhook' | string;
@@ -25,9 +26,9 @@ export interface CrudContext {
   jwtPayload?: any;
   url?: string;
   currentMs?: string;
-  backdoorGuarded?: boolean;
+  msLinkGuarded?: boolean;
   /**
-   * Temp object that will not be serialized to backdoors, set to {} for every request
+   * Temp object that will not be serialized to ms-links, set to {} for every request
    * @UsageNotes You can use it to cache data during authorization process (useful for batch operations)
    * @type {object}
    */
@@ -35,8 +36,8 @@ export interface CrudContext {
 
   setCookies?: Record<string, CookieToSet>;
   getCurrentService?: () => CrudService<any>;
-  getHttpRequest?: () => any;
-  getHttpResponse?: () => any;
+  getHttpRequest?: () => FastifyRequest;
+  getHttpResponse?: () => FastifyReply;
 }
 
 export interface CookieToSet {

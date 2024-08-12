@@ -1,0 +1,50 @@
+openapi: 3.0.0
+info:
+  title: Converted from CrudOptions.yaml with typeconv
+  version: '1'
+  x-id: CrudOptions.yaml
+  x-comment: >-
+    Generated from _exports\CrudOptions.ts by core-types-json-schema
+    (https://github.com/grantila/core-types-json-schema) on behalf of typeconv
+    (https://github.com/grantila/typeconv)
+paths: {}
+components:
+  schemas:
+    CrudOptions:
+      properties:
+        populate:
+          items:
+            title: CrudOptions.populate.[]
+            type: string
+          title: CrudOptions.populate
+          type: array
+        mockRole:
+          title: CrudOptions.mockRole
+          type: string
+        cached:
+          title: CrudOptions.cached
+          type: boolean
+        jwtCookie:
+          title: CrudOptions.jwtCookie
+          type: boolean
+        fields:
+          items:
+            title: CrudOptions.fields.[]
+            type: string
+          title: CrudOptions.fields
+          type: array
+        exclude:
+          items:
+            title: CrudOptions.exclude.[]
+            type: string
+          title: CrudOptions.exclude
+          type: array
+        limit:
+          title: CrudOptions.limit
+          type: number
+        offset:
+          title: CrudOptions.offset
+          type: number
+      additionalProperties: false
+      title: CrudOptions
+      type: object

@@ -15,7 +15,7 @@ import {
 import { CrudService } from './crud.service';
 import { CrudContext } from './model/CrudContext';
 import { Context } from '../authentication/auth.utils';
-import { BackdoorQuery, CrudQuery } from '../crud/model/CrudQuery';
+import { MsLinkQuery, CrudQuery } from '../crud/model/CrudQuery';
 import { CrudAuthorizationService } from './crud.authorization.service';
 import { setImmediate } from 'timers/promises';
 import replyFrom from '@fastify/reply-from';
@@ -127,7 +127,7 @@ export class CrudController {
   }
 
   assignContext(
-    method: string,
+    method: 'POST' | 'GET' | 'PATCH' | 'DELETE',
     crudQuery: CrudQuery,
     query: any,
     data: any,
@@ -157,10 +157,24 @@ export class CrudController {
   async beforeHooks(service: CrudService<any>, ctx: CrudContext) {
     //await service.beforeControllerHook(ctx);
     await this.crudConfig.beforeControllerHook(ctx);
+    if (ctx.origin == 'cmd') {
+      const cmdSecurity: CmdSecurity =
+        service.security?.cmdSecurityMap?.[ctx.cmdName];
+      if (cmdSecurity?.hooks) {
+        ctx.data = await cmdSecurity.hooks?.beforeControllerHook(ctx.data, ctx);
+      }
+    }
   }
 
   async afterHooks(service: CrudService<any>, res, ctx: CrudContext) {
-    await this.crudConfig.afterControllerHook(res, ctx);
+    if (ctx.origin == 'cmd') {
+      const cmdSecurity: CmdSecurity =
+        service.security?.cmdSecurityMap?.[ctx.cmdName];
+      if (cmdSecurity?.hooks) {
+        res = await cmdSecurity.hooks?.afterControllerHook(ctx.data, res, ctx);
+      }
+    }
+    res = await this.crudConfig.afterControllerHook(res, ctx);
     if (ctx.setCookies) {
       const fastifyReply = ctx.getHttpResponse();
       for (const key in ctx.setCookies) {
@@ -168,6 +182,7 @@ export class CrudController {
         fastifyReply.setCookie(key, cookie.value, cookie);
       }
     }
+    return res;
   }
   async errorHooks(
     service: CrudService<any>,
@@ -175,7 +190,15 @@ export class CrudController {
     ctx: CrudContext,
   ) {
     //await service.errorControllerHook(e, ctx);
-    let res: any = await this.crudConfig.errorControllerHook(e, ctx);
+    let res: any;
+    if (ctx.origin == 'cmd') {
+      const cmdSecurity: CmdSecurity =
+        service.security?.cmdSecurityMap?.[ctx.cmdName];
+      if (cmdSecurity?.hooks) {
+        res = await cmdSecurity.hooks?.errorControllerHook(ctx.data, e, ctx);
+      }
+    }
+    res = (await this.crudConfig.errorControllerHook(e, ctx)) || res;
     res = (await service.errorControllerHook(e, ctx)) || res;
     const notGuest = this.crudConfig.userService.notGuest(ctx?.user);
     if (notGuest) {
@@ -242,9 +265,9 @@ export class CrudController {
     try {
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
 
-      const res = await currentService.$create_(ctx);
+      let res = await currentService.$create_(ctx);
 
-      await this.afterHooks(currentService, res, ctx);
+      res = await this.afterHooks(currentService, res, ctx);
 
       this.addCountToDataMap(ctx, 1);
 
@@ -302,9 +325,8 @@ export class CrudController {
 
       await this.assignContext('POST', query, null, newEntities, 'crud', ctx);
       await this.beforeHooks(currentService, ctx);
-      const results = await currentService.$createBatch_(ctx);
-      await this.afterHooks(currentService, results, ctx);
-
+      let results = await currentService.$createBatch_(ctx);
+      results = await this.afterHooks(currentService, results, ctx);
       this.addCountToDataMap(ctx, newEntities.length);
       this.crudConfig.userService.$setCached(ctx.user, ctx);
 
@@ -340,7 +362,25 @@ export class CrudController {
     return this.subCMD(query, data, ctx, 'PATCH');
   }
 
-  async subCMD(query: CrudQuery, data, ctx: CrudContext, METHOD: string) {
+  @Get('s/:service/cmd/:cmd')
+  async _readCMD(
+    @Query(new CrudValidationPipe()) query: CrudQuery,
+    @Param('service') service: string,
+    @Param('cmd') cmd: string,
+    @Body() data,
+    @Context() ctx: CrudContext,
+  ) {
+    query.service = service;
+    query.cmd = cmd;
+    return this.subCMD(query, query.query, ctx, 'GET');
+  }
+
+  async subCMD(
+    query: CrudQuery,
+    data,
+    ctx: CrudContext,
+    METHOD: 'POST' | 'GET' | 'PATCH' | 'DELETE',
+  ) {
     const currentService = await this.assignContext(
       METHOD,
       query,
@@ -357,6 +397,9 @@ export class CrudController {
           `Command ${ctx.cmdName} not found in security map`,
         );
       }
+      if (ctx.method == 'GET' && !cmdSecurity.allowGetMethod) {
+        throw new ForbiddenException(CrudErrors.GET_METHOD_NOT_ALLOWED.str());
+      }
       if (cmdSecurity.batchField && data?.[cmdSecurity.batchField]) {
         await this.crudAuthorization.authorizeBatch(
           ctx,
@@ -372,9 +415,9 @@ export class CrudController {
           this.crudConfig.limitOptions.adminQueryLimit,
       );
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      const res = await currentService.$cmdHandler(query.cmd, ctx);
+      let res = await currentService.$cmdHandler(query.cmd, ctx);
       this.addCountToCmdMap(ctx, 1, !!cmdSecurity.minTimeBetweenCmdCallMs);
-      await this.afterHooks(currentService, res, ctx);
+      res = await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
       return this.errorHooks(currentService, e, ctx);
@@ -450,8 +493,8 @@ export class CrudController {
   ) {
     this.limitQuery(ctx, nonAdminQueryLimit, adminQueryLimit);
     await this.performValidationAuthorizationAndHooks(ctx, currentService);
-    const res = await currentService.$find_(ctx);
-    await this.afterHooks(currentService, res, ctx);
+    let res = await currentService.$find_(ctx);
+    res = await this.afterHooks(currentService, res, ctx);
     return res;
   }
 
@@ -492,8 +535,8 @@ export class CrudController {
       ctx.ids = ids;
       delete ctx.query[this.crudConfig.id_field];
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      const res = await currentService.$findIn_(ctx);
-      await this.afterHooks(currentService, res, ctx);
+      let res = await currentService.$findIn_(ctx);
+      res = await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
       return this.errorHooks(currentService, e, ctx);
@@ -523,7 +566,7 @@ export class CrudController {
       } else {
         res = await currentService.$findOne_(ctx);
       }
-      await this.afterHooks(currentService, res, ctx);
+      res = await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
       return this.errorHooks(currentService, e, ctx);
@@ -547,8 +590,8 @@ export class CrudController {
     );
     try {
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      const result = await currentService.$deleteOne_(ctx);
-      await this.afterHooks(currentService, 1, ctx);
+      let result = await currentService.$deleteOne_(ctx);
+      result = await this.afterHooks(currentService, result, ctx); //PROBLEM?
       this.addCountToDataMap(ctx, -1);
       return result;
     } catch (e) {
@@ -573,8 +616,8 @@ export class CrudController {
     );
     try {
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      const res = await currentService.$delete_(ctx);
-      await this.afterHooks(currentService, res, ctx);
+      let res = await currentService.$delete_(ctx);
+      res = await this.afterHooks(currentService, res, ctx);
       this.addCountToDataMap(ctx, -res);
       return res;
     } catch (e) {
@@ -614,8 +657,8 @@ export class CrudController {
       ctx.ids = ids;
       delete ctx.query[this.crudConfig.id_field];
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      const res = await currentService.$deleteIn_(ctx);
-      await this.afterHooks(currentService, res, ctx);
+      let res = await currentService.$deleteIn_(ctx);
+      res = await this.afterHooks(currentService, res, ctx);
       this.addCountToDataMap(ctx, -res);
       return res;
     } catch (e) {
@@ -646,8 +689,8 @@ export class CrudController {
     }
     try {
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      const res = await currentService.$patchOne_(ctx);
-      await this.afterHooks(currentService, res, ctx);
+      let res = await currentService.$patchOne_(ctx);
+      res = await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
       return this.errorHooks(currentService, e, ctx);
@@ -687,8 +730,8 @@ export class CrudController {
       ctx.ids = ids;
       delete ctx.query[this.crudConfig.id_field];
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      const res = await currentService.$patchIn_(ctx);
-      await this.afterHooks(currentService, res, ctx);
+      let res = await currentService.$patchIn_(ctx);
+      res = await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
       return this.errorHooks(currentService, e, ctx);
@@ -713,8 +756,8 @@ export class CrudController {
     );
     try {
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      const res = await currentService.$patch_(ctx);
-      await this.afterHooks(currentService, res, ctx);
+      let res = await currentService.$patch_(ctx);
+      res = await this.afterHooks(currentService, res, ctx);
       return res;
     } catch (e) {
       return this.errorHooks(currentService, e, ctx);
@@ -769,8 +812,8 @@ export class CrudController {
 
       await this.assignContext('PATCH', query, null, data, 'crud', ctx);
       await this.beforeHooks(currentService, ctx);
-      const results = await currentService.$patchBatch_(ctx);
-      await this.afterHooks(currentService, results, ctx);
+      let results = await currentService.$patchBatch_(ctx);
+      results = await this.afterHooks(currentService, results, ctx);
 
       return results;
     } catch (e) {
@@ -879,17 +922,17 @@ export class CrudController {
     }
   }
 
-  @Patch('backdoor/:service')
-  async backdoor(
+  @Patch('ms-link/:service')
+  async msLink(
     @Query(new CrudValidationPipe({ skipValidation: true }))
-    query: BackdoorQuery,
+    query: MsLinkQuery,
     @Param('service') service,
     @Body() data,
-    @Context() backdoorCtx: CrudContext,
+    @Context() msLinkCtx: CrudContext,
   ) {
-    if (!backdoorCtx.backdoorGuarded) {
+    if (!msLinkCtx.msLinkGuarded) {
       throw new UnauthorizedException(
-        'Backdoor not guarded : (something is wrong with your auth guard.)',
+        'MsLink not guarded : (something is wrong with your auth guard.)',
       );
     }
     query.service = service;
@@ -897,20 +940,20 @@ export class CrudController {
       data.args[i] = undefined;
     }
     const ctx: CrudContext = query.ctxPos ? data.args[query.ctxPos] || {} : {};
-    const inheritance = query.inheritancePos
-      ? data.args[query.inheritancePos]
-      : null;
+    // const inheritance = query.inheritancePos
+    //   ? data.args[query.inheritancePos]
+    //   : null;
     ctx.currentMs = MicroServicesOptions.getCurrentService();
     try {
       const currentService = this.crudConfig.servicesMap[query.service];
       if (!currentService[query.methodName]) {
         throw new BadRequestException(
-          'Backdoor method not found: ' + query.methodName,
+          'MsLink method not found: ' + query.methodName,
         );
       }
-      await this.crudConfig.beforeBackdoorHook(ctx, query, data.args);
+      await this.crudConfig.beforeMsLinkHook(ctx, query, data.args);
       const res = await currentService[query.methodName](...data.args);
-      await this.crudConfig.afterBackdoorHook(res, ctx, query, data.args);
+      await this.crudConfig.afterMsLinkHook(res, ctx, query, data.args);
 
       const returnCtxFields = ['setCookies'];
       const response: any = { res };
@@ -922,7 +965,7 @@ export class CrudController {
       }
       return response;
     } catch (e) {
-      await this.crudConfig.errorBackdoorHook(e, ctx, query, data.args);
+      await this.crudConfig.errorMsLinkHook(e, ctx, query, data.args);
       throw e;
     }
   }

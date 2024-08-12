@@ -35,7 +35,7 @@ import {
   CrudClient,
   MemoryStorage,
 } from '@eicrud/client/CrudClient';
-import { LoginDto } from '@eicrud/core/crud/model/dtos';
+import { LoginDto } from '@eicrud/core/config/basecmd_dtos/user/login.dto';
 import { FindResponseDto } from '@eicrud/shared/interfaces';
 import { CrudOptions } from '@eicrud/core/crud';
 import { SearchDto as SearchMelonDto } from '../src/services/melon/cmds/search/search.dto';

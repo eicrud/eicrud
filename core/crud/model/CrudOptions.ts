@@ -5,7 +5,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { $MaxSize } from '../../validation/decorators';
+import { $MaxSize } from '@eicrud/core/validation/decorators';
 import { ICrudOptions } from '@eicrud/shared/interfaces';
 
 export class CrudOptions implements ICrudOptions {

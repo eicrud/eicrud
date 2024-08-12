@@ -33,6 +33,7 @@ import { UserProfile } from '../src/services/user-profile/user-profile.entity';
 import { Melon } from '../src/services/melon/melon.entity';
 import { UserProfileService as MyProfileService } from '../src/services/user-profile/user-profile.service';
 import { TestCmdDto as TestCmdDto } from '../src/services/user-profile/cmds/test_cmd/test_cmd.dto';
+import { CrudErrors } from '../../shared/CrudErrors';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -141,6 +142,19 @@ describe('AppController', () => {
       cmd: 'test_cmd',
     };
 
+    await testMethod({
+      url: '/crud/cmd',
+      method: 'GET',
+      expectedCode: 403,
+      expectedCrudCode: CrudErrors.GET_METHOD_NOT_ALLOWED.code,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
     const res = await testMethod({
       url: '/crud/cmd',
       method: 'POST',
@@ -154,6 +168,85 @@ describe('AppController', () => {
     });
 
     expect(res).toEqual(payload.returnMessage?.toUpperCase());
+  });
+
+  it('should perform cmd in GET mode', async () => {
+    const user = users['Jon Doe'];
+
+    const payload: TestCmdDto = {
+      returnMessage: 'Hello World',
+    };
+
+    const query: CrudQuery = {
+      service: 'user-profile',
+      cmd: 'test_cmd_get',
+      query: JSON.stringify(payload),
+    };
+
+    const res = await testMethod({
+      url: '/crud/cmd',
+      method: 'GET',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: null,
+      query,
+      crudConfig,
+    });
+
+    expect(res).toEqual(payload.returnMessage?.toUpperCase());
+  });
+
+  it('should perform cmd with empty DTOs', async () => {
+    const user = users['Jon Doe'];
+
+    const query: CrudQuery = {
+      service: 'user-profile',
+      cmd: 'test_cmd_get',
+      query: JSON.stringify({}),
+    };
+
+    let res = await testMethod({
+      url: '/crud/cmd',
+      method: 'GET',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: null,
+      query,
+      crudConfig,
+    });
+    expect(res).toEqual('Not found');
+
+    query.query = null;
+
+    res = await testMethod({
+      url: '/crud/cmd',
+      method: 'PATCH',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: {},
+      query,
+      crudConfig,
+    });
+    expect(res).toEqual('Not found');
+
+    res = await testMethod({
+      url: '/crud/cmd',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: {},
+      query,
+      crudConfig,
+    });
+    expect(res).toEqual('Not found');
   });
 
   it('should perform cmd who calls cmd from another service (other ms)', async () => {

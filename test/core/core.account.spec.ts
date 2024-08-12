@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-
 import {
   getModule,
   createNestApplication,
@@ -29,7 +28,7 @@ import { TestUser } from '../test.utils';
 import { MyUser } from '../src/services/my-user/my-user.entity';
 import exp from 'constants';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
-import { LoginDto } from '../../core/crud/model/dtos';
+import { LoginDto } from '../../core/config/basecmd_dtos/user/login.dto';
 import {
   FindResponseDto,
   IChangePasswordDto,

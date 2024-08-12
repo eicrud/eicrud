@@ -297,6 +297,7 @@ export class Generate {
     const files = [
       'tk_cmd_lname.action.ts',
       'tk_cmd_lname.security.ts',
+      'tk_cmd_lname.hooks.ts',
       'tk_cmd_lname.dto.ts',
     ];
 

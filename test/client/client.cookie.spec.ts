@@ -33,7 +33,7 @@ import {
   CrudClient,
   MemoryStorage,
 } from '../../client/CrudClient';
-import { LoginDto } from '@eicrud/core/crud/model/dtos';
+import { LoginDto } from '@eicrud/core/config/basecmd_dtos/user/login.dto';
 import { MelonService } from '../src/services/melon/melon.service';
 
 const testAdminCreds = {
@@ -54,7 +54,7 @@ const users: Record<string, TestUser> = {
   },
   'CSRF Dude': {
     email: 'CSRF.Dude@test.com',
-    role: 'user',
+    role: 'trusted_user',
     bio: 'I am staying.',
   },
 };
@@ -219,12 +219,28 @@ describe('AppController', () => {
       expiresInSec: 10,
     };
     await myClient.login(dto, true);
+
     let error = null;
+    //GET do not require check
     try {
       await myClient.findOne({
         id: user.profileId,
         user: user.id,
       });
+    } catch (e) {
+      console.log(e.response.data);
+      error = e.response.status;
+    }
+    expect(error).toBe(null);
+
+    async function testMethod() {
+      return myClient.cmdS('test_cmd', {
+        returnMessage: 'cookie test',
+      });
+    }
+
+    try {
+      await testMethod();
     } catch (e) {
       console.log(e.response.data);
       error = e.response.status;
@@ -236,11 +252,8 @@ describe('AppController', () => {
     const raw = await myClient.login(dto, true);
     extractAndSetCRSF(raw, myClient);
 
-    const profile: UserProfile = await myClient.findOne({
-      id: user.profileId,
-      user: user.id,
-    });
-    expect(profile.bio).toBe(user.bio);
+    const ret: string = await testMethod();
+    expect(ret).toBe('COOKIE TEST');
 
     //wait 4000ms
     await new Promise((resolve) => setTimeout(resolve, 4000));
@@ -252,10 +265,7 @@ describe('AppController', () => {
 
     error = null;
     try {
-      await myClient.findOne({
-        id: user.profileId,
-        user: user.id,
-      });
+      await testMethod();
     } catch (e) {
       console.log(e.response.data);
       error = e.response.status;
@@ -265,11 +275,9 @@ describe('AppController', () => {
     myClient.setJwt(match[1]);
     extractAndSetCRSF(res, myClient);
 
-    const profile2: UserProfile = await myClient.findOne({
-      id: user.profileId,
-      user: user.id,
-    });
-    expect(profile2.bio).toBe(user.bio);
+    const profile2 = await testMethod();
+
+    expect(profile2).toBe('COOKIE TEST');
   }, 10000);
 
   it('401 should unset jwt cookie', async () => {

@@ -55,6 +55,10 @@ export class CrudErrors {
     'An account with this email already exists.',
     16,
   );
+  static readonly GET_METHOD_NOT_ALLOWED = new CrudError(
+    'GET method not allowed.',
+    17,
+  );
 }
 
 export interface MaxBatchSizeExceededDto {

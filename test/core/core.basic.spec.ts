@@ -259,6 +259,29 @@ describe('AppController', () => {
     });
   });
 
+  it('should find many with empty query', async () => {
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({}),
+    };
+
+    const expectedObject = null;
+
+    const res = await testMethod({
+      url: '/crud/many',
+      method: 'GET',
+      app,
+      jwt,
+      entityManager,
+      payload: null,
+      query,
+      expectedCode: 200,
+      expectedObject,
+      crudConfig,
+    });
+
+    expect(res.length).toBeGreaterThan(3);
+  });
   //Get('/crud/many')
   it('should find many profiles by bio', async () => {
     const payload: Partial<UserProfile> = {} as any;

@@ -1,30 +1,10 @@
 import { IsString, IsOptional, IsBoolean, IsInt } from 'class-validator';
-import { $Transform } from '../../validation/decorators';
-import { ILoginDto, IUserIdDto } from '@eicrud/shared/interfaces';
+import { IUserIdDto } from '@eicrud/shared/interfaces';
 
 export class UserIdDto implements IUserIdDto {
   @IsString()
   userId: string;
 }
-export class LoginDto implements ILoginDto {
-  @IsString()
-  @$Transform((value) => {
-    return value.toLowerCase().trim();
-  })
-  email: string;
-
-  @IsString()
-  password: string;
-
-  @IsOptional()
-  @IsString()
-  twoFA_code?: string;
-
-  @IsOptional()
-  @IsInt()
-  expiresInSec?: number;
-}
-
 export interface ICrudRightsFieldInfo {
   maxSize?: number;
   maxLength?: number;

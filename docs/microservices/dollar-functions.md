@@ -6,12 +6,12 @@
 msOptions.microServices = {
   "ms-A": {
     services: [MyUser],
-    openBackDoor: true, openController: true,
+    openMsLink: true, openController: true,
     url: "http://localhost:3005",
   },
   "ms-B": {
     services: [Profile],
-    openBackDoor: true, openController: true,
+    openMsLink: true, openController: true,
     url: "http://localhost:3006",
   },
 }
@@ -136,4 +136,4 @@ console.log(obj.value)
 Argument name `ctx` is reserved in `$` function, and should only be used to pass the [CrudContext](../context.md).
 
 !!! note
-    You might want to pass the [CrudContext](../context.md) to every `$` function to enable reliable logging in backdoor [hooks](../configuration/service.md#hooks).
+    You might want to pass the [CrudContext](../context.md) to every `$` function to enable reliable logging in ms-link [hooks](../configuration/service.md#hooks).

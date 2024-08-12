@@ -34,6 +34,7 @@ import {
 import { format } from 'path';
 import exp from 'constants';
 import { CrudOptions } from '../../core/crud/model/CrudOptions';
+import { CrudErrors } from '../../shared/CrudErrors';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -92,33 +93,6 @@ describe('AppController', () => {
     await createAccountsAndProfiles(users, userService, crudConfig, {
       testAdminCreds,
     });
-  });
-
-  it('should perform cmd & transform dto', async () => {
-    const user = users['Jon Doe'];
-
-    const payload: TestCmdDto = {
-      returnMessage: 'Hello World',
-    };
-
-    const query: CrudQuery = {
-      service: 'user-profile',
-      cmd: 'test_cmd',
-    };
-
-    const res = await testMethod({
-      url: '/crud/cmd',
-      method: 'POST',
-      expectedCode: 201,
-      app,
-      jwt: user.jwt,
-      entityManager,
-      payload,
-      query,
-      crudConfig,
-    });
-
-    expect(res).toEqual(payload.returnMessage?.toUpperCase());
   });
 
   it('should validate crudOptions', async () => {
