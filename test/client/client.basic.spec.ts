@@ -32,7 +32,7 @@ import {
   CrudClient,
   MemoryStorage,
 } from '../../client/CrudClient';
-import { LoginDto } from '../../core/crud/model/dtos';
+import { LoginDto } from '../../core/config/basecmd_dtos/user/login.dto';
 import { MelonService } from '../src/services/melon/melon.service';
 import exp from 'constants';
 import { MyUser } from '../src/services/my-user/my-user.entity';

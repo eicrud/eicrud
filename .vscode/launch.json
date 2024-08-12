@@ -143,6 +143,12 @@
       "request": "launch",
       "name": "npm run test options",
       "command": "npm run test options"
+    },        
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test oapi",
+      "command": "npm run test oapi"
     },    
     {
       "type": "node-terminal",

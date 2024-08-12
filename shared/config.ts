@@ -46,6 +46,12 @@ export interface ExportOptions {
    * @default 'user'
    */
   userServiceDir?: string;
+
+  /**
+   * Set the defaults for the exported openAPI schema.
+   * https://swagger.io/specification
+   */
+  openApiBaseSpec?: any;
 }
 
 export interface CliOptions {

@@ -21,7 +21,7 @@ const getVersion = () => {
   return packageJ.version;
 };
 
-program.name('eicrud-cli').description('CLI for Eicrud').version(getVersion());
+program.name('eicrud').description('CLI for Eicrud').version(getVersion());
 
 program
   .command('generate')
@@ -53,11 +53,20 @@ program
 
 program
   .command('export')
-  .description('Export dtos or generate superclient')
-  .argument('<type>', 'dtos | superclient')
+  .description('Export dtos, superclient or openapi schemas')
+  .argument('<type>', 'dtos | superclient | openapi')
   .option(
     '-kv, --keep-validators',
-    'will keep class-validator decorators when exporting',
+    'will keep class-validator decorators when exporting dtos',
+  )
+  .option(
+    '-cc, --convert-classes',
+    'will convert classes into interfaces when exporting dtos',
+  )
+  .option('-o-sr, --oapi-separate-refs', 'keep DTOs schemas in separate files')
+  .option(
+    '-o-jqs, --oapi-json-query-string',
+    'export openapi schema json query parameters with type string for compatibility with tools that do not support application/json there',
   )
   .action(function () {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment

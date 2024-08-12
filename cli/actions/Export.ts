@@ -12,6 +12,9 @@ import XRegExp from 'xregexp';
 import { Generate } from './Generate.js';
 import { CliOptions } from '@eicrud/shared/config';
 import wildcard from 'wildcard';
+import lodash from 'lodash';
+import { OpenAPIV3 } from 'openapi-types';
+import yaml from 'js-yaml';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -79,6 +82,8 @@ export class Export {
         }
       case 'superclient':
         return Export.superclient(opts, cliConfig);
+      case 'openapi':
+        return Export.openapi(opts, cliConfig);
       default:
         return Promise.resolve();
     }
@@ -112,22 +117,30 @@ export class Export {
     }
     const copiedFiles = copyDirectory(src, dest, conditionFun);
 
-    const eicrud_core_dir = path.join(
-      nodeModulesDir,
-      '@eicrud/core/config/basecmd_dtos',
+    const eicrud_core_dir = path.join(nodeModulesDir, '@eicrud/core');
+    const eicrud_core_base_cmds = path.join(
+      eicrud_core_dir,
+      '/config/basecmd_dtos',
     );
-    if (!fs.existsSync(eicrud_core_dir)) {
+    if (!fs.existsSync(eicrud_core_base_cmds)) {
       throw new Error(
         '@eicrud/core package outdated / not found in node_modules',
       );
     }
-    debugger;
     copiedFiles.push(
-      ...copyDirectory(eicrud_core_dir, dest, conditionFun, {
+      ...copyDirectory(eicrud_core_base_cmds, dest, conditionFun, {
         makeSubDir: true,
         pathReplaces: [{ regex: /user$/g, replace: userServiceDir }],
       }),
     );
+    const crud_options_path = path.join(
+      eicrud_core_dir,
+      '/crud/model/CrudOptions.ts',
+    );
+    // copy crud_options to dest
+    const options_dest = path.join(dest, 'CrudOptions.ts');
+    fs.copyFileSync(crud_options_path, options_dest);
+    copiedFiles.push(options_dest);
 
     const removeFiles = [];
     const excludedServices = [];
@@ -229,6 +242,31 @@ export class Export {
       Export.removeDecoratorsFromFiles(copiedFiles, importToRemove);
     }
 
+    if (options?.convertClasses) {
+      const replaces = [];
+      replaces.push(
+        { regex: /.implements[^{]+/g, replace: '' },
+        { regex: /export .*class /g, replace: 'export interface ' },
+        { regex: /;$/gm, replace: 'replaced_semicolon_5498615_1' },
+        { regex: /;/g, replace: 'replaced_semicolon_5498615_2' },
+        { regex: /replaced_semicolon_5498615_1/g, replace: ';' },
+        {
+          regex: /^(?!.*(export type )).*(=[^>][^;]+;$)/gm,
+          replace: ';',
+          onlyGroup: 2,
+        },
+        { regex: /replaced_semicolon_5498615_2/g, replace: ';' },
+        { regex: /([^?]):(.+);$/gm, replace: '$1?:$2;' },
+        { regex: /([^\r\n:]+) ;$/gm, replace: '$1;' },
+        { regex: / \?;$/gm, replace: '?;' },
+      );
+      Export.removeDecoratorsFromFiles(
+        copiedFiles,
+        'fake-import-789651359',
+        replaces,
+      );
+    }
+
     cleanEmptyDirectories(dest);
 
     for (const copied of copiedFiles) {
@@ -285,6 +323,11 @@ export class Export {
 
           const baseCmdDto = kebakToPascalCase(tk_cmd_name);
           const cmdFileNameContent = fs.readFileSync(cmdFile, 'utf8');
+          if (
+            cmdFileNameContent.includes('@eicrud:cli:export:skip-superclient')
+          ) {
+            continue;
+          }
           const hasReturnDto = cmdFileNameContent.includes('ReturnDto');
           const keys = {
             tk_cmd_dto_name: baseCmdDto + 'Dto',
@@ -427,12 +470,621 @@ export class Export {
       }
 
       for (const replace of replaces) {
-        result = result.replace(replace.regex, replace.replace);
+        if (replace.onlyGroup) {
+          //get regex group
+          let match = new RegExp(replace.regex).exec(result);
+          while (match) {
+            const group = match?.[replace.onlyGroup];
+            result = result.replace(group, replace.replace);
+            match = new RegExp(replace.regex).exec(result);
+          }
+        } else {
+          result = result.replace(replace.regex, replace.replace);
+        }
       }
 
       fs.writeFileSync(filePath, result, 'utf8');
     }
   }
+
+  static async openapi(options?, cliOptions?: CliOptions) {
+    const baseSpecs: OpenAPIV3.Document =
+      cliOptions?.export?.openApiBaseSpec || {};
+
+    const specs: Omit<OpenAPIV3.Document, 'paths'> = {
+      openapi: '3.0.0',
+      info: {
+        title: 'Eicrud Server',
+        version: '1.0.0',
+      },
+      servers: [
+        {
+          description: 'Localhost',
+          url: 'http://localhost:3000',
+        },
+      ],
+    };
+    lodash.merge(specs, baseSpecs);
+
+    const exportPath = cliOptions?.export?.outputDir || 'eicrud_exports';
+    const src = path.join(exportPath);
+
+    const conditionFun = (str) => str.endsWith('.entity.ts');
+    const files = getFiles(src, conditionFun);
+
+    const entityYamlDir = path.join(src, 'Entity.yaml');
+    const crudOptionsYamlDir = path.join(src, 'CrudOptions.yaml');
+    const entityTemplatePath = path.join(
+      __dirname,
+      '../templates/openapi/Entity.yaml',
+    );
+    const crudOptionsTemplatePath = path.join(
+      __dirname,
+      '../templates/openapi/CrudOptions.yaml',
+    );
+
+    if (!fs.existsSync(entityYamlDir)) {
+      fs.copyFileSync(entityTemplatePath, entityYamlDir);
+      console.log('CREATED: ' + entityYamlDir);
+    }
+    if (!fs.existsSync(crudOptionsYamlDir)) {
+      fs.copyFileSync(crudOptionsTemplatePath, crudOptionsYamlDir);
+      console.log('CREATED: ' + crudOptionsYamlDir);
+    }
+    if (!options?.oapiSeparateRefs) {
+      const entityYamlObj: OpenAPIV3.Document = loadEntityYaml(entityYamlDir);
+      lodash.merge(specs, { components: entityYamlObj.components });
+
+      const crudOptionsYamlObj: OpenAPIV3.Document =
+        loadEntityYaml(crudOptionsYamlDir);
+      lodash.merge(specs, { components: crudOptionsYamlObj.components });
+    }
+
+    for (const file of files) {
+      //get dir from file path
+      const dir = path.dirname(file);
+      const fileName = path.basename(file);
+      const entity_kebab_name = fileName.replace('.entity.ts', '');
+
+      const tk_entity_name = kebakToPascalCase(entity_kebab_name);
+      const entityYamlPath = path.join(dir, `${entity_kebab_name}.entity.yaml`);
+      const entityYamlPresent = fs.existsSync(entityYamlPath);
+      if (!options?.oapiSeparateRefs && entityYamlPresent) {
+        const entityYamlObj: OpenAPIV3.Document =
+          loadEntityYaml(entityYamlPath);
+        lodash.merge(specs.components, entityYamlObj.components);
+      }
+
+      const basePath = dir.replace(src, '.');
+      const entityRef = entityYamlPresent
+        ? path.join(
+            basePath,
+            `${entity_kebab_name}.entity.yaml#/components/schemas/${tk_entity_name}`,
+          )
+        : `./Entity.yaml#/components/schemas/Entity`;
+
+      const entityContent: {
+        [media: string]: OpenAPIV3.MediaTypeObject;
+      } = {
+        'application/json': {
+          schema: {
+            $ref: entityRef,
+          },
+        },
+      };
+
+      const findResponeDtoContent: {
+        [media: string]: OpenAPIV3.MediaTypeObject;
+      } = {
+        'application/json': {
+          schema: {
+            title: `FindResponeDto<${tk_entity_name}>`,
+            type: 'object',
+            properties: {
+              data: {
+                type: 'array',
+                items: {
+                  $ref: entityRef,
+                },
+              },
+              total: {
+                type: 'number',
+              },
+              limit: {
+                type: 'number',
+              },
+            },
+          },
+        },
+      };
+
+      const inQuery: OpenAPIV3.ParameterObject = {
+        in: 'query',
+        name: 'query',
+        schema: options?.oapiJsonQueryString ? { type: 'string' } : undefined,
+        content: options?.oapiJsonQueryString
+          ? undefined
+          : {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    id: {
+                      type: 'array',
+                      items: {
+                        type: 'string',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+        description: `The ${tk_entity_name} query (ids)`,
+      };
+
+      const entityQuery: OpenAPIV3.ParameterObject = {
+        in: 'query',
+        name: 'query',
+        content: options?.oapiJsonQueryString ? undefined : entityContent,
+        schema: options?.oapiJsonQueryString ? { type: 'string' } : undefined,
+        description: `The ${tk_entity_name} query`,
+      };
+
+      const csrf_schema: OpenAPIV3.ParameterObject = {
+        in: 'header',
+        name: 'eicrud-csrf',
+        description:
+          'Anti-csrf code provided after authentication (if CrudOptions.jwtCookie == true)',
+        schema: {
+          type: 'string',
+        },
+      };
+
+      const commonParams: OpenAPIV3.ParameterObject[] = [
+        {
+          in: 'query',
+          name: 'options',
+          schema: options?.oapiJsonQueryString ? { type: 'string' } : undefined,
+          content: options?.oapiJsonQueryString
+            ? undefined
+            : {
+                'application/json': {
+                  schema: {
+                    $ref: './CrudOptions.yaml#/components/schemas/CrudOptions',
+                  },
+                },
+              },
+          description:
+            'CrudOptions (format: JSON) https://docs.eicrud.com/services/options',
+        },
+        {
+          in: 'header',
+          name: 'authorization',
+          description:
+            'JWT provided after authentication (if CrudOptions.jwtCookie == false)',
+          schema: {
+            type: 'string',
+            format: 'Bearer <JWT>',
+          },
+        },
+        {
+          in: 'cookie',
+          name: 'eicrud-jwt',
+          description:
+            'JWT provided after authentication (if CrudOptions.jwtCookie == true)',
+          schema: {
+            type: 'string',
+          },
+        },
+        csrf_schema,
+        { ...csrf_schema, in: 'cookie' },
+      ];
+
+      const crudServiceSpecs: Omit<OpenAPIV3.Document, 'openapi' | 'info'> = {
+        paths: {
+          [`/crud/s/${entity_kebab_name}/one`]: {
+            get: {
+              summary: `Find a ${tk_entity_name}`,
+              parameters: [entityQuery, ...commonParams],
+              responses: {
+                '200': {
+                  description: `The found ${tk_entity_name}`,
+                  content: entityContent,
+                },
+              },
+            },
+            post: {
+              summary: `Creates a ${tk_entity_name}`,
+              requestBody: {
+                description: `The ${tk_entity_name} to create`,
+                required: true,
+                content: entityContent,
+              },
+              parameters: [...commonParams],
+              responses: {
+                '201': {
+                  description: `The created ${tk_entity_name}`,
+                  content: entityContent,
+                },
+              },
+            },
+            patch: {
+              summary: `Update a ${tk_entity_name}`,
+              requestBody: {
+                description: `The ${tk_entity_name} update`,
+                required: true,
+                content: entityContent,
+              },
+              parameters: [entityQuery, ...commonParams],
+              responses: {
+                '200': {
+                  description: `The updated ${tk_entity_name}`,
+                  content: entityContent,
+                },
+              },
+            },
+            delete: {
+              summary: `Delete a ${tk_entity_name}`,
+              parameters: [entityQuery, ...commonParams],
+              responses: {
+                '200': {
+                  description: `${tk_entity_name} deleted`,
+                },
+              },
+            },
+          },
+          [`/crud/s/${entity_kebab_name}/batch`]: {
+            post: {
+              summary: `Creates multiple ${tk_entity_name}s`,
+              requestBody: {
+                description: `The ${tk_entity_name}s to create`,
+                required: true,
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'array',
+                      items: {
+                        $ref: entityRef,
+                      },
+                    },
+                  },
+                },
+              },
+              parameters: [...commonParams],
+              responses: {
+                '201': {
+                  description: `The created ${tk_entity_name}s`,
+                  content: {
+                    'application/json': {
+                      schema: {
+                        type: 'array',
+                        items: {
+                          $ref: entityRef,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            patch: {
+              summary: `Update multiple ${tk_entity_name}s`,
+              requestBody: {
+                description: `The ${tk_entity_name} queries and updates`,
+                required: true,
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          query: {
+                            $ref: entityRef,
+                          },
+                          data: {
+                            $ref: entityRef,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              parameters: [entityQuery, ...commonParams],
+              responses: {
+                '200': {
+                  description: `The updated ${tk_entity_name} counts`,
+                  content: {
+                    'application/json': {
+                      schema: {
+                        type: 'array',
+                        items: {
+                          type: 'number',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          [`/crud/s/${entity_kebab_name}/many`]: {
+            get: {
+              summary: `Find ${tk_entity_name}s`,
+              parameters: [entityQuery, ...commonParams],
+              responses: {
+                '200': {
+                  description: `The found ${tk_entity_name}s`,
+                  content: findResponeDtoContent,
+                },
+              },
+            },
+            patch: {
+              summary: `Query update ${tk_entity_name}s`,
+              requestBody: {
+                description: `The ${tk_entity_name} update`,
+                required: true,
+                content: entityContent,
+              },
+              parameters: [entityQuery, ...commonParams],
+              responses: {
+                '200': {
+                  description: `The updated ${tk_entity_name} count`,
+                  content: {
+                    'application/json': {
+                      schema: {
+                        type: 'number',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            delete: {
+              summary: `Query delete ${tk_entity_name}s`,
+              parameters: [entityQuery, ...commonParams],
+              responses: {
+                '200': {
+                  description: `${tk_entity_name} deleted count`,
+                },
+              },
+            },
+          },
+          [`/crud/s/${entity_kebab_name}/in`]: {
+            get: {
+              summary: `Find ${tk_entity_name}s with id in provided list`,
+              parameters: [inQuery, ...commonParams],
+              responses: {
+                '200': {
+                  description: `The found ${tk_entity_name}s`,
+                  content: findResponeDtoContent,
+                },
+              },
+            },
+            patch: {
+              summary: `Query update ${tk_entity_name}s with id in provided list`,
+              requestBody: {
+                description: `The ${tk_entity_name} update`,
+                required: true,
+                content: entityContent,
+              },
+              parameters: [inQuery, ...commonParams],
+              responses: {
+                '200': {
+                  description: `The updated ${tk_entity_name} count`,
+                  content: {
+                    'application/json': {
+                      schema: {
+                        type: 'number',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            delete: {
+              summary: `Query delete ${tk_entity_name}s with id in provided list`,
+              parameters: [inQuery, ...commonParams],
+              responses: {
+                '200': {
+                  description: `${tk_entity_name} deleted count`,
+                },
+              },
+            },
+          },
+          [`/crud/s/${entity_kebab_name}/ids`]: {
+            get: {
+              summary: `Find ${tk_entity_name}s and return only ids`,
+              parameters: [entityQuery, ...commonParams],
+              responses: {
+                '200': {
+                  description: `The found ${tk_entity_name}s' ids`,
+                  content: {
+                    'application/json': {
+                      schema: {
+                        type: 'array',
+                        items: {
+                          type: 'string',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      lodash.merge(specs, crudServiceSpecs);
+
+      const cmdDir = path.join(dir, 'cmds');
+      if (fs.existsSync(cmdDir)) {
+        const cmdFiles = getFiles(cmdDir, (str) => str.endsWith('.dto.ts'));
+        for (const cmdFile of cmdFiles) {
+          const cmdFileName = path.basename(cmdFile);
+          const tk_cmd_kebab_name = cmdFileName.replace('.dto.ts', '');
+
+          const baseCmdDto = kebakToPascalCase(tk_cmd_kebab_name);
+          const cmdFileNameContent = fs.readFileSync(cmdFile, 'utf8');
+          const hasReturnDto = cmdFileNameContent.includes('ReturnDto');
+          const keys = {
+            tk_cmd_dto_name: baseCmdDto + 'Dto',
+            tk_cmd_return_dto_name: hasReturnDto
+              ? baseCmdDto + 'ReturnDto'
+              : 'any',
+            tk_cmd_name: tk_cmd_kebab_name,
+            tk_cmd_lname: tk_cmd_kebab_name,
+          };
+
+          const dtoYamlPath = cmdFile.replace('.dto.ts', '.dto.yaml');
+          const dtoYamlPresent = fs.existsSync(dtoYamlPath);
+          let dtoRefName = dtoYamlPresent
+            ? tk_entity_name + '_' + keys.tk_cmd_dto_name
+            : keys.tk_cmd_dto_name;
+          let returnDtoRefName = dtoYamlPresent
+            ? tk_entity_name + '_' + keys.tk_cmd_return_dto_name
+            : keys.tk_cmd_return_dto_name;
+          if (!options?.oapiSeparateRefs && dtoYamlPresent) {
+            const dtoYamlObj: OpenAPIV3.Document = loadEntityYaml(dtoYamlPath);
+            specs.components.schemas[dtoRefName] =
+              dtoYamlObj.components.schemas[keys.tk_cmd_dto_name];
+            const returnDtoSchema =
+              dtoYamlObj.components.schemas[keys.tk_cmd_return_dto_name];
+            if (returnDtoSchema) {
+              specs.components.schemas[returnDtoRefName] = returnDtoSchema;
+            } else {
+              returnDtoRefName = null;
+            }
+          }
+
+          const baseCmdDir = cmdDir.replace(src, '.');
+          const dtoRef = dtoYamlPresent
+            ? path.join(
+                baseCmdDir,
+                `${tk_cmd_kebab_name}.dto.yaml#/components/schemas/${dtoRefName}`,
+              )
+            : `./Entity.yaml#/components/schemas/Entity`;
+
+          const returnDtoRef =
+            hasReturnDto && dtoYamlPresent
+              ? path.join(
+                  baseCmdDir,
+                  `${tk_cmd_kebab_name}.dto.yaml#/components/schemas/${returnDtoRefName}`,
+                )
+              : `./Entity.yaml#/components/schemas/Entity`;
+
+          let dtoContent: { [media: string]: OpenAPIV3.MediaTypeObject } = {
+            'application/json': {
+              schema: {
+                $ref: dtoRef,
+              },
+            },
+          };
+
+          let dtoQuery: OpenAPIV3.ParameterObject = {
+            in: 'query',
+            name: 'query',
+            content: options?.oapiJsonQueryString ? undefined : dtoContent,
+            schema: options?.oapiJsonQueryString
+              ? { type: 'string' }
+              : undefined,
+            description: `The ${keys.tk_cmd_dto_name} dto (${keys.tk_cmd_dto_name}) (format: JSON)`,
+          };
+
+          let returnDtoContent: { [media: string]: OpenAPIV3.MediaTypeObject } =
+            {
+              'application/json': {
+                schema: {
+                  $ref: returnDtoRef,
+                },
+              },
+            };
+
+          const patch: OpenAPIV3.OperationObject = {
+            summary: `Execute the ${tk_entity_name} ${tk_cmd_kebab_name} command`,
+            requestBody: {
+              description: `${keys.tk_cmd_dto_name}`,
+              required: true,
+              content: dtoContent,
+            },
+            parameters: [...commonParams],
+            responses: {
+              '200': {
+                description: `The command response (${keys.tk_cmd_return_dto_name})`,
+                content: returnDtoContent,
+              },
+            },
+          };
+
+          const cmdSpecs: Omit<OpenAPIV3.Document, 'openapi' | 'info'> = {
+            paths: {
+              [`/crud/s/${entity_kebab_name}/cmd/${tk_cmd_kebab_name}`]: {
+                patch: patch,
+                post: {
+                  ...patch,
+                  summary: `Execute the ${tk_entity_name} ${tk_cmd_kebab_name} command in secure mode (non cached user)`,
+                  responses: {
+                    '201': {
+                      description: `The command response (${keys.tk_cmd_return_dto_name})`,
+                      content: returnDtoContent,
+                    },
+                  },
+                },
+                get: {
+                  summary: `Execute the ${tk_entity_name} ${tk_cmd_kebab_name} command (allowGetMethod must be enabled)`,
+                  parameters: [...commonParams, dtoQuery],
+                  responses: {
+                    '200': {
+                      description: `The command response (${keys.tk_cmd_return_dto_name})`,
+                      content: returnDtoContent,
+                    },
+                  },
+                },
+              },
+            },
+          };
+          lodash.merge(specs, cmdSpecs);
+        }
+      }
+    }
+
+    const replaceRecursive = (obj, func: (obj, k) => void) => {
+      for (let k in obj) {
+        if (typeof obj[k] == 'object' && obj[k] !== null) {
+          replaceRecursive(obj[k], func);
+        } else {
+          func(obj, k);
+        }
+      }
+    };
+
+    if (!options?.oapiSeparateRefs) {
+      const func = (obj, k) => {
+        if (k == '$ref') {
+          obj[k] = obj[k].replace(/(.*)#/g, '#');
+        }
+      };
+      replaceRecursive(specs, func);
+    }
+
+    let yamlStr = yaml.dump(specs);
+    const openApiPath = path.join(exportPath, 'eicrud-open-api.yaml');
+
+    yamlStr = yamlStr.replace(/\\/g, '/');
+
+    fs.writeFileSync(openApiPath, yamlStr);
+    console.log('CREATED: ' + openApiPath);
+  }
+}
+
+function loadEntityYaml(entityYamlDir: string): OpenAPIV3.Document {
+  let entityYamlContent = fs.readFileSync(entityYamlDir, 'utf8');
+  const entityYamlObj: OpenAPIV3.Document = yaml.load(
+    entityYamlContent,
+  ) as OpenAPIV3.Document;
+  return entityYamlObj;
 }
 
 // Recursively copy files that end with the specific string
@@ -488,7 +1140,7 @@ const copyDirectory = (
 };
 
 // Get pathes of all files that end with the specific string
-const getFiles = (src, conditionFun: (str: string) => boolean) => {
+export const getFiles = (src, conditionFun: (str: string) => boolean) => {
   const files = [];
 
   // Read all items in the source directory

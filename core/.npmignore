@@ -1,6 +1,7 @@
 # ignore the .ts files
 *.ts
 !*.dto.ts
+!CrudOptions.ts
 
 # include the .d.ts files
 !*.d.ts

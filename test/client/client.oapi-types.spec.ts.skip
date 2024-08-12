@@ -1,0 +1,161 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import {
+  getModule,
+  createNestApplication,
+  readyApp,
+  dropDatabases,
+} from '../src/app.module';
+import { CrudController } from '@eicrud/core/crud/crud.controller';
+import { MyUserService } from '../src/services/my-user/my-user.service';
+import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
+import { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { EntityManager } from '@mikro-orm/mongodb';
+import {
+  createAccountsAndProfiles
+} from '../test.utils';
+import { UserProfileService as MyProfileService } from '../src/services/user-profile/user-profile.service';
+import { TestUser } from '../test.utils';
+import {
+  CRUD_CONFIG_KEY,
+  CrudConfigService,
+} from '@eicrud/core/config/crud.config.service';
+import { CrudAuthGuard } from '@eicrud/core/authentication/auth.guard';
+import * as services from '../oapi-client/services.gen';
+import { CrudOptions, StarFruit, UserProfile_TestCmdGetDto, UserProfile_TestCmdGetReturnDto } from '../oapi-client';
+import { StarFruitService } from '../src/services/star-fruit/star-fruit.service';
+const path = require('path');
+const fs = require('fs');
+
+const testAdminCreds = {
+  email: 'admin@testmail.com',
+  password: 'testpassword',
+};
+
+const users: Record<string, TestUser> = {
+  'Jon Doe': {
+    email: 'jon.doe@test.com',
+    role: 'super_admin',
+    bio: 'I am a cool guy.',
+  },
+  'Sarah Doe': {
+    email: 'Sarah.doe@test.com',
+    role: 'super_admin',
+    bio: 'I am a cool gal.',
+  },
+  'Mark Doe': {
+    email: 'Mark.doe@test.com',
+    role: 'super_admin',
+    bio: 'I am a cool guy.',
+  },
+  'Johnny Doe': {
+    email: 'Johnny.doe@test.com',
+    role: 'super_admin',
+    bio: 'I am a cool guy.',
+    skipProfile: true,
+  },
+};
+
+describe('AppController', () => {
+  let appController: CrudController;
+  let userService: MyUserService;
+  let authService: CrudAuthService;
+  let authGuard: CrudAuthGuard;
+  let profileService: MyProfileService;
+  let app: NestFastifyApplication;
+
+  let entityManager: EntityManager;
+
+  let crudConfig: CrudConfigService;
+  const baseName = path.basename(__filename);
+
+  const port = 2996;
+
+  beforeAll(async () => {
+    const module = getModule(baseName);
+    const moduleRef: TestingModule =
+      await Test.createTestingModule(module).compile();
+
+    await dropDatabases(moduleRef);
+
+    app = createNestApplication(moduleRef);
+
+    await app.init();
+    await readyApp(app);
+
+    appController = app.get<CrudController>(CrudController);
+    userService = app.get<MyUserService>(MyUserService);
+    authService = app.get<CrudAuthService>(CrudAuthService);
+    authGuard = authService._authGuard;
+    profileService = app.get<MyProfileService>(MyProfileService);
+    entityManager = app.get<EntityManager>(EntityManager);
+    crudConfig = app.get<CrudConfigService>(CRUD_CONFIG_KEY, { strict: false });
+
+    const starFruitService = app.get<StarFruitService>(StarFruitService);
+    const starFruitUpdateOne = {
+      name: 'StarFruit Update One',
+      ownerEmail: "user.email@mail.com",
+      key: 'one',
+    }
+    await starFruitService.$create(starFruitUpdateOne, null);
+
+    crudConfig.authenticationOptions.minTimeBetweenLoginAttempsMs = 0;
+    crudConfig.watchTrafficOptions.ddosProtection = false;
+
+    await createAccountsAndProfiles(users, userService, crudConfig, {
+      testAdminCreds,
+    });
+
+    await app.listen(port);
+  });
+
+  services.client.setConfig({
+    baseURL: `http://localhost:${port}`,
+  });
+
+  it(
+    'oapi client should have right types',
+    async () => {
+      const user = users['Jon Doe'];
+
+      const dto: UserProfile_TestCmdGetDto = {
+        returnMessage: "Hello world!",
+      };
+
+      const options: CrudOptions = {
+        jwtCookie: true,
+      };
+
+      let res: { data: UserProfile_TestCmdGetReturnDto} = (await services.getCrudSUserProfileCmdTestCmdGet({
+        query: {
+          query: JSON.stringify(dto) as any,
+          options: JSON.stringify(options) as any,
+        },
+        headers: {
+          authorization: user.jwt,
+        },
+      })) as any;
+      expect(res.data).toBe('HELLO WORLD!');
+
+      const authorization = 'Bearer ' + user.jwt;
+
+      let query: Partial<StarFruit> = {
+        key: 'one',
+      };
+
+      let res2 = await services.getCrudSStarFruitOne({
+        query: {
+          options: JSON.stringify({
+            jwtCookie: true,
+          }) as any,
+          query: JSON.stringify(query) as any,
+        },
+        headers: {
+          authorization: authorization,
+        },
+      });
+      expect(res2.data?.name).toBe('StarFruit Update One');
+    },
+  );
+
+
+});
