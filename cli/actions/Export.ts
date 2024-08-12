@@ -257,7 +257,7 @@ export class Export {
         },
         { regex: /replaced_semicolon_5498615_2/g, replace: ';' },
         { regex: /([^?]):(.+);$/gm, replace: '$1?:$2;' },
-        { regex: /([^\r\n:]+ );$/gm, replace: '$1?;' },
+        { regex: /([^\r\n:]+) ;$/gm, replace: '$1;' },
         { regex: / \?;$/gm, replace: '?;' },
       );
       Export.removeDecoratorsFromFiles(
