@@ -41,9 +41,8 @@ jobs:
       - name: Export oapi with types
         run: eicrud export openapi 
 
-      - name: setup client, rename test file
-        run: npm run setup:oapi:client && node -e "fs.renameSync('./test/client/client.oapi-types.spec.ts.skip', './test/client/client.oapi-types.spec.ts')" 
-
+      - name: setup client, rename test files
+        run: npm run setup:oapi:client && node -e "fs.renameSync('./test/client/client.oapi-types.spec.ts.skip', './test/client/client.oapi-types.spec.ts')" && node -e "fs.renameSync('./test/client/client.super.spec.ts', './test/client/client.super.spec.ts.skip')" 
       - name: Build
         run: npm run build
 
