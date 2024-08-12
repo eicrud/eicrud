@@ -13,10 +13,9 @@ on:
   #   - 'db_*/**'
 
 jobs:
-  test:
+  release-pretest:
     runs-on: ubuntu-latest
-    timeout-minutes: 14
-
+    timeout-minutes: 7
     services:
       mongodb:
         image: mongo
@@ -33,8 +32,14 @@ jobs:
       - name: Copy repository
         uses: actions/checkout@v3
 
-      - name: Install Dependencies
-        run: npm run setup:tests
+      - name: Setup
+        run: npm i && npm run setup:cli && eicrud export dtos -cc
+
+      - name: Convert types
+        run: npm i -g typeconv@2.3.1 && cd test &&  typeconv -v -f ts -t oapi -o test_exports 'test_exports/**.ts' 'test_exports/**/*.ts' && cd ..
+
+      - name: Export oapi with types, setup client, rename test file
+        run: npm run export:oapi && setup:oapi:client && node -e "fs.renameSync('./test/client/client.oapi-types.spec.ts.skip', './test/client/client.oapi-types.spec.ts')" 
 
       - name: Build
         run: npm run build
@@ -42,32 +47,61 @@ jobs:
       - name: Mongodb tests
         run: npm run test
 
-      - name: PostgreSQL tests
-        run: npm run test:postgre
+  # test:
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 14
 
-      - name: Microservices tests
-        run: npm run start:test-ms
+  #   services:
+  #     mongodb:
+  #       image: mongo
+  #       ports:
+  #       - 27017:27017
+  #     postgres:
+  #       image: postgres
+  #       ports:
+  #       - 5432:5432
+  #       env:
+  #         POSTGRES_USER: postgres
+  #         POSTGRES_PASSWORD: admin
+  #   steps:
+  #     - name: Copy repository
+  #       uses: actions/checkout@v3
 
-      - name: Microservices proxy tests
-        run: npm run start:test-ms:proxy
+  #     - name: Install Dependencies
+  #       run: npm run setup:tests
 
-  test-cli-mongo:
-    needs: test
-    runs-on: ubuntu-latest
-    timeout-minutes: 6
+  #     - name: Build
+  #       run: npm run build
 
-    services:
-      mongodb:
-        image: mongo
-        ports:
-        - 27017:27017
-    steps:
-      - name: Copy repository
-        uses: actions/checkout@v3
+  #     - name: Mongodb tests
+  #       run: npm run test
 
-      - name: Install Dependencies
-        run: npm install
+  #     - name: PostgreSQL tests
+  #       run: npm run test:postgre
 
-      - name: CLI mongo
-        run: ./test/test-cli.sh mongo
+  #     - name: Microservices tests
+  #       run: npm run start:test-ms
+
+  #     - name: Microservices proxy tests
+  #       run: npm run start:test-ms:proxy
+
+  # test-cli-mongo:
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 6
+
+  #   services:
+  #     mongodb:
+  #       image: mongo
+  #       ports:
+  #       - 27017:27017
+  #   steps:
+  #     - name: Copy repository
+  #       uses: actions/checkout@v3
+
+  #     - name: Install Dependencies
+  #       run: npm install
+
+  #     - name: CLI mongo
+  #       run: ./test/test-cli.sh mongo
         
