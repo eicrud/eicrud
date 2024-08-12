@@ -782,7 +782,7 @@ export class Export {
                           query: {
                             $ref: entityRef,
                           },
-                          update: {
+                          data: {
                             $ref: entityRef,
                           },
                         },

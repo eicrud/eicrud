@@ -21,7 +21,8 @@ import {
 } from '@eicrud/core/config/crud.config.service';
 import { CrudAuthGuard } from '@eicrud/core/authentication/auth.guard';
 import * as services from '../oapi-client/services.gen';
-import { CrudOptions, UserProfile_TestCmdGetDto, UserProfile_TestCmdGetReturnDto } from '../oapi-client';
+import { CrudOptions, StarFruit, UserProfile_TestCmdGetDto, UserProfile_TestCmdGetReturnDto } from '../oapi-client';
+import { StarFruitService } from '../src/services/star-fruit/star-fruit.service';
 const path = require('path');
 const fs = require('fs');
 
@@ -89,6 +90,14 @@ describe('AppController', () => {
     entityManager = app.get<EntityManager>(EntityManager);
     crudConfig = app.get<CrudConfigService>(CRUD_CONFIG_KEY, { strict: false });
 
+    const starFruitService = app.get<StarFruitService>(StarFruitService);
+    const starFruitUpdateOne = {
+      name: 'StarFruit Update One',
+      ownerEmail: "user.email@mail.com",
+      key: 'one',
+    }
+    await starFruitService.$create(starFruitUpdateOne, null);
+
     crudConfig.authenticationOptions.minTimeBetweenLoginAttempsMs = 0;
     crudConfig.watchTrafficOptions.ddosProtection = false;
 
@@ -104,7 +113,7 @@ describe('AppController', () => {
   });
 
   it(
-    'should run cmds with oapi client',
+    'oapi client should have right types',
     async () => {
       const user = users['Jon Doe'];
 
@@ -126,6 +135,25 @@ describe('AppController', () => {
         },
       })) as any;
       expect(res.data).toBe('HELLO WORLD!');
+
+      const authorization = 'Bearer ' + user.jwt;
+
+      let query: Partial<StarFruit> = {
+        key: 'one',
+      };
+
+      let res2 = await services.getCrudSStarFruitOne({
+        query: {
+          options: JSON.stringify({
+            jwtCookie: true,
+          }) as any,
+          query: JSON.stringify(query) as any,
+        },
+        headers: {
+          authorization: authorization,
+        },
+      });
+      expect(res2.data?.name).toBe('StarFruit Update One');
     },
   );
 

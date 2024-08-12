@@ -18,6 +18,16 @@ export class StarFruit implements CrudEntity {
   name: string;
 
   @Property()
+  @IsOptional()
+  @IsString()
+  quality: string = 'good';
+
+  @Property()
+  @IsOptional()
+  @IsString()
+  key: string = 'unknown';
+
+  @Property()
   createdAt: Date;
 
   @Property()
