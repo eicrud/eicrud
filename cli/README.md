@@ -34,17 +34,21 @@ eicrud generate cmd myService myCmd (-ms myFolder)
 
 ### Export
 
-Copy all your `.dto.ts` and `.entity.ts` to the `eicrud_exports` directory and strips them of their decorators.
+Copy all your `.dto.ts` and `.entity.ts` to the `eicrud_exports` directory and strip them of their decorators.
 ```bash
 eicrud export dtos
 ```
-Build a typed class for each of your exported entities and instantiate them in a main `SuperClient` class.
+Build a typed client class for each of your exported entities and instantiate them in a main `SuperClient` class.
 
 ```bash
 eicrud export superclient
 ```
 
+Export an OpenAPI schema based on your entities and commands.
 
+```bash
+eicrud export openapi
+```
 
 ## Config
 You can specify ExportOptions in a `eicrud-cli.json` file at the root of your project.
@@ -97,5 +101,11 @@ export interface ExportOptions {
    * @default 'user'
    */
   userServiceDir?: string;
+
+  /**
+   * Set the defaults for the exported openAPI schema.
+   * https://swagger.io/specification
+   */
+  openApiBaseSpec?: any;
 }
 ```
