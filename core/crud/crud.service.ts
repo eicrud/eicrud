@@ -449,6 +449,11 @@ export class CrudService<T extends CrudEntity> {
     if (opOpts.hooks) {
       entity = await this.beforeReadHook(entity, ctx);
     }
+
+    if (Array.isArray(entity[this.crudConfig.id_field])) {
+      this.dbAdapter.makeInQuery(entity[this.crudConfig.id_field], entity);
+    }
+
     this.checkObjectForIds(entity);
 
     const em = this.entityManager.fork();
@@ -597,6 +602,10 @@ export class CrudService<T extends CrudEntity> {
 
     if (hooks) {
       [{ query, data }] = await this.beforeUpdateHook([{ query, data }], ctx);
+    }
+
+    if (Array.isArray(query[this.crudConfig.id_field])) {
+      this.dbAdapter.makeInQuery(query[this.crudConfig.id_field], query);
     }
 
     this.checkObjectForIds(query);
@@ -823,6 +832,9 @@ export class CrudService<T extends CrudEntity> {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
     if (opOpts.hooks) {
       query = await this.beforeDeleteHook(query, ctx);
+    }
+    if (Array.isArray(query[this.crudConfig.id_field])) {
+      this.dbAdapter.makeInQuery(query[this.crudConfig.id_field], query);
     }
     this.checkObjectForIds(query);
     const em = this.entityManager.fork();
