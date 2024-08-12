@@ -44,7 +44,7 @@ override async errorControllerHook(error, ctx: CrudContext){
 }
 ```
 !!! note
-    **Controller hooks** will only trigger on operations initiated by the [client](../client/setup.md). Unlike [service-specific hooks](../services/hooks.md) that trigger on internal service calls.
+    **Controller hooks** will only trigger on operations initiated by the [client](../client/setup.md). Unlike [service-specific hooks](../hooks/service-hooks.md) that trigger on internal service calls.
 
 **MsLink hooks** are called before and after a ms-link request is received in a [microservice](../microservices/configuration.md).
 ```typescript
@@ -61,7 +61,8 @@ override async errorMsLinkHook(error, ctx: CrudContext, query: MsLinkQuery, args
 }
 ```
 !!! note
-    It's better not to await function calls inside hooks when possible, this way errors won't prevent requests from returning data.
+    - It's better not to await function calls inside hooks when possible, this way errors won't prevent requests from returning data. 
+    - Returning a value in an error hook prevents the error from throwing. The value is sent back to the client.
 
 
 ## Services
