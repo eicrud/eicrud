@@ -236,6 +236,35 @@ describe('AppController', () => {
         null,
       );
       expect(fruit1.name).toBe(payload.name);
+
+      let payloadBatch: Partial<StarFruit>[] = [
+        {
+          name: 'fruit 2',
+          ownerEmail: 'batch@mail.com',
+        },
+        {
+          name: 'fruit 3',
+          ownerEmail: 'batch@mail.com',
+        },
+      ];
+
+      let res2 = await services.postCrudSStarFruitBatch({
+        body: payloadBatch,
+        query: {
+          options: JSON.stringify({
+            jwtCookie: true,
+          }) as any,
+        },
+        headers: {
+          authorization: authorization,
+        },
+      });
+      expect(res2.data.length).toBe(2);
+      const fruitsBatch = await starFruitService.$find(
+        { ownerEmail: 'batch@mail.com' },
+        null,
+      );
+      expect(fruitsBatch.data.length).toBe(2);
     },
     6000 * 100,
   );
