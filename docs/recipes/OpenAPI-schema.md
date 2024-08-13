@@ -65,7 +65,7 @@ You can override parts of the generated schema in `eicrud-cli.json`.
 
 ## Typed schema
 
-You can use the [typeconv](https://www.npmjs.com/package/typeconv) package to convert your DTOs into OpenAPI components. The [CLI](https://www.npmjs.com/package/@eicrud/cli){:target="_blank"} will then embed these components into the generated schema.
+You can use the [typeconv](https://www.npmjs.com/package/typeconv){:target="_blank"} package to convert your DTOs into OpenAPI components. The [CLI](https://www.npmjs.com/package/@eicrud/cli){:target="_blank"} will then embed these components into the generated schema.
 
 ```shell
 eicrud export dtos -cc
