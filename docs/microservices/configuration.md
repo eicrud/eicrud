@@ -38,7 +38,7 @@ export const microServices: Record<string, MicroServiceConfig>  = {
 
 The environment variable `CRUD_CURRENT_MS` tells an application instance to behave as a particular ms. 
 
-Your [CrudServices](../services/definition.md) will call each other over the network using a ms-link depending on the `services` list of its `CRUD_CURRENT_MS`.
+Your microservices call each other over the network using a ms-link endpoint. The routing depends on each service's `MicroServiceConfig`.
 
 !!! note
     Check out [this guide](./dollar-functions.md) to make sure your application will behave the same once configured in microservices.
