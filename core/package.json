@@ -41,7 +41,7 @@
     "wildcard": "^2.0.1"
   },
   "devDependencies": {
-    "@types/node": "^20.12.12",
+    "@types/node": "^22.4.0",
     "del-cli": "^5.1.0",
     "typescript": "^5.3.3"
   },
