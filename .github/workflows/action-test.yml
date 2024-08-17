@@ -13,8 +13,9 @@ on:
   #   - 'db_*/**'
 
 jobs:
-
+  
   test:
+    if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 14
 
@@ -53,6 +54,7 @@ jobs:
         run: npm run start:test-ms:proxy
 
   test-cli-mongo:
+    if: ${{ github.actor != 'dependabot[bot]' }}
     needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 6
