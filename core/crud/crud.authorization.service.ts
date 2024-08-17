@@ -88,9 +88,13 @@ export class CrudAuthorizationService {
 
   authorizeBatch(
     ctx: CrudContext,
-    batchSize: number,
+    batchArray: Array<any>,
     security: CrudSecurity | CmdSecurity,
   ) {
+    if (!Array.isArray(batchArray)) {
+      throw new BadRequestException('Batch must be an array');
+    }
+    const batchSize = batchArray.length;
     if ((batchSize || 0) < 1) {
       throw new BadRequestException(`Batchsize must be at least 1`);
     }
