@@ -297,7 +297,7 @@ export class CrudController {
     try {
       await this.crudAuthorization.authorizeBatch(
         ctx,
-        newEntities?.length,
+        newEntities,
         currentService.security,
       );
 
@@ -403,7 +403,7 @@ export class CrudController {
       if (cmdSecurity.batchField && data?.[cmdSecurity.batchField]) {
         await this.crudAuthorization.authorizeBatch(
           ctx,
-          data[cmdSecurity.batchField].length,
+          data[cmdSecurity.batchField],
           cmdSecurity,
         );
       }
@@ -784,7 +784,7 @@ export class CrudController {
     try {
       await this.crudAuthorization.authorizeBatch(
         ctx,
-        data?.length,
+        data,
         currentService.security,
       );
 
