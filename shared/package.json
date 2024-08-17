@@ -15,7 +15,7 @@
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
   },
   "devDependencies": {
-    "@types/node": "^20.12.12",
+    "@types/node": "^22.4.0",
     "del-cli": "^5.1.0"
   },
   "keywords": [
