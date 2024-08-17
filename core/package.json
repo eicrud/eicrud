@@ -35,7 +35,7 @@
     "bcrypt": "^5.1.1",
     "cache-manager": "^5.4.0",
     "class-validator": "^0.14.1",
-    "lru-cache": "^10.2.0",
+    "lru-cache": "^11.0.0",
     "mnemonist": "^0.39.8",
     "reflect-metadata": "^0.2.1",
     "wildcard": "^2.0.1"
