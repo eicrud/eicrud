@@ -5,7 +5,7 @@
 - [Commit Message Guidelines](#commit-message-guidelines)
 
 ## Submitting an Issue
-Before you submit an issue, please search the issue tracker, maybe an issue for your problem already exists.
+Before you submit an issue, consider searching the issues' list, maybe an issue for your problem already exists.
 
 ### Got a Question or Problem?
 
