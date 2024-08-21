@@ -1,6 +1,0 @@
-on:
-    pull_request:
-      branches: [develop]
-      paths-ignore:
-        - '**/*.md'
-        - '**/*.txt'
