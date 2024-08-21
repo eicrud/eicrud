@@ -43,6 +43,8 @@ export class Generate {
         const value = keys[key];
         content = content.replace(new RegExp(key, 'g'), value);
       }
+
+      content = _utils_cli.removeDeletedLines(content);
       //write content
       fs.writeFileSync(targetPath, content);
     });
@@ -70,6 +72,12 @@ export class Generate {
       tk_entity_camel_name: kebabToCamelCase(entity_kebab_name),
       tk_entity_uname: name.toUpperCase(),
       tk_config_path_from_service: `../../${options?.ms ? '../' : ''}eicrud.config.service`,
+      tk_service_config_import: options?.ms
+        ? `import { msConfig } from '../config';`
+        : '//delete-this-line',
+      tk_service_config_usage: options?.ms
+        ? '{ hooks, ...msConfig}'
+        : '{ hooks }',
     };
 
     const dir = `./src/services/${msPath}${keys.tk_entity_lname}`;
@@ -140,6 +148,18 @@ export class Generate {
         serviceIndexFile,
         fs,
       );
+    }
+
+    if (options?.ms) {
+      const msConfigFile = indexDir + `config.ts`;
+      if (!fs.existsSync(msConfigFile)) {
+        Generate.copyTemplateFiles(
+          template_folder_service,
+          ['config.ts'],
+          {},
+          indexDir,
+        );
+      }
     }
 
     const cmdsFile = _utils_cli.createCmdsFile(fs, path, template_folder, dir);

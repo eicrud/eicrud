@@ -462,11 +462,7 @@ export class Export {
           result = result.replace(new RegExp(newsRegex, 'gm'), ';');
         }
 
-        const lineBreak = result.includes('\r\n') ? '\r\n' : '\n';
-        result = result
-          .split(lineBreak)
-          .filter((line) => !line.includes('//delete-this-line'))
-          .join(lineBreak);
+        result = _utils_cli.removeDeletedLines(result);
       }
 
       for (const replace of replaces) {

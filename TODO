@@ -58,3 +58,5 @@
 [ ] tests for Array.isArray(entity[this.crudConfig.id_field]) -> makeIds
 [ ] tests for "Batch must be an array"
 [ ] setup codeQL workflow conditions
+
+[ ] pass full orm to CRUDService config (not just entity manager)

@@ -30,7 +30,7 @@ import {
   ICrudRightsFieldInfo,
   ICrudRightsInfo,
 } from '../crud/model/dtos';
-import { EntityClass, EntityManager, wrap } from '@mikro-orm/core';
+import { EntityClass, EntityManager, MikroORM, wrap } from '@mikro-orm/core';
 import { CrudOptions } from '.';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { truncate } from 'fs';
@@ -85,9 +85,9 @@ export type Inheritance = {
   [K in ExcludedInheritanceKeys]?: never;
 };
 
-export interface CrudServiceConfig<T extends CrudEntity> {
+export interface CrudServiceConfig<T extends CrudEntity = any> {
   cacheOptions?: CacheOptions;
-  entityManager?: EntityManager;
+  orm?: MikroORM;
   dbAdapter?: CrudDbAdapter;
   cacheManager?: CrudCache;
   hooks?: CrudHooks<T>;
@@ -95,6 +95,7 @@ export interface CrudServiceConfig<T extends CrudEntity> {
 
 export class CrudService<T extends CrudEntity> {
   protected entityManager: EntityManager;
+  protected orm: MikroORM;
   public serviceName: string;
   protected crudConfig: CrudConfigService;
   public dbAdapter: CrudDbAdapter;
@@ -127,8 +128,7 @@ export class CrudService<T extends CrudEntity> {
     this.crudAuthorization = this.moduleRef.get(CrudAuthorizationService, {
       strict: false,
     });
-    this.entityManager =
-      this.config?.entityManager || this.crudConfig.entityManager;
+    this.entityManager = this.config?.orm?.em || this.crudConfig.entityManager;
     this.cacheOptions = {
       ...(this.config?.cacheOptions || {}),
       ...this.crudConfig.defaultCacheOptions,
