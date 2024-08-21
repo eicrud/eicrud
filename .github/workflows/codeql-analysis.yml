@@ -4,8 +4,3 @@ on:
       paths-ignore:
         - '**/*.md'
         - '**/*.txt'
-
-jobs:
-  analyze:
-    name: Analyze
-    runs-on: [ubuntu-latest]
