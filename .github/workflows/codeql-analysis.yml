@@ -1,0 +1,11 @@
+on:
+    pull_request:
+      branches: [develop]
+      paths-ignore:
+        - '**/*.md'
+        - '**/*.txt'
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: [ubuntu-latest]
