@@ -194,6 +194,9 @@ describe('AppController', () => {
   }, 10000);
 
   it('should detect limit when fetching melon ids', async () => {
+    //wait 200ms
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
     const user = users['Michael Doe'];
     const dto: LoginDto = {
       email: user.email,
@@ -208,6 +211,9 @@ describe('AppController', () => {
   }, 10000);
 
   it('should apply limits when fetching melon Id', async () => {
+    //wait 200ms
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
     const account = users['Jon Doe'];
     const user = users['Michael Doe'];
     const dto: LoginDto = {
@@ -260,6 +266,9 @@ describe('AppController', () => {
   });
 
   it('should findIds & patchIn & findIn melons', async () => {
+    //wait 200ms
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
     const user = users['Michael Doe'];
     const dto: LoginDto = {
       email: user.email,
