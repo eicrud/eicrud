@@ -10,7 +10,7 @@ import { CrudController } from '@eicrud/core/crud/crud.controller';
 import { MyUserService } from '../src/services/my-user/my-user.service';
 import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { EntityManager } from '@mikro-orm/mongodb';
+import { EntityManager } from '@mikro-orm/core';
 import { UserProfile } from '../src/services/user-profile/user-profile.entity';
 import {
   createAccountsAndProfiles,

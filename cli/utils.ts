@@ -11,6 +11,15 @@ export class _utils_cli {
     return content;
   }
 
+  static removeDeletedLines(result) {
+    const lineBreak = result.includes('\r\n') ? '\r\n' : '\n';
+    result = result
+      .split(lineBreak)
+      .filter((line) => !line.includes('//delete-this-line'))
+      .join(lineBreak);
+    return result;
+  }
+
   static writeImportsAndReplacesToFile(importLines, replaces, file, fs) {
     let content = fs.readFileSync(file, 'utf8');
 
@@ -35,6 +44,7 @@ export class _utils_cli {
 
   static createCmdsFile(fs, path, template_folder, dir) {
     const cmdsFile = dir + `/cmds.ts`;
+
     if (!fs.existsSync(cmdsFile)) {
       const templateIndex = path.join(template_folder, '/service/cmds.ts');
       fs.copyFileSync(templateIndex, cmdsFile);
