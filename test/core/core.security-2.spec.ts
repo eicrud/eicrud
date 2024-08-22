@@ -298,4 +298,36 @@ describe('AppController', () => {
       crudConfig,
     });
   });
+
+  it('should prevent batch operation when payload is not an array', async () => {
+    const user = users['Admin Dude'];
+
+    const payload = { length: 5e99 };
+    const query = { service: 'melon' };
+    await testMethod({
+      url: '/crud/batch',
+      method: 'PATCH',
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.PAYLOAD_MUST_BE_ARRAY.code,
+      crudConfig,
+    });
+
+    await testMethod({
+      url: '/crud/batch',
+      method: 'POST',
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: null,
+      query,
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.PAYLOAD_MUST_BE_ARRAY.code,
+      crudConfig,
+    });
+  });
 });
