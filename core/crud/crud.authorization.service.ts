@@ -92,7 +92,7 @@ export class CrudAuthorizationService {
     security: CrudSecurity | CmdSecurity,
   ) {
     if (!Array.isArray(batchArray)) {
-      throw new BadRequestException('Batch must be an array');
+      throw new BadRequestException(CrudErrors.PAYLOAD_MUST_BE_ARRAY.str());
     }
     const batchSize = batchArray.length;
     if ((batchSize || 0) < 1) {

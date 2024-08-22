@@ -55,6 +55,9 @@
 [x] don't check csrf on get requests
 [X] cmd hook - (controller)
 [x] tests for GET cmd
+
 [ ] tests for Array.isArray(entity[this.crudConfig.id_field]) -> makeIds
-[ ] tests for "Batch must be an array"
-[ ] setup codeQL workflow conditions
+[x] tests for "Batch must be an array"
+
+[x] setup codeQL workflow conditions
+[x] pass full orm to CRUDService config (not just entity manager)

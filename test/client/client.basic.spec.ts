@@ -10,7 +10,7 @@ import { CrudController } from '../../core/crud/crud.controller';
 import { MyUserService } from '../src/services/my-user/my-user.service';
 import { CrudAuthService } from '../../core/authentication/auth.service';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { EntityManager } from '@mikro-orm/mongodb';
+import { EntityManager } from '@mikro-orm/core';
 import { UserProfile } from '../src/services/user-profile/user-profile.entity';
 import {
   createAccountsAndProfiles,
@@ -194,6 +194,9 @@ describe('AppController', () => {
   }, 10000);
 
   it('should detect limit when fetching melon ids', async () => {
+    //wait 200ms
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
     const user = users['Michael Doe'];
     const dto: LoginDto = {
       email: user.email,
@@ -208,6 +211,9 @@ describe('AppController', () => {
   }, 10000);
 
   it('should apply limits when fetching melon Id', async () => {
+    //wait 200ms
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
     const account = users['Jon Doe'];
     const user = users['Michael Doe'];
     const dto: LoginDto = {
@@ -260,6 +266,9 @@ describe('AppController', () => {
   });
 
   it('should findIds & patchIn & findIn melons', async () => {
+    //wait 200ms
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
     const user = users['Michael Doe'];
     const dto: LoginDto = {
       email: user.email,

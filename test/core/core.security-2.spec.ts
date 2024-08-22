@@ -13,7 +13,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
+import { EntityManager } from '@mikro-orm/core';
 import { UserProfile } from '../src/services/user-profile/user-profile.entity';
 import { MsLinkQuery, CrudQuery } from '@eicrud/core/crud/model/CrudQuery';
 import { createAccountsAndProfiles, testMethod } from '../test.utils';
@@ -254,6 +254,79 @@ describe('AppController', () => {
       entityManager,
       payload,
       query,
+      crudConfig,
+    });
+  });
+
+  it('should prevent patch & remove skip with _id', async () => {
+    const user = users['Sarah Doe'];
+    const admin = users['Admin Dude'];
+    const payload: Partial<UserProfile> = {
+      userName: 'Sarah Jane',
+    } as any;
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({
+        id: crudConfig.dbAdapter.formatId(admin.profileId, crudConfig),
+        user: crudConfig.dbAdapter.formatId(user.id, crudConfig),
+      }),
+    };
+
+    let res = await testMethod({
+      url: '/crud/one',
+      method: 'PATCH',
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.ENTITY_NOT_FOUND.code,
+      crudConfig,
+    });
+
+    await testMethod({
+      url: '/crud/one',
+      method: 'DELETE',
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: {},
+      query,
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.ENTITY_NOT_FOUND.code,
+      crudConfig,
+    });
+  });
+
+  it('should prevent batch operation when payload is not an array', async () => {
+    const user = users['Admin Dude'];
+
+    const payload = { length: 5e99 };
+    const query = { service: 'melon' };
+    await testMethod({
+      url: '/crud/batch',
+      method: 'PATCH',
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.PAYLOAD_MUST_BE_ARRAY.code,
+      crudConfig,
+    });
+
+    await testMethod({
+      url: '/crud/batch',
+      method: 'POST',
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: null,
+      query,
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.PAYLOAD_MUST_BE_ARRAY.code,
       crudConfig,
     });
   });
