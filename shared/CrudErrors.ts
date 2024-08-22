@@ -59,6 +59,7 @@ export class CrudErrors {
     'GET method not allowed.',
     17,
   );
+  static readonly ENTITY_NOT_FOUND = new CrudError('Entity not found', 18);
 }
 
 export interface MaxBatchSizeExceededDto {

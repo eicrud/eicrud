@@ -780,7 +780,7 @@ export class CrudService<T extends CrudEntity> {
       const tempEm = em.fork();
       result = await tempEm.findOne(this.entity, query, opts as any);
       if (!result) {
-        throw new BadRequestException('Entity not found (patch)');
+        throw new BadRequestException(CrudErrors.ENTITY_NOT_FOUND.str());
       }
     }
     const id = this.dbAdapter.checkId(result[this.crudConfig.id_field]);
@@ -864,7 +864,7 @@ export class CrudService<T extends CrudEntity> {
     const em = this.entityManager.fork();
     let entity = await em.findOne(this.entity, query);
     if (!entity) {
-      throw new BadRequestException('Entity not found (removeOne)');
+      throw new BadRequestException(CrudErrors.ENTITY_NOT_FOUND.str());
     }
     em.remove(entity);
 

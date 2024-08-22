@@ -257,4 +257,45 @@ describe('AppController', () => {
       crudConfig,
     });
   });
+
+  it('should prevent patch & remove skip with _id', async () => {
+    const user = users['Sarah Doe'];
+    const admin = users['Admin Dude'];
+    const payload: Partial<UserProfile> = {
+      userName: 'Sarah Jane',
+    } as any;
+    const query: CrudQuery = {
+      service: 'user-profile',
+      query: JSON.stringify({
+        id: crudConfig.dbAdapter.formatId(admin.profileId, crudConfig),
+        user: crudConfig.dbAdapter.formatId(user.id, crudConfig),
+      }),
+    };
+
+    let res = await testMethod({
+      url: '/crud/one',
+      method: 'PATCH',
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.ENTITY_NOT_FOUND.code,
+      crudConfig,
+    });
+
+    await testMethod({
+      url: '/crud/one',
+      method: 'DELETE',
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: {},
+      query,
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.ENTITY_NOT_FOUND.code,
+      crudConfig,
+    });
+  });
 });
