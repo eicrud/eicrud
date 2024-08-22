@@ -13,7 +13,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import { EntityManager, ObjectId } from '@mikro-orm/mongodb';
+import { EntityManager } from '@mikro-orm/core';
 import { UserProfile } from '../src/services/user-profile/user-profile.entity';
 import { MsLinkQuery, CrudQuery } from '@eicrud/core/crud/model/CrudQuery';
 import { createAccountsAndProfiles, testMethod } from '../test.utils';
