@@ -35,13 +35,13 @@
     "bcrypt": "^5.1.1",
     "cache-manager": "^5.7.6",
     "class-validator": "^0.14.1",
-    "lru-cache": "^10.2.0",
+    "lru-cache": "^11.0.0",
     "mnemonist": "^0.39.8",
     "reflect-metadata": "^0.2.1",
     "wildcard": "^2.0.1"
   },
   "devDependencies": {
-    "@types/node": "^20.12.12",
+    "@types/node": "^22.5.0",
     "del-cli": "^5.1.0",
     "typescript": "^5.5.4"
   },
