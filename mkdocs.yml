@@ -1,7 +1,7 @@
 site_name: Eicrud - Documentation
 theme:
   logo: planet.svg
-  favicon: favicon.svg
+  favicon: favicon.ico
   name: material
   palette:
     scheme: slate
