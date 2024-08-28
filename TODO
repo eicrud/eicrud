@@ -61,3 +61,5 @@
 
 [x] setup codeQL workflow conditions
 [x] pass full orm to CRUDService config (not just entity manager)
+
+[ ] support basic auth
