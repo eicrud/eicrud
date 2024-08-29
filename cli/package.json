@@ -2,7 +2,8 @@
   "name": "@eicrud/cli",
   "version": "0.0.1",
   "description": "cli for @eicrud framework",
-  "author": "acrosett",
+  "author": "acrosett",  
+  "homepage": "https://eicrud.com/",
   "license": "MIT",
   "repository": {
     "type": "git",

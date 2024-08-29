@@ -2,7 +2,8 @@
   "name": "@eicrud/postgresql",
   "version": "0.0.1",
   "description": "eicrud db adapter for postgresql",
-  "author": "acrosett",
+  "author": "acrosett",  
+  "homepage": "https://eicrud.com/",
   "license": "MIT",
   "dependencies": {
     "@mikro-orm/core": "^6.3.6",

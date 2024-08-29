@@ -1,4 +1,4 @@
-CLI (Command line interface) package for the [Eicrud framework](https://github.com/eicrud/eicrud).
+CLI (Command line interface) package for the [Eicrud framework](https://eicrud.com).
 
 ## Installation
 

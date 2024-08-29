@@ -2,7 +2,8 @@
   "name": "@eicrud/client",
   "version": "0.0.1",
   "description": "http client for @eicrud/core",
-  "author": "acrosett",
+  "author": "acrosett",  
+  "homepage": "https://eicrud.com/",
   "license": "MIT",
   "repository": {
     "type": "git",

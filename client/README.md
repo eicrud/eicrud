@@ -1,1 +1,1 @@
-Client (front-end) package for the [Eicrud framework](https://github.com/eicrud/eicrud).
+Client (front-end) package for the [Eicrud framework](https://eicrud.com).
