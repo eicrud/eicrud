@@ -751,13 +751,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     };
   }
 
-  async $authUser(
-    ctx: CrudContext,
-    user: CrudUser,
-    pass,
-    expiresInSec = 60 * 30,
-    twoFA_code?,
-  ) {
+  async $authUser(ctx: CrudContext, user: CrudUser, dto: LoginDto) {
     const userSuccessPatch: any = {};
     if (user.failedLoginCount >= this.rateLimitCount) {
       const timeoutMS = Math.min(
@@ -783,7 +777,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     }
 
     if (user.twoFA && this.crudConfig.emailService) {
-      if (!twoFA_code) {
+      if (!dto.twoFA_code) {
         await this.$sendTwoFACode(
           user[this.crudConfig.id_field],
           user as CrudUser,
@@ -791,7 +785,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         );
         throw new UnauthorizedException(CrudErrors.TWOFA_REQUIRED.str());
       }
-      await this.verifyTwoFA(user, twoFA_code);
+      await this.verifyTwoFA(user, dto.twoFA_code);
       user.lastTwoFACode = null;
       userSuccessPatch.lastTwoFACode = user.lastTwoFACode;
       user.lastTwoFACodeSent = new Date(0);
@@ -801,7 +795,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     user.lastLoginAttempt = new Date();
     userSuccessPatch.lastLoginAttempt = user.lastLoginAttempt;
 
-    const match = await bcrypt.compare(pass, user?.password);
+    const match = await bcrypt.compare(dto.password, user?.password);
     if (!match) {
       const addPatch = { lastLoginAttempt: user.lastLoginAttempt };
       const query: any = {
@@ -819,7 +813,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         'Updating password hash for user: ',
         user[this.crudConfig.id_field],
       );
-      updatePass = pass;
+      updatePass = dto.password;
     }
 
     user.failedLoginCount = 0;
@@ -835,11 +829,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     );
 
     return {
-      accessToken: await this.authService.signTokenForUser(
-        ctx,
-        user,
-        expiresInSec,
-      ),
+      accessToken: dto?.skipToken
+        ? undefined
+        : await this.authService.signTokenForUser(ctx, user, dto.expiresInSec),
       userId: user[this.crudConfig.id_field],
     } as LoginResponseDto;
   }
@@ -884,7 +876,12 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
     const entity = {};
     entity[this.username_field] = dto.email;
-    const user: CrudUser = await this.$findOne(entity, ctx);
+    let user: CrudUser;
+    if (dto.cachedUser) {
+      user = await this.$findOneCached(entity, ctx);
+    } else {
+      user = await this.$findOne(entity, ctx);
+    }
     if (!user) {
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }
@@ -894,13 +891,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         CrudErrors.TIMED_OUT.str(new Date(user.timeout).toISOString()),
       );
     }
-    return await this.$authUser(
-      ctx,
-      user,
-      dto.password,
-      dto.expiresInSec,
-      dto.twoFA_code,
-    );
+    return await this.$authUser(ctx, user, dto);
   }
 
   async $logout_everywhere(

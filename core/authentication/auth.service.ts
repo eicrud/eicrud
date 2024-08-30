@@ -82,9 +82,10 @@ export class CrudAuthService {
       csrf = await _utils.generateRandomString(16);
       payload['csrf'] = csrf;
     }
+    const expiresIn = expiresInSec === -1 ? undefined : expiresInSec || 60 * 30;
     const token = await this.jwtService.signAsync(payload, {
       secret: this.JWT_SECRET,
-      expiresIn: expiresInSec || 60 * 30,
+      expiresIn,
     });
     if (ctx && ctx.options?.jwtCookie) {
       ctx.setCookies = ctx.setCookies || {};

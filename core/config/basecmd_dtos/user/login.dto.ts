@@ -20,6 +20,12 @@ export class LoginDto implements ILoginDto {
   @IsOptional()
   @IsInt()
   expiresInSec?: number;
+
+  //@eicrud:cli:export:delete:next-line
+  skipToken?: boolean;
+
+  //@eicrud:cli:export:delete:next-line
+  cachedUser?: boolean;
 }
 
 export class LoginReturnDto implements LoginResponseDto {

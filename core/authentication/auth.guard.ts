@@ -30,6 +30,7 @@ import { ModuleRef } from '@nestjs/core';
 import { LRUCache } from 'mnemonist';
 import { Mutex } from 'async-mutex';
 import { CrudAuthorizationService } from '../crud/crud.authorization.service';
+import { LoginDto } from '../config/basecmd_dtos/user/login.dto';
 
 export interface TrafficCache {
   get: (key: string) => Promise<any>;
@@ -37,6 +38,14 @@ export interface TrafficCache {
   inc: (key: string, increment: number, currentValue: number) => Promise<any>;
   clear?: () => Promise<any>;
 }
+
+export type JwtPayload = {
+  [key: string]: any;
+  rvkd?: number;
+  csrf?: string;
+};
+
+export type AuthType = 'bearer' | 'cookie' | 'basic' | null;
 
 export class BasicTrafficCache implements TrafficCache {
   cache: LRUCache<string, number>;
@@ -244,38 +253,13 @@ export class CrudAuthGuard implements CanActivate {
       this.addTrafficToIpTrafficMap(ip);
     }
 
-    const token = this.extractJWT(request);
+    const { token, type } = this.extractAuthorization(request);
     let user: Partial<CrudUser> = { role: this.crudConfig.guest_role };
     let userId;
     const options: CrudOptions = request.query?.query?.options || {};
     if (token && this.extractUserCheck(url)) {
-      const payload = await this.authService.getJwtPayload(token);
-      if (payload.csrf && request.method != 'GET') {
-        const csrfHash = this.extractCSRF(request);
-        if (this.authService.hmacCSRFToken(payload.csrf) != csrfHash) {
-          throw new UnauthorizedException('CSRF token JWT mismatch.');
-        }
-      }
+      const user = await this.extractUser(token, type, request, crudContext);
 
-      crudContext.jwtPayload = payload;
-      const query = {
-        [this.crudConfig.id_field]: payload[this.crudConfig.id_field],
-      };
-      if (request.method == 'POST') {
-        user = (await this.crudConfig.userService.$findOne(
-          query,
-          crudContext,
-        )) as any;
-      } else {
-        user = await this.crudConfig.userService.$findOneCached(
-          query,
-          crudContext,
-        );
-      }
-
-      if (!user) {
-        throw new UnauthorizedException(CrudErrors.USER_NOT_FOUND.str());
-      }
       let timeout = user?.timeout ? new Date(user.timeout) : null;
       if (timeout && timeout > new Date()) {
         throw new UnauthorizedException(
@@ -284,10 +268,6 @@ export class CrudAuthGuard implements CanActivate {
       }
 
       const role: CrudRole = this.crudConfig?.rolesMap[user?.role];
-
-      if (user?.rvkd != payload.rvkd) {
-        throw new UnauthorizedException(CrudErrors.TOKEN_MISMATCH.str());
-      }
 
       if (
         user?.captchaRequested &&
@@ -326,6 +306,53 @@ export class CrudAuthGuard implements CanActivate {
     request['crudContext'] = crudContext;
     return true;
   }
+  async extractUser(token, type: AuthType, request, crudContext: CrudContext) {
+    let user;
+    let cachedUser = request.method != 'POST';
+    let payload: JwtPayload = {};
+    if (type == 'basic') {
+      crudContext.jwtPayload = payload;
+      const [email, password] = Buffer.from(token, 'base64')
+        .toString()
+        .split(':');
+      const loginDto: LoginDto = {
+        email,
+        password,
+        skipToken: true,
+        cachedUser,
+      };
+      user = await this.crudConfig.userService.$login(loginDto, crudContext);
+    } else {
+      payload = await this.authService.getJwtPayload(token);
+      if (payload.csrf && request.method != 'GET') {
+        const csrfHash = this.extractCSRF(request);
+        if (this.authService.hmacCSRFToken(payload.csrf) != csrfHash) {
+          throw new UnauthorizedException('CSRF token JWT mismatch.');
+        }
+      }
+      crudContext.jwtPayload = payload;
+      const query = {
+        [this.crudConfig.id_field]: payload[this.crudConfig.id_field],
+      };
+      if (cachedUser) {
+        user = await this.crudConfig.userService.$findOneCached(
+          query,
+          crudContext,
+        );
+      } else {
+        user = await this.crudConfig.userService.$findOne(query, crudContext);
+      }
+      if (user?.rvkd != payload.rvkd) {
+        throw new UnauthorizedException(CrudErrors.TOKEN_MISMATCH.str());
+      }
+    }
+
+    if (!user) {
+      throw new UnauthorizedException(CrudErrors.USER_NOT_FOUND.str());
+    }
+
+    return user;
+  }
   extractUserCheck(url: any) {
     if (url.includes('/crud')) {
       return true;
@@ -339,12 +366,21 @@ export class CrudAuthGuard implements CanActivate {
     return false;
   }
 
-  private extractJWT(request: any): string | undefined {
-    const jwtCookie = request.cookies?.['eicrud-jwt'];
-    if (!jwtCookie) {
-      return request.headers['authorization']?.split(' ')[1];
+  private extractAuthorization(request: any): {
+    token: string | undefined;
+    type: AuthType;
+  } {
+    const authHeader = request.headers['authorization']?.split(' ');
+    let type: AuthType = authHeader?.[0];
+    let token = authHeader?.[1];
+    if (!token) {
+      token = request.cookies?.['eicrud-jwt'];
+      type = 'cookie';
+      if (!token) {
+        type = null;
+      }
     }
-    return jwtCookie;
+    return { token, type: type?.toLowerCase() as AuthType };
   }
 
   private extractCSRF(request: any): string | undefined {
