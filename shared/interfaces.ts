@@ -49,6 +49,10 @@ export interface ICreateAccountDto {
   email: string;
   password: string;
   role: string;
+  /**
+   * Only use if username_field is configured.
+   */
+  username?: string;
   logMeIn?: boolean;
 }
 

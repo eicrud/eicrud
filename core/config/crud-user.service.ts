@@ -440,6 +440,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     ctx: CrudContext,
   ) {
     if (dto?.newEmail) {
+      dto.newEmail = dto.newEmail.toLowerCase().trim();
       const userWithNewEmail = await this.$findOne(
         { email: dto.newEmail } as any,
         ctx,
@@ -568,8 +569,8 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       passwordResetAttempCount: 0,
     };
     const keys = Object.keys(userObj);
-    const entity = {};
-    entity[this.username_field] = dto.email;
+    dto.email = dto.email.toLowerCase().trim();
+    const entity: any = { email: dto.email };
     const user: CrudUser = await this.$findOne(entity, ctx);
     if (!user) {
       console.debug('User not found for email: ', dto.email);
@@ -714,7 +715,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     ctx: CrudContext,
     inheritance?: Inheritance,
   ) {
-    let { email, password, role } = dto;
+    let { email, password, role, username } = dto;
     if (
       password?.length > this.crudConfig.authenticationOptions.passwordMaxLength
     ) {
@@ -722,8 +723,10 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     }
 
     email = email.toLowerCase().trim();
+    username = username?.toLowerCase().trim();
 
     const user = new this.entity();
+    user[this.username_field] = username || email;
     user.email = email;
     user.password = password;
     user.role = role;

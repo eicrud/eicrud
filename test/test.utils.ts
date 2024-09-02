@@ -21,6 +21,7 @@ export interface TestUser {
   profileType?: string;
   jwt?: string;
   skipProfile?: boolean;
+  username?: string;
   store?: any;
   melons?: number;
   dragonfruits?: number;
@@ -281,6 +282,7 @@ export async function createAccountsAndProfiles(
     const user = users[key];
     const createAccountDto = {
       email: user.email,
+      username: user.username,
       password: user.password || config.testAdminCreds.password,
       role: user.role,
       logMeIn: true,

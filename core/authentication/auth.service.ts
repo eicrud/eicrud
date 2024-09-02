@@ -57,6 +57,15 @@ export class CrudAuthService {
       this.FIELDS_IN_PAYLOAD.push('rvkd');
     }
     this.username_field = this.crudConfig.authenticationOptions.username_field;
+    if (
+      !this.crudConfig.authenticationOptions.fieldsThatResetRevokedCount?.includes(
+        this.username_field,
+      )
+    ) {
+      this.crudConfig.authenticationOptions.fieldsThatResetRevokedCount.push(
+        this.username_field,
+      );
+    }
   }
 
   hmacCSRFToken(token) {

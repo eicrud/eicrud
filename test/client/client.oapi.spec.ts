@@ -213,434 +213,414 @@ describe('AppController', () => {
     baseURL: `http://localhost:${port}`,
   });
 
-  it(
-    'should run cmds with oapi client',
-    async () => {
-      const user = users['Jon Doe'];
+  it('should run cmds with oapi client', async () => {
+    const user = users['Jon Doe'];
 
-      let res = await services.patchCrudSUserProfileCmdTestCmd({
-        body: {
-          returnMessage: "I'm a guest!",
-        },
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-        },
-      });
-      expect(res.data).toBe("I'M A GUEST!");
+    let res = await services.patchCrudSUserProfileCmdTestCmd({
+      body: {
+        returnMessage: "I'm a guest!",
+      },
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+      },
+    });
+    expect(res.data).toBe("I'M A GUEST!");
 
-      res = await services.patchCrudSMyUserCmdLogin({
-        body: {
-          email: user.email,
-          password: testAdminCreds.password,
-        },
-      });
-      expect(res.data.userId).toEqual(user.id?.toString());
+    res = await services.patchCrudSMyUserCmdLogin({
+      body: {
+        email: user.email,
+        password: testAdminCreds.password,
+      },
+    });
+    expect(res.data.userId).toEqual(user.id?.toString());
 
-      const authorization = 'Bearer ' + res.data.accessToken;
+    const authorization = 'Bearer ' + res.data.accessToken;
 
-      res = await services.patchCrudSUserProfileCmdTestCmd({
-        body: {
-          returnMessage: "I'm a guest!",
-        },
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      });
+    res = await services.patchCrudSUserProfileCmdTestCmd({
+      body: {
+        returnMessage: "I'm a guest!",
+      },
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    });
 
-      expect(res.error).toBeDefined();
-      expect(res.error['statusCode']).toBe(403);
-      res = await services.postCrudSUserProfileCmdTestCmd({
-        body: {
+    expect(res.error).toBeDefined();
+    expect(res.error['statusCode']).toBe(403);
+    res = await services.postCrudSUserProfileCmdTestCmd({
+      body: {
+        returnMessage: 'Hello world!',
+      },
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    });
+    expect(res.data).toBe('HELLO WORLD!');
+
+    res = (await services.getCrudSUserProfileCmdTestCmdGet({
+      query: {
+        query: JSON.stringify({
           returnMessage: 'Hello world!',
-        },
+        }) as any,
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    })) as any;
+    expect(res.data).toBe('HELLO WORLD!');
+
+    res = (await services.patchCrudSUserProfileCmdSearch({
+      body: {
+        userNameLike: 'Doe',
+      },
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    })) as any;
+    expect(res.data.data['length']).toBeGreaterThan(1);
+
+    res = (await services.patchCrudSUserProfileCmdSearch({
+      body: {
+        userNameLike: 'Doe',
+      },
+      query: {
+        options: JSON.stringify({
+          limit: 1,
+        }) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    })) as any;
+    expect(res.data.data['length']).toBe(1);
+  }, 8000);
+
+  it('should run create methods', async () => {
+    const user = users['Jon Doe'];
+
+    const authorization = 'Bearer ' + user.jwt;
+
+    let payload: Partial<StarFruit> = {
+      name: 'fruit 1',
+      ownerEmail: user.email,
+    };
+
+    let res = await services.postCrudSStarFruitOne({
+      body: payload,
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    });
+    expect(res.data.name).toBe(payload.name);
+    const fruit1 = await starFruitService.$findOne(
+      { name: payload.name },
+      null,
+    );
+    expect(fruit1.name).toBe(payload.name);
+
+    let payloadBatch: Partial<StarFruit>[] = [
+      {
+        name: 'fruit 2',
+        ownerEmail: 'batch@mail.com',
+      },
+      {
+        name: 'fruit 3',
+        ownerEmail: 'batch@mail.com',
+      },
+    ];
+
+    let res2 = await services.postCrudSStarFruitBatch({
+      body: payloadBatch,
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    });
+    expect(res2.data.length).toBe(2);
+    const fruitsBatch = await starFruitService.$find(
+      { ownerEmail: 'batch@mail.com' },
+      null,
+    );
+    expect(fruitsBatch.data.length).toBe(2);
+  }, 8000);
+
+  it('should run update methods', async () => {
+    const user = users['Jon Doe'];
+
+    const authorization = 'Bearer ' + user.jwt;
+
+    let query: Partial<StarFruit> = {
+      key: 'one',
+    };
+
+    let payload: Partial<StarFruit> = {
+      quality: `updated one`,
+    };
+
+    let res = await services.patchCrudSStarFruitOne({
+      body: payload,
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+        query: JSON.stringify(query) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    });
+    expect(res.data.quality).toBe(payload.quality);
+    const fruit1 = await starFruitService.$findOne(
+      { quality: payload.quality, key: query.key },
+      null,
+    );
+    expect(fruit1.quality).toBe(payload.quality);
+
+    let payloadBatchPayload = starFruitUpdateBatch.map((fruit) => {
+      return {
         query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
+          name: fruit.name,
         },
-        headers: {
-          authorization: authorization,
+        data: {
+          quality: 'updated batch',
         },
-      });
-      expect(res.data).toBe('HELLO WORLD!');
-
-      res = (await services.getCrudSUserProfileCmdTestCmdGet({
-        query: {
-          query: JSON.stringify({
-            returnMessage: 'Hello world!',
-          }) as any,
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      })) as any;
-      expect(res.data).toBe('HELLO WORLD!');
-
-      res = (await services.patchCrudSUserProfileCmdSearch({
-        body: {
-          userNameLike: 'Doe',
-        },
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      })) as any;
-      expect(res.data.data['length']).toBeGreaterThan(1);
-
-      res = (await services.patchCrudSUserProfileCmdSearch({
-        body: {
-          userNameLike: 'Doe',
-        },
-        query: {
-          options: JSON.stringify({
-            limit: 1,
-          }) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      })) as any;
-      expect(res.data.data['length']).toBe(1);
-    },
-    6000 * 100,
-  );
-
-  it(
-    'should run create methods',
-    async () => {
-      const user = users['Jon Doe'];
-
-      const authorization = 'Bearer ' + user.jwt;
-
-      let payload: Partial<StarFruit> = {
-        name: 'fruit 1',
-        ownerEmail: user.email,
       };
+    });
 
-      let res = await services.postCrudSStarFruitOne({
-        body: payload,
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      });
-      expect(res.data.name).toBe(payload.name);
-      const fruit1 = await starFruitService.$findOne(
-        { name: payload.name },
-        null,
-      );
-      expect(fruit1.name).toBe(payload.name);
+    let res2 = await services.patchCrudSStarFruitBatch({
+      body: payloadBatchPayload,
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    });
+    expect(res2.data.length).toBe(starFruitUpdateBatch.length);
+    const fruitsBatch = await starFruitService.$find({ key: 'batch' }, null);
+    for (let fb of fruitsBatch.data) {
+      expect(fb.quality).toBe('updated batch');
+    }
 
-      let payloadBatch: Partial<StarFruit>[] = [
-        {
-          name: 'fruit 2',
-          ownerEmail: 'batch@mail.com',
-        },
-        {
-          name: 'fruit 3',
-          ownerEmail: 'batch@mail.com',
-        },
-      ];
+    let inIds = createdStarFruitIn.map((fruit) => {
+      return fruit.id?.toString();
+    });
+    let inQuery: Partial<StarFruit> = {
+      id: inIds as any,
+    };
+    let resIn = await services.patchCrudSStarFruitIn({
+      body: { quality: 'updated in' },
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+        query: JSON.stringify(inQuery) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    });
+    expect(resIn.data).toBe(createdStarFruitIn.length);
+    const fruitsIn = await starFruitService.$find({ key: 'in' }, null);
+    for (let fi of fruitsIn.data) {
+      expect(fi.quality).toBe('updated in');
+    }
 
-      let res2 = await services.postCrudSStarFruitBatch({
-        body: payloadBatch,
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      });
-      expect(res2.data.length).toBe(2);
-      const fruitsBatch = await starFruitService.$find(
-        { ownerEmail: 'batch@mail.com' },
-        null,
-      );
-      expect(fruitsBatch.data.length).toBe(2);
-    },
-    6000 * 100,
-  );
+    const manyQuery: Partial<StarFruit> = {
+      key: 'many',
+    };
+    const manyPayload: Partial<StarFruit> = {
+      quality: 'updated many',
+    };
+    let resMany = await services.patchCrudSStarFruitMany({
+      body: manyPayload,
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+        query: JSON.stringify(manyQuery) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    });
+    expect(resMany.data).toBe(2);
+    const fruitsMany = await starFruitService.$find({ key: 'many' }, null);
+    for (let fm of fruitsMany.data) {
+      expect(fm.quality).toBe('updated many');
+    }
+  }, 8000);
 
-  it(
-    'should run update methods',
-    async () => {
-      const user = users['Jon Doe'];
+  it('should run delete methods', async () => {
+    const user = users['Jon Doe'];
 
-      const authorization = 'Bearer ' + user.jwt;
+    const authorization = 'Bearer ' + user.jwt;
 
-      let query: Partial<StarFruit> = {
-        key: 'one',
-      };
+    let query: Partial<StarFruit> = {
+      key: 'delete one',
+    };
 
-      let payload: Partial<StarFruit> = {
-        quality: `updated one`,
-      };
+    let toBeDeletedOne = await starFruitService.$findOne(query, null);
+    expect(toBeDeletedOne).toBeDefined();
 
-      let res = await services.patchCrudSStarFruitOne({
-        body: payload,
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-          query: JSON.stringify(query) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      });
-      expect(res.data.quality).toBe(payload.quality);
-      const fruit1 = await starFruitService.$findOne(
-        { quality: payload.quality, key: query.key },
-        null,
-      );
-      expect(fruit1.quality).toBe(payload.quality);
+    let res = await services.deleteCrudSStarFruitOne({
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+        query: JSON.stringify(query) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    });
+    expect(res.data).toBe(1);
+    toBeDeletedOne = await starFruitService.$findOne(query, null);
+    expect(toBeDeletedOne).toBeFalsy();
 
-      let payloadBatchPayload = starFruitUpdateBatch.map((fruit) => {
-        return {
-          query: {
-            name: fruit.name,
-          },
-          data: {
-            quality: 'updated batch',
-          },
-        };
-      });
+    let inIds = deleteStarFruitIn.map((fruit) => {
+      return fruit.id?.toString();
+    });
+    let inQuery: Partial<StarFruit> = {
+      id: inIds as any,
+    };
 
-      let res2 = await services.patchCrudSStarFruitBatch({
-        body: payloadBatchPayload,
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      });
-      expect(res2.data.length).toBe(starFruitUpdateBatch.length);
-      const fruitsBatch = await starFruitService.$find({ key: 'batch' }, null);
-      for (let fb of fruitsBatch.data) {
-        expect(fb.quality).toBe('updated batch');
-      }
+    let toBeDeletedIn = await starFruitService.$find({ ...inQuery }, null);
+    expect(toBeDeletedIn.data.length).toBeGreaterThan(0);
 
-      let inIds = createdStarFruitIn.map((fruit) => {
-        return fruit.id?.toString();
-      });
-      let inQuery: Partial<StarFruit> = {
-        id: inIds as any,
-      };
-      let resIn = await services.patchCrudSStarFruitIn({
-        body: { quality: 'updated in' },
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-          query: JSON.stringify(inQuery) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      });
-      expect(resIn.data).toBe(createdStarFruitIn.length);
-      const fruitsIn = await starFruitService.$find({ key: 'in' }, null);
-      for (let fi of fruitsIn.data) {
-        expect(fi.quality).toBe('updated in');
-      }
+    let resIn = await services.deleteCrudSStarFruitIn({
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+        query: JSON.stringify(inQuery) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    });
+    expect(resIn.data).toBe(createdStarFruitIn.length);
+    toBeDeletedIn = await starFruitService.$find(inQuery, null);
+    expect(toBeDeletedIn.data.length).toBe(0);
 
-      const manyQuery: Partial<StarFruit> = {
-        key: 'many',
-      };
-      const manyPayload: Partial<StarFruit> = {
-        quality: 'updated many',
-      };
-      let resMany = await services.patchCrudSStarFruitMany({
-        body: manyPayload,
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-          query: JSON.stringify(manyQuery) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      });
-      expect(resMany.data).toBe(2);
-      const fruitsMany = await starFruitService.$find({ key: 'many' }, null);
-      for (let fm of fruitsMany.data) {
-        expect(fm.quality).toBe('updated many');
-      }
-    },
-    6000 * 100,
-  );
+    const manyQuery: Partial<StarFruit> = {
+      key: 'delete many',
+    };
 
-  it(
-    'should run delete methods',
-    async () => {
-      const user = users['Jon Doe'];
+    let toBeDeletedMany = await starFruitService.$find(manyQuery, null);
+    expect(toBeDeletedMany.data.length).toBe(2);
 
-      const authorization = 'Bearer ' + user.jwt;
+    let resMany = await services.deleteCrudSStarFruitMany({
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+        query: JSON.stringify(manyQuery) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    });
+    expect(resMany.data).toBe(2);
 
-      let query: Partial<StarFruit> = {
-        key: 'delete one',
-      };
+    toBeDeletedMany = await starFruitService.$find(manyQuery, null);
+    expect(toBeDeletedMany.data.length).toBe(0);
+  }, 8000);
 
-      let toBeDeletedOne = await starFruitService.$findOne(query, null);
-      expect(toBeDeletedOne).toBeDefined();
+  it('should run find methods', async () => {
+    const user = users['Jon Doe'];
 
-      let res = await services.deleteCrudSStarFruitOne({
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-          query: JSON.stringify(query) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      });
-      expect(res.data).toBe(1);
-      toBeDeletedOne = await starFruitService.$findOne(query, null);
-      expect(toBeDeletedOne).toBeFalsy();
+    const authorization = 'Bearer ' + user.jwt;
 
-      let inIds = deleteStarFruitIn.map((fruit) => {
-        return fruit.id?.toString();
-      });
-      let inQuery: Partial<StarFruit> = {
-        id: inIds as any,
-      };
+    let query: Partial<StarFruit> = {
+      key: 'one',
+    };
 
-      let toBeDeletedIn = await starFruitService.$find({ ...inQuery }, null);
-      expect(toBeDeletedIn.data.length).toBeGreaterThan(0);
+    let res = await services.getCrudSStarFruitOne({
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+        query: JSON.stringify(query) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    });
+    expect(res.data.name).toBe('StarFruit Update One');
 
-      let resIn = await services.deleteCrudSStarFruitIn({
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-          query: JSON.stringify(inQuery) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      });
-      expect(resIn.data).toBe(createdStarFruitIn.length);
-      toBeDeletedIn = await starFruitService.$find(inQuery, null);
-      expect(toBeDeletedIn.data.length).toBe(0);
+    let inIds = createdStarFruitIn.map((fruit) => {
+      return fruit.id?.toString();
+    });
+    let inQuery: Partial<StarFruit> = {
+      id: inIds as any,
+    };
 
-      const manyQuery: Partial<StarFruit> = {
-        key: 'delete many',
-      };
+    let resIn = await services.getCrudSStarFruitIn({
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+        query: JSON.stringify(inQuery) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    });
+    expect(resIn.data.data.length).toBe(createdStarFruitIn.length);
+    for (let i = 0; i < resIn.data.data.length; i++) {
+      expect(resIn.data.data[i].name).toBe(createdStarFruitIn[i].name);
+    }
 
-      let toBeDeletedMany = await starFruitService.$find(manyQuery, null);
-      expect(toBeDeletedMany.data.length).toBe(2);
+    const manyQuery: Partial<StarFruit> = {
+      key: 'many',
+    };
 
-      let resMany = await services.deleteCrudSStarFruitMany({
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-          query: JSON.stringify(manyQuery) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      });
-      expect(resMany.data).toBe(2);
-
-      toBeDeletedMany = await starFruitService.$find(manyQuery, null);
-      expect(toBeDeletedMany.data.length).toBe(0);
-    },
-    6000 * 100,
-  );
-
-  it(
-    'should run find methods',
-    async () => {
-      const user = users['Jon Doe'];
-
-      const authorization = 'Bearer ' + user.jwt;
-
-      let query: Partial<StarFruit> = {
-        key: 'one',
-      };
-
-      let res = await services.getCrudSStarFruitOne({
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-          query: JSON.stringify(query) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      });
-      expect(res.data.name).toBe('StarFruit Update One');
-
-      let inIds = createdStarFruitIn.map((fruit) => {
-        return fruit.id?.toString();
-      });
-      let inQuery: Partial<StarFruit> = {
-        id: inIds as any,
-      };
-
-      let resIn = await services.getCrudSStarFruitIn({
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-          query: JSON.stringify(inQuery) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      });
-      expect(resIn.data.data.length).toBe(createdStarFruitIn.length);
-      for (let i = 0; i < resIn.data.data.length; i++) {
-        expect(resIn.data.data[i].name).toBe(createdStarFruitIn[i].name);
-      }
-
-      const manyQuery: Partial<StarFruit> = {
-        key: 'many',
-      };
-
-      let resMany = await services.getCrudSStarFruitMany({
-        query: {
-          options: JSON.stringify({
-            jwtCookie: true,
-          }) as any,
-          query: JSON.stringify(manyQuery) as any,
-        },
-        headers: {
-          authorization: authorization,
-        },
-      });
-      expect(resMany.data.data.length).toBe(2);
-      for (let i = 0; i < resMany.data.data.length; i++) {
-        expect(resMany.data.data[i].key).toBe('many');
-      }
-    },
-    6000 * 100,
-  );
+    let resMany = await services.getCrudSStarFruitMany({
+      query: {
+        options: JSON.stringify({
+          jwtCookie: true,
+        }) as any,
+        query: JSON.stringify(manyQuery) as any,
+      },
+      headers: {
+        authorization: authorization,
+      },
+    });
+    expect(resMany.data.data.length).toBe(2);
+    for (let i = 0; i < resMany.data.data.length; i++) {
+      expect(resMany.data.data[i].key).toBe('many');
+    }
+  }, 8000);
 });
