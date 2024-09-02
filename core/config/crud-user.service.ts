@@ -828,12 +828,16 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       ctx,
     );
 
-    return {
-      accessToken: dto?.skipToken
-        ? undefined
-        : await this.authService.signTokenForUser(ctx, user, dto.expiresInSec),
-      userId: user[this.crudConfig.id_field],
-    } as LoginResponseDto;
+    return ctx.authType == 'basic'
+      ? user
+      : ({
+          accessToken: await this.authService.signTokenForUser(
+            ctx,
+            user,
+            dto.expiresInSec,
+          ),
+          userId: user[this.crudConfig.id_field],
+        } as LoginResponseDto);
   }
 
   async $login(dto: LoginDto, ctx: CrudContext, inheritance?: Inheritance) {
@@ -876,12 +880,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
     const entity = {};
     entity[this.username_field] = dto.email;
-    let user: CrudUser;
-    if (dto.cachedUser) {
-      user = await this.$findOneCached(entity, ctx);
-    } else {
-      user = await this.$findOne(entity, ctx);
-    }
+
+    const user: CrudUser = await this.$findOne(entity, ctx);
+
     if (!user) {
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }

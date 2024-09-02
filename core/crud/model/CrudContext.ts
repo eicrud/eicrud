@@ -5,7 +5,7 @@ import { CrudSecurity } from '../../config/model/CrudSecurity';
 import { CrudConfigService } from '../../config/crud.config.service';
 import { CrudService } from '../crud.service';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { JwtPayload } from '../../authentication';
+import { AuthType, JwtPayload } from '../../authentication';
 
 /**
  * A context assigned to every request.
@@ -17,6 +17,7 @@ export interface CrudContext {
   userId?: string;
   userTrust?: number;
   method?: 'POST' | 'GET' | 'PATCH' | 'DELETE';
+  authType?: AuthType;
   query?: any;
   data?: any;
   origin?: 'crud' | 'cmd' | 'webhook' | string;

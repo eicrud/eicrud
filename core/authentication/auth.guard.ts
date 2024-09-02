@@ -254,11 +254,12 @@ export class CrudAuthGuard implements CanActivate {
     }
 
     const { token, type } = this.extractAuthorization(request);
+    crudContext.authType = type;
     let user: Partial<CrudUser> = { role: this.crudConfig.guest_role };
     let userId;
     const options: CrudOptions = request.query?.query?.options || {};
     if (token && this.extractUserCheck(url)) {
-      const user = await this.extractUser(token, type, request, crudContext);
+      user = await this.extractUser(token, request, crudContext);
 
       let timeout = user?.timeout ? new Date(user.timeout) : null;
       if (timeout && timeout > new Date()) {
@@ -306,10 +307,11 @@ export class CrudAuthGuard implements CanActivate {
     request['crudContext'] = crudContext;
     return true;
   }
-  async extractUser(token, type: AuthType, request, crudContext: CrudContext) {
+  async extractUser(token, request, crudContext: CrudContext) {
     let user;
     let cachedUser = request.method != 'POST';
     let payload: JwtPayload = {};
+    let type: AuthType = crudContext.authType;
     if (type == 'basic') {
       crudContext.jwtPayload = payload;
       const [email, password] = Buffer.from(token, 'base64')
@@ -318,8 +320,6 @@ export class CrudAuthGuard implements CanActivate {
       const loginDto: LoginDto = {
         email,
         password,
-        skipToken: true,
-        cachedUser,
       };
       user = await this.crudConfig.userService.$login(loginDto, crudContext);
     } else {
@@ -433,7 +433,7 @@ export class CrudAuthGuard implements CanActivate {
     ) {
       const query: any = { [this.crudConfig.id_field]: userId };
 
-      if (ctx.method != 'POST') {
+      if (ctx.method != 'POST' && ctx.authType != 'basic') {
         user = await this.crudConfig.userService.$findOne(query, ctx);
       }
 
