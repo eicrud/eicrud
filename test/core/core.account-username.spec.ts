@@ -179,6 +179,7 @@ describe('AppController', () => {
     });
 
     payload.username = 'newguy63';
+    payload.email = 'newguy63@mail.com';
 
     const { userId, accessToken } = await testMethod({
       url: '/crud/cmd',
@@ -279,6 +280,7 @@ describe('AppController', () => {
   it('should rate limit login attempts (too many)', async () => {
     const user = users['RateLimit Gus'];
     user.username = user.username.toLocaleLowerCase();
+    user.email = user.email.toLocaleLowerCase();
     const payload: LoginDto = {
       email: user.username,
       password: 'badpassword',

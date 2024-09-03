@@ -657,10 +657,10 @@ export class Export {
           in: 'header',
           name: 'authorization',
           description:
-            'JWT provided after authentication (if CrudOptions.jwtCookie == false)',
+            'Either JWT provided after authentication (if CrudOptions.jwtCookie == false) or Basic Auth',
           schema: {
             type: 'string',
-            format: 'Bearer <JWT>',
+            format: 'Bearer <JWT> or Basic <base64(username:password)>',
           },
         },
         {
