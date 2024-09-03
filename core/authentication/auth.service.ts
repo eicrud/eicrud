@@ -57,6 +57,15 @@ export class CrudAuthService {
       this.FIELDS_IN_PAYLOAD.push('rvkd');
     }
     this.username_field = this.crudConfig.authenticationOptions.username_field;
+    if (
+      !this.crudConfig.authenticationOptions.fieldsThatResetRevokedCount?.includes(
+        this.username_field,
+      )
+    ) {
+      this.crudConfig.authenticationOptions.fieldsThatResetRevokedCount.push(
+        this.username_field,
+      );
+    }
   }
 
   hmacCSRFToken(token) {
@@ -82,9 +91,10 @@ export class CrudAuthService {
       csrf = await _utils.generateRandomString(16);
       payload['csrf'] = csrf;
     }
+    const expiresIn = expiresInSec === -1 ? undefined : expiresInSec || 60 * 30;
     const token = await this.jwtService.signAsync(payload, {
       secret: this.JWT_SECRET,
-      expiresIn: expiresInSec || 60 * 30,
+      expiresIn,
     });
     if (ctx && ctx.options?.jwtCookie) {
       ctx.setCookies = ctx.setCookies || {};

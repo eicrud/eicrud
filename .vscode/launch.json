@@ -87,6 +87,12 @@
     {
       "type": "node-terminal",
       "request": "launch",
+      "name": "npm run test account-username",
+      "command": "npm run test core.account-username.spec.ts"
+    },    
+    {
+      "type": "node-terminal",
+      "request": "launch",
       "name": "npm run test hooks",
       "command": "npm run test hooks"
     },

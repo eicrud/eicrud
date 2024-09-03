@@ -113,20 +113,19 @@ You can disable regular login for users registered with third-party authenticati
 
 ```typescript title="user.service.ts"
 import { UnauthorizedException } from '@nestjs/common';
+import { ILoginDto } from '@eicrud/shared/interfaces';
 
 // ...
 
 override async $authUser(
     ctx: CrudContext,
     user: CrudUser,
-    pass,
-    expiresInSec = 60*30,
-    twoFA_code?,
+    dto: ILoginDto,
 ) {
     if(user.thirdPartyAuth){
         throw new UnauthorizedException('Must use third party login command.');
     }
-    return super.$authUser(ctx, user, pass, expiresInSec, twoFA_code);
+    return super.$authUser(ctx, user, dto);
 }
 
 // ...

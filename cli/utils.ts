@@ -168,7 +168,7 @@ export class _utils_cli {
   static removeLineAfterMarker(fileContent: string, marker: string): string {
     const afterRegex = '.*[\\r\\n]+([^\\r\\n]+)';
     const nextLineRegex = new RegExp(marker + afterRegex, 'gm');
-    return fileContent.replace(nextLineRegex, '');
+    return fileContent.replaceAll(nextLineRegex, '');
   }
 
   normalizeLineEndings(text) {
