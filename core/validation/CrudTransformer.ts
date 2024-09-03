@@ -136,12 +136,12 @@ export class CrudTransformer {
           }
         }
       } else if (checkSize) {
-        const entitySize = JSON.stringify(obj[key]).length;
         let maxSize =
           field_metadata.maxSize ||
           this.crudConfig?.validationOptions.defaultMaxSize ||
           this.config.defaultMaxSize;
         if (maxSize > 0) {
+          const entitySize = JSON.stringify(obj[key]).length;
           let add = field_metadata.addMaxSizePerTrustPoint || 0;
           if (add && this.ctx && this.crudConfig) {
             const trust = await this.crudAuthorization.getOrComputeTrust(

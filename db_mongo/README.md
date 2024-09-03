@@ -1,1 +1,1 @@
-MongoDB adapter package for the [Eicrud framework](https://github.com/eicrud/eicrud).
+MongoDB adapter package for the [Eicrud framework](https://eicrud.com).

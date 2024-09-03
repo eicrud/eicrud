@@ -62,4 +62,6 @@
 [x] setup codeQL workflow conditions
 [x] pass full orm to CRUDService config (not just entity manager)
 
-[ ] support basic auth
+[x] support basic auth
+[ ] update open-api schema with basic auth
+[ ] granular authorization recipe

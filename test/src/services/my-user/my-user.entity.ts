@@ -30,6 +30,11 @@ export class MyUser implements CrudEntity {
   @Property()
   email: string;
 
+  @IsOptional()
+  @Unique()
+  @Property({ nullable: true })
+  username: string;
+
   @Property()
   password: string;
 

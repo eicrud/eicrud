@@ -2,7 +2,8 @@
   "name": "@eicrud/core",
   "version": "0.0.1",
   "description": "eicrud core package",
-  "author": "acrosett",
+  "author": "acrosett",  
+  "homepage": "https://eicrud.com/",
   "license": "MIT",
   "scripts": {
     "compile": "npm run clean && tsc",
