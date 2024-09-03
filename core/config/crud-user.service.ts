@@ -735,7 +735,10 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       res = await this.$create(user, ctx);
     } catch (e) {
       console.error('Error creating user: ', e);
-      if (['duplicate', 'key', 'email'].every((k) => e.message?.includes(k))) {
+      if (
+        ['duplicate', 'key'].every((k) => e.message?.includes(k)) &&
+        ['email', 'username'].some((k) => e.message?.includes(k))
+      ) {
         throw new BadRequestException(CrudErrors.EMAIL_ALREADY_TAKEN.str());
       }
       throw e;

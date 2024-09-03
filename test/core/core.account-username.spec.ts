@@ -153,7 +153,7 @@ describe('AppController', () => {
   it('should authorize createAccount for guest and provide working accessToken', async () => {
     const user = users['Sarah Doe'];
     const payload: ICreateAccountDto = {
-      email: user.email,
+      email: 'newmail@mail2.com',
       password: 'p4ssw0rd',
       username: user.username,
       role: 'user',
