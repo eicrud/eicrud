@@ -250,18 +250,6 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   }
 
   async $computeTrust(user: CrudUser, ctx: CrudContext) {
-    const TRUST_COMPUTE_INTERVAL = 1000 * 60 * 60 * 24;
-    if (ctx.userTrust) {
-      return ctx.userTrust;
-    }
-    if (
-      user.lastComputedTrust &&
-      new Date(user.lastComputedTrust).getTime() + TRUST_COMPUTE_INTERVAL >
-        Date.now()
-    ) {
-      ctx.userTrust = user.trust;
-      return user.trust || 0;
-    }
     let trust = 0;
     if (user.verifiedEmail) {
       trust += 4;

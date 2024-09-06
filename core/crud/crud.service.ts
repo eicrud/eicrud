@@ -145,10 +145,41 @@ export class CrudService<T extends CrudEntity> {
     this.security.cmdSecurityMap['getRights'].dto = GetRightDto;
   }
 
-  onApplicationBootstrap() {
-    const msConfig: MicroServicesOptions = this.crudConfig.microServicesOptions;
+  isServiceInCurrentMs() {
+    return this.getExternalMsMatches().length == 0;
+  }
+
+  getExternalMsMatches(msConf?) {
+    const msConfig: MicroServicesOptions =
+      msConf || this.crudConfig.microServicesOptions;
 
     if (!Object.keys(msConfig.microServices)?.length) {
+      return [];
+    }
+
+    const currentService = MicroServicesOptions.getCurrentService();
+
+    if (!currentService) {
+      return [];
+    }
+
+    if (MicroServicesOptions.getCurrentService() == 'email') {
+      console.log('email service');
+    }
+
+    let matches = msConfig.findCurrentServiceMatches(this);
+
+    if (matches.includes(currentService)) {
+      return [];
+    }
+
+    return matches;
+  }
+
+  onApplicationBootstrap() {
+    const msConfig: MicroServicesOptions = this.crudConfig.microServicesOptions;
+    const gMatches = this.getExternalMsMatches(msConfig);
+    if (!gMatches.length) {
       return;
     }
 
@@ -167,21 +198,11 @@ export class CrudService<T extends CrudEntity> {
           console.warn('No ctx found in method call:' + methodName);
         }
 
-        const currentService = MicroServicesOptions.getCurrentService();
+        let matches = [...gMatches];
 
-        if (!currentService) {
-          continue;
-        }
+        const mapped = matches.map((m) => msConfig.microServices[m]);
+        matches = mapped.filter((m) => m.openMsLink);
 
-        let matches = msConfig.findCurrentServiceMatches(this);
-
-        if (matches.includes(currentService)) {
-          continue;
-        }
-
-        matches = matches
-          .map((m) => msConfig.microServices[m])
-          .filter((m) => m.openMsLink);
         if (matches.length > 1) {
           console.warn(
             'More than one MicroServiceConfig found for service:' +

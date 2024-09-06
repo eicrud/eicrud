@@ -6,6 +6,9 @@ import { CrudConfigService } from '../../config/crud.config.service';
 import { CrudService } from '../crud.service';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { AuthType, JwtPayload } from '../../authentication';
+import { FindOptions } from '@mikro-orm/core';
+
+type CrudOptionType = CrudOptions & Omit<FindOptions<any>, keyof CrudOptions>;
 
 /**
  * A context assigned to every request.
@@ -21,7 +24,7 @@ export interface CrudContext {
   query?: any;
   data?: any;
   origin?: 'crud' | 'cmd' | 'webhook' | string;
-  options?: CrudOptions;
+  options?: CrudOptionType;
   cmdName?: string;
   ids?: string[];
   ip?: string;
