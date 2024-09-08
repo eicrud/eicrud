@@ -295,10 +295,10 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     trust = await this.addToComputedTrust(user, trust, ctx);
 
     const patch: any = { trust, lastComputedTrust: new Date() };
-    if (trust <= 2) {
-      user.captchaRequested = true;
-      patch.captchaRequested = true;
-    }
+    // if (trust <= 2) {
+    //   user.captchaRequested = true;
+    //   patch.captchaRequested = true;
+    // }
     this.$unsecure_fastPatchOne(user[this.crudConfig.id_field], patch, ctx);
     user.trust = trust;
     ctx.userTrust = trust;

@@ -8,12 +8,12 @@ import {
 import { $MaxSize } from '@eicrud/core/validation/decorators';
 import { ICrudOptions } from '@eicrud/shared/interfaces';
 
-export class CrudOptions implements ICrudOptions {
+export class CrudOptions<T = any> implements ICrudOptions {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @$MaxSize(300)
-  populate?: string[];
+  populate?: `${Extract<keyof T, string>}${string}`[];
 
   @IsOptional()
   @IsString()
@@ -31,7 +31,7 @@ export class CrudOptions implements ICrudOptions {
   @IsArray()
   @IsString({ each: true })
   @$MaxSize(300)
-  fields?: string[];
+  fields?: Array<keyof T>;
 
   @IsOptional()
   @IsArray()
