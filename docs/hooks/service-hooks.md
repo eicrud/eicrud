@@ -148,7 +148,7 @@ override async errorDeleteHook(this: UserService, query: User, ctx: CrudContext,
 }
 ```
 
-## Error Hook
+## Controller Hook
 
 ```typescript title="user.hooks.ts"
 override async errorControllerHook(this: UserService, error: any, ctx: CrudContext){
@@ -158,6 +158,6 @@ override async errorControllerHook(this: UserService, error: any, ctx: CrudConte
 ```
 
 !!! note 
-    Error hooks are called by the controller and not the [service](../services/definition.md). This means they'll only catch errors that result from a controller call.
+    Controller hooks are called by the controller and not the [service](../services/definition.md). This means they'll only catch errors that result from a controller call.
 
 

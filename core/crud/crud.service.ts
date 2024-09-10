@@ -599,7 +599,7 @@ export class CrudService<T extends CrudEntity> {
       if (opOpts.hooks) {
         const res = await this.errorReadHook(entity, ctx, e);
         if (res) {
-          return res;
+          return res?.data?.[0] || (res as unknown as T);
         }
       }
       throw e;
