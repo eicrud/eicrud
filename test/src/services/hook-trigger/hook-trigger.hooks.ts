@@ -18,6 +18,17 @@ export async function logHook(
   query?: MsLinkQuery,
   args?: any[],
 ) {
+  if (
+    position != 'error' &&
+    (data.throwError ||
+      data?.[0]?.throwError ||
+      data?.[0]?.query?.throwError ||
+      args?.[1]?.throwError ||
+      args?.[0]?.throwError)
+  ) {
+    return;
+  }
+
   if (!data) {
     data = {
       message:
@@ -27,12 +38,7 @@ export async function logHook(
         args[1].originalMessage,
     };
   }
-  if (
-    position != 'error' &&
-    (data.throwError || data?.[0]?.throwError || args?.[1]?.throwError)
-  ) {
-    return;
-  }
+
   const arrData = Array.isArray(data) ? data : [data];
   const logs: Partial<HookLog>[] = [];
   for (const idx in arrData) {
@@ -160,7 +166,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     ctx: CrudContext,
   ) {
     for (const u of updates) {
-      if (u.query.throwError) {
+      if (u.query.throwError || u.data.throwError) {
         throw new Error('Error in hook');
       }
     }

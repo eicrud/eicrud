@@ -293,7 +293,10 @@ describe('AppController', () => {
       crudConfig,
     });
     expect(res.message).toBe('replaced in hook');
-    await hookTriggerService.$findOne({ throwError: true }, null);
+    await hookTriggerService.$findOne(
+      { throwError: true, message: createMessage },
+      null,
+    );
     const createdTrigger: any = await hookTriggerService.$findOne(
       { originalMessage: 'replace Query with ' + createMessage },
       null,
@@ -327,7 +330,7 @@ describe('AppController', () => {
       {
         pos: 'error',
         type: 'read',
-        expectedMessage: 'replace Query with ' + createMessage,
+        expectedMessage: createMessage,
       },
       {
         pos: 'before',
@@ -364,7 +367,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it.skip('should call hooks on createBatch and find', async () => {
+  it('should call hooks on createBatch and find', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test create batch message';
     const subPayload: Partial<HookTrigger> = {
@@ -378,6 +381,18 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'hook-trigger',
     };
+    const res0 = await testMethod({
+      url: '/crud/batch',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: [{ ...subPayload, throwError: true }, subPayload, subPayload],
+      query,
+      crudConfig,
+    });
+    expect(res0).toBe(true);
     const res = await testMethod({
       url: '/crud/batch',
       method: 'POST',
@@ -392,6 +407,11 @@ describe('AppController', () => {
     for (const trig of res) {
       expect(trig.message).toBe('replaced in hook');
     }
+    const res00: any = await hookTriggerService.$find(
+      { throwError: true, originalMessage: createMessage },
+      null,
+    );
+    expect(res00).toBe(true);
     const createdTriggers: any = await hookTriggerService.$find(
       { originalMessage: 'replace Query with ' + createMessage },
       null,
@@ -418,8 +438,19 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
-    expect(allHooks.length).toBe(helperCurrentConfig(14, 22, 16));
+    expect(allHooks.length).toBe(helperCurrentConfig(14, 22, 16) + 4);
     const logCheck = [
+      {
+        pos: 'error',
+        type: 'create',
+        expectedMessage: createMessage,
+        length: payload.length,
+      },
+      {
+        pos: 'error',
+        type: 'read',
+        expectedMessage: createMessage,
+      },
       {
         pos: 'before',
         type: 'controller',
@@ -457,7 +488,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it.skip('should call hooks on patchOne and findOne', async () => {
+  it('should call hooks on patchOne and findOne', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test patch one message';
     const payload: Partial<HookTrigger> = {
@@ -470,6 +501,18 @@ describe('AppController', () => {
       service: 'hook-trigger',
       query: JSON.stringify(search),
     };
+    const res0 = await testMethod({
+      url: '/crud/one',
+      method: 'PATCH',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: { ...payload, throwError: true },
+      query,
+      crudConfig,
+    });
+    expect(res0).toBe(true);
     const res = await testMethod({
       url: '/crud/one',
       method: 'PATCH',
@@ -482,6 +525,11 @@ describe('AppController', () => {
       crudConfig,
     });
     expect(res.message).toBe('replaced in hook (update)');
+    const res00: any = await hookTriggerService.$findOne(
+      { originalMessage: createMessage, throwError: true },
+      null,
+    );
+    expect(res00).toBe(true);
     const createdTrigger: any = await hookTriggerService.$findOne(
       { originalMessage: 'replace Query with ' + createMessage },
       null,
@@ -504,8 +552,18 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
-    expect(allHooks.length).toBe(helperCurrentConfig(6, 10, 8));
+    expect(allHooks.length).toBe(helperCurrentConfig(6, 10, 8) + 2);
     const logCheck = [
+      {
+        pos: 'error',
+        type: 'update',
+        expectedMessage: createMessage,
+      },
+      {
+        pos: 'error',
+        type: 'read',
+        expectedMessage: createMessage,
+      },
       {
         pos: 'before',
         type: 'controller',
@@ -541,7 +599,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it.skip('should call hooks on patchBatch and findIn', async () => {
+  it('should call hooks on patchBatch and findIn', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test patch batch message';
 
@@ -562,6 +620,25 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'hook-trigger',
     };
+    const res0 = await testMethod({
+      url: '/crud/batch',
+      method: 'PATCH',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: [
+        {
+          query: { ...payload[0].query, throwError: true },
+          data: payload[0].data,
+        },
+        payload[1],
+        payload[2],
+      ],
+      query,
+      crudConfig,
+    });
+    expect(res0).toBe(true);
     const res = await testMethod({
       url: '/crud/batch',
       method: 'PATCH',
@@ -576,6 +653,12 @@ describe('AppController', () => {
     for (const trig of res) {
       expect(trig).toBe('replaced in hook (update)');
     }
+    const res00: any = await hookTriggerService.$findIn(
+      hooksToUpdateBatch.map((h) => h.id.toString()),
+      { originalMessage: createMessage, throwError: true },
+      null,
+    );
+    expect(res00).toBe(true);
     const createdTriggers: any = await hookTriggerService.$findIn(
       hooksToUpdateBatch.map((h) => h.id.toString()),
       { originalMessage: 'replace Query with ' + createMessage },
@@ -603,8 +686,19 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
-    expect(allHooks.length).toBe(helperCurrentConfig(14, 22, 16));
+    expect(allHooks.length).toBe(helperCurrentConfig(14, 22, 16) + 4);
     const logCheck = [
+      {
+        pos: 'error',
+        type: 'read',
+        expectedMessage: createMessage,
+      },
+      {
+        pos: 'error',
+        type: 'update',
+        expectedMessage: createMessage,
+        length: payload.length,
+      },
       {
         pos: 'before',
         type: 'controller',
@@ -642,7 +736,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it.skip('should call hooks on patchIn and find', async () => {
+  it('should call hooks on patchIn and find', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test patch in message';
 
@@ -654,6 +748,18 @@ describe('AppController', () => {
       service: 'hook-trigger',
       query: JSON.stringify({ id: inIds }),
     };
+    const res0 = await testMethod({
+      url: '/crud/in',
+      method: 'PATCH',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: { ...payload, throwError: true },
+      query,
+      crudConfig,
+    });
+    expect(res0).toBe(true);
     const res = await testMethod({
       url: '/crud/in',
       method: 'PATCH',
@@ -694,8 +800,13 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
-    expect(allHooks.length).toBe(helperCurrentConfig(6, 10, 8));
+    expect(allHooks.length).toBe(helperCurrentConfig(6, 10, 8) + 1);
     const logCheck = [
+      {
+        pos: 'error',
+        type: 'update',
+        expectedMessage: createMessage,
+      },
       {
         pos: 'before',
         type: 'controller',
@@ -731,7 +842,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it.skip('should call hooks on patchMany and findIn', async () => {
+  it('should call hooks on patchMany and findIn', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test patch many message';
 
@@ -742,6 +853,18 @@ describe('AppController', () => {
       service: 'hook-trigger',
       query: JSON.stringify({ message: 'update me many' }),
     };
+    const res0 = await testMethod({
+      url: '/crud/many',
+      method: 'PATCH',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: { ...payload, throwError: true },
+      query,
+      crudConfig,
+    });
+    expect(res0).toBe(true);
     const res = await testMethod({
       url: '/crud/many',
       method: 'PATCH',
@@ -781,8 +904,13 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
-    expect(allHooks.length).toBe(helperCurrentConfig(6, 10, 8));
+    expect(allHooks.length).toBe(helperCurrentConfig(6, 10, 8) + 1);
     const logCheck = [
+      {
+        pos: 'error',
+        type: 'update',
+        expectedMessage: createMessage,
+      },
       {
         pos: 'before',
         type: 'controller',
@@ -818,7 +946,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it.skip('should call hooks on deleteOne and findOne', async () => {
+  it('should call hooks on deleteOne and findOne', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'delete me';
     const search: Partial<HookTrigger> = {
@@ -836,6 +964,21 @@ describe('AppController', () => {
       service: 'hook-trigger',
       query: JSON.stringify(search),
     };
+    const res0 = await testMethod({
+      url: '/crud/one',
+      method: 'DELETE',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query: {
+        ...query,
+        query: JSON.stringify({ ...search, throwError: true }),
+      },
+      crudConfig,
+    });
+    expect(res0).toBe(true);
     const res = await testMethod({
       url: '/crud/one',
       method: 'DELETE',
@@ -867,8 +1010,13 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
-    expect(allHooks.length).toBe(helperCurrentConfig(8, 14, 12));
+    expect(allHooks.length).toBe(helperCurrentConfig(8, 14, 12) + 1);
     const logCheck = [
+      {
+        pos: 'error',
+        type: 'delete',
+        expectedMessage: 'replace Query with ' + createMessage,
+      },
       {
         pos: 'before',
         type: 'controller',
@@ -904,7 +1052,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it.skip('should call hooks on deleteIn and find', async () => {
+  it('should call hooks on deleteIn and find', async () => {
     const user = users['Michael Doe'];
     const inIds = hooksToDeleteIn.map((h) => h.id.toString());
     const createMessage = 'delete me in';
@@ -919,10 +1067,26 @@ describe('AppController', () => {
     expect(createdTriggers0.data.length).toBe(3);
 
     const payload = {};
+    const subQuery = { id: inIds, originalMessage: createMessage };
     const query: CrudQuery = {
       service: 'hook-trigger',
-      query: JSON.stringify({ id: inIds, originalMessage: createMessage }),
+      query: JSON.stringify(subQuery),
     };
+    const res0 = await testMethod({
+      url: '/crud/in',
+      method: 'DELETE',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query: {
+        ...query,
+        query: JSON.stringify({ ...subQuery, throwError: true }),
+      },
+      crudConfig,
+    });
+    expect(res0).toBe(true);
     const res = await testMethod({
       url: '/crud/in',
       method: 'DELETE',
@@ -944,8 +1108,13 @@ describe('AppController', () => {
     expect(createdTriggers.data.length).toBe(0);
 
     const allHooks = await findAllHooks(createMessage, hookLogService);
-    expect(allHooks.length).toBe(helperCurrentConfig(8, 14, 12));
+    expect(allHooks.length).toBe(helperCurrentConfig(8, 14, 12) + 1);
     const logCheck = [
+      {
+        pos: 'error',
+        type: 'delete',
+        expectedMessage: createMessage,
+      },
       {
         pos: 'before',
         type: 'controller',
@@ -980,7 +1149,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it.skip('should call hooks on deleteMany and find', async () => {
+  it('should call hooks on deleteMany and find', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'delete me many';
     const search: Partial<HookTrigger> = {
@@ -997,6 +1166,21 @@ describe('AppController', () => {
       service: 'hook-trigger',
       query: JSON.stringify({ message: createMessage }),
     };
+    const res0 = await testMethod({
+      url: '/crud/many',
+      method: 'DELETE',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query: {
+        ...query,
+        query: JSON.stringify({ message: createMessage, throwError: true }),
+      },
+      crudConfig,
+    });
+    expect(res0).toBe(true);
     const res = await testMethod({
       url: '/crud/many',
       method: 'DELETE',
@@ -1017,8 +1201,13 @@ describe('AppController', () => {
     expect(createdTriggers.data.length).toBe(0);
 
     const allHooks = await findAllHooks(createMessage, hookLogService);
-    expect(allHooks.length).toBe(helperCurrentConfig(8, 14, 12));
+    expect(allHooks.length).toBe(helperCurrentConfig(8, 14, 12) + 1);
     const logCheck = [
+      {
+        pos: 'error',
+        type: 'delete',
+        expectedMessage: createMessage,
+      },
       {
         pos: 'before',
         type: 'controller',
@@ -1069,7 +1258,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   }, 8000);
 
-  it.skip('should call hook error hooks on cmd error', async () => {
+  it('should call hook error hooks on cmd error', async () => {
     const user = users['Michael Doe'];
     const createMessage = '400';
     const payload: TestTriggerDto = {
@@ -1223,7 +1412,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks, true);
   }, 8000);
 
-  it.skip('should call hooks on cmd', async () => {
+  it('should call hooks on cmd', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'world';
     const payload: TestTriggerHelloDto = {
