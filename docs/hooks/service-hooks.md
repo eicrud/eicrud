@@ -29,6 +29,19 @@ override async afterCreateHook(this: UserService, result: any[], data: User[], c
 }
 ```
 
+
+### errorCreateHook
+
+```typescript title="user.hooks.ts"
+override async errorCreateHook(this: UserService, data: User[], ctx: CrudContext, error: any) {
+    // error User creation
+
+    return null;
+}
+```
+
+
+
 ## Read hooks
 
 ### beforeReadHook
@@ -46,6 +59,15 @@ override async afterReadHook(this: UserService, result, query: User, ctx){
     // after User read
 
     return result;
+}
+```
+
+### errorReadHook
+```typescript title="user.hooks.ts"
+override async errorReadHook(this: UserService, query: User, ctx: CrudContext, error: any) {
+    // error User read
+
+    return null;
 }
 ```
 
@@ -78,6 +100,20 @@ override async afterUpdateHook(this: UserService,
 }
 ```
 
+### errorUpdateHook
+
+```typescript title="user.hooks.ts"
+override async errorUpdateHook(this: UserService, 
+    updates: { query: User; data: User }[],
+    ctx: CrudContext,
+    error: any,
+) {
+    // error User update
+
+    return null;
+}
+```
+
 ## Delete Hooks
 
 ### beforeDeleteHook
@@ -96,6 +132,15 @@ override async afterDeleteHook(this: UserService, result, query: User, ctx: Crud
         // after User delete
 
         return result;
+}
+```
+
+### errorDeleteHook
+```typescript title="user.hooks.ts"
+override async errorDeleteHook(this: UserService, query: User, ctx: CrudContext, error: any){
+    // error User delete
+
+    return null;
 }
 ```
 
