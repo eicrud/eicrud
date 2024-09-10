@@ -31,7 +31,7 @@ export class CrudOptions<T = any> implements ICrudOptions {
   @IsArray()
   @IsString({ each: true })
   @$MaxSize(300)
-  fields?: Array<keyof T>;
+  fields?: Extract<keyof T, string>[];
 
   @IsOptional()
   @IsArray()

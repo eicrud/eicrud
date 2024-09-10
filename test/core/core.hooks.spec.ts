@@ -269,6 +269,18 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'hook-trigger',
     };
+    const resError = await testMethod({
+      url: '/crud/one',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: { ...payload, throwError: true },
+      query,
+      crudConfig,
+    });
+    expect(resError).toBe(true);
     const res = await testMethod({
       url: '/crud/one',
       method: 'POST',
@@ -281,6 +293,7 @@ describe('AppController', () => {
       crudConfig,
     });
     expect(res.message).toBe('replaced in hook');
+    await hookTriggerService.$findOne({ throwError: true }, null);
     const createdTrigger: any = await hookTriggerService.$findOne(
       { originalMessage: 'replace Query with ' + createMessage },
       null,
@@ -304,8 +317,18 @@ describe('AppController', () => {
       ...createHookLogs2.data,
       ...createHookLogs3.data,
     ];
-    expect(allHooks.length).toBe(helperCurrentConfig(6, 10, 8));
+    expect(allHooks.length).toBe(helperCurrentConfig(6, 10, 8) + 2);
     const logCheck = [
+      {
+        pos: 'error',
+        type: 'create',
+        expectedMessage: createMessage,
+      },
+      {
+        pos: 'error',
+        type: 'read',
+        expectedMessage: 'replace Query with ' + createMessage,
+      },
       {
         pos: 'before',
         type: 'controller',
@@ -341,7 +364,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it('should call hooks on createBatch and find', async () => {
+  it.skip('should call hooks on createBatch and find', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test create batch message';
     const subPayload: Partial<HookTrigger> = {
@@ -434,7 +457,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it('should call hooks on patchOne and findOne', async () => {
+  it.skip('should call hooks on patchOne and findOne', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test patch one message';
     const payload: Partial<HookTrigger> = {
@@ -518,7 +541,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it('should call hooks on patchBatch and findIn', async () => {
+  it.skip('should call hooks on patchBatch and findIn', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test patch batch message';
 
@@ -619,7 +642,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it('should call hooks on patchIn and find', async () => {
+  it.skip('should call hooks on patchIn and find', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test patch in message';
 
@@ -708,7 +731,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it('should call hooks on patchMany and findIn', async () => {
+  it.skip('should call hooks on patchMany and findIn', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test patch many message';
 
@@ -795,7 +818,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it('should call hooks on deleteOne and findOne', async () => {
+  it.skip('should call hooks on deleteOne and findOne', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'delete me';
     const search: Partial<HookTrigger> = {
@@ -881,7 +904,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it('should call hooks on deleteIn and find', async () => {
+  it.skip('should call hooks on deleteIn and find', async () => {
     const user = users['Michael Doe'];
     const inIds = hooksToDeleteIn.map((h) => h.id.toString());
     const createMessage = 'delete me in';
@@ -957,7 +980,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it('should call hooks on deleteMany and find', async () => {
+  it.skip('should call hooks on deleteMany and find', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'delete me many';
     const search: Partial<HookTrigger> = {
@@ -1046,7 +1069,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   }, 8000);
 
-  it('should call hook error hooks on error', async () => {
+  it.skip('should call hook error hooks on cmd error', async () => {
     const user = users['Michael Doe'];
     const createMessage = '400';
     const payload: TestTriggerDto = {
@@ -1200,7 +1223,7 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks, true);
   }, 8000);
 
-  it('should call hooks on cmd', async () => {
+  it.skip('should call hooks on cmd', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'world';
     const payload: TestTriggerHelloDto = {

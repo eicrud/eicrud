@@ -27,6 +27,12 @@ export async function logHook(
         args[1].originalMessage,
     };
   }
+  if (
+    position != 'error' &&
+    (data.throwError || data?.[0]?.throwError || args?.[1]?.throwError)
+  ) {
+    return;
+  }
   const arrData = Array.isArray(data) ? data : [data];
   const logs: Partial<HookLog>[] = [];
   for (const idx in arrData) {
@@ -54,6 +60,12 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     data: Partial<HookTrigger>[],
     ctx: CrudContext,
   ) {
+    for (const d of data) {
+      if (d.throwError) {
+        throw new Error('Error in hook');
+      }
+    }
+
     await logHook(this, data, 'before', 'create', ctx);
 
     // before HookTrigger creation
@@ -88,11 +100,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     // after HookTrigger error
     await logHook(this, data, 'error', 'create', ctx);
 
-    if (error.status == 403) {
-      return true as any;
-    }
-
-    return null;
+    return true as any;
   }
 
   override async beforeReadHook(
@@ -101,6 +109,9 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     ctx: CrudContext,
   ) {
     // before HookTrigger read
+    if (query.throwError) {
+      throw new Error('Error in hook');
+    }
 
     await logHook(this, query, 'before', 'read', ctx);
 
@@ -111,6 +122,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
         'replace Query with ',
         '',
       );
+
     return query;
   }
 
@@ -137,13 +149,9 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     error: any,
   ): Promise<FindResponseDto<HookTrigger>> {
     //after HookTrigger error
-    await logHook(this, error, 'error', 'read', ctx);
+    await logHook(this, query, 'error', 'read', ctx);
 
-    if (error.status == 403) {
-      return true as any;
-    }
-
-    return null;
+    return true as any;
   }
 
   override async beforeUpdateHook(
@@ -151,6 +159,12 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     updates: { query: Partial<HookTrigger>; data: Partial<HookTrigger> }[],
     ctx: CrudContext,
   ) {
+    for (const u of updates) {
+      if (u.query.throwError) {
+        throw new Error('Error in hook');
+      }
+    }
+
     // before HookTrigger update
     await logHook(this, updates, 'before', 'update', ctx);
 
@@ -182,12 +196,29 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     return results;
   }
 
+  override async errorUpdateHook(
+    this: HookTriggerService,
+    updates: { query: Partial<HookTrigger>; data: Partial<HookTrigger> }[],
+    ctx: CrudContext,
+    error: any,
+  ): Promise<any[]> {
+    // after HookTrigger error
+    await logHook(this, updates, 'error', 'update', ctx);
+
+    return true as any;
+  }
+
   override async beforeDeleteHook(
     this: HookTriggerService,
     queries: Partial<HookTrigger>,
     ctx: CrudContext,
   ) {
     // before HookTrigger remove
+    for (const q of [queries]) {
+      if (q.throwError) {
+        throw new Error('Error in hook');
+      }
+    }
 
     await logHook(this, queries, 'before', 'delete', ctx);
 
@@ -215,6 +246,18 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     result = 5311373;
 
     return result;
+  }
+
+  override async errorDeleteHook(
+    this: HookTriggerService,
+    queries: Partial<HookTrigger>,
+    ctx: CrudContext,
+    error: any,
+  ): Promise<any> {
+    // after HookTrigger error
+    await logHook(this, queries, 'error', 'delete', ctx);
+
+    return true;
   }
 
   override async errorControllerHook(

@@ -341,11 +341,10 @@ export class CrudService<T extends CrudEntity> {
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
     const hooks = opOpts?.hooks;
-    if (hooks) {
-      [newEntity] = await this.beforeCreateHook([newEntity], ctx);
-    }
-
     try {
+      if (hooks) {
+        [newEntity] = await this.beforeCreateHook([newEntity], ctx);
+      }
       this.checkObjectForIds(newEntity);
 
       const em = opOpts?.em || this.entityManager.fork();
@@ -397,10 +396,11 @@ export class CrudService<T extends CrudEntity> {
     inheritance?: Inheritance,
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
-    if (opOpts.hooks) {
-      newEntities = await this.beforeCreateHook(newEntities, ctx);
-    }
     try {
+      if (opOpts.hooks) {
+        newEntities = await this.beforeCreateHook(newEntities, ctx);
+      }
+
       const subOpOpts = {
         hooks: false,
         noFlush: true,
@@ -439,10 +439,11 @@ export class CrudService<T extends CrudEntity> {
     inheritance?: Inheritance,
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
-    if (opOpts.hooks) {
-      data = await this.beforeUpdateHook(data, ctx);
-    }
     try {
+      if (opOpts.hooks) {
+        data = await this.beforeUpdateHook(data, ctx);
+      }
+
       let results = [];
       const subOpOpts = { em: this.entityManager.fork(), hooks: false };
       let proms = [];
@@ -497,10 +498,11 @@ export class CrudService<T extends CrudEntity> {
     inheritance?: Inheritance,
   ): Promise<FindResponseDto<T>> {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
-    if (opOpts.hooks) {
-      entity = await this.beforeReadHook(entity, ctx);
-    }
     try {
+      if (opOpts.hooks) {
+        entity = await this.beforeReadHook(entity, ctx);
+      }
+
       if (Array.isArray(entity[this.crudConfig.id_field])) {
         this.dbAdapter.makeInQuery(entity[this.crudConfig.id_field], entity);
       }
@@ -578,10 +580,11 @@ export class CrudService<T extends CrudEntity> {
     inheritance?: Inheritance,
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
-    if (opOpts.hooks) {
-      entity = await this.beforeReadHook(entity, ctx);
-    }
     try {
+      if (opOpts.hooks) {
+        entity = await this.beforeReadHook(entity, ctx);
+      }
+
       this.checkObjectForIds(entity);
       const em = this.entityManager.fork();
       const opts = this.getReadOptions(ctx);
@@ -614,10 +617,10 @@ export class CrudService<T extends CrudEntity> {
     inheritance?: Inheritance,
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
-    if (opOpts.hooks) {
-      entity = await this.beforeReadHook(entity, ctx);
-    }
     try {
+      if (opOpts.hooks) {
+        entity = await this.beforeReadHook(entity, ctx);
+      }
       if (!entity[this.crudConfig.id_field]) {
         throw new BadRequestException('id field is required for findOneCached');
       }
@@ -683,11 +686,11 @@ export class CrudService<T extends CrudEntity> {
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
     const hooks = opOpts?.hooks;
-
-    if (hooks) {
-      [{ query, data }] = await this.beforeUpdateHook([{ query, data }], ctx);
-    }
     try {
+      if (hooks) {
+        [{ query, data }] = await this.beforeUpdateHook([{ query, data }], ctx);
+      }
+
       if (Array.isArray(query[this.crudConfig.id_field])) {
         this.dbAdapter.makeInQuery(query[this.crudConfig.id_field], query);
       }
@@ -811,10 +814,11 @@ export class CrudService<T extends CrudEntity> {
     inheritance?: Inheritance,
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
-    if (opOpts.hooks) {
-      [{ data, query }] = await this.beforeUpdateHook([{ query, data }], ctx);
-    }
     try {
+      if (opOpts.hooks) {
+        [{ data, query }] = await this.beforeUpdateHook([{ query, data }], ctx);
+      }
+
       const em = this.entityManager.fork();
       let result = await this.doOnePatch(query, data, ctx, em, opOpts.secure);
       await em.flush();
@@ -937,10 +941,11 @@ export class CrudService<T extends CrudEntity> {
     inheritance?: Inheritance,
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
-    if (opOpts.hooks) {
-      query = await this.beforeDeleteHook(query, ctx);
-    }
     try {
+      if (opOpts.hooks) {
+        query = await this.beforeDeleteHook(query, ctx);
+      }
+
       if (Array.isArray(query[this.crudConfig.id_field])) {
         this.dbAdapter.makeInQuery(query[this.crudConfig.id_field], query);
       }
@@ -974,10 +979,11 @@ export class CrudService<T extends CrudEntity> {
     inheritance?: Inheritance,
   ) {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
-    if (opOpts.hooks) {
-      query = await this.beforeDeleteHook(query, ctx);
-    }
     try {
+      if (opOpts.hooks) {
+        query = await this.beforeDeleteHook(query, ctx);
+      }
+
       this.checkObjectForIds(query);
       const em = this.entityManager.fork();
       let entity = await em.findOne(this.entity, query);
