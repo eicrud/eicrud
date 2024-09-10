@@ -20,7 +20,7 @@ export async function logHook(
 ) {
   if (
     position != 'error' &&
-    (data.throwError ||
+    (data?.throwError ||
       data?.[0]?.throwError ||
       data?.[0]?.query?.throwError ||
       args?.[1]?.throwError ||

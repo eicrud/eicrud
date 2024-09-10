@@ -8,6 +8,10 @@ Eicrud offers a variety of CRUD hooks to perform actions triggered by entity mod
 
 !!! warning
     Any error thrown in a hook cancels the underlying operation. Consider using `try...catch` blocks to avoid side effects.
+
+!!! note 
+    Returning a value in an error hook prevents the error from throwing. The value is sent back to the client.
+
 ## Create Hooks
 
 ### beforeCreateHook
@@ -154,6 +158,6 @@ override async errorControllerHook(this: UserService, error: any, ctx: CrudConte
 ```
 
 !!! note 
-    Error hooks are called by the controller and not the [service](../services/definition.md). This means they'll only catch errors that result from a controller call. Returning a value in an error hook prevents the error from throwing. The value is sent back to the client.
+    Error hooks are called by the controller and not the [service](../services/definition.md). This means they'll only catch errors that result from a controller call.
 
 

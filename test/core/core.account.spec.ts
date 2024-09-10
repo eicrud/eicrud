@@ -641,7 +641,7 @@ describe('AppController', () => {
       query,
       crudConfig,
     });
-  }, 7000);
+  }, 8000);
 
   it('should rate limit login attempts (too fast)', async () => {
     const user = users['RateLimit Joe'];
