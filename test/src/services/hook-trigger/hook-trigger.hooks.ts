@@ -1,4 +1,9 @@
-import { MsLinkQuery, CrudContext, CrudHooks } from '@eicrud/core/crud';
+import {
+  MsLinkQuery,
+  CrudContext,
+  CrudHooks,
+  CrudService,
+} from '@eicrud/core/crud';
 import { HookTrigger } from './hook-trigger.entity';
 import { HookTriggerService } from './hook-trigger.service';
 import { HookLog, HookPos, HookType } from '../hook-log/hook-log.entity';
@@ -74,6 +79,22 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     return result;
   }
 
+  override async errorCreateHook(
+    this: HookTriggerService,
+    data: Partial<HookTrigger>[],
+    ctx: CrudContext,
+    error: any,
+  ): Promise<HookTrigger[]> {
+    // after HookTrigger error
+    await logHook(this, data, 'error', 'create', ctx);
+
+    if (error.status == 403) {
+      return true as any;
+    }
+
+    return null;
+  }
+
   override async beforeReadHook(
     this: HookTriggerService,
     query: Partial<HookTrigger>,
@@ -107,6 +128,22 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     }
 
     return result;
+  }
+
+  override async errorReadHook(
+    this: HookTriggerService,
+    query: Partial<HookTrigger>,
+    ctx: CrudContext,
+    error: any,
+  ): Promise<FindResponseDto<HookTrigger>> {
+    //after HookTrigger error
+    await logHook(this, error, 'error', 'read', ctx);
+
+    if (error.status == 403) {
+      return true as any;
+    }
+
+    return null;
   }
 
   override async beforeUpdateHook(
