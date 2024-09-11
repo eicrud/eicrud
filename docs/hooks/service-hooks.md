@@ -8,6 +8,10 @@ Eicrud offers a variety of CRUD hooks to perform actions triggered by entity mod
 
 !!! warning
     Any error thrown in a hook cancels the underlying operation. Consider using `try...catch` blocks to avoid side effects.
+
+!!! note 
+    Returning a value in an error hook prevents the error from throwing. The value is sent back to the client.
+
 ## Create Hooks
 
 ### beforeCreateHook
@@ -29,6 +33,19 @@ override async afterCreateHook(this: UserService, result: any[], data: User[], c
 }
 ```
 
+
+### errorCreateHook
+
+```typescript title="user.hooks.ts"
+override async errorCreateHook(this: UserService, data: User[], ctx: CrudContext, error: any) {
+    // error User creation
+
+    return null;
+}
+```
+
+
+
 ## Read hooks
 
 ### beforeReadHook
@@ -46,6 +63,15 @@ override async afterReadHook(this: UserService, result, query: User, ctx){
     // after User read
 
     return result;
+}
+```
+
+### errorReadHook
+```typescript title="user.hooks.ts"
+override async errorReadHook(this: UserService, query: User, ctx: CrudContext, error: any) {
+    // error User read
+
+    return null;
 }
 ```
 
@@ -78,6 +104,20 @@ override async afterUpdateHook(this: UserService,
 }
 ```
 
+### errorUpdateHook
+
+```typescript title="user.hooks.ts"
+override async errorUpdateHook(this: UserService, 
+    updates: { query: User; data: User }[],
+    ctx: CrudContext,
+    error: any,
+) {
+    // error User update
+
+    return null;
+}
+```
+
 ## Delete Hooks
 
 ### beforeDeleteHook
@@ -99,7 +139,16 @@ override async afterDeleteHook(this: UserService, result, query: User, ctx: Crud
 }
 ```
 
-## Error Hook
+### errorDeleteHook
+```typescript title="user.hooks.ts"
+override async errorDeleteHook(this: UserService, query: User, ctx: CrudContext, error: any){
+    // error User delete
+
+    return null;
+}
+```
+
+## Controller Hook
 
 ```typescript title="user.hooks.ts"
 override async errorControllerHook(this: UserService, error: any, ctx: CrudContext){
@@ -109,6 +158,6 @@ override async errorControllerHook(this: UserService, error: any, ctx: CrudConte
 ```
 
 !!! note 
-    Error hooks are called by the controller and not the [service](../services/definition.md). This means they'll only catch errors that result from a controller call. Returning a value in an error hook prevents the error from throwing. The value is sent back to the client.
+    Controller hooks are called by the controller and not the [service](../services/definition.md). This means they'll only catch errors that result from a controller call.
 
 

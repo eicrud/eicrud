@@ -18,6 +18,9 @@ export class HookTrigger implements CrudEntity {
   @IsOptional()
   originalMessage: string;
 
+  @IsOptional()
+  throwError: boolean;
+
   @Property()
   createdAt: Date;
 

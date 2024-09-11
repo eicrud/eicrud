@@ -1,4 +1,9 @@
-import { MsLinkQuery, CrudContext, CrudHooks } from '@eicrud/core/crud';
+import {
+  MsLinkQuery,
+  CrudContext,
+  CrudHooks,
+  CrudService,
+} from '@eicrud/core/crud';
 import { HookTrigger } from './hook-trigger.entity';
 import { HookTriggerService } from './hook-trigger.service';
 import { HookLog, HookPos, HookType } from '../hook-log/hook-log.entity';
@@ -13,6 +18,17 @@ export async function logHook(
   query?: MsLinkQuery,
   args?: any[],
 ) {
+  if (
+    position != 'error' &&
+    (data?.throwError ||
+      data?.[0]?.throwError ||
+      data?.[0]?.query?.throwError ||
+      args?.[1]?.throwError ||
+      args?.[0]?.throwError)
+  ) {
+    return;
+  }
+
   if (!data) {
     data = {
       message:
@@ -22,6 +38,7 @@ export async function logHook(
         args[1].originalMessage,
     };
   }
+
   const arrData = Array.isArray(data) ? data : [data];
   const logs: Partial<HookLog>[] = [];
   for (const idx in arrData) {
@@ -49,6 +66,12 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     data: Partial<HookTrigger>[],
     ctx: CrudContext,
   ) {
+    for (const d of data) {
+      if (d.throwError) {
+        throw new Error('Error in hook');
+      }
+    }
+
     await logHook(this, data, 'before', 'create', ctx);
 
     // before HookTrigger creation
@@ -74,12 +97,27 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     return result;
   }
 
+  override async errorCreateHook(
+    this: HookTriggerService,
+    data: Partial<HookTrigger>[],
+    ctx: CrudContext,
+    error: any,
+  ): Promise<HookTrigger[]> {
+    // after HookTrigger error
+    await logHook(this, data, 'error', 'create', ctx);
+
+    return true as any;
+  }
+
   override async beforeReadHook(
     this: HookTriggerService,
     query: Partial<HookTrigger>,
     ctx: CrudContext,
   ) {
     // before HookTrigger read
+    if (query.throwError) {
+      throw new Error('Error in hook');
+    }
 
     await logHook(this, query, 'before', 'read', ctx);
 
@@ -90,6 +128,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
         'replace Query with ',
         '',
       );
+
     return query;
   }
 
@@ -109,11 +148,29 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     return result;
   }
 
+  override async errorReadHook(
+    this: HookTriggerService,
+    query: Partial<HookTrigger>,
+    ctx: CrudContext,
+    error: any,
+  ): Promise<FindResponseDto<HookTrigger>> {
+    //after HookTrigger error
+    await logHook(this, query, 'error', 'read', ctx);
+
+    return true as any;
+  }
+
   override async beforeUpdateHook(
     this: HookTriggerService,
     updates: { query: Partial<HookTrigger>; data: Partial<HookTrigger> }[],
     ctx: CrudContext,
   ) {
+    for (const u of updates) {
+      if (u.query.throwError || u.data.throwError) {
+        throw new Error('Error in hook');
+      }
+    }
+
     // before HookTrigger update
     await logHook(this, updates, 'before', 'update', ctx);
 
@@ -145,12 +202,29 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     return results;
   }
 
+  override async errorUpdateHook(
+    this: HookTriggerService,
+    updates: { query: Partial<HookTrigger>; data: Partial<HookTrigger> }[],
+    ctx: CrudContext,
+    error: any,
+  ): Promise<any[]> {
+    // after HookTrigger error
+    await logHook(this, updates, 'error', 'update', ctx);
+
+    return true as any;
+  }
+
   override async beforeDeleteHook(
     this: HookTriggerService,
     queries: Partial<HookTrigger>,
     ctx: CrudContext,
   ) {
     // before HookTrigger remove
+    for (const q of [queries]) {
+      if (q.throwError) {
+        throw new Error('Error in hook');
+      }
+    }
 
     await logHook(this, queries, 'before', 'delete', ctx);
 
@@ -178,6 +252,18 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     result = 5311373;
 
     return result;
+  }
+
+  override async errorDeleteHook(
+    this: HookTriggerService,
+    queries: Partial<HookTrigger>,
+    ctx: CrudContext,
+    error: any,
+  ): Promise<any> {
+    // after HookTrigger error
+    await logHook(this, queries, 'error', 'delete', ctx);
+
+    return true;
   }
 
   override async errorControllerHook(
