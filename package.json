@@ -51,7 +51,7 @@
   "devDependencies": {
     "@eicrud/cli": "file:cli",
     "@hey-api/openapi-ts": "^0.52.4",
-    "@nestjs/cli": "^10.4.4",
+    "@nestjs/cli": "^10.4.5",
     "@nestjs/schematics": "^10.1.4",
     "@nestjs/testing": "^10.4.1",
     "@types/bcrypt": "^5.0.2",
