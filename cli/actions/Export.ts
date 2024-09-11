@@ -251,9 +251,17 @@ export class Export {
         { regex: /;/g, replace: 'replaced_semicolon_5498615_2' },
         { regex: /replaced_semicolon_5498615_1/g, replace: ';' },
         {
+          regex: /<(.+)=(.+)>/g,
+          replace: 'replaced_generics_$1_6498_with_$2_default_5539',
+        },
+        {
           regex: /^(?!.*(export type )).*(=[^>][^;]+;$)/gm,
           replace: ';',
           onlyGroup: 2,
+        },
+        {
+          regex: /replaced_generics_(.+)_6498_with_(.+)_default_5539/g,
+          replace: '<$1=$2>',
         },
         { regex: /replaced_semicolon_5498615_2/g, replace: ';' },
         { regex: /([^?]):(.+);$/gm, replace: '$1?:$2;' },

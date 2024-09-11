@@ -17,6 +17,12 @@ export class tk_entity_nameHooks extends CrudHooks<tk_entity_name> {
         return result;
     }
 
+    override async errorCreateHook(this: tk_entity_nameService, data: Partial<tk_entity_name>[], ctx: CrudContext, error: any): Promise<tk_entity_name[]> {
+        // error tk_entity_name creation
+
+        return null;
+    }
+
     override async beforeReadHook(this: tk_entity_nameService, query: Partial<tk_entity_name>, ctx: CrudContext): Promise<Partial<tk_entity_name>> {
         // before tk_entity_name read
 
@@ -27,6 +33,12 @@ export class tk_entity_nameHooks extends CrudHooks<tk_entity_name> {
         // after tk_entity_name read
 
         return result;
+    }
+
+    override async errorReadHook(this: tk_entity_nameService, query: Partial<tk_entity_name>, ctx: CrudContext, error: any): Promise<FindResponseDto<tk_entity_name>> {
+        // error tk_entity_name read
+
+        return null;
     }
 
     override async beforeUpdateHook(this: tk_entity_nameService, 
@@ -48,6 +60,16 @@ export class tk_entity_nameHooks extends CrudHooks<tk_entity_name> {
         return results;
     }
 
+    override async errorUpdateHook(this: tk_entity_nameService, 
+        updates: { query: Partial<tk_entity_name>; data: Partial<tk_entity_name> }[],
+        ctx: CrudContext,
+        error: any,
+    ): Promise<any[]>  {
+        // error tk_entity_name update
+
+        return null;
+    }
+
     override async beforeDeleteHook(this: tk_entity_nameService, query: Partial<tk_entity_name>, ctx: CrudContext): Promise<Partial<tk_entity_name>> {
         // before tk_entity_name delete
 
@@ -58,6 +80,12 @@ export class tk_entity_nameHooks extends CrudHooks<tk_entity_name> {
         // after tk_entity_name delete
 
         return result;
+    }
+
+    override async errorDeleteHook(this: tk_entity_nameService, query: Partial<tk_entity_name>, ctx: CrudContext, error: any): Promise<number> {
+        // error tk_entity_name delete
+
+        return null;
     }
 
     override async errorControllerHook(this: tk_entity_nameService, error: any, ctx: CrudContext): Promise<any> {
