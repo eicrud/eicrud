@@ -11,7 +11,7 @@ export class tk_entity_nameHooks extends CrudHooks<tk_entity_name> {
         return data;
     }
 
-    override async afterCreateHook(this: tk_entity_nameService, result: any[], data: Partial<tk_entity_name>[], ctx: CrudContext): Promise<tk_entity_name[]>  {
+    override async afterCreateHook(this: tk_entity_nameService, result: tk_entity_name[], data: Partial<tk_entity_name>[], ctx: CrudContext): Promise<tk_entity_name[]>  {
         // after tk_entity_name creation
 
         return result;
