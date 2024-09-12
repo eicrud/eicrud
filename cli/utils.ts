@@ -7,7 +7,7 @@ export class _utils_cli {
       keys.tk_role_type = 'RoleType';
       let upDir = '../../';
       if (cmd) {
-        upDir += '../';
+        upDir += '../../';
       }
       if (msPath) {
         upDir += '../';

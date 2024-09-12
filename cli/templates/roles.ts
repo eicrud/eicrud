@@ -1,6 +1,6 @@
 import { CrudRole } from "@eicrud/core/config";
 
-export const roles: CrudRole[] = [
+export const roles = [
     { 
         name: 'admin', 
         isAdminRole: true,
@@ -14,8 +14,6 @@ export const roles: CrudRole[] = [
     { 
         name: 'guest'
     },
-]
+] as const satisfies CrudRole[];
 
-export const roleList = roles.map(r => r.name);
-
-export type RoleType = typeof roleList[number];
+export type RoleType = typeof roles[number]['name'];
