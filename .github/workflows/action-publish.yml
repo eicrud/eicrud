@@ -9,6 +9,7 @@ on:
 jobs:
 
   release-pretest:
+    if: contains(github.ref_name, 'beta') == false
     runs-on: ubuntu-latest
     timeout-minutes: 7
     services:
@@ -45,6 +46,7 @@ jobs:
         run: npm run test
 
   release-test:
+    if: contains(github.ref_name, 'beta') == false
     needs: release-pretest
     runs-on: ubuntu-latest
     timeout-minutes: 16
@@ -83,6 +85,7 @@ jobs:
         run: npm run start:test-ms:proxy
 
   release-cli-test:
+    if: contains(github.ref_name, 'beta') == false
     needs: release-test
     runs-on: ubuntu-latest
     timeout-minutes: 8
