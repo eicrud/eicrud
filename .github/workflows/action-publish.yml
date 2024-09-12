@@ -115,6 +115,7 @@ jobs:
         run: ./test/test-cli.sh postgre
 
   publish-all:
+    if: contains(github.ref_name, 'beta') == false
     needs: release-cli-test
     runs-on: ubuntu-latest
     timeout-minutes: 7
@@ -151,6 +152,37 @@ jobs:
       run: npm run publish:package --provenance --access public 
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-all-beta:
+    if: contains(github.ref_name, 'beta')
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    strategy:
+      matrix:
+        dir: ['shared', 'core', 'cli', 'client', 'db_mongo', 'db_postgre']
+      max-parallel: 1
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+        registry-url: 'https://registry.npmjs.org'
+    # - uses: dorny/paths-filter@v3
+    #   id: filter
+    #   with:
+    #     filters: |
+    #       matched:
+    #         - './${{ matrix.dir }}/package.json'
+
+    - name: Set packages version
+      working-directory: ./${{ matrix.dir }}
+      run: TAG=${{ github.ref_name }} && npm version ${TAG#v} --no-git-tag-version && sed -i "s/\"@eicrud\/\(.\+\)\":.\+\"/\"@eicrud\/\1\":\ \"^${TAG#v}\"/g" ./package.json && cat ./package.json
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VERSION: ${{ github.event.inputs.version }}
 
     - name: Publish beta
       working-directory: ./${{ matrix.dir }}
