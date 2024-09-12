@@ -1,8 +1,8 @@
 import { CmdSecurity, baseCmds } from "@eicrud/core/config";
 import { tk_entity_name } from "../../tk_entity_lname.entity";
+tk_import_role_type
 
-
-const getCmdSecurity = (tk_cmd_lname, tk_entity_camel_name): CmdSecurity<CmdDto, tk_entity_name> => { 
+const getCmdSecurity = (tk_cmd_lname, tk_entity_camel_name): CmdSecurity<CmdDto, tk_entity_name, any, tk_role_type> => { 
     return {
         minTimeBetweenCmdCallMs: 1000,
         dto: baseCmds.tk_cmd_camel_name.dto,

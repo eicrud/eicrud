@@ -15,3 +15,7 @@ export const roles: CrudRole[] = [
         name: 'guest'
     },
 ]
+
+export const roleList = roles.map(r => r.name);
+
+export type RoleType = typeof roleList[number];

@@ -161,7 +161,12 @@ export class Setup {
         tk_entity_lname: 'user',
         tk_entity_camel_name: 'user',
         tk_entity_name: 'User',
+        tk_role_type: 'any',
+        tk_import_role_type: '',
       };
+
+      _utils_cli.addRoleTypeKeys(fs, '', bKeys);
+
       const dir = `./src/services/user/cmds/${snaked}`;
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
