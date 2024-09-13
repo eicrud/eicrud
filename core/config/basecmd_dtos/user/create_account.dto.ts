@@ -24,4 +24,7 @@ export class CreateAccountDto implements ICreateAccountDto {
 
   @IsString()
   role: string;
+
+  //@eicrud:cli:export:delete:next-line
+  addToUser: any;
 }
