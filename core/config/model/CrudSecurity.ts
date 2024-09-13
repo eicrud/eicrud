@@ -91,7 +91,7 @@ export interface CmdSecurity<
    */
   allowGetMethod?: boolean;
 
-  rolesRights?: Record<TRoleType, CmdSecurityRights<TDto, TEntity>>;
+  rolesRights?: Partial<Record<TRoleType, CmdSecurityRights<TDto, TEntity>>>;
 
   hooks?: CmdHooks<TDto, TReturnDto>;
 }
@@ -191,7 +191,7 @@ export class CrudSecurity<T = any, TRoleType extends string = string> {
    * @type {Record<string, CrudSecurityRights>}
    * @public
    */
-  rolesRights?: Record<TRoleType, CrudSecurityRights<T>> = {} as any;
+  rolesRights?: Partial<Record<TRoleType, CrudSecurityRights<T>>> = {};
 }
 
 export const httpAliasResolver = createAliasResolver({
