@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "del-cli": "^5.1.0",
-    "@types/node": "^20.12.12"
+    "@types/node": "^22.5.5"
   },
   "peerDependencies": {
     "@eicrud/shared": "0.0.1"
