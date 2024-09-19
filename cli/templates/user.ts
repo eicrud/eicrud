@@ -1,6 +1,6 @@
 import {  Entity, PrimaryKey, Property, Unique } from "@mikro-orm/core";
 import { CrudUser } from "@eicrud/core/config";
-import { RoleType } from "../../roles";
+import { RoleType } from "../../eicrud.roles";
 
 @Entity()
 //@eicrud:cli:export:hide

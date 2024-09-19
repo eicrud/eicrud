@@ -128,10 +128,15 @@ export class Export {
       );
     }
     copiedFiles.push(
-      ...copyDirectory(eicrud_core_base_cmds, dest, conditionFun, {
-        makeSubDir: true,
-        pathReplaces: [{ regex: /user$/g, replace: userServiceDir }],
-      }),
+      ...copyDirectory(
+        eicrud_core_base_cmds,
+        path.join(dest, 'services'),
+        conditionFun,
+        {
+          makeSubDir: true,
+          pathReplaces: [{ regex: /user$/g, replace: userServiceDir }],
+        },
+      ),
     );
     const crud_options_path = path.join(
       eicrud_core_dir,

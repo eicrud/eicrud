@@ -4,7 +4,7 @@ import { BasicMemoryCache, CrudConfigService } from "@eicrud/core/config";
 import { EmailService } from "./services/email/email.service";
 import { UserService } from "./services/user/user.service";
 import { tk_db_adapter } from tk_db_adapter_path
-import { roles } from "./roles";
+import { roles } from "./eicrud.roles";
 
 @Injectable()
 export class MyConfigService extends CrudConfigService {

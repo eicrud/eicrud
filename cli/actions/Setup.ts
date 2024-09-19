@@ -127,8 +127,8 @@ export class Setup {
     fs.writeFileSync(configPath, configContent);
     console.log('CREATED:', configPath);
 
-    const rolesTemplateFile = path.join(templateDir, '/roles.ts');
-    const rolesPath = './src/roles.ts';
+    const rolesTemplateFile = path.join(templateDir, '/eicrud.roles.ts');
+    const rolesPath = './src/eicrud.roles.ts';
     fs.copyFileSync(rolesTemplateFile, rolesPath);
     console.log('CREATED:', rolesPath);
 
