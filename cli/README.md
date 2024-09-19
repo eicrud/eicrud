@@ -132,7 +132,7 @@ export interface ExportOptions {
 
   /**
    * Input directory
-   * @default './src/services'
+   * @default './src'
    **/
   inputDir?: string;
 

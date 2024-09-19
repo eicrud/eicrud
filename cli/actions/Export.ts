@@ -93,7 +93,7 @@ export class Export {
     let excludeServices = cliOptions?.export?.excludeServices || [];
     excludeServices = excludeServices.map((se) => toKebabCase(se));
     //console.log('Generating service', name);
-    const inputDir = cliOptions?.export?.inputDir || './src/services';
+    const inputDir = cliOptions?.export?.inputDir || './src';
     const src = path.join(inputDir);
     const exportPath = cliOptions?.export?.outputDir || 'eicrud_exports';
     const dest = path.join(exportPath);
