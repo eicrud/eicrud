@@ -235,8 +235,7 @@ export class Export {
     });
     // Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/validation');
     Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core', [
-      { regex: /.implements.+CrudEntity/g, replace: '' },
-      { regex: /.implements.+CrudUser/g, replace: '' },
+      { regex: /.implements.+{/g, replace: ' {' },
     ]);
 
     if (!options?.keepValidators) {
