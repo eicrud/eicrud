@@ -5,7 +5,7 @@
         "excludePatterns": ["*hook-trigger*"],
         "removeImports": ["my-user.security"],
         "outputDir": "./test/test_exports",
-        "inputDir": "./test/src/services",
+        "inputDir": "./test/src",
         "modulesDir": "./node_modules",
         "userServiceDir": "my-user",
         "openApiBaseSpec": {
