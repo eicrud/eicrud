@@ -1,4 +1,5 @@
 nav: 
+  - extended-create-account.md
   - search-command.md
   - super-client.md
   - ...
