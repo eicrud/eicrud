@@ -93,7 +93,7 @@ export class Export {
     let excludeServices = cliOptions?.export?.excludeServices || [];
     excludeServices = excludeServices.map((se) => toKebabCase(se));
     //console.log('Generating service', name);
-    const inputDir = cliOptions?.export?.inputDir || './src/services';
+    const inputDir = cliOptions?.export?.inputDir || './src';
     const src = path.join(inputDir);
     const exportPath = cliOptions?.export?.outputDir || 'eicrud_exports';
     const dest = path.join(exportPath);
@@ -128,10 +128,15 @@ export class Export {
       );
     }
     copiedFiles.push(
-      ...copyDirectory(eicrud_core_base_cmds, dest, conditionFun, {
-        makeSubDir: true,
-        pathReplaces: [{ regex: /user$/g, replace: userServiceDir }],
-      }),
+      ...copyDirectory(
+        eicrud_core_base_cmds,
+        path.join(dest, 'services'),
+        conditionFun,
+        {
+          makeSubDir: true,
+          pathReplaces: [{ regex: /user$/g, replace: userServiceDir }],
+        },
+      ),
     );
     const crud_options_path = path.join(
       eicrud_core_dir,
@@ -230,8 +235,7 @@ export class Export {
     });
     // Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core/validation');
     Export.removeDecoratorsFromFiles(copiedFiles, '@eicrud/core', [
-      { regex: /.implements.+CrudEntity/g, replace: '' },
-      { regex: /.implements.+CrudUser/g, replace: '' },
+      { regex: /.implements.+{/g, replace: ' {' },
     ]);
 
     if (!options?.keepValidators) {

@@ -5,7 +5,7 @@
         "excludePatterns": [],
         "removeImports": [],
         "outputDir": "./eicrud_exports",
-        "inputDir": "./src/services",
+        "inputDir": "./src",
         "modulesDir": "./node_modules",
         "userServiceDir": "user"
     }

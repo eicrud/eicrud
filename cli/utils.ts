@@ -1,8 +1,8 @@
 export class _utils_cli {
   static addRoleTypeKeys(fs, msPath, keys: any, cmd = true) {
     if (
-      fs.existsSync(`./src/roles.ts`) &&
-      fs.readFileSync(`./src/roles.ts`, 'utf8').includes('RoleType')
+      fs.existsSync(`./src/eicrud.roles.ts`) &&
+      fs.readFileSync(`./src/eicrud.roles.ts`, 'utf8').includes('RoleType')
     ) {
       keys.tk_role_type = 'RoleType';
       let upDir = '../../';
@@ -12,7 +12,7 @@ export class _utils_cli {
       if (msPath) {
         upDir += '../';
       }
-      keys.tk_import_role_type = `import { RoleType } from '${upDir}roles';`;
+      keys.tk_import_role_type = `import { RoleType } from '${upDir}eicrud.roles';`;
     } else {
       keys.tk_role_type = 'any';
       keys.tk_import_role_type = '';

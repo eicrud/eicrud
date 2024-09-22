@@ -111,11 +111,11 @@ export class CrudClient<T> {
   sessionStorage = typeof document !== 'undefined' ? sessionStorage : null;
 
   constructor(public config: ClientConfig) {
-    if (typeof document !== 'undefined' && !this.config.useSecureCookie) {
-      console.warn(
-        'Warning: you are using local storage to store JWT tokens. Consider switching to secure cookie before production. See https://docs.eicrud.com/client/jwt-storage',
-      );
-    }
+    // if (typeof document !== 'undefined' && !this.config.useSecureCookie) {
+    //   console.warn(
+    //     'Warning: you are using local storage to store JWT tokens. Consider switching to secure cookie before production. See https://docs.eicrud.com/client/jwt-storage',
+    //   );
+    // }
 
     this.config.id_field = this.config.id_field || 'id';
     this.config.storage =

@@ -80,7 +80,7 @@ export class Generate {
         : '{ hooks }',
     };
 
-    _utils_cli.addRoleTypeKeys(fs, '', keys, false);
+    _utils_cli.addRoleTypeKeys(fs, msPath, keys, false);
 
     const dir = `./src/services/${msPath}${keys.tk_entity_lname}`;
     if (!fs.existsSync(dir)) {

@@ -45,6 +45,7 @@ program
   .description('Setup new project (adapt an existing nestjs application)')
   .argument('<type>', 'mongo | postgre')
   .argument('<name>', 'project name (will be used for db)')
+  .option('-v, --version <string>', 'install a specific eicrud version')
   .action(function () {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore

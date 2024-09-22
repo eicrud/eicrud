@@ -127,8 +127,8 @@ export class Setup {
     fs.writeFileSync(configPath, configContent);
     console.log('CREATED:', configPath);
 
-    const rolesTemplateFile = path.join(templateDir, '/roles.ts');
-    const rolesPath = './src/roles.ts';
+    const rolesTemplateFile = path.join(templateDir, '/eicrud.roles.ts');
+    const rolesPath = './src/eicrud.roles.ts';
     fs.copyFileSync(rolesTemplateFile, rolesPath);
     console.log('CREATED:', rolesPath);
 
@@ -244,6 +244,15 @@ export class Setup {
       );
     fs.writeFileSync(mainFile, mainFileContent);
     console.log('UPDATED:', mainFile);
+
+    if (opts.version) {
+      // install specific version of all @eicrud/* packages
+      for (const key in packages) {
+        if (packages[key].includes('@eicrud/')) {
+          packages[key] = packages[key] + '@' + opts.version;
+        }
+      }
+    }
 
     child_process.execSync('npm install ' + packages.join(' '), {
       stdio: 'inherit',
