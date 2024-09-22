@@ -245,6 +245,15 @@ export class Setup {
     fs.writeFileSync(mainFile, mainFileContent);
     console.log('UPDATED:', mainFile);
 
+    if (opts.version) {
+      // install specific version of all @eicrud/* packages
+      for (const key in packages) {
+        if (packages[key].includes('@eicrud/')) {
+          packages[key] = packages[key] + '@' + opts.version;
+        }
+      }
+    }
+
     child_process.execSync('npm install ' + packages.join(' '), {
       stdio: 'inherit',
     });
