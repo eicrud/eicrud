@@ -713,11 +713,14 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     email = email.toLowerCase().trim();
     username = username?.toLowerCase().trim();
 
-    const user = new this.entity();
+    let user = new this.entity();
     user[this.username_field] = username || email;
     user.email = email;
     user.password = password;
     user.role = role;
+
+    const addToUser = dto.addToUser || {};
+    user = { ...user, ...addToUser };
     let res;
     try {
       res = await this.$create(user, ctx);
@@ -725,7 +728,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       console.error('Error creating user: ', e);
       if (
         ['duplicate', 'key'].every((k) => e.message?.includes(k)) &&
-        ['email', 'username'].some((k) => e.message?.includes(k))
+        ['email', this.username_field].some((k) => e.message?.includes(k))
       ) {
         throw new BadRequestException(CrudErrors.EMAIL_ALREADY_TAKEN.str());
       }

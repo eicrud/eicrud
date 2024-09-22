@@ -7,8 +7,8 @@ import {
   readyApp,
   dropDatabases,
 } from '../src/app.module';
-import { SuperclientTest as ExportedSuperclientTest } from '../test_exports/superclient-ms/superclient-test/superclient-test.entity';
-import { DragonFruit as ExportedDragonFruit } from '../test_exports/dragon-fruit/dragon-fruit.entity';
+import { SuperclientTest as ExportedSuperclientTest } from '../test_exports/services/superclient-ms/superclient-test/superclient-test.entity';
+import { DragonFruit as ExportedDragonFruit } from '../test_exports/services/dragon-fruit/dragon-fruit.entity';
 import { CrudController } from '@eicrud/core/crud/crud.controller';
 import { MyUserService } from '../src/services/my-user/my-user.service';
 import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
@@ -22,7 +22,7 @@ import {
   testMethod,
 } from '../test.utils';
 import { UserProfileService as MyProfileService } from '../src/services/user-profile/user-profile.service';
-import { PingCmdDto as ExportedPingCmdDto } from '../test_exports/superclient-ms/superclient-test/cmds/ping_cmd/ping_cmd.dto';
+import { PingCmdDto as ExportedPingCmdDto } from '../test_exports/services/superclient-ms/superclient-test/cmds/ping_cmd/ping_cmd.dto';
 import { Melon } from '../src/services/melon/melon.entity';
 import { TestUser } from '../test.utils';
 import {
@@ -47,8 +47,8 @@ import {
   PingCmdReturnDto,
 } from '../src/services/superclient-ms/superclient-test/cmds/ping_cmd/ping_cmd.dto';
 import { MyUser } from '../src/services/my-user/my-user.entity';
-import { TestCmdDto } from '../test_exports/user-profile/cmds/test_cmd/test_cmd.dto';
-import { SharedEmbeddable } from '../test_exports/superclient-ms/shared-dto';
+import { TestCmdDto } from '../test_exports/services/user-profile/cmds/test_cmd/test_cmd.dto';
+import { SharedEmbeddable } from '../test_exports/services/superclient-ms/shared-dto';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',

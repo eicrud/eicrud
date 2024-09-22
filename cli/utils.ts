@@ -1,4 +1,23 @@
 export class _utils_cli {
+  static addRoleTypeKeys(fs, msPath, keys: any, cmd = true) {
+    if (
+      fs.existsSync(`./src/eicrud.roles.ts`) &&
+      fs.readFileSync(`./src/eicrud.roles.ts`, 'utf8').includes('RoleType')
+    ) {
+      keys.tk_role_type = 'RoleType';
+      let upDir = '../../';
+      if (cmd) {
+        upDir += '../../';
+      }
+      if (msPath) {
+        upDir += '../';
+      }
+      keys.tk_import_role_type = `import { RoleType } from '${upDir}eicrud.roles';`;
+    } else {
+      keys.tk_role_type = 'any';
+      keys.tk_import_role_type = '';
+    }
+  }
   static addNewLineToMatched(content, regex, getReplaceString, errorMsg) {
     //add service to array
     const match = regex.exec(content);

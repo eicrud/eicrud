@@ -5,7 +5,12 @@ import { AbilityBuilder, createAliasResolver } from '@casl/ability';
 /**
  * Security applied to a cmd.
  */
-export interface CmdSecurity<TDto = any, TEntity = any, TReturnDto = any> {
+export interface CmdSecurity<
+  TDto = any,
+  TEntity = any,
+  TReturnDto = any,
+  TRoleType extends string = string,
+> {
   /**
    * Allow guest to use command always
    * @usageNotes
@@ -86,7 +91,7 @@ export interface CmdSecurity<TDto = any, TEntity = any, TReturnDto = any> {
    */
   allowGetMethod?: boolean;
 
-  rolesRights?: Record<string, CmdSecurityRights<TDto, TEntity>>;
+  rolesRights?: Partial<Record<TRoleType, CmdSecurityRights<TDto, TEntity>>>;
 
   hooks?: CmdHooks<TDto, TReturnDto>;
 }
@@ -123,7 +128,7 @@ export interface CmdSecurityRights<TDto = any, TEntity = any> {
 /**
  * Security applied to a service
  */
-export class CrudSecurity<T = any> {
+export class CrudSecurity<T = any, TRoleType extends string = string> {
   /**
    * Allow guest to read all entities
    * @usageNotes
@@ -171,7 +176,7 @@ export class CrudSecurity<T = any> {
    * @type {Record<string, CmdSecurity>}
    * @public
    */
-  cmdSecurityMap?: Record<string, CmdSecurity<any, T>> = {};
+  cmdSecurityMap?: Record<string, CmdSecurity<any, T, any, TRoleType>> = {};
 
   /**
    * Map of {@link CrudSecurityRights}.
@@ -186,7 +191,7 @@ export class CrudSecurity<T = any> {
    * @type {Record<string, CrudSecurityRights>}
    * @public
    */
-  rolesRights?: Record<string, CrudSecurityRights<T>> = {};
+  rolesRights?: Partial<Record<TRoleType, CrudSecurityRights<T>>> = {};
 }
 
 export const httpAliasResolver = createAliasResolver({

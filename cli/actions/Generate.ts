@@ -80,6 +80,8 @@ export class Generate {
         : '{ hooks }',
     };
 
+    _utils_cli.addRoleTypeKeys(fs, msPath, keys, false);
+
     const dir = `./src/services/${msPath}${keys.tk_entity_lname}`;
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -302,6 +304,8 @@ export class Generate {
       tk_cmd_return_dto_name,
       tk_cmd_camel_name,
     };
+
+    _utils_cli.addRoleTypeKeys(fs, msPath, keys);
 
     let dir = `./src/services/${msPath}${keys.tk_entity_lname}`;
     if (!fs.existsSync(dir)) {

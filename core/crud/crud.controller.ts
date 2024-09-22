@@ -850,12 +850,17 @@ export class CrudController {
     } else if (ctx.origin == 'cmd') {
       const cmdSecurity: CmdSecurity =
         currentService.security?.cmdSecurityMap?.[ctx.cmdName];
-      queryClass = null;
       if (!cmdSecurity?.dto) {
         throw new Error('dto missing for cmd: ' + ctx.cmdName);
       }
-      dataDefaultValues = true;
-      dataClass = cmdSecurity.dto;
+      if (ctx.method == 'GET') {
+        queryClass = cmdSecurity.dto;
+        dataClass = null;
+      } else {
+        dataDefaultValues = true;
+        dataClass = cmdSecurity.dto;
+        queryClass = null;
+      }
     }
     const crudTransformer = new CrudTransformer(this, ctx);
     if (queryClass) {

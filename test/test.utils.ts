@@ -4,8 +4,6 @@ import { CrudConfigService } from '../core/config/crud.config.service';
 import { CrudUserService } from '../core/config/crud-user.service';
 import { CrudUser } from '../core/config/model/CrudUser';
 import { Picture } from './src/services/picture/picture.entity';
-
-import { create } from 'domain';
 import { CrudClient } from '@eicrud/client';
 import { DragonFruit } from './src/services/dragon-fruit/dragon-fruit.entity';
 import { Melon } from './src/services/melon/melon.entity';

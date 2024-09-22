@@ -127,8 +127,8 @@ export class Setup {
     fs.writeFileSync(configPath, configContent);
     console.log('CREATED:', configPath);
 
-    const rolesTemplateFile = path.join(templateDir, '/roles.ts');
-    const rolesPath = './src/roles.ts';
+    const rolesTemplateFile = path.join(templateDir, '/eicrud.roles.ts');
+    const rolesPath = './src/eicrud.roles.ts';
     fs.copyFileSync(rolesTemplateFile, rolesPath);
     console.log('CREATED:', rolesPath);
 
@@ -161,7 +161,12 @@ export class Setup {
         tk_entity_lname: 'user',
         tk_entity_camel_name: 'user',
         tk_entity_name: 'User',
+        tk_role_type: 'any',
+        tk_import_role_type: '',
       };
+
+      _utils_cli.addRoleTypeKeys(fs, '', bKeys);
+
       const dir = `./src/services/user/cmds/${snaked}`;
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
@@ -239,6 +244,15 @@ export class Setup {
       );
     fs.writeFileSync(mainFile, mainFileContent);
     console.log('UPDATED:', mainFile);
+
+    if (opts.version) {
+      // install specific version of all @eicrud/* packages
+      for (const key in packages) {
+        if (packages[key].includes('@eicrud/')) {
+          packages[key] = packages[key] + '@' + opts.version;
+        }
+      }
+    }
 
     child_process.execSync('npm install ' + packages.join(' '), {
       stdio: 'inherit',

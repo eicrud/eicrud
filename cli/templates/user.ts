@@ -1,5 +1,6 @@
 import {  Entity, PrimaryKey, Property, Unique } from "@mikro-orm/core";
 import { CrudUser } from "@eicrud/core/config";
+import { RoleType } from "../../eicrud.roles";
 
 @Entity()
 //@eicrud:cli:export:hide
@@ -16,7 +17,7 @@ export class User implements CrudUser {
     password: string;
 
     @Property()
-    role: string;
+    role: RoleType;
 
     @Property({ nullable: true })
     lastLoginAttempt: Date;

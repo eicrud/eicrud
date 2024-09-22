@@ -1,5 +1,11 @@
 import { ICreateAccountDto } from '@eicrud/shared/interfaces';
-import { IsOptional, IsBoolean, IsString, IsEmail } from 'class-validator';
+import {
+  IsOptional,
+  IsBoolean,
+  IsString,
+  IsEmail,
+  MinLength,
+} from 'class-validator';
 import { $Transform } from '@eicrud/core/validation';
 
 export class CreateAccountDto implements ICreateAccountDto {
@@ -20,8 +26,12 @@ export class CreateAccountDto implements ICreateAccountDto {
   username?: string;
 
   @IsString()
+  @MinLength(8)
   password: string;
 
   @IsString()
   role: string;
+
+  //@eicrud:cli:export:delete:next-line
+  addToUser?: any;
 }

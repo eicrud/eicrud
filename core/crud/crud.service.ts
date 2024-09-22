@@ -1127,7 +1127,7 @@ export class CrudService<T extends CrudEntity> {
     return this.config.hooks.beforeCreateHook.call(this, data, ctx);
   }
 
-  async afterCreateHook(result: any[], data: Partial<T>[], ctx: CrudContext) {
+  async afterCreateHook(result: T[], data: Partial<T>[], ctx: CrudContext) {
     return this.config.hooks.afterCreateHook.call(this, result, data, ctx);
   }
 
@@ -1198,7 +1198,7 @@ export class CrudHooks<T extends CrudEntity> {
 
   async afterCreateHook(
     this: CrudService<T>,
-    result: any[],
+    result: T[],
     data: Partial<T>[],
     ctx: CrudContext,
   ): Promise<T[]> {
