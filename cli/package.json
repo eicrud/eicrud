@@ -30,8 +30,8 @@
     "del-cli": "^5.1.0"
   },
   "dependencies": {
-    "@eicrud/shared": "0.0.1",
-    "@types/node": "^20.12.12",
+    "@eicrud/shared": "0.8.4",
+    "@types/node": "^22.6.1",
     "commander": "^12.1.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
