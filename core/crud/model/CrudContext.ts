@@ -36,9 +36,15 @@ export interface CrudContext<T = any> {
   /**
    * Temp object that will not be serialized to ms-links, set to {} for every request
    * @UsageNotes You can use it to cache data during authorization process (useful for batch operations)
-   * @type {object}
+   * @type {Record<string, any>}
    */
-  _temp?: object;
+  _temp?: Record<string, any>;
+
+  /**
+   * Store for your application logic, set to {} for every request
+   * @UsageNotes You can use it to cache data between hooks, it will be serialized to ms-links
+   */
+  store?: Record<string, any>;
 
   setCookies?: Record<string, CookieToSet>;
   getCurrentService?: () => CrudService<any>;
