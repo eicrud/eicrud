@@ -58,3 +58,6 @@ Indicate if `findOne` results should be fetched from the cache.
 
 ### allowIdOverride
 Allow Entity primary keys to be pre-generated in $create operations.
+
+!!! warning
+     Letting users set their Entities' ID opens security risks. For example, impersonation of deleted entities.

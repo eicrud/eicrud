@@ -584,7 +584,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
-  ) {
+  ): Promise<T> {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
     try {
       if (opOpts.hooks) {
