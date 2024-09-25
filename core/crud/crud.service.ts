@@ -363,7 +363,13 @@ export class CrudService<T extends CrudEntity> {
         onlyProperties: true,
         onlyOwnProperties: true,
       });
-      entity[this.crudConfig.id_field] = this.dbAdapter.createNewId();
+
+      if (newEntity[this.crudConfig.id_field]) {
+        if (!ctx?.options?.allowIdOverride)
+          throw new BadRequestException(CrudErrors.ID_OVERRIDE_NOT_SET.str());
+      } else {
+        entity[this.crudConfig.id_field] = this.dbAdapter.createNewId();
+      }
 
       await em.persist(entity);
       if (!opOpts?.noFlush) {
@@ -433,7 +439,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $patchBatch(
-    data: any[],
+    data: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,

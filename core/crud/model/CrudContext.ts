@@ -42,7 +42,8 @@ export interface CrudContext<T = any> {
 
   /**
    * Store for your application logic, set to {} for every request
-   * @UsageNotes You can use it to cache data between hooks, it will be serialized to ms-links
+   * @UsageNotes You can use it to cache data between hooks, it will be serialized to ms-links,
+   * best practice is to use a unique key to store your data
    */
   store?: Record<string, any>;
 

@@ -1,4 +1,4 @@
-import { CmdHooks } from '../../crud';
+import { CmdHooks, CrudOptions } from '../../crud';
 import { CrudContext } from '../../crud/model/CrudContext';
 import { AbilityBuilder, createAliasResolver } from '@casl/ability';
 
@@ -249,8 +249,8 @@ export interface CrudSecurityRights<T = any> {
   ): Promise<any>;
 
   defineOPTAbility?(
-    can: CanCannot<T>,
-    cannot: CanCannot<T>,
+    can: CanCannot<T, keyof CrudOptions>,
+    cannot: CanCannot<T, keyof CrudOptions>,
     ctx: CrudContext,
   ): Promise<any>;
 }

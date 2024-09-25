@@ -28,6 +28,7 @@ import {
 } from '../../core/config/crud.config.service';
 import { TestUser } from '../test.utils';
 import { ICreateAccountDto } from '../../shared/interfaces';
+import { CrudError, CrudErrors } from '../../shared/CrudErrors';
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
@@ -90,6 +91,14 @@ describe('AppController', () => {
       bio: 'My bio.',
       store: profiles,
       favoriteColor: 'red',
+    },
+    'Create Profile': {
+      email: 'Create.Profile@test.com',
+      role: 'super_admin',
+      bio: 'My bio.',
+      store: profiles,
+      favoriteColor: 'red',
+      skipProfile: true,
     },
   };
 
@@ -386,5 +395,50 @@ describe('AppController', () => {
     expect(findRes.userName).toBe('PatchMy Bio');
     expect(findRes.chineseSign).toBe('Cyber Pig');
     expect(findRes.astroSign).toBeFalsy();
+  });
+
+  it('Should be able to set ID before creating a new entity', async () => {
+    const user = users['Create Profile'];
+
+    const id = userService.dbAdapter.createId(crudConfig);
+    const payload: Partial<UserProfile> = {
+      id,
+      userName: 'Create Profile',
+      user: user.id,
+      bio: 'I am a cool guy.',
+    } as any;
+
+    const query: CrudQuery = {
+      service: 'user-profile',
+    };
+
+    await testMethod({
+      url: '/crud/one',
+      method: 'POST',
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.ID_OVERRIDE_NOT_SET.code,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    query.options = JSON.stringify({ allowIdOverride: true }) as any;
+
+    const res = await testMethod({
+      url: '/crud/one',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    expect(res.id).toBe(id);
   });
 });
