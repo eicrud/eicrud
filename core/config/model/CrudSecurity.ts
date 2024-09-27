@@ -192,6 +192,12 @@ export class CrudSecurity<T = any, TRoleType extends string = string> {
    * @public
    */
   rolesRights?: Partial<Record<TRoleType, CrudSecurityRights<T>>> = {};
+
+  /**
+   * Disable read, update and delete query validation for specified roles (and their parents)
+   * @see https://github.com/eicrud/eicrud/issues/63
+   */
+  skipQueryValidationForRoles?: TRoleType[];
 }
 
 interface CrudAction {

@@ -16,6 +16,7 @@ import { ValidationOptions } from '../validation';
 import { MsLinkQuery } from '../crud';
 import { _utils } from '../utils';
 import { NotVoid } from '@eicrud/shared/config';
+import { getParentRoles } from '@eicrud/shared/utils';
 
 export class BasicMemoryCache implements CrudCache {
   cache: LRUCache<string, CrudUser>;
@@ -270,16 +271,8 @@ export class CrudConfigService {
     return Promise.resolve();
   }
 
-  getParentRolesRecurs(role: CrudRole): CrudRole[] {
-    const parentRoles: CrudRole[] = [];
-    if (role.inherits?.length) {
-      for (const parent of role.inherits) {
-        const parentRole = this.rolesMap[parent];
-        parentRoles.push(parentRole);
-        parentRoles.push(...this.getParentRolesRecurs(parentRole));
-      }
-    }
-    return parentRoles;
+  getParentRoles(role: CrudRole): string[] {
+    return getParentRoles(role.name, this.rolesMap);
   }
 
   getSaltRounds(newEntity: CrudUser): number {

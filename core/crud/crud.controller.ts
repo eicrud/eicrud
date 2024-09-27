@@ -33,6 +33,7 @@ import { _utils } from '../utils';
 import { CrudTransformer, IFieldMetadata } from '../validation/CrudTransformer';
 import { CrudValidationPipe } from '../validation/CrudValidationPipe';
 import { FindResponseDto, LoginResponseDto } from '@eicrud/shared/interfaces';
+import { getParentRoles } from '@eicrud/shared/utils';
 
 export class LimitOptions {
   nonAdminQueryLimit = 40;
@@ -847,6 +848,21 @@ export class CrudController {
         queryClass = currentService.entity;
       } else if (ctx.method == 'GET' || ctx.method == 'DELETE') {
         queryClass = currentService.entity;
+      }
+
+      const security = currentService.security;
+      if (queryClass && security?.skipQueryValidationForRoles?.length) {
+        const inheritedRoles = getParentRoles(
+          ctx.user?.role,
+          this.crudConfig.rolesMap,
+        );
+        if (
+          security.skipQueryValidationForRoles.some((r) =>
+            inheritedRoles.includes(r),
+          )
+        ) {
+          queryClass = null;
+        }
       }
     } else if (ctx.origin == 'cmd') {
       const cmdSecurity: CmdSecurity =
