@@ -65,6 +65,14 @@ export class CrudErrors {
     'Payload must be an array',
     19,
   );
+  static readonly ID_OVERRIDE_NOT_SET = new CrudError(
+    'Id is not empty and allowIdOverride is not set',
+    20,
+  );
+  static readonly CANNOT_UPDATE_ID = new CrudError(
+    'Cannot update id field',
+    21,
+  );
 }
 
 export interface MaxBatchSizeExceededDto {

@@ -9,10 +9,11 @@ import { DragonFruit } from './src/services/dragon-fruit/dragon-fruit.entity';
 import { Melon } from './src/services/melon/melon.entity';
 import { UserProfile } from './src/services/user-profile/user-profile.entity';
 import { MyUser } from './src/services/my-user/my-user.entity';
+import { RoleType } from './src/eicrud.roles';
 
 export interface TestUser {
   email: string;
-  role: string;
+  role: RoleType;
   bio: string;
   id?: string;
   profileId?: string;

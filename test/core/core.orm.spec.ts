@@ -28,6 +28,10 @@ import {
 } from '../../core/config/crud.config.service';
 import { TestUser } from '../test.utils';
 import { ICreateAccountDto } from '../../shared/interfaces';
+import { CrudError, CrudErrors } from '../../shared/CrudErrors';
+import { Melon } from '../src/services/melon/melon.entity';
+import { MelonService } from '../src/services/melon/melon.service';
+import exp from 'constants';
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
@@ -37,6 +41,7 @@ describe('AppController', () => {
   let appController: CrudController;
   let userService: MyUserService;
   let authService: CrudAuthService;
+  let melonService: MelonService;
   let profileService: MyProfileService;
   let jwt: string;
   let app: NestFastifyApplication;
@@ -55,6 +60,14 @@ describe('AppController', () => {
       role: 'super_admin',
       bio: 'BIO_FIND_KEY',
       store: profiles,
+      melons: 4,
+    },
+    'Validation Skipper': {
+      email: 'Validation.Skipper@test.com',
+      role: 'validation_skipper_child',
+      bio: 'BIO_FIND_KEY',
+      store: profiles,
+      melons: 4,
     },
     'Sarah Doe': {
       email: 'sarah.doe@test.com',
@@ -91,6 +104,14 @@ describe('AppController', () => {
       store: profiles,
       favoriteColor: 'red',
     },
+    'Create Profile': {
+      email: 'Create.Profile@test.com',
+      role: 'super_admin',
+      bio: 'My bio.',
+      store: profiles,
+      favoriteColor: 'red',
+      skipProfile: true,
+    },
   };
 
   beforeAll(async () => {
@@ -110,6 +131,8 @@ describe('AppController', () => {
     appController = app.get<CrudController>(CrudController);
     userService = app.get<MyUserService>(MyUserService);
     authService = app.get<CrudAuthService>(CrudAuthService);
+    melonService = app.get<MelonService>(MelonService);
+
     profileService = app.get<MyProfileService>(MyProfileService);
     entityManager = app.get<EntityManager>(EntityManager);
 
@@ -386,5 +409,175 @@ describe('AppController', () => {
     expect(findRes.userName).toBe('PatchMy Bio');
     expect(findRes.chineseSign).toBe('Cyber Pig');
     expect(findRes.astroSign).toBeFalsy();
+  });
+
+  it('Should be able to set ID before creating a new entity', async () => {
+    const user = users['Create Profile'];
+
+    const id = userService.dbAdapter.createId(crudConfig);
+    const payload: Partial<UserProfile> = {
+      id,
+      userName: 'Create Profile',
+      user: user.id,
+      bio: 'I am a cool guy.',
+    } as any;
+
+    const query: CrudQuery = {
+      service: 'user-profile',
+    };
+
+    await testMethod({
+      url: '/crud/one',
+      method: 'POST',
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.ID_OVERRIDE_NOT_SET.code,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    query.options = JSON.stringify({ allowIdOverride: true }) as any;
+
+    const res = await testMethod({
+      url: '/crud/one',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+
+    expect(res.id).toBe(id);
+
+    //Should prevent primary key override
+    payload.id = users['Michael Doe'].profileId;
+
+    query.query = JSON.stringify({ id: res.id });
+    const newPayload = { id: payload.id, userName: 'Test Profile' };
+    const res2 = await testMethod({
+      url: '/crud/one',
+      method: 'PATCH',
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.CANNOT_UPDATE_ID.code,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: newPayload,
+      query,
+      crudConfig,
+    });
+
+    newPayload.id = userService.dbAdapter.createId(crudConfig);
+    newPayload.userName = 'Test Profile 2';
+
+    const res3 = await testMethod({
+      url: '/crud/many',
+      method: 'PATCH',
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.CANNOT_UPDATE_ID.code,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: newPayload,
+      query,
+      crudConfig,
+    });
+  });
+
+  it('Should expose mikro-orm query operators if skipQueryValidationForRoles is enabled', async () => {
+    const user = users['Validation Skipper'];
+
+    const qry: Partial<Melon> = {
+      owner: user.id,
+    };
+
+    const query: CrudQuery = {
+      service: 'melon',
+      query: JSON.stringify(qry),
+    };
+
+    const method = (usr, q, expectedCode = 200) => {
+      return testMethod({
+        url: '/crud/many',
+        method: 'GET',
+        expectedCode,
+        app,
+        jwt: usr.jwt,
+        entityManager,
+        payload: {},
+        query: q,
+        crudConfig,
+      });
+    };
+
+    const res = await method(user, query);
+
+    expect(res.length).toBe(user.melons);
+
+    qry.price = { $lt: 2 } as any;
+    query.query = JSON.stringify(qry);
+
+    const res2 = await method(user, query);
+
+    expect(res2.length).toBe(2);
+
+    const userWithValidations = users['Michael Doe'];
+
+    await method(userWithValidations, query, 400);
+
+    const payload: Partial<Melon> = {
+      name: 'Melon Updated',
+    };
+
+    query.query = JSON.stringify(qry);
+
+    const updateMethod = (usr, q, pld, expectedCode = 200) => {
+      return testMethod({
+        url: '/crud/many',
+        method: 'PATCH',
+        expectedCode,
+        app,
+        jwt: usr.jwt,
+        entityManager,
+        payload: pld,
+        query: q,
+        crudConfig,
+      });
+    };
+
+    await updateMethod(user, query, payload, 200);
+
+    const userMelons = await melonService.$find({ owner: user.id }, null);
+    expect(userMelons.data.length).toBe(user.melons);
+    for (const melon of userMelons.data) {
+      if (melon.price > 1) {
+        expect(melon.name).not.toBe('Melon Updated');
+      } else {
+        expect(melon.name).toBe('Melon Updated');
+      }
+    }
+
+    const resDelete = await testMethod({
+      url: '/crud/many',
+      method: 'DELETE',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: {},
+      query,
+      crudConfig,
+    });
+
+    expect(resDelete).toBe(2);
+
+    const userMelons2 = await melonService.$find({ owner: user.id }, null);
+    expect(userMelons2.data.length).toBe(user.melons - 2);
   });
 });

@@ -4,6 +4,7 @@ import { Melon } from './melon.entity';
 
 export function getSecurity(MELON: string): CrudSecurity<Melon> {
   return {
+    skipQueryValidationForRoles: ['validation_skipper'],
     rolesRights: {
       super_admin: {
         async defineCRUDAbility(can, cannot, ctx) {

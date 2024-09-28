@@ -258,6 +258,24 @@ export class Setup {
       stdio: 'inherit',
     });
 
+    const corePackageJson = path.join(
+      './node_modules/@eicrud/core/package.json',
+    );
+    const corePackageJsonObj = JSON.parse(
+      fs.readFileSync(corePackageJson, 'utf8'),
+    );
+
+    // push @mikro-orm/core && class-validator with exact versions
+    // listing them as direct dependencies allows IDEs to auto-import them
+    const newPackages = [
+      `@mikro-orm/core@${corePackageJsonObj.dependencies['@mikro-orm/core']}`,
+      `class-validator@${corePackageJsonObj.dependencies['class-validator']}`,
+    ];
+
+    child_process.execSync('npm install ' + newPackages.join(' '), {
+      stdio: 'inherit',
+    });
+
     return null;
   }
 }

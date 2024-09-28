@@ -9,6 +9,10 @@ export function getSecurity(userprofile: string): CrudSecurity {
         async defineCRUDAbility(can, cannot, ctx) {
           can('crud', userprofile);
         },
+
+        async defineOPTAbility(can, cannot, ctx) {
+          can('allowIdOverride', userprofile);
+        },
       },
       admin: {
         async defineCRUDAbility(can, cannot, ctx: CrudContext) {

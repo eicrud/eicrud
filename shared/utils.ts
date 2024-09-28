@@ -15,35 +15,48 @@ export function kebakToPascalCase(str: string) {
   return str.charAt(0).toUpperCase() + kebabToCamelCase(str).slice(1);
 }
 
-export function getParentRoles(
-  roleName: string,
-  roles: { name: string; inherits: string[] }[],
-): string[] {
-  const parentRoles: string[] = [];
-  const roleMap = new Map(roles.map((role) => [role.name, role]));
+type CrudRole = {
+  name: string;
+  inherits?: string[];
+};
 
-  while (roleName) {
-    const role = roleMap.get(roleName);
-    if (role && role.inherits && role.inherits.length > 0) {
-      roleName = role.inherits[0];
-      parentRoles.push(roleName);
-    } else {
-      break;
+function recursGetParentRoles(
+  roleName: string,
+  parentRolesMap: Record<string, boolean>,
+  roles: Record<string, CrudRole>,
+) {
+  const role = roles[roleName];
+  if (!role) {
+    throw new Error(`Role ${roleName} not found`);
+  }
+  if (!parentRolesMap[role.name]) {
+    parentRolesMap[role.name] = true;
+    if (role.inherits?.length) {
+      for (const parent of role.inherits) {
+        recursGetParentRoles(parent, parentRolesMap, roles);
+      }
     }
   }
+}
 
-  return parentRoles;
+export function getParentRoles(
+  roleName: string,
+  roles: Record<string, CrudRole>,
+): string[] {
+  const parentRolesMap = {};
+
+  recursGetParentRoles(roleName, parentRolesMap, roles);
+
+  //return unique values
+  return Object.keys(parentRolesMap);
 }
 
 export function doesInheritRole(
   user: { role: string },
   role,
-  roles: { name: string; inherits: string[] }[],
+  roles: Record<string, CrudRole>,
 ): boolean {
   const currentRole = user.role;
-  if (currentRole == role) {
-    return true;
-  }
   const parents = getParentRoles(currentRole, roles);
   return parents.includes(role);
 }
