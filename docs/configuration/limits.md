@@ -13,6 +13,7 @@ export function getSecurity(entity: string): CrudSecurity {
     maxItemsPerUser: 10,
     additionalItemsInDbPerTrustPoints: 1,
     alwaysExcludeFields: ['password']
+    skipQueryValidationForRoles: [],
     //...
 
     }
@@ -36,6 +37,9 @@ Add `x` additional allowed instances per user's [trust](../user/definition.md#tr
 
 #### **alwaysExcludeFields**
 Always exclude specified entity fields from find [operations](../services/operations.md). 
+
+#### **skipQueryValidationForRoles**
+Disable read, update and delete query validation for specified roles (and their parents). See this [issue](https://github.com/eicrud/eicrud/issues/63) for more details. 
 
 ## CrudSecurityRights
 ```typescript title="service.security.ts"
