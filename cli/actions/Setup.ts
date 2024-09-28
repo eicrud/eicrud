@@ -259,7 +259,6 @@ export class Setup {
     });
 
     const corePackageJson = path.join(
-      __dirname,
       './node_modules/@eicrud/core/package.json',
     );
     const corePackageJsonObj = JSON.parse(
