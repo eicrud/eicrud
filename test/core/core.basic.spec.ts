@@ -384,7 +384,10 @@ describe('AppController', () => {
       bio: sarahDoeProfile.bio,
     };
 
-    const fetchEntity = { entity: UserProfile, id: sarahDoeProfile.id };
+    const fetchEntity = {
+      entity: UserProfile,
+      id: sarahDoeProfile.id?.toString(),
+    };
 
     query.query = JSON.stringify({ id: formatedId });
 

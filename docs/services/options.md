@@ -8,6 +8,7 @@ export interface ICrudOptions {
     limit?: number;
     offset?: number;
     cached?: boolean;
+    allowIdOverride?: boolean;
 }
 ```
 
@@ -54,3 +55,9 @@ Corresponds to [MikroOrm's offset option](https://mikro-orm.io/docs/entity-manag
 Indicate if `findOne` results should be fetched from the cache.
 !!! note
     `cached` only works in client calls.
+
+### allowIdOverride
+Allow Entity primary keys to be pre-generated in $create operations.
+
+!!! warning
+     Letting users set their Entities' ID opens security risks. For example, impersonation of deleted entities.

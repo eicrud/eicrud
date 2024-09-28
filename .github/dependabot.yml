@@ -20,3 +20,7 @@ updates:
         dependency-type: "production"
       development-dependencies:
         dependency-type: "development"
+    ignore:
+      - dependency-name: "@eicrud/*"
+      - dependency-name: "@types/node"
+

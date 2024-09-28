@@ -9,6 +9,7 @@ import {
   Collection,
   OneToMany,
 } from '@mikro-orm/core';
+import { ObjectId } from '@mikro-orm/mongodb';
 import {
   Allow,
   Equals,
@@ -56,7 +57,7 @@ export class UserProfile implements CrudEntity {
   @PrimaryKey({ name: '_id' })
   @IsString()
   @IsOptional()
-  id: string;
+  id: string | ObjectId;
 
   @OneToOne(() => MyUser, (user) => user.profile, { owner: true })
   @IsString()

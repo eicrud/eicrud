@@ -48,7 +48,7 @@
 [x] add typing for can && cannot function
 [ ] global @$Hook (transform) decorator?
 [x] throw specific error if user already exist for account_creation
-[ ] saveBatch (one flush) alternative to patchBatch? 
+
 
 [ ] test cmd dto == any
 [X] cmd get (allow cmd get = false)
@@ -63,5 +63,9 @@
 [x] pass full orm to CRUDService config (not just entity manager)
 
 [x] support basic auth
-[ ] update open-api schema with basic auth
+[x] update open-api schema with basic auth
 [ ] granular authorization recipe
+
+[ ] saveBatch (one flush) alternative to patchBatch? <
+
+[ ] Doc: move security options from limits to their own page

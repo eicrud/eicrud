@@ -188,6 +188,15 @@ export class CrudAuthorizationService {
   async authorize(ctx: CrudContext, security: CrudSecurity) {
     const fields = AuthUtils.getObjectFields(ctx.data);
     let cmdSec: CmdSecurity;
+
+    if (ctx.origin == 'crud' && ctx.data?.[this.crudConfig.id_field]) {
+      if (ctx.method == 'PATCH') {
+        throw new BadRequestException(CrudErrors.CANNOT_UPDATE_ID.str());
+      } else if (ctx.method == 'POST' && !ctx.options?.allowIdOverride) {
+        throw new BadRequestException(CrudErrors.ID_OVERRIDE_NOT_SET.str());
+      }
+    }
+
     if (ctx.origin == 'crud' && !ctx.isBatch) {
       await this.checkmaxItemsPerUser(ctx, security);
     } else if (ctx.origin == 'cmd') {

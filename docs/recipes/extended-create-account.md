@@ -17,7 +17,7 @@ Then, add all the data you need to your newly created DTO.
 ```typescript title="create_full_account.dto.ts"
 import { $Transform } from "@eicrud/core/validation";
 import { IsString, IsOptional, IsEmail, IsBoolean, 
-    Equals, MinLength, Matches  } from "class-validator";
+    Equals, MinLength } from "class-validator";
 import { RoleType } from "../../../../eicrud.roles";
 
 export class CreateFullAccountDto {

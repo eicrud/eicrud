@@ -363,7 +363,10 @@ export class CrudService<T extends CrudEntity> {
         onlyProperties: true,
         onlyOwnProperties: true,
       });
-      entity[this.crudConfig.id_field] = this.dbAdapter.createNewId();
+
+      if (!newEntity[this.crudConfig.id_field]) {
+        entity[this.crudConfig.id_field] = this.dbAdapter.createNewId();
+      }
 
       await em.persist(entity);
       if (!opOpts?.noFlush) {
@@ -433,7 +436,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $patchBatch(
-    data: any[],
+    data: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
@@ -578,7 +581,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
-  ) {
+  ): Promise<T> {
     const opOpts = { ...this._defaultOpOpts, ...opOptions };
     try {
       if (opOpts.hooks) {

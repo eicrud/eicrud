@@ -282,10 +282,7 @@ export class CrudAuthGuard implements CanActivate {
       userId = user?.[this.crudConfig.id_field]?.toString();
 
       if (options.mockRole && typeof options.mockRole == 'string' && role) {
-        const parents = this.crudConfig
-          .getParentRolesRecurs(role)
-          .map((role) => role.name);
-        parents.push(role.name);
+        const parents = this.crudConfig.getParentRoles(role);
         if (!parents.includes(options.mockRole)) {
           throw new UnauthorizedException(
             `Role ${role.name} is not allowed to mock as ${options.mockRole}`,

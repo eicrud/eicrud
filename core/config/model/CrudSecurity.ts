@@ -1,4 +1,4 @@
-import { CmdHooks } from '../../crud';
+import { CmdHooks, CrudOptions } from '../../crud';
 import { CrudContext } from '../../crud/model/CrudContext';
 import { AbilityBuilder, createAliasResolver } from '@casl/ability';
 
@@ -96,8 +96,8 @@ export interface CmdSecurity<
   hooks?: CmdHooks<TDto, TReturnDto>;
 }
 
-export type CanCannot<T> = (
-  action: string,
+export type CanCannot<T, A = string> = (
+  action: A,
   subject: string,
   a?: string | string[] | Partial<T>,
   b?: Partial<T>,
@@ -192,9 +192,33 @@ export class CrudSecurity<T = any, TRoleType extends string = string> {
    * @public
    */
   rolesRights?: Partial<Record<TRoleType, CrudSecurityRights<T>>> = {};
+
+  /**
+   * Disable read, update and delete query validation for specified roles (and their parents)
+   * @see https://github.com/eicrud/eicrud/issues/63
+   */
+  skipQueryValidationForRoles?: TRoleType[];
 }
 
-export const httpAliasResolver = createAliasResolver({
+interface CrudAction {
+  create: string[];
+  read: string[];
+  update: string[];
+  delete: string[];
+  crud: string[];
+  cru: string[];
+  crd: string[];
+  cud: string[];
+  rud: string[];
+  cr: string[];
+  cu: string[];
+  cd: string[];
+  ru: string[];
+  rd: string[];
+  ud: string[];
+}
+
+const actions: CrudAction = {
   create: ['POST'],
   read: ['GET'],
   update: ['PATCH'],
@@ -210,7 +234,11 @@ export const httpAliasResolver = createAliasResolver({
   ru: ['GET', 'PATCH'],
   rd: ['GET', 'DELETE'],
   ud: ['PATCH', 'DELETE'],
-});
+};
+
+export const httpAliasResolver = createAliasResolver(
+  actions as CrudAction & Record<string, string[]>,
+);
 
 /**
  * Security rights for a specific role
@@ -221,14 +249,14 @@ export interface CrudSecurityRights<T = any> {
   fields?: string[];
 
   defineCRUDAbility?(
-    can: CanCannot<T>,
-    cannot: CanCannot<T>,
+    can: CanCannot<T, keyof CrudAction>,
+    cannot: CanCannot<T, keyof CrudAction>,
     ctx: CrudContext,
   ): Promise<any>;
 
   defineOPTAbility?(
-    can: CanCannot<T>,
-    cannot: CanCannot<T>,
+    can: CanCannot<T, keyof CrudOptions>,
+    cannot: CanCannot<T, keyof CrudOptions>,
     ctx: CrudContext,
   ): Promise<any>;
 }

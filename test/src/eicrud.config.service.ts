@@ -28,34 +28,7 @@ import { SuperclientTest } from './services/superclient-ms/superclient-test/supe
 import { SuperclientTestExclude } from './services/superclient-ms/superclient-test-exclude/superclient-test-exclude.entity';
 import { SuperclientTestExclude2 } from './services/superclient-ms/superclient-test-exclude2/superclient-test-exclude2.entity';
 import { StarFruit } from './services/star-fruit/star-fruit.entity';
-
-const roles: CrudRole[] = [
-  {
-    name: 'super_admin',
-    isAdminRole: true,
-    canMock: true,
-    inherits: ['admin'],
-  },
-  {
-    name: 'admin',
-    isAdminRole: true,
-    canMock: true,
-    inherits: ['trusted_user'],
-  },
-  {
-    name: 'moderator',
-    inherits: ['trusted_user'],
-  },
-  {
-    name: 'trusted_user',
-    inherits: ['user'],
-  },
-  {
-    name: 'user',
-    inherits: ['guest'],
-  },
-  { name: 'guest' },
-];
+import { roles } from './eicrud.roles';
 
 const msOptions = new MicroServicesOptions();
 
