@@ -364,10 +364,7 @@ export class CrudService<T extends CrudEntity> {
         onlyOwnProperties: true,
       });
 
-      if (newEntity[this.crudConfig.id_field]) {
-        if (!ctx?.options?.allowIdOverride)
-          throw new BadRequestException(CrudErrors.ID_OVERRIDE_NOT_SET.str());
-      } else {
+      if (!newEntity[this.crudConfig.id_field]) {
         entity[this.crudConfig.id_field] = this.dbAdapter.createNewId();
       }
 

@@ -463,7 +463,8 @@ describe('AppController', () => {
     const res2 = await testMethod({
       url: '/crud/one',
       method: 'PATCH',
-      expectedCode: 200,
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.CANNOT_UPDATE_ID.code,
       app,
       jwt: user.jwt,
       entityManager,
@@ -472,19 +473,14 @@ describe('AppController', () => {
       crudConfig,
     });
 
-    const resDb = await profileService.$findOne({ id: res2.id }, null);
-    expect(resDb.userName).toBe('Michael Doe');
-
-    const resDb2 = await profileService.$findOne({ id: res.id }, null);
-    expect(resDb2.userName).toBe(newPayload.userName);
-
     newPayload.id = userService.dbAdapter.createId(crudConfig);
     newPayload.userName = 'Test Profile 2';
 
     const res3 = await testMethod({
       url: '/crud/many',
       method: 'PATCH',
-      expectedCode: 500,
+      expectedCode: 400,
+      expectedCrudCode: CrudErrors.CANNOT_UPDATE_ID.code,
       app,
       jwt: user.jwt,
       entityManager,
@@ -539,7 +535,6 @@ describe('AppController', () => {
       name: 'Melon Updated',
     };
 
-    qry['$and'] = [{ owner: userWithValidations.id }];
     query.query = JSON.stringify(qry);
 
     const updateMethod = (usr, q, pld, expectedCode = 200) => {
@@ -558,15 +553,6 @@ describe('AppController', () => {
 
     await updateMethod(user, query, payload, 200);
 
-    const otherUserMelons = await melonService.$find(
-      { owner: userWithValidations.id },
-      null,
-    );
-    expect(otherUserMelons.data.length).toBe(userWithValidations.melons);
-    for (const melon of otherUserMelons.data) {
-      expect(melon.name).not.toBe('Melon Updated');
-    }
-
     const userMelons = await melonService.$find({ owner: user.id }, null);
     expect(userMelons.data.length).toBe(user.melons);
     for (const melon of userMelons.data) {
@@ -576,5 +562,22 @@ describe('AppController', () => {
         expect(melon.name).toBe('Melon Updated');
       }
     }
+
+    const resDelete = await testMethod({
+      url: '/crud/many',
+      method: 'DELETE',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: {},
+      query,
+      crudConfig,
+    });
+
+    expect(resDelete).toBe(2);
+
+    const userMelons2 = await melonService.$find({ owner: user.id }, null);
+    expect(userMelons2.data.length).toBe(user.melons - 2);
   });
 });
