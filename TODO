@@ -69,3 +69,5 @@
 [ ] saveBatch (one flush) alternative to patchBatch? <
 
 [ ] Doc: move security options from limits to their own page
+
+[ ] skipHooks in CrudOptions?
