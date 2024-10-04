@@ -73,7 +73,7 @@ export async function link_google_account(this: UserService, dto: LinkGoogleAcco
     }
 
     const entity = { thirdPartyUniqueId: uuid };
-    let res = await service.$findOne(entity, ctx);
+    let res = await this.$findOne(entity, ctx);
 
     if(!res){ // if user doesn't exist, we create a new account
         const user = new User();
@@ -82,12 +82,12 @@ export async function link_google_account(this: UserService, dto: LinkGoogleAcco
         user.thirdPartyUniqueId = uuid;
         user.thirdPartyAuth = 'google';
 
-        res = await service.$create(user, ctx);
+        res = await this.$create(user, ctx);
     }
 
     return {
       userId: res[this.crudConfig.id_field],
-      accessToken: dto.logMeIn ? await service.authService.signTokenForUser(ctx, res, dto.expiresInSec) : undefined,
+      accessToken: dto.logMeIn ? await this.authService.signTokenForUser(ctx, res, dto.expiresInSec) : undefined,
     };
 
 }

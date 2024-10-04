@@ -1,7 +1,8 @@
 nav: 
-  - extended-create-account.md
   - search-command.md
   - super-client.md
+  - OpenAPI-schema.md
+  - extended-create-account.md
   - ...
 
 
