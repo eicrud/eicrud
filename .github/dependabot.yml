@@ -18,11 +18,14 @@ updates:
     groups:
       production-dependencies:
         dependency-type: "production"
+        update-types:
+          - "patch"
+          - "minor"
       development-dependencies:
         dependency-type: "development"
+        update-types:
+          - "patch"
+          - "minor"
     ignore:
       - dependency-name: "@eicrud/*"
       - dependency-name: "@types/node"
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
-
