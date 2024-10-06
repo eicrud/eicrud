@@ -10,7 +10,7 @@ jobs:
 
   release-pretest:
     if: contains(github.ref_name, 'beta') == false
-    runs-on: ubuntu:22.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 7
     services:
       mongodb:
@@ -53,7 +53,7 @@ jobs:
   release-test:
     if: contains(github.ref_name, 'beta') == false
     needs: release-pretest
-    runs-on: ubuntu:22.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 16
     services:
       mongodb:
@@ -97,7 +97,7 @@ jobs:
   release-cli-test:
     if: contains(github.ref_name, 'beta') == false
     needs: release-test
-    runs-on: ubuntu:22.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 8
     services:
       mongodb:
@@ -132,7 +132,7 @@ jobs:
   publish-all:
     if: contains(github.ref_name, 'beta') == false
     needs: release-cli-test
-    runs-on: ubuntu:22.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 7
     strategy:
       matrix:
@@ -164,7 +164,7 @@ jobs:
 
   publish-all-beta:
     if: contains(github.ref_name, 'beta')
-    runs-on: ubuntu:22.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 7
     strategy:
       matrix:

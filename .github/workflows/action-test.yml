@@ -15,7 +15,7 @@ on:
 jobs:
   test:
     if: ${{ github.actor != 'dependabot[bot]' }}
-    runs-on: ubuntu:22.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 14
 
     services:
@@ -60,7 +60,7 @@ jobs:
   test-cli-mongo:
     if: ${{ github.actor != 'dependabot[bot]' }}
     needs: test
-    runs-on: ubuntu:22.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 6
 
     services:
