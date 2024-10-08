@@ -23,7 +23,7 @@
     "@eicrud/core": "0.0.1"
   },
   "devDependencies": {
-    "del-cli": "^5.1.0"
+    "del-cli": "^6.0.0"
   },
   "keywords": [
     "eicrud",
