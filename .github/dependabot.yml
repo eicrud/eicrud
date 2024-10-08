@@ -19,13 +19,11 @@ updates:
       production-dependencies:
         dependency-type: "production"
         update-types:
-          - "patch"
-          - "minor"
+          - "major"
       development-dependencies:
         dependency-type: "development"
         update-types:
-          - "patch"
-          - "minor"
+          - "major"
     ignore:
       - dependency-name: "@eicrud/*"
       - dependency-name: "@types/node"
