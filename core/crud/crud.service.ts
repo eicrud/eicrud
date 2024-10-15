@@ -75,10 +75,6 @@ interface _OpOpts {
   secure?: boolean;
   em?: EntityManager;
   noFlush?: boolean;
-  /**
-   * For $saveBatch only, add the provided fields to the query to prevent authorization bypass
-   */
-  limitingFields?: string[];
 }
 type ExcludedInheritanceKeys = 'hooks' | 'secure' | 'em' | 'noFlush';
 export type OpOpts = RequireAtLeastOne<_OpOpts>;
@@ -491,13 +487,6 @@ export class CrudService<T extends CrudEntity> {
         );
       }
       const query = { [this.crudConfig.id_field]: id } as Partial<T>;
-      if (opOptions.limitingFields) {
-        opOptions.limitingFields.forEach((field) => {
-          if (d[field]) {
-            query[field] = d[field];
-          }
-        });
-      }
       const data = { ...d };
       delete data[this.crudConfig.id_field];
       return {

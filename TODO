@@ -66,8 +66,9 @@
 [x] update open-api schema with basic auth
 [ ] granular authorization recipe
 
-[ ] saveBatch (one flush) alternative to patchBatch? <
+[x] saveBatch ~~(one flush) alternative to patchBatch? <~~
 
 [ ] Doc: move security options from limits to their own page
+[ ] Doc: document unsecure methods
 
 [ ] skipHooks in CrudOptions?
