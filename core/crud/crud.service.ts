@@ -469,6 +469,51 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
+  async $saveBatch(
+    toSave: Partial<T>[],
+    ctx: CrudContext,
+    opOptions: OpOpts = { secure: true },
+    inheritance?: Inheritance,
+  ) {
+    let data = toSave.map((d) => {
+      const id = d[this.crudConfig.id_field];
+      if (!id) {
+        throw new BadRequestException(
+          CrudErrors.ID_FIELD_IS_REQUIRED_FOR_SAVE.str(),
+        );
+      }
+      return {
+        query: { [this.crudConfig.id_field]: id } as Partial<T>,
+        data: d,
+      };
+    });
+    const opOpts = { ...this._defaultOpOpts, ...opOptions };
+    try {
+      if (opOpts.hooks) {
+        data = await this.beforeUpdateHook(data, ctx);
+      }
+
+      let results = [];
+      const em = this.entityManager.fork();
+      for (let d of data) {
+        this.doOnePatch(d.query, d.data, ctx, em, opOptions.secure);
+      }
+      await em.flush();
+      if (opOpts.hooks) {
+        results = await this.afterUpdateHook(results, data, ctx);
+      }
+      return results;
+    } catch (e) {
+      if (opOpts.hooks) {
+        const res = await this.errorUpdateHook(data, ctx, e);
+        if (res) {
+          return res;
+        }
+      }
+      throw e;
+    }
+  }
+
   /**
    * @usageNotes Does not trigger hooks nor check for maxItemsInDb
    */

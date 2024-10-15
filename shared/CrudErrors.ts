@@ -73,6 +73,10 @@ export class CrudErrors {
     'Cannot update id field',
     21,
   );
+  static readonly ID_FIELD_IS_REQUIRED_FOR_SAVE = new CrudError(
+    'Id field is required for saveBatch',
+    22,
+  );
 }
 
 export interface MaxBatchSizeExceededDto {
