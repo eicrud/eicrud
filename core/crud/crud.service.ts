@@ -75,6 +75,10 @@ interface _OpOpts {
   secure?: boolean;
   em?: EntityManager;
   noFlush?: boolean;
+  /**
+   * For $saveBatch only, add the provided fields to the query to prevent authorization bypass
+   */
+  limitingFields?: string[];
 }
 type ExcludedInheritanceKeys = 'hooks' | 'secure' | 'em' | 'noFlush';
 export type OpOpts = RequireAtLeastOne<_OpOpts>;
@@ -469,7 +473,11 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
-  async $saveBatch(
+  /**
+   * Move items' IDs to queries and call $batchPatch
+   * @usageNotes unsecure because it will not apply limiting fields
+   */
+  async $unsecure_saveBatch(
     toSave: Partial<T>[],
     ctx: CrudContext,
     opOptions: OpOpts = { secure: true },
@@ -482,36 +490,22 @@ export class CrudService<T extends CrudEntity> {
           CrudErrors.ID_FIELD_IS_REQUIRED_FOR_SAVE.str(),
         );
       }
+      const query = { [this.crudConfig.id_field]: id } as Partial<T>;
+      if (opOptions.limitingFields) {
+        opOptions.limitingFields.forEach((field) => {
+          if (d[field]) {
+            query[field] = d[field];
+          }
+        });
+      }
+      const data = { ...d };
+      delete data[this.crudConfig.id_field];
       return {
-        query: { [this.crudConfig.id_field]: id } as Partial<T>,
-        data: d,
+        query,
+        data,
       };
     });
-    const opOpts = { ...this._defaultOpOpts, ...opOptions };
-    try {
-      if (opOpts.hooks) {
-        data = await this.beforeUpdateHook(data, ctx);
-      }
-
-      let results = [];
-      const em = this.entityManager.fork();
-      for (let d of data) {
-        this.doOnePatch(d.query, d.data, ctx, em, opOptions.secure);
-      }
-      await em.flush();
-      if (opOpts.hooks) {
-        results = await this.afterUpdateHook(results, data, ctx);
-      }
-      return results;
-    } catch (e) {
-      if (opOpts.hooks) {
-        const res = await this.errorUpdateHook(data, ctx, e);
-        if (res) {
-          return res;
-        }
-      }
-      throw e;
-    }
+    return this.$patchBatch(data, ctx, opOptions, inheritance);
   }
 
   /**
