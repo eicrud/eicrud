@@ -1,6 +1,8 @@
+---
+description: Check out the documentation of Eicrud, an opinionated node.js framework meant to extend a Nestjs application.
+---
 
-
-**Eicrud** is CRUD/Authorization framework meant to extend a [Nestjs](https://nestjs.com){:target="_blank"} application. It works with [Mikro-orm](https://mikro-orm.io/){:target="_blank"} entities  guarded with [CASL](https://casl.js.org){:target="_blank"} and [class-validator](https://github.com/typestack/class-validator){:target="_blank"}.
+**Eicrud** is an opinionated node.js framework meant to extend a [Nestjs](https://nestjs.com){:target="_blank"} application. It works with [Mikro-orm](https://mikro-orm.io/){:target="_blank"} entities  guarded with [CASL](https://casl.js.org){:target="_blank"} and [class-validator](https://github.com/typestack/class-validator){:target="_blank"}.
 
 
 ## Philosophy

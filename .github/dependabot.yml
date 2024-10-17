@@ -23,4 +23,5 @@ updates:
     ignore:
       - dependency-name: "@eicrud/*"
       - dependency-name: "@types/node"
-
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]

@@ -167,7 +167,7 @@ override async $renewJwt(ctx: CrudContext) {
     ```typescript
     return {
       userId: res[this.crudConfig.id_field],
-      accessToken: dto.logMeIn ? await service.authService.signTokenForUser(ctx, res, dto.expiresInSec, { id_token: dto.id_token}) : undefined,
+      accessToken: dto.logMeIn ? await this.authService.signTokenForUser(ctx, res, dto.expiresInSec, { id_token: dto.id_token}) : undefined,
     };
     ```
     ```typescript

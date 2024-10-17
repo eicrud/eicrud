@@ -13,25 +13,29 @@ on:
   #   - 'db_*/**'
 
 jobs:
-  
   test:
     if: ${{ github.actor != 'dependabot[bot]' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 14
 
     services:
       mongodb:
-        image: mongo
+        image: mongo:7.0
         ports:
         - 27017:27017
       postgres:
-        image: postgres
+        image: postgres:16-bullseye
         ports:
         - 5432:5432
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: admin
     steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+        
       - name: Copy repository
         uses: actions/checkout@v3
 
@@ -56,15 +60,20 @@ jobs:
   test-cli-mongo:
     if: ${{ github.actor != 'dependabot[bot]' }}
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 6
 
     services:
       mongodb:
-        image: mongo
+        image: mongo:7.0
         ports:
         - 27017:27017
     steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+
       - name: Copy repository
         uses: actions/checkout@v3
 
