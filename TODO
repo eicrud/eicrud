@@ -71,4 +71,4 @@
 [ ] Doc: move security options from limits to their own page
 [ ] Doc: document unsecure methods
 
-[ ] skipHooks in CrudOptions?
+[x] skipServiceHooks in CrudOptions?

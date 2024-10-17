@@ -10,6 +10,11 @@ export function getSecurity(hooktrigger: string): CrudSecurity {
           // Define abilities for user
           can('crud', hooktrigger);
         },
+
+        async defineOPTAbility(can, cannot, ctx) {
+          // Define abilities for user
+          can('skipServiceHooks', hooktrigger);
+        },
       },
     },
 

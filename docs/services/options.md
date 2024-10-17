@@ -9,6 +9,7 @@ export interface ICrudOptions {
     offset?: number;
     cached?: boolean;
     allowIdOverride?: boolean;
+    skipServiceHooks?: boolean;
 }
 ```
 
@@ -61,3 +62,9 @@ Allow Entity primary keys to be pre-generated in $create operations.
 
 !!! warning
      Letting users set their Entities' ID opens security risks. For example, impersonation of deleted entities.
+
+### skipServiceHooks
+Allow skipping of all service hooks.
+
+!!! note 
+    `skipServiceHooks` doesn't affect controller hooks.

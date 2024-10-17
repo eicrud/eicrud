@@ -339,7 +339,7 @@ export class CrudService<T extends CrudEntity> {
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
   ) {
-    const opOpts = { ...this._defaultOpOpts, ...opOptions };
+    const opOpts = this.getOpOpts(opOptions, ctx);
     const hooks = opOpts?.hooks;
     try {
       if (hooks) {
@@ -398,7 +398,7 @@ export class CrudService<T extends CrudEntity> {
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
   ) {
-    const opOpts = { ...this._defaultOpOpts, ...opOptions };
+    const opOpts = this.getOpOpts(opOptions, ctx);
     try {
       if (opOpts.hooks) {
         newEntities = await this.beforeCreateHook(newEntities, ctx);
@@ -441,7 +441,7 @@ export class CrudService<T extends CrudEntity> {
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
   ) {
-    const opOpts = { ...this._defaultOpOpts, ...opOptions };
+    const opOpts = this.getOpOpts(opOptions, ctx);
     try {
       if (opOpts.hooks) {
         data = await this.beforeUpdateHook(data, ctx);
@@ -528,7 +528,7 @@ export class CrudService<T extends CrudEntity> {
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
   ): Promise<FindResponseDto<T>> {
-    const opOpts = { ...this._defaultOpOpts, ...opOptions };
+    const opOpts = this.getOpOpts(opOptions, ctx);
     try {
       if (opOpts.hooks) {
         entity = await this.beforeReadHook(entity, ctx);
@@ -610,7 +610,7 @@ export class CrudService<T extends CrudEntity> {
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
   ): Promise<T> {
-    const opOpts = { ...this._defaultOpOpts, ...opOptions };
+    const opOpts = this.getOpOpts(opOptions, ctx);
     try {
       if (opOpts.hooks) {
         entity = await this.beforeReadHook(entity, ctx);
@@ -647,7 +647,7 @@ export class CrudService<T extends CrudEntity> {
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
   ) {
-    const opOpts = { ...this._defaultOpOpts, ...opOptions };
+    const opOpts = this.getOpOpts(opOptions, ctx);
     try {
       if (opOpts.hooks) {
         entity = await this.beforeReadHook(entity, ctx);
@@ -715,7 +715,7 @@ export class CrudService<T extends CrudEntity> {
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
   ) {
-    const opOpts = { ...this._defaultOpOpts, ...opOptions };
+    const opOpts = this.getOpOpts(opOptions, ctx);
     const hooks = opOpts?.hooks;
     try {
       if (hooks) {
@@ -837,6 +837,14 @@ export class CrudService<T extends CrudEntity> {
     return this.$patchOne(ctx.query, ctx.data, ctx, { secure });
   }
 
+  getOpOpts(opOptions: OpOpts, ctx: CrudContext) {
+    const res = { ...this._defaultOpOpts, ...opOptions };
+    if (ctx?.options?.skipServiceHooks) {
+      res.hooks = false;
+    }
+    return res;
+  }
+
   async $patchOne(
     query: Partial<T>,
     data: Partial<T>,
@@ -844,7 +852,7 @@ export class CrudService<T extends CrudEntity> {
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
   ) {
-    const opOpts = { ...this._defaultOpOpts, ...opOptions };
+    const opOpts = this.getOpOpts(opOptions, ctx);
     try {
       if (opOpts.hooks) {
         [{ data, query }] = await this.beforeUpdateHook([{ query, data }], ctx);
@@ -971,7 +979,7 @@ export class CrudService<T extends CrudEntity> {
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
   ) {
-    const opOpts = { ...this._defaultOpOpts, ...opOptions };
+    const opOpts = this.getOpOpts(opOptions, ctx);
     try {
       if (opOpts.hooks) {
         query = await this.beforeDeleteHook(query, ctx);
@@ -1009,7 +1017,7 @@ export class CrudService<T extends CrudEntity> {
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
   ) {
-    const opOpts = { ...this._defaultOpOpts, ...opOptions };
+    const opOpts = this.getOpOpts(opOptions, ctx);
     try {
       if (opOpts.hooks) {
         query = await this.beforeDeleteHook(query, ctx);
