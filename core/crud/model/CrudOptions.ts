@@ -54,4 +54,8 @@ export class CrudOptions<T = any> implements ICrudOptions {
   @IsOptional()
   @IsBoolean()
   allowIdOverride?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  skipServiceHooks?: boolean;
 }

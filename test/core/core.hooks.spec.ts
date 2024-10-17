@@ -367,6 +367,42 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
+  it('should skip hooks on createOne', async () => {
+    const user = users['Michael Doe'];
+    const createMessage = 'Test create message';
+    const payload: Partial<HookTrigger> = {
+      message: createMessage,
+    };
+    const query: CrudQuery = {
+      service: 'hook-trigger',
+      options: JSON.stringify({ skipServiceHooks: true }) as any,
+    };
+    const resError = await testMethod({
+      url: '/crud/one',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: { ...payload, throwError: true },
+      query,
+      crudConfig,
+    });
+    expect(resError.message).toBe(payload.message);
+    const res = await testMethod({
+      url: '/crud/one',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
+    });
+    expect(res.message).toBe(payload.message);
+  });
+
   it('should call hooks on createBatch and find', async () => {
     const user = users['Michael Doe'];
     const createMessage = 'Test create batch message';

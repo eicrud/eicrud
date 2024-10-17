@@ -12,6 +12,8 @@ export interface ICrudOptions {
    * @usageNotes Do not set manually.
    */
   jwtCookie?: boolean;
+
+  skipServiceHooks?: boolean;
 }
 
 export interface ICrudQuery {
