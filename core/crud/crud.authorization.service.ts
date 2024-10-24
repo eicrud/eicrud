@@ -269,7 +269,10 @@ export class CrudAuthorizationService {
     }
 
     const fieldsToExclude = security.alwaysExcludeFields;
-    if (fieldsToExclude?.length && ctx.method == 'GET') {
+    if (
+      fieldsToExclude?.length &&
+      (ctx.method == 'GET' || ctx.options?.returnUpdatedEntities)
+    ) {
       if (ctx.options.fields?.length) {
         for (const field of ctx.options.fields) {
           if (fieldsToExclude.includes(field)) {
@@ -394,7 +397,10 @@ export class CrudAuthorizationService {
       result.checkedRoles[role.name] = { problemField: null };
       result.authorized = true;
 
-      if (roleRights.fields && ctx.method == 'GET') {
+      if (
+        roleRights.fields &&
+        (ctx.method == 'GET' || ctx.options?.returnUpdatedEntities)
+      ) {
         ctx.options.fields = roleRights.fields as any;
       }
 

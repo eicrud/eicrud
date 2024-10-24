@@ -21,7 +21,11 @@ import { CrudTransformer } from '../validation/CrudTransformer';
 import { MsLinkQuery } from '../crud/model/CrudQuery';
 import axios from 'axios';
 import { CrudDbAdapter } from '../config/dbAdapter/crudDbAdapter';
-import { FindResponseDto } from '@eicrud/shared/interfaces';
+import {
+  DeleteResponseDto,
+  FindResponseDto,
+  PatchResponseDto,
+} from '@eicrud/shared/interfaces';
 import { CrudAuthorizationService } from './crud.authorization.service';
 import { RequireAtLeastOne, _utils } from '../utils';
 import { CrudRole } from '../config/model/CrudRole';
@@ -1194,7 +1198,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async afterUpdateHook(
-    results: any[],
+    results: PatchResponseDto[],
     updates: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
   ) {
@@ -1275,7 +1279,7 @@ export class CrudHooks<T extends CrudEntity> {
     query: Partial<T>,
     ctx: CrudContext,
     error: any,
-  ): Promise<FindResponseDto<T>> {
+  ): Promise<any> {
     return null;
   }
 
@@ -1289,10 +1293,10 @@ export class CrudHooks<T extends CrudEntity> {
 
   async afterUpdateHook(
     this: CrudService<T>,
-    results: any[],
+    results: PatchResponseDto[],
     updates: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
-  ): Promise<any[]> {
+  ): Promise<PatchResponseDto[]> {
     return results;
   }
 
@@ -1301,7 +1305,7 @@ export class CrudHooks<T extends CrudEntity> {
     updates: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
     error: any,
-  ): Promise<any[]> {
+  ): Promise<any> {
     return null;
   }
 
@@ -1315,10 +1319,10 @@ export class CrudHooks<T extends CrudEntity> {
 
   async afterDeleteHook(
     this: CrudService<T>,
-    result: number,
+    result: DeleteResponseDto,
     query: Partial<T>,
     ctx: CrudContext,
-  ): Promise<number> {
+  ): Promise<DeleteResponseDto> {
     return result;
   }
 
@@ -1327,9 +1331,7 @@ export class CrudHooks<T extends CrudEntity> {
     query: Partial<T>,
     ctx: CrudContext,
     error: any,
-  ): Promise<number> {
-    return null;
-  }
+  ): Promise<any> {}
 
   async errorControllerHook(
     this: CrudService<T>,

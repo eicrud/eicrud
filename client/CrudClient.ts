@@ -1,9 +1,14 @@
-import { ICrudOptions } from '@eicrud/shared/interfaces';
-import { ICrudQuery } from '@eicrud/shared/interfaces';
-import { FindResponseDto } from '@eicrud/shared/interfaces';
 import axios from 'axios';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
-import { ILoginDto, LoginResponseDto } from '@eicrud/shared/interfaces';
+import {
+  ICrudQuery,
+  ICrudOptions,
+  ILoginDto,
+  LoginResponseDto,
+  PatchResponseDto,
+  DeleteResponseDto,
+  FindResponseDto,
+} from '@eicrud/shared/interfaces';
 let wildcard = require('wildcard');
 let Cookie = require('js-cookie');
 
@@ -633,7 +638,7 @@ export class CrudClient<T> {
     query: object,
     data: any,
     options: ICrudOptions = undefined,
-  ): Promise<FindResponseDto<T>> {
+  ): Promise<PatchResponseDto<T>> {
     const ICrudQuery: ICrudQuery = {
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query),
@@ -654,7 +659,7 @@ export class CrudClient<T> {
     data: any,
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
-  ): Promise<FindResponseDto<T>> {
+  ): Promise<PatchResponseDto<T>> {
     const url = this.config.url + '/crud/s/' + this.config.serviceName + '/in';
     let ids = [];
     let addToQuery = {};
@@ -690,7 +695,7 @@ export class CrudClient<T> {
     objects: any[],
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
-  ): Promise<T[]> {
+  ): Promise<PatchResponseDto<T>[]> {
     const datas = objects.map((o) => {
       let query = {};
       let data = {};
@@ -721,7 +726,7 @@ export class CrudClient<T> {
     datas: { query: any; data: any }[],
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
-  ): Promise<T[]> {
+  ): Promise<PatchResponseDto<T>[]> {
     const url =
       this.config.url + '/crud/s/' + this.config.serviceName + '/batch';
 
@@ -850,7 +855,7 @@ export class CrudClient<T> {
   async deleteOne(
     query: object,
     options: ICrudOptions = undefined,
-  ): Promise<1> {
+  ): Promise<DeleteResponseDto> {
     const ICrudQuery: ICrudQuery = {
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query),
@@ -869,7 +874,7 @@ export class CrudClient<T> {
     ids: any[],
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
-  ): Promise<number> {
+  ): Promise<DeleteResponseDto> {
     const ICrudQuery: ICrudQuery = {
       options: JSON.stringify(options) as any,
     };
@@ -894,7 +899,7 @@ export class CrudClient<T> {
   async delete(
     query: object,
     options: ICrudOptions = undefined,
-  ): Promise<number> {
+  ): Promise<DeleteResponseDto> {
     const ICrudQuery: ICrudQuery = {
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query),
