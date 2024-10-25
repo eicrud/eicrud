@@ -216,6 +216,9 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ user: userId }),
+      options: JSON.stringify({
+        returnUpdatedEntities: true,
+      }) as any,
     };
     const expectedObject = {
       lowercaseTrimmedField: payload.lowercaseTrimmedField.toLowerCase().trim(),

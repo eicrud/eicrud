@@ -82,7 +82,7 @@ export class StarFruitHooks extends CrudHooks<StarFruit> {
     result: any,
     query: Partial<StarFruit>,
     ctx: CrudContext,
-  ): Promise<number> {
+  ): Promise<any> {
     // after StarFruit delete
 
     return result;

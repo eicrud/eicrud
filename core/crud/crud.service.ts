@@ -757,7 +757,7 @@ export class CrudService<T extends CrudEntity> {
         IDs = [query[this.crudConfig.id_field]];
       }
 
-      if (ctx.options?.returnUpdatedEntities && !IDs.length) {
+      if (ctx?.options?.returnUpdatedEntities && !IDs.length) {
         IDs = await this.$findIds(finalQuery, ctx, {
           hooks: false,
           skipCtxOptions: true,
@@ -772,10 +772,16 @@ export class CrudService<T extends CrudEntity> {
       this.checkObjectForIds(data);
 
       const em = opOpts.em || this.entityManager.fork();
-      let patchResult = await this.doQueryPatch(finalQuery, data, ctx, em);
+      let patchResult = await this.doQueryPatch(
+        finalQuery,
+        data,
+        ctx,
+        em,
+        opOpts,
+      );
       let results: PatchResponseDto<T> = { count: patchResult };
 
-      if (ctx.options?.returnUpdatedEntities && IDs.length) {
+      if (ctx?.options?.returnUpdatedEntities && IDs.length) {
         let resFind = await this.$findIn(IDs, {}, ctx, {
           hooks: false,
           skipCtxLimit: true,
@@ -922,7 +928,7 @@ export class CrudService<T extends CrudEntity> {
       );
       await em.flush();
 
-      if (ctx.options?.returnUpdatedEntities) {
+      if (ctx?.options?.returnUpdatedEntities) {
         let resFind = await this.$findOne(
           {
             [this.crudConfig.id_field]: patchResult[this.crudConfig.id_field],
@@ -973,8 +979,8 @@ export class CrudService<T extends CrudEntity> {
     newEntity: Partial<T>,
     ctx: CrudContext,
     em: EntityManager,
+    opOpts: OpOpts,
   ) {
-    const opts = this.getReadOptions(ctx, opOpts);
     let ormEntity = {};
     Object.setPrototypeOf(ormEntity, this.entity.prototype);
     newEntity.updatedAt = new Date();
@@ -985,7 +991,7 @@ export class CrudService<T extends CrudEntity> {
       onlyOwnProperties: true,
     });
     ormEntity = (ormEntity as any).toJSON();
-    return em.nativeUpdate(this.entity, query, ormEntity, opts);
+    return em.nativeUpdate(this.entity, query, ormEntity);
   }
 
   private async doOnePatch(
@@ -997,12 +1003,13 @@ export class CrudService<T extends CrudEntity> {
   ): Promise<Partial<T>> {
     this.checkObjectForIds(query);
     this.checkObjectForIds(newEntity);
-
-    const opts = this.getReadOptions(ctx, opOpts);
     let result = query;
     if (secure || !query[this.crudConfig.id_field]) {
       const tempEm = em.fork();
-      result = await tempEm.findOne(this.entity, query, opts as any);
+      result = await this.$findOne(query, ctx, {
+        hooks: false,
+        skipCtxOptions: true,
+      });
       if (!result) {
         throw new BadRequestException(CrudErrors.ENTITY_NOT_FOUND.str());
       }
@@ -1072,7 +1079,7 @@ export class CrudService<T extends CrudEntity> {
       const em = this.entityManager.fork();
       const opts = this.getReadOptions(ctx, opOpts);
 
-      if (ctx.options?.returnUpdatedEntities && !IDs.length) {
+      if (ctx?.options?.returnUpdatedEntities && !IDs.length) {
         IDs = await this.$findIds(finalQuery, ctx, {
           hooks: false,
           skipCtxOptions: true,
@@ -1087,7 +1094,7 @@ export class CrudService<T extends CrudEntity> {
       let length = await em.nativeDelete(this.entity, finalQuery, opts as any);
       result.count = length;
 
-      if (ctx.options?.returnUpdatedEntities) {
+      if (ctx?.options?.returnUpdatedEntities) {
         if (IDs.length) {
           const res = await this.$findIn(IDs, {}, ctx, {
             hooks: false,
@@ -1141,7 +1148,7 @@ export class CrudService<T extends CrudEntity> {
       }
       em.remove(entity);
       let result: DeleteResponseDto<T> = { count: 1 };
-      if (ctx.options?.returnUpdatedEntities) {
+      if (ctx?.options?.returnUpdatedEntities) {
         result.deleted = [entity];
       }
       await em.flush();

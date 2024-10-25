@@ -160,8 +160,14 @@ export function testMethod(arg: {
       }
 
       if (arg.expectedObject) {
-        const arr = Array.isArray(res) ? res : [res];
+        let arr = Array.isArray(res) ? res : [res];
         expect(arr.length).toBeGreaterThan(0);
+        if (method == 'PATCH') {
+          arr = arr.map((r) => r.updated);
+        }
+        if (method == 'DELETE') {
+          arr = arr.map((r) => r.deleted);
+        }
         for (const re of arr) {
           for (const key in arg.expectedObject) {
             expect(JSON.stringify(re[key])).toEqual(

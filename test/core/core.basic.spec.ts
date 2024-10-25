@@ -456,7 +456,7 @@ describe('AppController', () => {
       crudConfig,
     });
 
-    expect(res).toEqual(ids.length);
+    expect(res?.count).toEqual(ids.length);
     for (const profile in profiles) {
       const resDB: any = await profileService.$findOne(
         { id: profiles[profile].id },
@@ -564,7 +564,7 @@ describe('AppController', () => {
       crudConfig,
     });
 
-    expect(res).toEqual(3);
+    expect(res?.count).toEqual(3);
     for (const profile in profiles) {
       const resDB: any = await profileService.$findOne(
         { id: profiles[profile].id },
@@ -600,7 +600,7 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res).toEqual(1);
+    expect(res?.count).toEqual(1);
 
     const resDb = await profileService.$findOne(
       { id: users['Delme Dude'].id },
@@ -639,7 +639,7 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res).toEqual(ids.length);
+    expect(res?.count).toEqual(ids.length);
 
     for (const profile in profilesToRemoveIn) {
       const resDb = await profileService.$findOne(
@@ -672,7 +672,7 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res).toEqual(2);
+    expect(res?.count).toEqual(2);
 
     for (const profile in profilesToRemoveMany) {
       const resDb = await profileService.$findOne(

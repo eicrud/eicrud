@@ -271,7 +271,7 @@ export class CrudAuthorizationService {
     const fieldsToExclude = security.alwaysExcludeFields;
     if (
       fieldsToExclude?.length &&
-      (ctx.method == 'GET' || ctx.options?.returnUpdatedEntities)
+      (ctx.method == 'GET' || ctx?.options?.returnUpdatedEntities)
     ) {
       if (ctx.options.fields?.length) {
         for (const field of ctx.options.fields) {
@@ -399,7 +399,7 @@ export class CrudAuthorizationService {
 
       if (
         roleRights.fields &&
-        (ctx.method == 'GET' || ctx.options?.returnUpdatedEntities)
+        (ctx.method == 'GET' || ctx?.options?.returnUpdatedEntities)
       ) {
         ctx.options.fields = roleRights.fields as any;
       }

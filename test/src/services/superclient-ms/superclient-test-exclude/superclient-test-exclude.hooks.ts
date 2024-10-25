@@ -93,7 +93,7 @@ export class SuperclientTestExcludeHooks extends CrudHooks<SuperclientTestExclud
     result: any,
     query: Partial<SuperclientTestExclude>,
     ctx: CrudContext,
-  ): Promise<number> {
+  ): Promise<any> {
     // after SuperclientTestExclude delete
 
     return result;
