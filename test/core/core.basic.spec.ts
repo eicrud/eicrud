@@ -390,6 +390,7 @@ describe('AppController', () => {
     };
 
     query.query = JSON.stringify({ id: formatedId });
+    query.options = JSON.stringify({ returnUpdatedEntities: true }) as any;
 
     let res = await testMethod({
       url: '/crud/one',

@@ -12,6 +12,7 @@ export function getSecurity(userprofile: string): CrudSecurity {
 
         async defineOPTAbility(can, cannot, ctx) {
           can('allowIdOverride', userprofile);
+          can('returnUpdatedEntities', userprofile);
         },
       },
       admin: {
@@ -37,8 +38,11 @@ export function getSecurity(userprofile: string): CrudSecurity {
           cannot('cu', userprofile, { type: 'admin' });
           cannot('cu', userprofile, ['forbiddenField']);
         },
-      },
 
+        async defineOPTAbility(can, cannot, ctx) {
+          can('returnUpdatedEntities', userprofile);
+        },
+      },
       guest: {},
     },
 
