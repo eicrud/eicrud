@@ -154,6 +154,37 @@ describe('AppController', () => {
         },
       });
       expect(res2.data?.name).toBe('StarFruit Update One');
+
+      let res3 = await services.patchCrudSStarFruitOne({
+        query: {
+          options: JSON.stringify({
+            jwtCookie: true,
+            returnUpdatedEntities: true,
+          }) as any,
+          query: JSON.stringify(query) as any,
+        },
+        body: {
+          name: 'patched',
+      },
+        headers: {
+          authorization: authorization,
+        },
+      });
+      expect(res3.data?.updated?.[0]?.name).toBe('patched'); //testing the type here
+
+      let res4 = await services.deleteCrudSStarFruitOne({
+        query: {
+          options: JSON.stringify({
+            jwtCookie: true,
+            returnUpdatedEntities: true,
+          }) as any,
+          query: JSON.stringify(query) as any,
+        },
+        headers: {
+          authorization: authorization,
+        },
+      });
+      expect(res4.data?.deleted?.[0]?.name).toBe('patched'); //testing the type here
     },
   );
 

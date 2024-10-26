@@ -545,7 +545,6 @@ export class Export {
     const paths = [
       { templateSubPath: '../templates/openapi/Entity.yaml' },
       { templateSubPath: '../templates/openapi/CrudOptions.yaml' },
-      { templateSubPath: '../templates/openapi/ReturnDtos.yaml' },
     ];
 
     this.copyYamlTemplates(src, paths, options, specs);
@@ -583,7 +582,7 @@ export class Export {
         },
       };
 
-      const findResponeDtoContent: {
+      const findResponseDtoContent: {
         [media: string]: OpenAPIV3.MediaTypeObject;
       } = {
         'application/json': {
@@ -601,6 +600,52 @@ export class Export {
                 type: 'number',
               },
               limit: {
+                type: 'number',
+              },
+            },
+          },
+        },
+      };
+
+      const patchResponseDtoContent: {
+        [media: string]: OpenAPIV3.MediaTypeObject;
+      } = {
+        'application/json': {
+          schema: {
+            title: `PatchResponseDto<${tk_entity_name}>`,
+            type: 'object',
+            properties: {
+              updated: {
+                type: 'array',
+                items: {
+                  $ref: entityRef,
+                },
+                title: `Updated ${tk_entity_name}s if returnUpdatedEntities CrudOption is specified`,
+              },
+              count: {
+                type: 'number',
+              },
+            },
+          },
+        },
+      };
+
+      const deleteResponseDtoContent: {
+        [media: string]: OpenAPIV3.MediaTypeObject;
+      } = {
+        'application/json': {
+          schema: {
+            title: `DeleteResponseDto<${tk_entity_name}>`,
+            type: 'object',
+            properties: {
+              deleted: {
+                type: 'array',
+                items: {
+                  $ref: entityRef,
+                },
+                title: `Deleted ${tk_entity_name}s if returnUpdatedEntities CrudOption is specified`,
+              },
+              count: {
                 type: 'number',
               },
             },
@@ -729,7 +774,7 @@ export class Export {
               responses: {
                 '200': {
                   description: `The updated ${tk_entity_name}`,
-                  content: entityContent,
+                  content: patchResponseDtoContent,
                 },
               },
             },
@@ -739,6 +784,7 @@ export class Export {
               responses: {
                 '200': {
                   description: `${tk_entity_name} deleted`,
+                  content: deleteResponseDtoContent,
                 },
               },
             },
@@ -809,9 +855,7 @@ export class Export {
                     'application/json': {
                       schema: {
                         type: 'array',
-                        items: {
-                          $ref: './ReturnDtos.yaml#/components/schemas/PatchResponseDto',
-                        },
+                        items: patchResponseDtoContent,
                       },
                     },
                   },
@@ -826,7 +870,7 @@ export class Export {
               responses: {
                 '200': {
                   description: `The found ${tk_entity_name}s`,
-                  content: findResponeDtoContent,
+                  content: findResponseDtoContent,
                 },
               },
             },
@@ -841,13 +885,7 @@ export class Export {
               responses: {
                 '200': {
                   description: `The updated ${tk_entity_name} count`,
-                  content: {
-                    'application/json': {
-                      schema: {
-                        $ref: './ReturnDtos.yaml#/components/schemas/PatchResponseDto',
-                      },
-                    },
-                  },
+                  content: patchResponseDtoContent,
                 },
               },
             },
@@ -857,6 +895,7 @@ export class Export {
               responses: {
                 '200': {
                   description: `${tk_entity_name} deleted count`,
+                  content: deleteResponseDtoContent,
                 },
               },
             },
@@ -868,7 +907,7 @@ export class Export {
               responses: {
                 '200': {
                   description: `The found ${tk_entity_name}s`,
-                  content: findResponeDtoContent,
+                  content: findResponseDtoContent,
                 },
               },
             },
@@ -883,13 +922,7 @@ export class Export {
               responses: {
                 '200': {
                   description: `The updated ${tk_entity_name} count`,
-                  content: {
-                    'application/json': {
-                      schema: {
-                        $ref: './ReturnDtos.yaml#/components/schemas/PatchResponseDto',
-                      },
-                    },
-                  },
+                  content: patchResponseDtoContent,
                 },
               },
             },
@@ -899,6 +932,7 @@ export class Export {
               responses: {
                 '200': {
                   description: `${tk_entity_name} deleted count`,
+                  content: deleteResponseDtoContent,
                 },
               },
             },
