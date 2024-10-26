@@ -14,6 +14,7 @@ export function getSecurity(hooktrigger: string): CrudSecurity {
         async defineOPTAbility(can, cannot, ctx) {
           // Define abilities for user
           can('skipServiceHooks', hooktrigger);
+          can('returnUpdatedEntities', hooktrigger);
         },
       },
     },
