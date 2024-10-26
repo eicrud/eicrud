@@ -398,7 +398,7 @@ describe('AppController', () => {
         authorization: authorization,
       },
     });
-    expect(res.data.quality).toBe(payload.quality);
+    expect(res.data.count).toBe(1);
     const fruit1 = await starFruitService.$findOne(
       { quality: payload.quality, key: query.key },
       null,
@@ -451,7 +451,7 @@ describe('AppController', () => {
         authorization: authorization,
       },
     });
-    expect(resIn.data).toBe(createdStarFruitIn.length);
+    expect(resIn.data.count).toBe(createdStarFruitIn.length);
     const fruitsIn = await starFruitService.$find({ key: 'in' }, null);
     for (let fi of fruitsIn.data) {
       expect(fi.quality).toBe('updated in');
@@ -505,7 +505,7 @@ describe('AppController', () => {
         authorization: authorization,
       },
     });
-    expect(res.data).toBe(1);
+    expect(res.data.count).toBe(1);
     toBeDeletedOne = await starFruitService.$findOne(query, null);
     expect(toBeDeletedOne).toBeFalsy();
 

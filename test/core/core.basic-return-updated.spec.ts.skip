@@ -6,16 +6,16 @@ import {
   readyApp,
   dropDatabases,
 } from '../src/app.module';
-import { CrudController } from '../../core/crud/crud.controller';
+import { CrudController } from '@eicrud/core/crud/crud.controller';
 import { MyUserService } from '../src/services/my-user/my-user.service';
-import { CrudAuthService } from '../../core/authentication/auth.service';
+import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager } from '@mikro-orm/core';
 import { UserProfile } from '../src/services/user-profile/user-profile.entity';
-import { CrudQuery } from '../../core/crud/model/CrudQuery';
+import { CrudQuery } from '@eicrud/core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,
   createNewProfileTest,
@@ -25,10 +25,10 @@ import { UserProfileService as MyProfileService } from '../src/services/user-pro
 import {
   CRUD_CONFIG_KEY,
   CrudConfigService,
-} from '../../core/config/crud.config.service';
+} from '@eicrud/core/config/crud.config.service';
 import { TestUser } from '../test.utils';
 import exp from 'constants';
-import { ICreateAccountDto } from '../../shared/interfaces';
+import { ICreateAccountDto } from '@eicrud/shared/interfaces';
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
@@ -183,170 +183,6 @@ describe('AppController', () => {
     );
   });
 
-  //@Post('/crud/batch')
-  it('should create batch new profiles', async () => {
-    const query: CrudQuery = {
-      service: 'user-profile',
-    };
-
-    const payloadArray = [];
-
-    let i = 0;
-    for (let id of usersWithoutProfiles) {
-      i++;
-      payloadArray.push({
-        userName: `Batch Doe ${i}`,
-        user: id,
-        bio: `I am a batch created ${i}.`,
-      });
-    }
-
-    const payload: any = payloadArray;
-
-    const expectedObject = null;
-
-    const res = await testMethod({
-      url: '/crud/batch',
-      method: 'POST',
-      app,
-      jwt,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 201,
-      expectedObject,
-      crudConfig,
-    });
-
-    expect(res?.length).toEqual(usersWithoutProfiles?.length);
-    i = 0;
-    for (const profile in res) {
-      i++;
-      const res2 = await profileService.$findOne({ id: res[profile].id }, null);
-      expect(res2.userName).toEqual(`Batch Doe ${i}`);
-    }
-  });
-
-  //@Get('/crud/one')
-  it('should find one profile by user', async () => {
-    const sarahDoeProfile = profiles['Sarah Doe'];
-    const payload: Partial<UserProfile> = {} as any;
-    const query: CrudQuery = {
-      service: 'user-profile',
-      query: JSON.stringify({
-        user: crudConfig.dbAdapter.formatId(
-          (sarahDoeProfile.user as any).id,
-          crudConfig,
-        ),
-      }),
-    };
-
-    const expectedObject = {
-      bio: sarahDoeProfile.bio,
-    };
-
-    return testMethod({
-      url: '/crud/one',
-      method: 'GET',
-      app,
-      jwt,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 200,
-      expectedObject,
-      crudConfig,
-    });
-  });
-
-  it('should find many with empty query', async () => {
-    const query: CrudQuery = {
-      service: 'user-profile',
-      query: JSON.stringify({}),
-    };
-
-    const expectedObject = null;
-
-    const res = await testMethod({
-      url: '/crud/many',
-      method: 'GET',
-      app,
-      jwt,
-      entityManager,
-      payload: null,
-      query,
-      expectedCode: 200,
-      expectedObject,
-      crudConfig,
-    });
-
-    expect(res.length).toBeGreaterThan(3);
-  });
-  //Get('/crud/many')
-  it('should find many profiles by bio', async () => {
-    const payload: Partial<UserProfile> = {} as any;
-    const query: CrudQuery = {
-      service: 'user-profile',
-      query: JSON.stringify({ bio: 'BIO_FIND_KEY' }),
-    };
-
-    const expectedObject = null;
-
-    const res = await testMethod({
-      url: '/crud/many',
-      method: 'GET',
-      app,
-      jwt,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 200,
-      expectedObject,
-      crudConfig,
-    });
-
-    expect(res.length).toEqual(3);
-    for (const profile in res) {
-      expect(res[profile].bio).toEqual('BIO_FIND_KEY');
-    }
-  });
-
-  //@Get('/crud/in')
-  it('should find in profiles', async () => {
-    const payload: Partial<UserProfile> = {} as any;
-    const ids = [];
-    for (const key in profiles) {
-      const formatedId = crudConfig.dbAdapter.formatId(
-        profiles[key].id,
-        crudConfig,
-      );
-      ids.push(formatedId);
-    }
-    const query: CrudQuery = {
-      service: 'user-profile',
-      query: JSON.stringify({ id: ids }),
-    };
-
-    const expectedObject = null;
-
-    const res = await testMethod({
-      url: '/crud/in',
-      method: 'GET',
-      app,
-      jwt,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 200,
-      expectedObject,
-      crudConfig,
-    });
-
-    expect(res.length).toEqual(ids.length);
-    expect(res[0].userName).toBeDefined();
-    expect(res[0].id).toBeDefined();
-  });
-
   //@Patch('/crud/one')
   it('should patch a profile', async () => {
     const sarahDoeProfile = profiles['Sarah Doe'];
@@ -390,6 +226,7 @@ describe('AppController', () => {
     };
 
     query.query = JSON.stringify({ id: formatedId });
+    query.options = JSON.stringify({ returnUpdatedEntities: true }) as any;
 
     let res = await testMethod({
       url: '/crud/one',

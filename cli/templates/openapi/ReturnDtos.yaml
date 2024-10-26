@@ -1,0 +1,59 @@
+openapi: 3.0.0
+info:
+  title: Converted from interfaces.yaml with typeconv
+  version: '1'
+  x-id: interfaces.yaml
+  x-comment: >-
+    Generated from shared\interfaces.ts by core-types-json-schema
+    (https://github.com/grantila/core-types-json-schema) on behalf of typeconv
+    (https://github.com/grantila/typeconv)
+paths: {}
+components:
+  schemas:
+    PatchResponseDto:
+      properties:
+        count:
+          title: PatchResponseDto.count
+          type: number
+        updated:
+          items:
+            title: PatchResponseDto.updated.[]
+          title: PatchResponseDto.updated
+          type: array
+      required:
+        - count
+      additionalProperties: false
+      title: PatchResponseDto
+      type: object
+    DeleteResponseDto:
+      properties:
+        count:
+          title: DeleteResponseDto.count
+          type: number
+        deleted:
+          items:
+            title: DeleteResponseDto.deleted.[]
+          title: DeleteResponseDto.deleted
+          type: array
+      required:
+        - count
+      additionalProperties: false
+      title: DeleteResponseDto
+      type: object
+    
+      properties:
+        service:
+          title: ICrudQuery.service
+          type: number
+        options:
+          $ref: '#/components/schemas/ICrudOptions'
+          title: ICrudQuery.options
+        query:
+          title: ICrudQuery.query
+        cmd:
+          title: ICrudQuery.cmd
+          type: string
+      additionalProperties: false
+      title: ICrudQuery
+      type: object
+    

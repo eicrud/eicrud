@@ -495,6 +495,28 @@ export class Export {
     }
   }
 
+  static copyYamlTemplates(
+    src: string,
+    paths: { templateSubPath: string }[],
+    options: any,
+    specs: Omit<OpenAPIV3.Document, 'paths'>,
+  ): void {
+    paths.forEach(({ templateSubPath }) => {
+      const dir = path.join(src, path.basename(templateSubPath));
+      const templatePath = path.join(__dirname, templateSubPath);
+
+      if (!fs.existsSync(dir)) {
+        fs.copyFileSync(templatePath, dir);
+        console.log('CREATED: ' + dir);
+      }
+
+      if (!options?.oapiSeparateRefs) {
+        const dirObj: OpenAPIV3.Document = loadEntityYaml(dir);
+        lodash.merge(specs, { components: dirObj.components });
+      }
+    });
+  }
+
   static async openapi(options?, cliOptions?: CliOptions) {
     const baseSpecs: OpenAPIV3.Document =
       cliOptions?.export?.openApiBaseSpec || {};
@@ -520,33 +542,13 @@ export class Export {
     const conditionFun = (str) => str.endsWith('.entity.ts');
     const files = getFiles(src, conditionFun);
 
-    const entityYamlDir = path.join(src, 'Entity.yaml');
-    const crudOptionsYamlDir = path.join(src, 'CrudOptions.yaml');
-    const entityTemplatePath = path.join(
-      __dirname,
-      '../templates/openapi/Entity.yaml',
-    );
-    const crudOptionsTemplatePath = path.join(
-      __dirname,
-      '../templates/openapi/CrudOptions.yaml',
-    );
+    const paths = [
+      { templateSubPath: '../templates/openapi/Entity.yaml' },
+      { templateSubPath: '../templates/openapi/CrudOptions.yaml' },
+      { templateSubPath: '../templates/openapi/ReturnDtos.yaml' },
+    ];
 
-    if (!fs.existsSync(entityYamlDir)) {
-      fs.copyFileSync(entityTemplatePath, entityYamlDir);
-      console.log('CREATED: ' + entityYamlDir);
-    }
-    if (!fs.existsSync(crudOptionsYamlDir)) {
-      fs.copyFileSync(crudOptionsTemplatePath, crudOptionsYamlDir);
-      console.log('CREATED: ' + crudOptionsYamlDir);
-    }
-    if (!options?.oapiSeparateRefs) {
-      const entityYamlObj: OpenAPIV3.Document = loadEntityYaml(entityYamlDir);
-      lodash.merge(specs, { components: entityYamlObj.components });
-
-      const crudOptionsYamlObj: OpenAPIV3.Document =
-        loadEntityYaml(crudOptionsYamlDir);
-      lodash.merge(specs, { components: crudOptionsYamlObj.components });
-    }
+    this.copyYamlTemplates(src, paths, options, specs);
 
     for (const file of files) {
       //get dir from file path
@@ -808,7 +810,7 @@ export class Export {
                       schema: {
                         type: 'array',
                         items: {
-                          type: 'number',
+                          $ref: './ReturnDtos.yaml#/components/schemas/PatchResponseDto',
                         },
                       },
                     },
@@ -842,7 +844,7 @@ export class Export {
                   content: {
                     'application/json': {
                       schema: {
-                        type: 'number',
+                        $ref: './ReturnDtos.yaml#/components/schemas/PatchResponseDto',
                       },
                     },
                   },
@@ -884,7 +886,7 @@ export class Export {
                   content: {
                     'application/json': {
                       schema: {
-                        type: 'number',
+                        $ref: './ReturnDtos.yaml#/components/schemas/PatchResponseDto',
                       },
                     },
                   },
