@@ -27,6 +27,7 @@ import { defineAbility, subject } from '@casl/ability';
 
 import { _utils } from '../utils';
 import { CrudErrors, MaxBatchSizeExceededDto } from '@eicrud/shared/CrudErrors';
+import { CrudOptions } from './model/CrudOptions';
 
 const SKIPPABLE_OPTIONS = [
   'limit',
@@ -369,8 +370,11 @@ export class CrudAuthorizationService {
         await roleRights.defineOPTAbility?.(can, cannot, ctx);
       }, {});
 
-      for (const key of Object.keys(ctx.options)) {
-        if (SKIPPABLE_OPTIONS.includes(key)) {
+      for (const key of Object.keys(ctx.options) as (keyof CrudOptions)[]) {
+        if (
+          SKIPPABLE_OPTIONS.includes(key) ||
+          security?.alwaysAllowCrudOptions?.includes(key)
+        ) {
           continue;
         }
         let ofields = ctx.options[key];

@@ -198,6 +198,14 @@ export class CrudSecurity<T = any, TRoleType extends string = string> {
    * @see https://github.com/eicrud/eicrud/issues/63
    */
   skipQueryValidationForRoles?: TRoleType[];
+
+  /**
+   * Always allow specified CRUD options (for all roles).
+   * @example
+   * alwaysAllowCrudOptions = ['returnUpdatedEntities']
+   *
+   */
+  alwaysAllowCrudOptions?: (keyof CrudOptions)[];
 }
 
 interface CrudAction {

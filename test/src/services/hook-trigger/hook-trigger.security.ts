@@ -3,6 +3,7 @@ import { serviceCmds } from './cmds';
 
 export function getSecurity(hooktrigger: string): CrudSecurity {
   return {
+    alwaysAllowCrudOptions: ['returnUpdatedEntities'],
     rolesRights: {
       user: {
         maxBatchSize: 5,
@@ -14,7 +15,6 @@ export function getSecurity(hooktrigger: string): CrudSecurity {
         async defineOPTAbility(can, cannot, ctx) {
           // Define abilities for user
           can('skipServiceHooks', hooktrigger);
-          can('returnUpdatedEntities', hooktrigger);
         },
       },
     },
