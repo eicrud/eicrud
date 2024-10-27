@@ -175,7 +175,7 @@ export function testMethod(arg: {
           compareRes = res.deleted;
         }
 
-        let arr = Array.isArray(res) ? res : [res];
+        let arr = Array.isArray(compareRes) ? compareRes : [compareRes];
         expect(arr.length).toBeGreaterThan(0);
 
         for (const re of arr) {

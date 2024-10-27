@@ -59,71 +59,69 @@ describe('AppController', () => {
       role: 'super_admin',
       bio: 'BIO_FIND_KEY',
       store: profiles,
+      favoriteColor: 'blue',
     },
     'Sarah Doe': {
       email: 'sarah.doe@test.com',
       role: 'super_admin',
       bio: 'BIO_FIND_KEY',
       store: profiles,
+      favoriteColor: 'blue',
     },
     'Jordan Doe': {
       email: 'jordan.doe@test.com',
       role: 'super_admin',
       bio: 'BIO_FIND_KEY',
       store: profiles,
+      favoriteColor: 'blue',
     },
     'DelmeIn1 Doe': {
       email: 'delme.doe@test.com',
       role: 'super_admin',
       bio: 'I am about to be deleted in 1.',
       store: profilesToRemoveIn,
+      favoriteColor: 'blue',
     },
     'DelmeIn2 Doe': {
       email: 'delme2.doe@test.com',
       role: 'super_admin',
       bio: 'I am about to be deleted in 2.',
       store: profilesToRemoveIn,
+      favoriteColor: 'blue',
     },
     'DelmeMany1 Doe': {
       email: 'delmemany.doe@test.com',
       role: 'super_admin',
       bio: 'BIO_DELETE_KEY',
       store: profilesToRemoveMany,
+      favoriteColor: 'blue',
     },
     'DelmeMany2 Doe': {
       email: 'delmemany2.doe@test.com',
       role: 'super_admin',
       bio: 'BIO_DELETE_KEY',
       store: profilesToRemoveMany,
+      favoriteColor: 'blue',
     },
     'PatchmeBatch1 Doe': {
       email: 'patchmebatch@mail.com',
       role: 'super_admin',
       bio: 'Patch me please.',
       store: profilesToPatchBatch,
+      favoriteColor: 'blue',
     },
     'PatchmeBatch2 Doe': {
       email: 'patchmebatch2@mail.com',
       role: 'super_admin',
       bio: 'Patch me please 2.',
       store: profilesToPatchBatch,
-    },
-    'NoProfile1 Doe': {
-      email: 'noProfileDude1Doe@test.com',
-      role: 'super_admin',
-      bio: 'I have no profile.',
-      skipProfile: true,
-    },
-    'NoProfile2 Doe': {
-      email: 'noProfileDude2Doe@test.com',
-      role: 'super_admin',
-      bio: 'I have no profile. 2',
-      skipProfile: true,
+      favoriteColor: 'blue',
     },
     'Delme Dude': {
       email: 'delmedude@mail.com',
       role: 'super_admin',
       bio: 'Delete me please.',
+      favoriteColor: 'blue',
     },
   };
 
@@ -200,6 +198,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: '507f191e810c19729de860ea' }), //fake id
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     // should throw if entity not found
@@ -220,13 +219,7 @@ describe('AppController', () => {
       bio: sarahDoeProfile.bio,
     };
 
-    const fetchEntity = {
-      entity: UserProfile,
-      id: sarahDoeProfile.id?.toString(),
-    };
-
     query.query = JSON.stringify({ id: formatedId });
-    query.options = JSON.stringify({ returnUpdatedEntities: true }) as any;
 
     let res = await testMethod({
       url: '/crud/one',
@@ -237,11 +230,10 @@ describe('AppController', () => {
       payload,
       query,
       expectedCode: 200,
-      fetchEntity,
       expectedObject,
       crudConfig,
     });
-    expect(res.userName).toBeDefined();
+    expect(res.updated[0].userName).toBe(payload.userName);
   });
 
   //@Patch('/crud/in')
@@ -261,6 +253,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: ids }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = null;
@@ -301,12 +294,19 @@ describe('AppController', () => {
       );
       expect(resDB.astroSign).toEqual('Aries');
     }
+
+    for (const resReturn of res.updated) {
+      expect(resReturn.astroSign).toEqual('Aries');
+      expect(resReturn.fakeProp).toBeUndefined();
+      expect(resReturn.favoriteColor).toEqual('blue');
+    }
   });
 
   //@Patch('/crud/batch')
   it('should patch batch profiles', async () => {
     const query: CrudQuery = {
       service: 'user-profile',
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const payloadArray = [];
@@ -358,6 +358,14 @@ describe('AppController', () => {
       );
       expect(resDB.astroSign).toEqual('Taurus');
     }
+
+    for (const batch of res) {
+      expect(batch.updated.length).toEqual(1);
+      for (const resReturn of batch.updated) {
+        expect(resReturn.astroSign).toEqual('Taurus');
+        expect(resReturn.favoriteColor).toEqual('blue');
+      }
+    }
   });
 
   //@Patch('/crud/many')
@@ -369,6 +377,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ bio: 'BIO_FIND_KEY' }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = null;
@@ -401,13 +410,18 @@ describe('AppController', () => {
       crudConfig,
     });
 
-    expect(res?.count).toEqual(3);
+    expect(res.count).toEqual(3);
+    expect(res.updated.length).toEqual(3);
     for (const profile in profiles) {
       const resDB: any = await profileService.$findOne(
         { id: profiles[profile].id },
         null,
       );
       expect(resDB.chineseSign).toEqual('Pig');
+    }
+    for (const resReturn of res.updated) {
+      expect(resReturn.chineseSign).toEqual('Pig');
+      expect(resReturn.favoriteColor).toEqual('blue');
     }
   });
 
@@ -421,6 +435,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: formatedId }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = null;
@@ -437,8 +452,13 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res?.count).toEqual(1);
+    expect(res.count).toEqual(1);
+    expect(res.deleted.length).toEqual(1);
 
+    for (const resReturn of res.deleted) {
+      expect(resReturn.id).toEqual(formatedId);
+      expect(resReturn.favoriteColor).toEqual('blue');
+    }
     const resDb = await profileService.$findOne(
       { id: users['Delme Dude'].id },
       null,
@@ -460,6 +480,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: ids }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = null;
@@ -476,7 +497,14 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res?.count).toEqual(ids.length);
+    expect(ids.length).toBeGreaterThan(0);
+    expect(res.count).toEqual(ids.length);
+    expect(res.deleted.length).toEqual(ids.length);
+
+    for (const resReturn of res.deleted) {
+      expect(ids.includes(resReturn.id)).toBeTruthy();
+      expect(resReturn.favoriteColor).toEqual('blue');
+    }
 
     for (const profile in profilesToRemoveIn) {
       const resDb = await profileService.$findOne(
@@ -493,6 +521,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ bio: 'BIO_DELETE_KEY' }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = null;
@@ -509,7 +538,13 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res?.count).toEqual(2);
+    expect(res.count).toEqual(2);
+    expect(res.deleted.length).toEqual(2);
+
+    for (const resReturn of res.deleted) {
+      expect(resReturn.favoriteColor).toEqual('blue');
+      expect(resReturn.bio).toEqual('BIO_DELETE_KEY');
+    }
 
     for (const profile in profilesToRemoveMany) {
       const resDb = await profileService.$findOne(

@@ -69,6 +69,12 @@
     {
       "type": "node-terminal",
       "request": "launch",
+      "name": "npm run test basic-return",
+      "command": "npm run test core.basic-return"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
       "name": "npm run test basic nested",
       "command": "npm run test core.basic-nested.spec.ts"
     },

@@ -541,7 +541,7 @@ export class CrudService<T extends CrudEntity> {
       }
 
       if (Array.isArray(entity[this.crudConfig.id_field])) {
-        this.dbAdapter.makeInQuery(entity[this.crudConfig.id_field], entity);
+        this.makeInQuery(entity[this.crudConfig.id_field], entity);
       }
 
       this.checkObjectForIds(entity);
@@ -596,7 +596,7 @@ export class CrudService<T extends CrudEntity> {
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
   ) {
-    this.dbAdapter.makeInQuery(ids, entity);
+    this.makeInQuery(ids, entity);
     return this.$find(entity, ctx, opOptions, inheritance);
   }
 
@@ -751,44 +751,46 @@ export class CrudService<T extends CrudEntity> {
 
       let finalQuery = { ...query };
       let IDs = [];
+      let skipUpdate = false;
       if (Array.isArray(query[this.crudConfig.id_field])) {
-        this.dbAdapter.makeInQuery(query[this.crudConfig.id_field], finalQuery);
-      } else if (query[this.crudConfig.id_field]) {
-        IDs = [query[this.crudConfig.id_field]];
+        this.makeInQuery(query[this.crudConfig.id_field], finalQuery);
       }
 
-      if (ctx?.options?.returnUpdatedEntities && !IDs.length) {
+      if (ctx?.options?.returnUpdatedEntities) {
         IDs = await this.$findIds(finalQuery, ctx, {
           hooks: false,
           skipCtxOptions: true,
         });
         if (IDs.length) {
           finalQuery = {};
-          this.dbAdapter.makeInQuery(IDs, finalQuery);
+          this.makeInQuery(IDs, finalQuery);
+        } else {
+          skipUpdate = true;
         }
       }
 
-      this.checkObjectForIds(finalQuery);
-      this.checkObjectForIds(data);
+      let results: PatchResponseDto<T> = { count: 0 };
 
-      const em = opOpts.em || this.entityManager.fork();
-      let patchResult = await this.doQueryPatch(
-        finalQuery,
-        data,
-        ctx,
-        em,
-        opOpts,
-      );
-      let results: PatchResponseDto<T> = { count: patchResult };
+      if (!skipUpdate) {
+        this.checkObjectForIds(finalQuery);
+        this.checkObjectForIds(data);
+        const em = opOpts.em || this.entityManager.fork();
+        let patchResult = await this.doQueryPatch(
+          finalQuery,
+          data,
+          ctx,
+          em,
+          opOpts,
+        );
+        results.count = patchResult;
+      }
 
       if (ctx?.options?.returnUpdatedEntities && IDs.length) {
         let resFind = await this.$findIn(IDs, {}, ctx, {
           hooks: false,
           skipCtxLimit: true,
         });
-        if (resFind) {
-          results.updated = resFind.data;
-        }
+        results.updated = resFind?.data || [];
       }
 
       if (hooks) {
@@ -847,7 +849,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     inheritance?: Inheritance,
   ) {
-    this.dbAdapter.makeInQuery(ids, query);
+    this.makeInQuery(ids, query);
     return await this.$patch(
       query,
       newEntity,
@@ -867,7 +869,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     inheritance?: Inheritance,
   ) {
-    this.dbAdapter.makeInQuery(ids, query);
+    this.makeInQuery(ids, query);
     return this.$delete(query, ctx);
   }
 
@@ -936,9 +938,8 @@ export class CrudService<T extends CrudEntity> {
           ctx,
           { hooks: false, skipCtxLimit: true },
         );
-        if (resFind) {
-          ret.updated = [resFind];
-        }
+
+        ret.updated = resFind ? [resFind] : [];
       }
 
       if (opOpts.hooks) {
@@ -1068,42 +1069,40 @@ export class CrudService<T extends CrudEntity> {
         query = await this.beforeDeleteHook(query, ctx);
       }
       let finalQuery = { ...query };
-      let IDs = [];
+
       if (Array.isArray(query[this.crudConfig.id_field])) {
-        IDs = query[this.crudConfig.id_field];
-        this.dbAdapter.makeInQuery(query[this.crudConfig.id_field], finalQuery);
-      } else if (query[this.crudConfig.id_field]) {
-        IDs = [query[this.crudConfig.id_field]];
+        this.makeInQuery(query[this.crudConfig.id_field], finalQuery);
       }
 
       const em = this.entityManager.fork();
       const opts = this.getReadOptions(ctx, opOpts);
 
-      if (ctx?.options?.returnUpdatedEntities && !IDs.length) {
-        IDs = await this.$findIds(finalQuery, ctx, {
+      let skipDelete = false;
+      if (ctx?.options?.returnUpdatedEntities) {
+        let resFind = await this.$find(finalQuery, ctx, {
           hooks: false,
-          skipCtxOptions: true,
+          skipCtxLimit: true,
         });
+        const IDs = resFind.data?.map((d) => d[this.crudConfig.id_field]) || [];
         if (IDs.length) {
           finalQuery = {};
-          this.dbAdapter.makeInQuery(IDs, finalQuery);
+          this.makeInQuery(IDs, finalQuery);
+          result.deleted = resFind.data;
+        } else {
+          skipDelete = true;
+          result.deleted = [];
+          result.count = 0;
         }
       }
 
-      this.checkObjectForIds(finalQuery);
-      let length = await em.nativeDelete(this.entity, finalQuery, opts as any);
-      result.count = length;
-
-      if (ctx?.options?.returnUpdatedEntities) {
-        if (IDs.length) {
-          const res = await this.$findIn(IDs, {}, ctx, {
-            hooks: false,
-            skipCtxLimit: true,
-          });
-          result.deleted = res.data;
-        } else {
-          result.deleted = [];
-        }
+      if (!skipDelete) {
+        this.checkObjectForIds(finalQuery);
+        let length = await em.nativeDelete(
+          this.entity,
+          finalQuery,
+          opts as any,
+        );
+        result.count = length;
       }
 
       if (opOpts.hooks) {
@@ -1119,6 +1118,10 @@ export class CrudService<T extends CrudEntity> {
       }
       throw e;
     }
+  }
+
+  makeInQuery(IDs: string[], finalQuery) {
+    this.dbAdapter.makeInQuery(IDs, finalQuery);
   }
 
   async $deleteOne_(ctx: CrudContext) {
