@@ -13,7 +13,7 @@
 <p align="center"><b>Eicrud</b> is an opinionated backend framework extending <a href="https://github.com/nestjs/nest" target="_blank">NestJS</a>.<br/> It's a tool for building scalable, secure <a href="https://nodejs.org" target="_blank">Node.js</a> server applications in record time.</p>
 
 > [!IMPORTANT]
-> *Eicrud is still in beta; expect minor breaking changes with new versions until **v1.0.0**. However, you can still use it as it is, and the API will not change much. Check out the release notes for migration guides. If you're interested in the project, please leave a star on the repository; it helps a lot 🌟🙏*
+> *Eicrud is still in beta; expect minor breaking changes with new versions until **v1.0.0**. However, you can still use it as it is, and the API will not change much. Check out the [release notes](https://github.com/eicrud/eicrud/releases) for migration guides. If you're interested in the project, please leave a star on the repository; it helps a lot 🌟🙏*
 
 ## Philosophy
 
