@@ -1032,7 +1032,7 @@ describe('AppController', () => {
       crudConfig,
     });
 
-    expect(res).toEqual(ids.length);
+    expect(res.count).toEqual(ids.length);
     for (const id of ids) {
       const resDB = await profileService.$findOne(
         { id: userService.dbAdapter.createNewId(id) as any },
@@ -1079,8 +1079,8 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res).toBeGreaterThan(0);
-    expect(res).toBeLessThan(ids.length);
+    expect(res.count).toBeGreaterThan(0);
+    expect(res.count).toBeLessThan(ids.length);
   });
 
   it('should forbid admin patch in profiles without limiting key', async () => {
@@ -1211,7 +1211,7 @@ describe('AppController', () => {
       }
     }
     expect(count).toBeGreaterThan(0);
-    expect(count).toEqual(res);
+    expect(count).toEqual(res.count);
   });
 
   it('should forbid moderator patch in profiles with limiting key', async () => {
@@ -1422,7 +1422,7 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res).toEqual(1);
+    expect(res.count).toEqual(1);
 
     const resDb = await profileService.$findOne({ id: user.profileId }, null);
     expect(resDb).toBeNull();
@@ -1515,7 +1515,7 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res).toEqual(1);
+    expect(res.count).toEqual(1);
 
     const resDb = await profileService.$findOne(
       { id: delUser.profileId },
@@ -1626,7 +1626,7 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res).toEqual(ids.length);
+    expect(res.count).toEqual(ids.length);
 
     for (const profile in usersForInDeletion) {
       const usedel = usersForInDeletion[profile];
@@ -1771,7 +1771,7 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res).toEqual(0);
+    expect(res.count).toEqual(0);
     for (const profile in users) {
       if (!users[profile].skipProfile) {
         const usedel = users[profile];
@@ -1819,7 +1819,7 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res).toEqual(Object.keys(usersForManyDeletion).length);
+    expect(res.count).toEqual(Object.keys(usersForManyDeletion).length);
 
     for (const profile in usersForManyDeletion) {
       const delUser = usersForManyDeletion[profile];

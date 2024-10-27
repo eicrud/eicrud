@@ -557,10 +557,13 @@ describe('AppController', () => {
       jwt: user.jwt,
       entityManager,
       payload,
-      query,
+      query: {
+        ...query,
+        options: JSON.stringify({ returnUpdatedEntities: true }),
+      },
       crudConfig,
     });
-    expect(res.message).toBe('replaced in hook (update)');
+    expect(res.updated[0].message).toBe('replaced in hook (update)');
     const res00: any = await hookTriggerService.$findOne(
       { originalMessage: createMessage, throwError: true },
       null,

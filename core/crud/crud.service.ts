@@ -21,7 +21,11 @@ import { CrudTransformer } from '../validation/CrudTransformer';
 import { MsLinkQuery } from '../crud/model/CrudQuery';
 import axios from 'axios';
 import { CrudDbAdapter } from '../config/dbAdapter/crudDbAdapter';
-import { FindResponseDto } from '@eicrud/shared/interfaces';
+import {
+  DeleteResponseDto,
+  FindResponseDto,
+  PatchResponseDto,
+} from '@eicrud/shared/interfaces';
 import { CrudAuthorizationService } from './crud.authorization.service';
 import { RequireAtLeastOne, _utils } from '../utils';
 import { CrudRole } from '../config/model/CrudRole';
@@ -75,6 +79,8 @@ interface _OpOpts {
   secure?: boolean;
   em?: EntityManager;
   noFlush?: boolean;
+  skipCtxOptions?: boolean;
+  skipCtxLimit?: boolean;
 }
 type ExcludedInheritanceKeys = 'hooks' | 'secure' | 'em' | 'noFlush';
 export type OpOpts = RequireAtLeastOne<_OpOpts>;
@@ -352,7 +358,7 @@ export class CrudService<T extends CrudEntity> {
         await this.checkItemDbCount(em, ctx);
       }
 
-      const opts = this.getReadOptions(ctx);
+      const opts = this.getReadOptions(ctx, opOpts);
       newEntity.createdAt = new Date();
       newEntity.updatedAt = newEntity.createdAt;
 
@@ -535,13 +541,13 @@ export class CrudService<T extends CrudEntity> {
       }
 
       if (Array.isArray(entity[this.crudConfig.id_field])) {
-        this.dbAdapter.makeInQuery(entity[this.crudConfig.id_field], entity);
+        this.makeInQuery(entity[this.crudConfig.id_field], entity);
       }
 
       this.checkObjectForIds(entity);
 
       const em = this.entityManager.fork();
-      const opts = this.getReadOptions(ctx);
+      const opts = this.getReadOptions(ctx, opOpts);
       let result: FindResponseDto<T>;
       if (opts.limit) {
         const res = await em.findAndCount(this.entity, entity, opts as any);
@@ -565,6 +571,20 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
+  async $findIds(
+    entity: Partial<T>,
+    ctx: CrudContext,
+    opOptions: OpOpts = { secure: true },
+    inheritance?: Inheritance,
+  ): Promise<string[]> {
+    const newCtx: CrudContext = {
+      ...ctx,
+      options: { ...ctx.options, fields: [this.crudConfig.id_field] },
+    };
+    const res = await this.$find(entity, newCtx, opOptions);
+    return res.data.map((d) => d[this.crudConfig.id_field]);
+  }
+
   async $findIn_(ctx: CrudContext) {
     return this.$findIn(ctx.ids, ctx.query, ctx);
   }
@@ -576,13 +596,20 @@ export class CrudService<T extends CrudEntity> {
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
   ) {
-    this.dbAdapter.makeInQuery(ids, entity);
+    this.makeInQuery(ids, entity);
     return this.$find(entity, ctx, opOptions, inheritance);
   }
 
-  getReadOptions(ctx: CrudContext) {
-    const opts = ctx?.options || {};
-    return { ...opts } as any;
+  getReadOptions(ctx: CrudContext, opOptions: OpOpts): CrudOptions {
+    if (opOptions.skipCtxOptions) {
+      return {};
+    }
+    const opts = { ...(ctx?.options || {}) };
+    if (opOptions.skipCtxLimit) {
+      delete opts.limit;
+      delete opts.offset;
+    }
+    return opts;
   }
 
   getCacheKey(entity: Partial<T>, opts?: CrudOptions) {
@@ -618,7 +645,7 @@ export class CrudService<T extends CrudEntity> {
 
       this.checkObjectForIds(entity);
       const em = this.entityManager.fork();
-      const opts = this.getReadOptions(ctx);
+      const opts = this.getReadOptions(ctx, opOpts);
       let result: T = await em.findOne(this.entity, entity, opts as any);
       if (opOpts.hooks) {
         const fDto: FindResponseDto<T> = { data: [result], total: 1, limit: 1 };
@@ -722,15 +749,49 @@ export class CrudService<T extends CrudEntity> {
         [{ query, data }] = await this.beforeUpdateHook([{ query, data }], ctx);
       }
 
+      let finalQuery = { ...query };
+      let IDs = [];
+      let skipUpdate = false;
       if (Array.isArray(query[this.crudConfig.id_field])) {
-        this.dbAdapter.makeInQuery(query[this.crudConfig.id_field], query);
+        this.makeInQuery(query[this.crudConfig.id_field], finalQuery);
       }
 
-      this.checkObjectForIds(query);
-      this.checkObjectForIds(data);
+      if (ctx?.options?.returnUpdatedEntities) {
+        IDs = await this.$findIds(finalQuery, ctx, {
+          hooks: false,
+          skipCtxOptions: true,
+        });
+        if (IDs.length) {
+          finalQuery = {};
+          this.makeInQuery(IDs, finalQuery);
+        } else {
+          skipUpdate = true;
+        }
+      }
 
-      const em = opOpts.em || this.entityManager.fork();
-      let results = await this.doQueryPatch(query, data, ctx, em);
+      let results: PatchResponseDto<T> = { count: 0 };
+
+      if (!skipUpdate) {
+        this.checkObjectForIds(finalQuery);
+        this.checkObjectForIds(data);
+        const em = opOpts.em || this.entityManager.fork();
+        let patchResult = await this.doQueryPatch(
+          finalQuery,
+          data,
+          ctx,
+          em,
+          opOpts,
+        );
+        results.count = patchResult;
+      }
+
+      if (ctx?.options?.returnUpdatedEntities && IDs.length) {
+        let resFind = await this.$findIn(IDs, {}, ctx, {
+          hooks: false,
+          skipCtxLimit: true,
+        });
+        results.updated = resFind?.data || [];
+      }
 
       if (hooks) {
         [results] = await this.afterUpdateHook(
@@ -773,8 +834,12 @@ export class CrudService<T extends CrudEntity> {
     addPatch.updatedAt = new Date();
     addPatch = this.dbAdapter.getSetUpdate(addPatch);
     update = { ...update, ...addPatch };
-    const res = await em.nativeUpdate(this.entity, args.query, update as any);
-    return res;
+    try {
+      const res = await em.nativeUpdate(this.entity, args.query, update as any);
+      return res;
+    } catch (e) {
+      throw e;
+    }
   }
 
   async $patchIn_(ctx: CrudContext) {
@@ -788,7 +853,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     inheritance?: Inheritance,
   ) {
-    this.dbAdapter.makeInQuery(ids, query);
+    this.makeInQuery(ids, query);
     return await this.$patch(
       query,
       newEntity,
@@ -808,7 +873,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     inheritance?: Inheritance,
   ) {
-    this.dbAdapter.makeInQuery(ids, query);
+    this.makeInQuery(ids, query);
     return this.$delete(query, ctx);
   }
 
@@ -851,7 +916,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
-  ) {
+  ): Promise<PatchResponseDto<T>> {
     const opOpts = this.getOpOpts(opOptions, ctx);
     try {
       if (opOpts.hooks) {
@@ -859,12 +924,32 @@ export class CrudService<T extends CrudEntity> {
       }
 
       const em = this.entityManager.fork();
-      let result = await this.doOnePatch(query, data, ctx, em, opOpts.secure);
+      let ret: PatchResponseDto<T> = { count: 1 };
+      let patchResult = await this.doOnePatch(
+        query,
+        data,
+        ctx,
+        em,
+        opOpts.secure,
+      );
       await em.flush();
-      if (opOpts.hooks) {
-        [result] = await this.afterUpdateHook([result], [{ data, query }], ctx);
+
+      if (ctx?.options?.returnUpdatedEntities) {
+        let resFind = await this.$findOne(
+          {
+            [this.crudConfig.id_field]: patchResult[this.crudConfig.id_field],
+          } as any,
+          ctx,
+          { hooks: false, skipCtxLimit: true },
+        );
+
+        ret.updated = resFind ? [resFind] : [];
       }
-      return result;
+
+      if (opOpts.hooks) {
+        [ret] = await this.afterUpdateHook([ret], [{ data, query }], ctx);
+      }
+      return ret;
     } catch (e) {
       if (opOpts.hooks) {
         const res = await this.errorUpdateHook([{ query, data }], ctx, e);
@@ -899,8 +984,8 @@ export class CrudService<T extends CrudEntity> {
     newEntity: Partial<T>,
     ctx: CrudContext,
     em: EntityManager,
+    opOpts: OpOpts,
   ) {
-    const opts = this.getReadOptions(ctx);
     let ormEntity = {};
     Object.setPrototypeOf(ormEntity, this.entity.prototype);
     newEntity.updatedAt = new Date();
@@ -911,7 +996,7 @@ export class CrudService<T extends CrudEntity> {
       onlyOwnProperties: true,
     });
     ormEntity = (ormEntity as any).toJSON();
-    return em.nativeUpdate(this.entity, query, ormEntity, opts);
+    return em.nativeUpdate(this.entity, query, ormEntity);
   }
 
   private async doOnePatch(
@@ -920,15 +1005,16 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     em: EntityManager,
     secure: boolean,
-  ) {
+  ): Promise<Partial<T>> {
     this.checkObjectForIds(query);
     this.checkObjectForIds(newEntity);
-
-    const opts = this.getReadOptions(ctx);
     let result = query;
     if (secure || !query[this.crudConfig.id_field]) {
       const tempEm = em.fork();
-      result = await tempEm.findOne(this.entity, query, opts as any);
+      result = await this.$findOne(query, ctx, {
+        hooks: false,
+        skipCtxOptions: true,
+      });
       if (!result) {
         throw new BadRequestException(CrudErrors.ENTITY_NOT_FOUND.str());
       }
@@ -978,24 +1064,55 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
-  ) {
+  ): Promise<DeleteResponseDto<T>> {
     const opOpts = this.getOpOpts(opOptions, ctx);
+    let result: DeleteResponseDto<T> = { count: 0 };
+
     try {
       if (opOpts.hooks) {
         query = await this.beforeDeleteHook(query, ctx);
       }
+      let finalQuery = { ...query };
 
       if (Array.isArray(query[this.crudConfig.id_field])) {
-        this.dbAdapter.makeInQuery(query[this.crudConfig.id_field], query);
+        this.makeInQuery(query[this.crudConfig.id_field], finalQuery);
       }
-      this.checkObjectForIds(query);
+
       const em = this.entityManager.fork();
-      const opts = this.getReadOptions(ctx);
-      let length = await em.nativeDelete(this.entity, query, opts);
-      if (opOpts.hooks) {
-        length = await this.afterDeleteHook(length, query, ctx);
+      const opts = this.getReadOptions(ctx, opOpts);
+
+      let skipDelete = false;
+      if (ctx?.options?.returnUpdatedEntities) {
+        let resFind = await this.$find(finalQuery, ctx, {
+          hooks: false,
+          skipCtxLimit: true,
+        });
+        const IDs = resFind.data?.map((d) => d[this.crudConfig.id_field]) || [];
+        if (IDs.length) {
+          finalQuery = {};
+          this.makeInQuery(IDs, finalQuery);
+          result.deleted = resFind.data;
+        } else {
+          skipDelete = true;
+          result.deleted = [];
+          result.count = 0;
+        }
       }
-      return length;
+
+      if (!skipDelete) {
+        this.checkObjectForIds(finalQuery);
+        let length = await em.nativeDelete(
+          this.entity,
+          finalQuery,
+          opts as any,
+        );
+        result.count = length;
+      }
+
+      if (opOpts.hooks) {
+        result = await this.afterDeleteHook(result, query, ctx);
+      }
+      return result;
     } catch (e) {
       if (opOpts.hooks) {
         const res = await this.errorDeleteHook(query, ctx, e);
@@ -1007,6 +1124,10 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
+  makeInQuery(IDs: string[], finalQuery) {
+    this.dbAdapter.makeInQuery(IDs, finalQuery);
+  }
+
   async $deleteOne_(ctx: CrudContext) {
     return this.$deleteOne(ctx.query, ctx);
   }
@@ -1016,7 +1137,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
-  ) {
+  ): Promise<DeleteResponseDto<T>> {
     const opOpts = this.getOpOpts(opOptions, ctx);
     try {
       if (opOpts.hooks) {
@@ -1025,18 +1146,23 @@ export class CrudService<T extends CrudEntity> {
 
       this.checkObjectForIds(query);
       const em = this.entityManager.fork();
-      let entity = await em.findOne(this.entity, query);
+      let entity: T = await this.$findOne(query, ctx, {
+        hooks: false,
+        skipCtxLimit: true,
+      });
       if (!entity) {
         throw new BadRequestException(CrudErrors.ENTITY_NOT_FOUND.str());
       }
       em.remove(entity);
-
+      let result: DeleteResponseDto<T> = { count: 1 };
+      if (ctx?.options?.returnUpdatedEntities) {
+        result.deleted = [entity];
+      }
       await em.flush();
       if (opOpts.hooks) {
-        let result = await this.afterDeleteHook(1, query, ctx);
-        return result;
+        result = await this.afterDeleteHook(result, query, ctx);
       }
-      return 1;
+      return result;
     } catch (e) {
       if (opOpts.hooks) {
         const res = await this.errorDeleteHook(query, ctx, e);
@@ -1194,7 +1320,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async afterUpdateHook(
-    results: any[],
+    results: PatchResponseDto[],
     updates: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
   ) {
@@ -1213,7 +1339,11 @@ export class CrudService<T extends CrudEntity> {
     return this.config.hooks.beforeDeleteHook.call(this, query, ctx);
   }
 
-  async afterDeleteHook(result: any, query: Partial<T>, ctx: CrudContext) {
+  async afterDeleteHook(
+    result: DeleteResponseDto<T>,
+    query: Partial<T>,
+    ctx: CrudContext,
+  ) {
     return this.config.hooks.afterDeleteHook.call(this, result, query, ctx);
   }
 
@@ -1249,7 +1379,7 @@ export class CrudHooks<T extends CrudEntity> {
     data: Partial<T>[],
     ctx: CrudContext,
     error: any,
-  ): Promise<T[]> {
+  ): Promise<any> {
     return null;
   }
 
@@ -1275,7 +1405,7 @@ export class CrudHooks<T extends CrudEntity> {
     query: Partial<T>,
     ctx: CrudContext,
     error: any,
-  ): Promise<FindResponseDto<T>> {
+  ): Promise<any> {
     return null;
   }
 
@@ -1289,10 +1419,10 @@ export class CrudHooks<T extends CrudEntity> {
 
   async afterUpdateHook(
     this: CrudService<T>,
-    results: any[],
+    results: PatchResponseDto<T>[],
     updates: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
-  ): Promise<any[]> {
+  ): Promise<PatchResponseDto<T>[]> {
     return results;
   }
 
@@ -1301,7 +1431,7 @@ export class CrudHooks<T extends CrudEntity> {
     updates: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
     error: any,
-  ): Promise<any[]> {
+  ): Promise<any> {
     return null;
   }
 
@@ -1315,10 +1445,10 @@ export class CrudHooks<T extends CrudEntity> {
 
   async afterDeleteHook(
     this: CrudService<T>,
-    result: number,
+    result: DeleteResponseDto<T>,
     query: Partial<T>,
     ctx: CrudContext,
-  ): Promise<number> {
+  ): Promise<DeleteResponseDto<T>> {
     return result;
   }
 
@@ -1327,9 +1457,7 @@ export class CrudHooks<T extends CrudEntity> {
     query: Partial<T>,
     ctx: CrudContext,
     error: any,
-  ): Promise<number> {
-    return null;
-  }
+  ): Promise<any> {}
 
   async errorControllerHook(
     this: CrudService<T>,

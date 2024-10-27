@@ -43,6 +43,19 @@ npm run start:test-ms:proxy
 npm run clean:deep
 ```
 
+To run the oapi-types test suite (optional):
+```
+npm i && npm run setup:cli && eicrud export dtos -cc
+
+npm i -g typeconv@2.3.1 && cd test &&  typeconv -v -f ts -t oapi -o test_exports 'test_exports/**.ts' 'test_exports/**/*.ts' && cd ..
+
+eicrud export openapi
+
+npm run setup:oapi:client && node -e "fs.renameSync('./test/client/client.oapi-types.spec.ts.skip', './test/client/client.oapi-types.spec.ts')"
+
+npm run test client.oapi-types.spec.ts
+```
+
 ### Testing your code
 
 Every new feature or bug fix must include specification tests. Consider writing the tests as you develop instead of testing by hand with tools like Postman.

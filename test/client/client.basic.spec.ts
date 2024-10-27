@@ -254,7 +254,15 @@ describe('AppController', () => {
       price: 136,
     };
 
-    await myClient.patch({ owner: user.id }, patch);
+    const resPatch = await myClient.patch({ owner: user.id }, patch, {
+      returnUpdatedEntities: true,
+    });
+    expect(resPatch.count).toBe(user.melons);
+    expect(resPatch.updated.length).toBe(user.melons);
+    expect(user.melons).toBeGreaterThan(0);
+    for (let mel of resPatch.updated) {
+      expect(mel.price).toBe(patch.price);
+    }
 
     const updatedMelons: Melon[] = (await myClient.find({ owner: user.id }))
       .data;

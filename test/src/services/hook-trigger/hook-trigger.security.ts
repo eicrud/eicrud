@@ -3,6 +3,7 @@ import { serviceCmds } from './cmds';
 
 export function getSecurity(hooktrigger: string): CrudSecurity {
   return {
+    alwaysAllowedCrudOptions: ['returnUpdatedEntities'],
     rolesRights: {
       user: {
         maxBatchSize: 5,

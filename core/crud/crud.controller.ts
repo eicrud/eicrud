@@ -32,7 +32,11 @@ import { HttpAdapterHost, ModuleRef } from '@nestjs/core';
 import { _utils } from '../utils';
 import { CrudTransformer, IFieldMetadata } from '../validation/CrudTransformer';
 import { CrudValidationPipe } from '../validation/CrudValidationPipe';
-import { FindResponseDto, LoginResponseDto } from '@eicrud/shared/interfaces';
+import {
+  DeleteResponseDto,
+  FindResponseDto,
+  LoginResponseDto,
+} from '@eicrud/shared/interfaces';
 import { getParentRoles } from '@eicrud/shared/utils';
 
 export class LimitOptions {
@@ -618,9 +622,11 @@ export class CrudController {
     );
     try {
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      let res = await currentService.$delete_(ctx);
+      let res: DeleteResponseDto = await currentService.$delete_(ctx);
       res = await this.afterHooks(currentService, res, ctx);
-      this.addCountToDataMap(ctx, -res);
+      if (res?.count) {
+        this.addCountToDataMap(ctx, -res.count);
+      }
       return res;
     } catch (e) {
       return this.errorHooks(currentService, e, ctx);
@@ -659,9 +665,11 @@ export class CrudController {
       ctx.ids = ids;
       delete ctx.query[this.crudConfig.id_field];
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
-      let res = await currentService.$deleteIn_(ctx);
+      let res: DeleteResponseDto = await currentService.$deleteIn_(ctx);
       res = await this.afterHooks(currentService, res, ctx);
-      this.addCountToDataMap(ctx, -res);
+      if (res?.count) {
+        this.addCountToDataMap(ctx, -res.count);
+      }
       return res;
     } catch (e) {
       return this.errorHooks(currentService, e, ctx);
@@ -923,6 +931,10 @@ export class CrudController {
   }
 
   addCountToDataMap(ctx: CrudContext, ct: number) {
+    //throw if ct is nan
+    if (isNaN(ct)) {
+      throw new BadRequestException('addCountToDataMap expects a number');
+    }
     if (this.crudConfig.userService.notGuest(ctx?.user)) {
       const increments = { ['crudUserCountMap.' + ctx.serviceName]: ct };
       const query = {

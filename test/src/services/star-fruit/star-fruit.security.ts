@@ -10,6 +10,10 @@ export function getSecurity(starFruit: string): CrudSecurity<StarFruit> {
           // Define abilities for guest
           can('crud', starFruit);
         },
+
+        async defineOPTAbility(can, cannot, ctx) {
+          can('returnUpdatedEntities', starFruit);
+        },
       },
     },
 

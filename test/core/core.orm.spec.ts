@@ -380,7 +380,7 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res).toBe(1);
+    expect(res.count).toBe(1);
 
     query.query = JSON.stringify({
       id: formatedId,
@@ -400,7 +400,7 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res2).toBe(0);
+    expect(res2.count).toBe(0);
 
     const findRes = (await profileService.$findOne(
       { id: user.profileId },
@@ -575,7 +575,7 @@ describe('AppController', () => {
       crudConfig,
     });
 
-    expect(resDelete).toBe(2);
+    expect(resDelete.count).toBe(2);
 
     const userMelons2 = await melonService.$find({ owner: user.id }, null);
     expect(userMelons2.data.length).toBe(user.melons - 2);
