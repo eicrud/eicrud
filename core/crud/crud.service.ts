@@ -834,8 +834,12 @@ export class CrudService<T extends CrudEntity> {
     addPatch.updatedAt = new Date();
     addPatch = this.dbAdapter.getSetUpdate(addPatch);
     update = { ...update, ...addPatch };
-    const res = await em.nativeUpdate(this.entity, args.query, update as any);
-    return res;
+    try {
+      const res = await em.nativeUpdate(this.entity, args.query, update as any);
+      return res;
+    } catch (e) {
+      throw e;
+    }
   }
 
   async $patchIn_(ctx: CrudContext) {

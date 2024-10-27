@@ -319,10 +319,15 @@ describe('AppController', () => {
 
     const expectedObject = {
       geoloc: {
+        street: null,
         city: payload.geoloc.city,
         zip: payload.geoloc.zip,
       },
     };
+
+    if (process.env.TEST_CRUD_DB != 'postgre') {
+      delete expectedObject.geoloc.street;
+    }
     await testMethod({
       expectedObject,
       url: '/crud/one',
