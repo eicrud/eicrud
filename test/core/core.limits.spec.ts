@@ -271,7 +271,7 @@ describe('AppController', () => {
       query,
       crudConfig,
     });
-    expect(res2).toBe(10);
+    expect(res2.count).toBe(10);
 
     delete query.query;
     const res3 = await testMethod({
@@ -352,7 +352,7 @@ describe('AppController', () => {
       query,
       crudConfig,
     });
-    expect(res2).toBe(14);
+    expect(res2.count).toBe(14);
 
     delete query.query;
     const res3 = await testMethod({

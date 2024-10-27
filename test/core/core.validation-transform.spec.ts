@@ -301,6 +301,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ user: userId }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
     await testMethod({
       url: '/crud/one',
@@ -387,6 +388,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ user: userId }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = {
@@ -502,6 +504,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ user: userId }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     await testMethod({
