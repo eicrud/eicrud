@@ -398,7 +398,7 @@ describe('AppController', () => {
         authorization: authorization,
       },
     });
-    expect(res.data.quality).toBe(payload.quality);
+    expect(res.data.count).toBe(1);
     const fruit1 = await starFruitService.$findOne(
       { quality: payload.quality, key: query.key },
       null,
@@ -451,7 +451,7 @@ describe('AppController', () => {
         authorization: authorization,
       },
     });
-    expect(resIn.data).toBe(createdStarFruitIn.length);
+    expect(resIn.data.count).toBe(createdStarFruitIn.length);
     const fruitsIn = await starFruitService.$find({ key: 'in' }, null);
     for (let fi of fruitsIn.data) {
       expect(fi.quality).toBe('updated in');
@@ -475,7 +475,7 @@ describe('AppController', () => {
         authorization: authorization,
       },
     });
-    expect(resMany.data).toBe(2);
+    expect(resMany.data.count).toBe(2);
     const fruitsMany = await starFruitService.$find({ key: 'many' }, null);
     for (let fm of fruitsMany.data) {
       expect(fm.quality).toBe('updated many');
@@ -505,7 +505,7 @@ describe('AppController', () => {
         authorization: authorization,
       },
     });
-    expect(res.data).toBe(1);
+    expect(res.data.count).toBe(1);
     toBeDeletedOne = await starFruitService.$findOne(query, null);
     expect(toBeDeletedOne).toBeFalsy();
 
@@ -530,7 +530,7 @@ describe('AppController', () => {
         authorization: authorization,
       },
     });
-    expect(resIn.data).toBe(createdStarFruitIn.length);
+    expect(resIn.data.count).toBe(createdStarFruitIn.length);
     toBeDeletedIn = await starFruitService.$find(inQuery, null);
     expect(toBeDeletedIn.data.length).toBe(0);
 
@@ -552,7 +552,7 @@ describe('AppController', () => {
         authorization: authorization,
       },
     });
-    expect(resMany.data).toBe(2);
+    expect(resMany.data.count).toBe(2);
 
     toBeDeletedMany = await starFruitService.$find(manyQuery, null);
     expect(toBeDeletedMany.data.length).toBe(0);

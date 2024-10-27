@@ -27,6 +27,7 @@ import { defineAbility, subject } from '@casl/ability';
 
 import { _utils } from '../utils';
 import { CrudErrors, MaxBatchSizeExceededDto } from '@eicrud/shared/CrudErrors';
+import { CrudOptions } from './model/CrudOptions';
 
 const SKIPPABLE_OPTIONS = [
   'limit',
@@ -269,7 +270,10 @@ export class CrudAuthorizationService {
     }
 
     const fieldsToExclude = security.alwaysExcludeFields;
-    if (fieldsToExclude?.length && ctx.method == 'GET') {
+    if (
+      fieldsToExclude?.length &&
+      (ctx.method == 'GET' || ctx?.options?.returnUpdatedEntities)
+    ) {
       if (ctx.options.fields?.length) {
         for (const field of ctx.options.fields) {
           if (fieldsToExclude.includes(field)) {
@@ -366,8 +370,11 @@ export class CrudAuthorizationService {
         await roleRights.defineOPTAbility?.(can, cannot, ctx);
       }, {});
 
-      for (const key of Object.keys(ctx.options)) {
-        if (SKIPPABLE_OPTIONS.includes(key)) {
+      for (const key of Object.keys(ctx.options) as (keyof CrudOptions)[]) {
+        if (
+          SKIPPABLE_OPTIONS.includes(key) ||
+          security?.alwaysAllowCrudOptions?.includes(key)
+        ) {
           continue;
         }
         let ofields = ctx.options[key];
@@ -394,7 +401,10 @@ export class CrudAuthorizationService {
       result.checkedRoles[role.name] = { problemField: null };
       result.authorized = true;
 
-      if (roleRights.fields && ctx.method == 'GET') {
+      if (
+        roleRights.fields &&
+        (ctx.method == 'GET' || ctx?.options?.returnUpdatedEntities)
+      ) {
         ctx.options.fields = roleRights.fields as any;
       }
 

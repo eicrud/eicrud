@@ -216,6 +216,9 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ user: userId }),
+      options: JSON.stringify({
+        returnUpdatedEntities: true,
+      }) as any,
     };
     const expectedObject = {
       lowercaseTrimmedField: payload.lowercaseTrimmedField.toLowerCase().trim(),
@@ -298,6 +301,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ user: userId }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
     await testMethod({
       url: '/crud/one',
@@ -315,10 +319,15 @@ describe('AppController', () => {
 
     const expectedObject = {
       geoloc: {
+        street: null,
         city: payload.geoloc.city,
         zip: payload.geoloc.zip,
       },
     };
+
+    if (process.env.TEST_CRUD_DB != 'postgre') {
+      delete expectedObject.geoloc.street;
+    }
     await testMethod({
       expectedObject,
       url: '/crud/one',
@@ -384,6 +393,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ user: userId }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = {
@@ -499,6 +509,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ user: userId }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     await testMethod({

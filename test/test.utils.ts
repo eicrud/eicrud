@@ -145,23 +145,39 @@ export function testMethod(arg: {
         ({ total, limit } = res);
         res = res.data;
       }
+
+      let entityFetched = false;
       if (arg.fetchEntity) {
-        let id = arg.fetchEntity.id || res.id;
+        let id =
+          arg.fetchEntity.id ||
+          res.id ||
+          res.updated?.[0]?.id ||
+          res.deleted?.[0]?.id;
         id = arg.crudConfig.userService.dbAdapter.checkId(id);
         res = await arg.entityManager
           .fork()
           .findOne(arg.fetchEntity.entity, { id });
         res = JSON.parse(JSON.stringify(res));
+        entityFetched = true;
       } else if (arg.fetchEntities) {
         res = await arg.entityManager
           .fork()
           .find(arg.fetchEntities.entity, arg.fetchEntities.query);
         res = JSON.parse(JSON.stringify(res));
+        entityFetched = true;
       }
 
       if (arg.expectedObject) {
-        const arr = Array.isArray(res) ? res : [res];
+        let compareRes = res;
+        if (!entityFetched && method == 'PATCH') {
+          compareRes = res.updated;
+        } else if (!entityFetched && method == 'DELETE') {
+          compareRes = res.deleted;
+        }
+
+        let arr = Array.isArray(compareRes) ? compareRes : [compareRes];
         expect(arr.length).toBeGreaterThan(0);
+
         for (const re of arr) {
           for (const key in arg.expectedObject) {
             expect(JSON.stringify(re[key])).toEqual(

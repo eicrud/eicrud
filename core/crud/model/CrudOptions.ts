@@ -25,6 +25,10 @@ export class CrudOptions<T = any> implements ICrudOptions {
 
   @IsOptional()
   @IsBoolean()
+  returnUpdatedEntities?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
   jwtCookie?: boolean;
 
   @IsOptional()

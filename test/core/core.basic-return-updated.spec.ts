@@ -6,16 +6,16 @@ import {
   readyApp,
   dropDatabases,
 } from '../src/app.module';
-import { CrudController } from '../../core/crud/crud.controller';
+import { CrudController } from '@eicrud/core/crud/crud.controller';
 import { MyUserService } from '../src/services/my-user/my-user.service';
-import { CrudAuthService } from '../../core/authentication/auth.service';
+import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { EntityManager } from '@mikro-orm/core';
 import { UserProfile } from '../src/services/user-profile/user-profile.entity';
-import { CrudQuery } from '../../core/crud/model/CrudQuery';
+import { CrudQuery } from '@eicrud/core/crud/model/CrudQuery';
 import {
   createAccountsAndProfiles,
   createNewProfileTest,
@@ -25,10 +25,10 @@ import { UserProfileService as MyProfileService } from '../src/services/user-pro
 import {
   CRUD_CONFIG_KEY,
   CrudConfigService,
-} from '../../core/config/crud.config.service';
+} from '@eicrud/core/config/crud.config.service';
 import { TestUser } from '../test.utils';
 import exp from 'constants';
-import { ICreateAccountDto } from '../../shared/interfaces';
+import { ICreateAccountDto } from '@eicrud/shared/interfaces';
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
@@ -59,71 +59,69 @@ describe('AppController', () => {
       role: 'super_admin',
       bio: 'BIO_FIND_KEY',
       store: profiles,
+      favoriteColor: 'blue',
     },
     'Sarah Doe': {
       email: 'sarah.doe@test.com',
       role: 'super_admin',
       bio: 'BIO_FIND_KEY',
       store: profiles,
+      favoriteColor: 'blue',
     },
     'Jordan Doe': {
       email: 'jordan.doe@test.com',
       role: 'super_admin',
       bio: 'BIO_FIND_KEY',
       store: profiles,
+      favoriteColor: 'blue',
     },
     'DelmeIn1 Doe': {
       email: 'delme.doe@test.com',
       role: 'super_admin',
       bio: 'I am about to be deleted in 1.',
       store: profilesToRemoveIn,
+      favoriteColor: 'blue',
     },
     'DelmeIn2 Doe': {
       email: 'delme2.doe@test.com',
       role: 'super_admin',
       bio: 'I am about to be deleted in 2.',
       store: profilesToRemoveIn,
+      favoriteColor: 'blue',
     },
     'DelmeMany1 Doe': {
       email: 'delmemany.doe@test.com',
       role: 'super_admin',
       bio: 'BIO_DELETE_KEY',
       store: profilesToRemoveMany,
+      favoriteColor: 'blue',
     },
     'DelmeMany2 Doe': {
       email: 'delmemany2.doe@test.com',
       role: 'super_admin',
       bio: 'BIO_DELETE_KEY',
       store: profilesToRemoveMany,
+      favoriteColor: 'blue',
     },
     'PatchmeBatch1 Doe': {
       email: 'patchmebatch@mail.com',
       role: 'super_admin',
       bio: 'Patch me please.',
       store: profilesToPatchBatch,
+      favoriteColor: 'blue',
     },
     'PatchmeBatch2 Doe': {
       email: 'patchmebatch2@mail.com',
       role: 'super_admin',
       bio: 'Patch me please 2.',
       store: profilesToPatchBatch,
-    },
-    'NoProfile1 Doe': {
-      email: 'noProfileDude1Doe@test.com',
-      role: 'super_admin',
-      bio: 'I have no profile.',
-      skipProfile: true,
-    },
-    'NoProfile2 Doe': {
-      email: 'noProfileDude2Doe@test.com',
-      role: 'super_admin',
-      bio: 'I have no profile. 2',
-      skipProfile: true,
+      favoriteColor: 'blue',
     },
     'Delme Dude': {
       email: 'delmedude@mail.com',
       role: 'super_admin',
       bio: 'Delete me please.',
+      favoriteColor: 'blue',
     },
   };
 
@@ -183,170 +181,6 @@ describe('AppController', () => {
     );
   });
 
-  //@Post('/crud/batch')
-  it('should create batch new profiles', async () => {
-    const query: CrudQuery = {
-      service: 'user-profile',
-    };
-
-    const payloadArray = [];
-
-    let i = 0;
-    for (let id of usersWithoutProfiles) {
-      i++;
-      payloadArray.push({
-        userName: `Batch Doe ${i}`,
-        user: id,
-        bio: `I am a batch created ${i}.`,
-      });
-    }
-
-    const payload: any = payloadArray;
-
-    const expectedObject = null;
-
-    const res = await testMethod({
-      url: '/crud/batch',
-      method: 'POST',
-      app,
-      jwt,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 201,
-      expectedObject,
-      crudConfig,
-    });
-
-    expect(res?.length).toEqual(usersWithoutProfiles?.length);
-    i = 0;
-    for (const profile in res) {
-      i++;
-      const res2 = await profileService.$findOne({ id: res[profile].id }, null);
-      expect(res2.userName).toEqual(`Batch Doe ${i}`);
-    }
-  });
-
-  //@Get('/crud/one')
-  it('should find one profile by user', async () => {
-    const sarahDoeProfile = profiles['Sarah Doe'];
-    const payload: Partial<UserProfile> = {} as any;
-    const query: CrudQuery = {
-      service: 'user-profile',
-      query: JSON.stringify({
-        user: crudConfig.dbAdapter.formatId(
-          (sarahDoeProfile.user as any).id,
-          crudConfig,
-        ),
-      }),
-    };
-
-    const expectedObject = {
-      bio: sarahDoeProfile.bio,
-    };
-
-    return testMethod({
-      url: '/crud/one',
-      method: 'GET',
-      app,
-      jwt,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 200,
-      expectedObject,
-      crudConfig,
-    });
-  });
-
-  it('should find many with empty query', async () => {
-    const query: CrudQuery = {
-      service: 'user-profile',
-      query: JSON.stringify({}),
-    };
-
-    const expectedObject = null;
-
-    const res = await testMethod({
-      url: '/crud/many',
-      method: 'GET',
-      app,
-      jwt,
-      entityManager,
-      payload: null,
-      query,
-      expectedCode: 200,
-      expectedObject,
-      crudConfig,
-    });
-
-    expect(res.length).toBeGreaterThan(3);
-  });
-  //Get('/crud/many')
-  it('should find many profiles by bio', async () => {
-    const payload: Partial<UserProfile> = {} as any;
-    const query: CrudQuery = {
-      service: 'user-profile',
-      query: JSON.stringify({ bio: 'BIO_FIND_KEY' }),
-    };
-
-    const expectedObject = null;
-
-    const res = await testMethod({
-      url: '/crud/many',
-      method: 'GET',
-      app,
-      jwt,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 200,
-      expectedObject,
-      crudConfig,
-    });
-
-    expect(res.length).toEqual(3);
-    for (const profile in res) {
-      expect(res[profile].bio).toEqual('BIO_FIND_KEY');
-    }
-  });
-
-  //@Get('/crud/in')
-  it('should find in profiles', async () => {
-    const payload: Partial<UserProfile> = {} as any;
-    const ids = [];
-    for (const key in profiles) {
-      const formatedId = crudConfig.dbAdapter.formatId(
-        profiles[key].id,
-        crudConfig,
-      );
-      ids.push(formatedId);
-    }
-    const query: CrudQuery = {
-      service: 'user-profile',
-      query: JSON.stringify({ id: ids }),
-    };
-
-    const expectedObject = null;
-
-    const res = await testMethod({
-      url: '/crud/in',
-      method: 'GET',
-      app,
-      jwt,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 200,
-      expectedObject,
-      crudConfig,
-    });
-
-    expect(res.length).toEqual(ids.length);
-    expect(res[0].userName).toBeDefined();
-    expect(res[0].id).toBeDefined();
-  });
-
   //@Patch('/crud/one')
   it('should patch a profile', async () => {
     const sarahDoeProfile = profiles['Sarah Doe'];
@@ -364,6 +198,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: '507f191e810c19729de860ea' }), //fake id
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     // should throw if entity not found
@@ -384,11 +219,6 @@ describe('AppController', () => {
       bio: sarahDoeProfile.bio,
     };
 
-    const fetchEntity = {
-      entity: UserProfile,
-      id: sarahDoeProfile.id?.toString(),
-    };
-
     query.query = JSON.stringify({ id: formatedId });
 
     let res = await testMethod({
@@ -400,11 +230,10 @@ describe('AppController', () => {
       payload,
       query,
       expectedCode: 200,
-      fetchEntity,
       expectedObject,
       crudConfig,
     });
-    expect(res.userName).toBeDefined();
+    expect(res.updated[0].userName).toBe(payload.userName);
   });
 
   //@Patch('/crud/in')
@@ -424,6 +253,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: ids }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = null;
@@ -464,12 +294,19 @@ describe('AppController', () => {
       );
       expect(resDB.astroSign).toEqual('Aries');
     }
+
+    for (const resReturn of res.updated) {
+      expect(resReturn.astroSign).toEqual('Aries');
+      expect(resReturn.fakeProp).toBeUndefined();
+      expect(resReturn.favoriteColor).toEqual('blue');
+    }
   });
 
   //@Patch('/crud/batch')
   it('should patch batch profiles', async () => {
     const query: CrudQuery = {
       service: 'user-profile',
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const payloadArray = [];
@@ -521,6 +358,14 @@ describe('AppController', () => {
       );
       expect(resDB.astroSign).toEqual('Taurus');
     }
+
+    for (const batch of res) {
+      expect(batch.updated.length).toEqual(1);
+      for (const resReturn of batch.updated) {
+        expect(resReturn.astroSign).toEqual('Taurus');
+        expect(resReturn.favoriteColor).toEqual('blue');
+      }
+    }
   });
 
   //@Patch('/crud/many')
@@ -532,6 +377,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ bio: 'BIO_FIND_KEY' }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = null;
@@ -564,13 +410,18 @@ describe('AppController', () => {
       crudConfig,
     });
 
-    expect(res?.count).toEqual(3);
+    expect(res.count).toEqual(3);
+    expect(res.updated.length).toEqual(3);
     for (const profile in profiles) {
       const resDB: any = await profileService.$findOne(
         { id: profiles[profile].id },
         null,
       );
       expect(resDB.chineseSign).toEqual('Pig');
+    }
+    for (const resReturn of res.updated) {
+      expect(resReturn.chineseSign).toEqual('Pig');
+      expect(resReturn.favoriteColor).toEqual('blue');
     }
   });
 
@@ -584,6 +435,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: formatedId }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = null;
@@ -600,8 +452,13 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res?.count).toEqual(1);
+    expect(res.count).toEqual(1);
+    expect(res.deleted.length).toEqual(1);
 
+    for (const resReturn of res.deleted) {
+      expect(resReturn.id).toEqual(formatedId);
+      expect(resReturn.favoriteColor).toEqual('blue');
+    }
     const resDb = await profileService.$findOne(
       { id: users['Delme Dude'].id },
       null,
@@ -623,6 +480,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: ids }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = null;
@@ -639,7 +497,14 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res?.count).toEqual(ids.length);
+    expect(ids.length).toBeGreaterThan(0);
+    expect(res.count).toEqual(ids.length);
+    expect(res.deleted.length).toEqual(ids.length);
+
+    for (const resReturn of res.deleted) {
+      expect(ids.includes(resReturn.id)).toBeTruthy();
+      expect(resReturn.favoriteColor).toEqual('blue');
+    }
 
     for (const profile in profilesToRemoveIn) {
       const resDb = await profileService.$findOne(
@@ -656,6 +521,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ bio: 'BIO_DELETE_KEY' }),
+      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = null;
@@ -672,7 +538,13 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res?.count).toEqual(2);
+    expect(res.count).toEqual(2);
+    expect(res.deleted.length).toEqual(2);
+
+    for (const resReturn of res.deleted) {
+      expect(resReturn.favoriteColor).toEqual('blue');
+      expect(resReturn.bio).toEqual('BIO_DELETE_KEY');
+    }
 
     for (const profile in profilesToRemoveMany) {
       const resDb = await profileService.$findOne(
