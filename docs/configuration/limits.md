@@ -14,6 +14,7 @@ export function getSecurity(entity: string): CrudSecurity {
     additionalItemsInDbPerTrustPoints: 1,
     alwaysExcludeFields: ['password']
     skipQueryValidationForRoles: [],
+    alwaysAllowedCrudOptions: [],
     //...
 
     }
@@ -40,6 +41,9 @@ Always exclude specified entity fields from find [operations](../services/operat
 
 #### **skipQueryValidationForRoles**
 Disable read, update and delete query validation for specified roles (and their parents). See this [issue](https://github.com/eicrud/eicrud/issues/63) for more details. 
+
+#### **alwaysAllowedCrudOptions**
+Always allow specified [CrudOptions](../services/options.md) (for all roles).
 
 ## CrudSecurityRights
 ```typescript title="service.security.ts"

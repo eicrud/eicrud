@@ -373,7 +373,7 @@ export class CrudAuthorizationService {
       for (const key of Object.keys(ctx.options) as (keyof CrudOptions)[]) {
         if (
           SKIPPABLE_OPTIONS.includes(key) ||
-          security?.alwaysAllowCrudOptions?.includes(key)
+          security?.alwaysAllowedCrudOptions?.includes(key)
         ) {
           continue;
         }

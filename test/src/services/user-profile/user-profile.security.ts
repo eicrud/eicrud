@@ -4,7 +4,7 @@ import { CrudContext } from '@eicrud/core/crud';
 
 export function getSecurity(userprofile: string): CrudSecurity {
   return {
-    alwaysAllowCrudOptions: ['returnUpdatedEntities'],
+    alwaysAllowedCrudOptions: ['returnUpdatedEntities'],
     rolesRights: {
       super_admin: {
         async defineCRUDAbility(can, cannot, ctx) {
