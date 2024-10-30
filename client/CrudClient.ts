@@ -685,9 +685,23 @@ export class CrudClient<T> {
       });
     };
 
-    const res = await this._doBatch(batchFunc, ids, copts);
+    const res: PatchResponseDto<T>[] = await this._doBatch(
+      batchFunc,
+      ids,
+      copts,
+    );
 
-    return res;
+    return res.reduce(
+      (acc, val) => {
+        acc.count += val.count;
+        if (val.updated) {
+          acc.updated = acc.updated || [];
+          acc.updated.push(...val.updated);
+        }
+        return acc;
+      },
+      { count: 0 },
+    );
   }
 
   async saveBatch(
@@ -855,7 +869,7 @@ export class CrudClient<T> {
   async deleteOne(
     query: object,
     options: ICrudOptions = undefined,
-  ): Promise<DeleteResponseDto> {
+  ): Promise<DeleteResponseDto<T>> {
     const ICrudQuery: ICrudQuery = {
       options: JSON.stringify(options) as any,
       query: JSON.stringify(query),
@@ -871,7 +885,7 @@ export class CrudClient<T> {
   }
 
   async deleteIn(
-    ids: any[],
+    q: any[] | object,
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
   ): Promise<DeleteResponseDto> {
@@ -879,11 +893,19 @@ export class CrudClient<T> {
       options: JSON.stringify(options) as any,
     };
     const url = this.config.url + '/crud/s/' + this.config.serviceName + '/in';
+    let ids = [];
+    let addToQuery = {};
+    if (Array.isArray(q)) {
+      ids = q;
+    } else {
+      ids = q[this.config.id_field];
+      addToQuery = q;
+    }
 
     const batchFunc = async (chunk: any[]) => {
       const newICrudQuery: ICrudQuery = {
         ...ICrudQuery,
-        query: JSON.stringify({ [this.config.id_field]: chunk }),
+        query: JSON.stringify({ ...addToQuery, [this.config.id_field]: chunk }),
       };
       return await this._tryOrLogout(axios.delete, 1, url, {
         params: newICrudQuery,
@@ -891,9 +913,23 @@ export class CrudClient<T> {
       });
     };
 
-    const res = await this._doBatch(batchFunc, ids, copts);
+    const res: DeleteResponseDto<T>[] = await this._doBatch(
+      batchFunc,
+      ids,
+      copts,
+    );
 
-    return res?.reduce((acc, val) => acc + val, 0);
+    return res?.reduce(
+      (acc, val) => {
+        acc.count += val.count;
+        if (val.deleted) {
+          acc.deleted = acc.deleted || [];
+          acc.deleted.push(...val.deleted);
+        }
+        return acc;
+      },
+      { count: 0 },
+    );
   }
 
   async delete(
