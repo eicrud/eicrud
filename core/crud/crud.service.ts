@@ -446,7 +446,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
-  ) {
+  ): Promise<PatchResponseDto<T>[]> {
     const opOpts = this.getOpOpts(opOptions, ctx);
     try {
       if (opOpts.hooks) {
@@ -741,7 +741,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext,
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
-  ) {
+  ): Promise<PatchResponseDto<T>> {
     const opOpts = this.getOpOpts(opOptions, ctx);
     const hooks = opOpts?.hooks;
     try {

@@ -6,9 +6,9 @@ import {
   readyApp,
   dropDatabases,
 } from '../src/app.module';
-import { CrudController } from '../../core/crud/crud.controller';
+import { CrudController } from '@eicrud/core/crud/crud.controller';
 import { MyUserService } from '../src/services/my-user/my-user.service';
-import { CrudAuthService } from '../../core/authentication/auth.service';
+import { CrudAuthService } from '@eicrud/core/authentication/auth.service';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { EntityManager } from '@mikro-orm/core';
 import { UserProfile } from '../src/services/user-profile/user-profile.entity';
@@ -25,14 +25,14 @@ import { TestUser } from '../test.utils';
 import {
   CRUD_CONFIG_KEY,
   CrudConfigService,
-} from '../../core/config/crud.config.service';
-import { CrudAuthGuard } from '../../core/authentication/auth.guard';
+} from '@eicrud/core/config/crud.config.service';
+import { CrudAuthGuard } from '@eicrud/core/authentication/auth.guard';
 import {
   ClientConfig,
   CrudClient,
   MemoryStorage,
-} from '../../client/CrudClient';
-import { LoginDto } from '../../core/config/basecmd_dtos/user/login.dto';
+} from '@eicrud/client/CrudClient';
+import { LoginDto } from '@eicrud/core/config/basecmd_dtos/user/login.dto';
 import { MelonService } from '../src/services/melon/melon.service';
 import exp from 'constants';
 import { MyUser } from '../src/services/my-user/my-user.entity';
@@ -47,7 +47,7 @@ const users: Record<string, TestUser> = {
     email: 'michael.doe@test.com',
     role: 'user',
     bio: 'I am Michael Doe, a cool guy! ',
-    melons: 10000,
+    melons: 1000,
   },
   'Jon Doe': {
     email: 'jon.doe@test.com',
@@ -110,7 +110,7 @@ describe('AppController', () => {
   let crudConfig: CrudConfigService;
   const baseName = require('path').basename(__filename);
 
-  const port = 3002;
+  const port = 2995;
 
   const clientConfig = (): ClientConfig => {
     return {
@@ -157,87 +157,8 @@ describe('AppController', () => {
     await app.listen(port);
   });
 
-  it('should find one profile', async () => {
-    const user = users['Michael Doe'];
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password,
-    };
-    const myClient = getProfileClient();
-
-    await myClient.login(dto);
-
-    const profile: UserProfile = await myClient.findOne({
-      id: user.profileId,
-      user: user.id,
-    });
-
-    expect(profile.bio).toBe(user.bio);
-  });
-
-  it('should disconnect when invalid jwt when getting melon', async () => {
-    const user = users['Jon Doe'];
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password,
-      expiresInSec: 1,
-    };
-    const myClient = getMelonClient();
-
-    await myClient.login(dto);
-
-    expect(myClient.config.storage.get(myClient.JWT_STORAGE_KEY)).toBeTruthy();
-
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const melon: Melon = await myClient.findOne({ owner: user.id });
-
-    expect(melon.ownerEmail).toBe(user.email);
-    expect(myClient.config.storage.get(myClient.JWT_STORAGE_KEY)).toBeFalsy();
-  }, 10000);
-
-  it('should detect limit when fetching melon ids', async () => {
-    //wait 200ms
-    await new Promise((resolve) => setTimeout(resolve, 200));
-
-    const user = users['Michael Doe'];
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password,
-    };
-    const myClient = getMelonClient();
-
-    await myClient.login(dto);
-
-    const melons: string[] = (await myClient.findIds({ owner: user.id })).data;
-    expect(melons.length).toBe(10000);
-  }, 10000);
-
-  it('should apply limits when fetching melon Id', async () => {
-    //wait 200ms
-    await new Promise((resolve) => setTimeout(resolve, 200));
-
-    const account = users['Jon Doe'];
-    const user = users['Michael Doe'];
-    const dto: LoginDto = {
-      email: account.email,
-      password: testAdminCreds.password,
-    };
-    const myClient = getMelonClient();
-
-    await myClient.login(dto);
-
-    const melons: any = await myClient.findIds(
-      { owner: user.id },
-      { limit: 500 },
-    );
-
-    expect(melons.data.length).toBe(500);
-    expect(melons.total).toBe(10000);
-  }, 10000);
-
   //@Patch('many')
-  it('should find & patch many & delete melons', async () => {
+  it('should find & patch many melons', async () => {
     const user = users['Melon Many'];
     const dto: LoginDto = {
       email: user.email,
@@ -257,20 +178,48 @@ describe('AppController', () => {
       price: 136,
     };
 
-    const resPatch = await myClient.patch({ owner: user.id }, patch);
+    const resPatch = await myClient.patch({ owner: user.id }, patch, {
+      returnUpdatedEntities: true,
+    });
+
     expect(resPatch.count).toBe(user.melons);
+    expect(resPatch.updated.length).toBe(user.melons);
     expect(user.melons).toBeGreaterThan(0);
+
+    const updatedIdMap = new Map<string, boolean>();
+    for (let mel of resPatch.updated) {
+      expect(mel.price).toBe(patch.price);
+      expect(mel.ownerEmail).toBe(user.email);
+      expect(updatedIdMap.has(mel.id)).toBeFalsy();
+      updatedIdMap.set(mel.id, true);
+    }
 
     const updatedMelons: Melon[] = (await myClient.find({ owner: user.id }))
       .data;
 
     expect(updatedMelons.length).toBe(user.melons);
+
     for (let mel of updatedMelons) {
       expect(mel.price).toBe(patch.price);
     }
 
-    const resDelete = await myClient.delete({ owner: user.id });
+    const resDelete = await myClient.delete(
+      { owner: user.id },
+      {
+        returnUpdatedEntities: true,
+      },
+    );
     expect(resDelete.count).toBe(user.melons);
+    expect(user.melons).toBeGreaterThan(0);
+    expect(resDelete.deleted.length).toBe(user.melons);
+
+    const deletedIdMap = new Map<string, boolean>();
+    for (let mel of resDelete.deleted) {
+      expect(mel.price).toBe(patch.price);
+      expect(mel.ownerEmail).toBe(user.email);
+      expect(deletedIdMap.has(mel.id)).toBeFalsy();
+      deletedIdMap.set(mel.id, true);
+    }
 
     const missingMelons: Melon[] = (await myClient.find({ owner: user.id }))
       .data;
@@ -298,7 +247,7 @@ describe('AppController', () => {
 
     const melons: Melon[] = (await myClient.findIn(ids)).data;
 
-    expect(melons.length).toBe(10000);
+    expect(melons.length).toBe(1000);
     for (let i = 0; i < melons.length; i++) {
       expect(melons[i].owner).toBe(user.id?.toString());
       expect(melons[i].price).toBe(i);
@@ -313,19 +262,43 @@ describe('AppController', () => {
       owner: user.id,
     };
 
-    const res = await myClient.patchIn(q, patch);
+    const res = await myClient.patchIn(q, patch, {
+      returnUpdatedEntities: true,
+    });
 
-    expect(res.count).toBe(10000);
+    expect(res.updated.length).toBe(1000);
+    expect(res.count).toBe(1000);
+
+    const updatedIdMap = new Map<string, boolean>();
+    for (let mel of res.updated) {
+      expect(mel.price).toBe(patch.price);
+      expect(mel.ownerEmail).toBe(user.email);
+      expect(updatedIdMap.has(mel.id)).toBeFalsy();
+      updatedIdMap.set(mel.id, true);
+    }
+
+    for (let i = 0; i < res.updated.length; i++) {
+      expect(res.updated[i].price).toBe(patch.price);
+    }
 
     const updatedMelons: Melon[] = (await myClient.findIn(ids)).data;
 
-    expect(updatedMelons.length).toBe(10000);
+    expect(updatedMelons.length).toBe(1000);
     for (let i = 0; i < updatedMelons.length; i++) {
       expect(updatedMelons[i].price).toBe(patch.price);
     }
 
-    const res2 = await myClient.deleteIn(q);
-    expect(res2.count).toBe(10000);
+    const res2 = await myClient.deleteIn(q, { returnUpdatedEntities: true });
+    expect(res2.count).toBe(1000);
+    expect(res2.deleted.length).toBe(1000);
+
+    const deletedIdMap = new Map<string, boolean>();
+    for (let mel of res2.deleted) {
+      expect(mel.price).toBe(patch.price);
+      expect(mel.ownerEmail).toBe(user.email);
+      expect(deletedIdMap.has(mel.id)).toBeFalsy();
+      deletedIdMap.set(mel.id, true);
+    }
 
     const missingMelons: Melon[] = (await myClient.findIn(ids)).data;
     expect(missingMelons.length).toBe(0);
@@ -333,7 +306,8 @@ describe('AppController', () => {
 
   //@Patch('one')
   it('should patch and delete one profile', async () => {
-    const user = users['Jon Doe'];
+    const username = 'Jon Doe';
+    const user = users[username];
     const dto: LoginDto = {
       email: user.email,
       password: testAdminCreds.password,
@@ -351,8 +325,11 @@ describe('AppController', () => {
     const res1 = await myClient.patchOne(
       { id: user.profileId, user: user.id },
       patch,
+      { returnUpdatedEntities: true },
     );
     expect(res1.count).toBe(1);
+    expect(res1.updated[0].astroSign).toBe(patch.astroSign);
+    expect(res1.updated[0].userName).toBe(username);
 
     const profile: UserProfile = await myClient.findOne({
       id: user.profileId,
@@ -361,12 +338,17 @@ describe('AppController', () => {
 
     expect(profile.astroSign).toBe(patch.astroSign);
 
-    const res2 = await myClient.deleteOne({
-      id: user.profileId,
-      user: user.id,
-    });
+    const res2 = await myClient.deleteOne(
+      {
+        id: user.profileId,
+        user: user.id,
+      },
+      { returnUpdatedEntities: true },
+    );
 
     expect(res2.count).toBe(1);
+    expect(res2.deleted[0].astroSign).toBe(patch.astroSign);
+    expect(res2.deleted[0].userName).toBe(username);
 
     const missingProfile: UserProfile = await myClient.findOne({
       id: user.profileId,
@@ -374,84 +356,6 @@ describe('AppController', () => {
     });
 
     expect(missingProfile).toBeFalsy();
-  });
-
-  //@Patch('one')
-  it('checkjwt should return userId or null', async () => {
-    const user = users['Jon Dae'];
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password,
-    };
-    const myClient = getProfileClient();
-
-    await myClient.login(dto);
-
-    const res = await myClient.checkJwt();
-
-    expect(res).toEqual(user.id?.toString());
-
-    await myClient.logout(false);
-
-    const res2 = await myClient.checkJwt();
-
-    expect(res2).toBeNull();
-
-    myClient.setJwt('bad jwt');
-    const res3 = await myClient.checkJwt();
-
-    expect(res3).toBeNull();
-  });
-
-  it('should batch create melons', async () => {
-    const user = users['Giveme Melons'];
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password,
-    };
-    const myClient = getMelonClient();
-
-    await myClient.login(dto);
-
-    const batch: Melon[] = [];
-    for (let i = 0; i < 10; i++) {
-      batch.push({
-        owner: user.id,
-        price: i,
-        ownerEmail: user.email,
-        name: 'melon',
-      } as Melon);
-    }
-
-    await myClient.createBatch(batch);
-
-    const batch2: Melon[] = [];
-    for (let i = 0; i < 4; i++) {
-      batch2.push({
-        owner: user.id,
-        price: i,
-        ownerEmail: user.email,
-        name: 'melon',
-      } as Melon);
-    }
-
-    await myClient.createBatch(batch2);
-
-    const batch3: Melon[] = [];
-    for (let i = 0; i < 20; i++) {
-      batch3.push({
-        owner: user.id,
-        price: i,
-        ownerEmail: user.email,
-        name: 'melon',
-      } as Melon);
-    }
-
-    await myClient.createBatch(batch3, {}, { batchSize: 4 });
-
-    const res = await melonService.$find({ owner: user.id }, null);
-    const userMelons = res.data;
-    expect(userMelons.length).toBe(34);
   });
 
   it('should batch patch melons', async () => {
@@ -481,7 +385,18 @@ describe('AppController', () => {
       });
     }
 
-    await myClient.patchBatch(batch);
+    const resBatch = await myClient.patchBatch(batch, {
+      returnUpdatedEntities: true,
+    });
+    expect(resBatch.length).toBe(10);
+    for (let batch of resBatch) {
+      expect(batch.count).toBe(1);
+      expect(batch.updated.length).toBe(1);
+      expect(batch.updated[0].name).toEqual(
+        `patched name ${batch.updated[0].price}`,
+      );
+      expect(batch.updated[0].ownerEmail).toEqual(user.email);
+    }
 
     const batch2: { query: any; data: any }[] = [];
     for (let i = 0; i < 4; i++) {
@@ -493,7 +408,18 @@ describe('AppController', () => {
       });
     }
 
-    await myClient.patchBatch(batch2);
+    const resBatch2 = await myClient.patchBatch(batch2, {
+      returnUpdatedEntities: true,
+    });
+    expect(resBatch2.length).toBe(4);
+    for (let batch of resBatch2) {
+      expect(batch.count).toBe(1);
+      expect(batch.updated.length).toBe(1);
+      expect(batch.updated[0].name).toEqual(
+        `patched name ${batch.updated[0].price}`,
+      );
+      expect(batch.updated[0].ownerEmail).toEqual(user.email);
+    }
 
     const batch3: Melon[] = [];
     for (let i = 0; i < 20; i++) {
@@ -506,7 +432,21 @@ describe('AppController', () => {
       } as Melon);
     }
 
-    await myClient.saveBatch(['owner'], batch3, {}, { batchSize: 4 });
+    const resSave = await myClient.saveBatch(
+      ['owner'],
+      batch3,
+      { returnUpdatedEntities: true },
+      { batchSize: 4 },
+    );
+    expect(resSave.length).toBe(20);
+    for (let batch of resSave) {
+      expect(batch.count).toBe(1);
+      expect(batch.updated.length).toBe(1);
+      expect(batch.updated[0].name).toEqual(
+        `patched name ${batch.updated[0].price}`,
+      );
+      expect(batch.updated[0].ownerEmail).toEqual(user.email);
+    }
 
     const batch4: Melon[] = [];
     for (let i = 0; i < 10; i++) {
@@ -519,7 +459,23 @@ describe('AppController', () => {
       } as Melon);
     }
     myClient.config.limitingFields = ['owner'];
-    await myClient.saveBatch(null, batch4, {}, { batchSize: 4 });
+
+    const resSave2 = await myClient.saveBatch(
+      null,
+      batch4,
+      { returnUpdatedEntities: true },
+      { batchSize: 4 },
+    );
+
+    expect(resSave2.length).toBe(10);
+    for (let batch of resSave2) {
+      expect(batch.count).toBe(1);
+      expect(batch.updated.length).toBe(1);
+      expect(batch.updated[0].name).toEqual(
+        `patched name ${batch.updated[0].price}`,
+      );
+      expect(batch.updated[0].ownerEmail).toEqual(user.email);
+    }
 
     const res = await melonService.$find({ owner: user.id }, null);
     const userMelons = res.data;
@@ -529,77 +485,4 @@ describe('AppController', () => {
       expect(mel.name).toEqual(`patched name ${mel.price}`);
     }
   });
-
-  it('should logout', async () => {
-    const user = users['Logme Out'];
-
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password,
-    };
-
-    const myClient = getProfileClient();
-
-    await myClient.login(dto);
-
-    const res = await myClient.checkJwt();
-    expect(res).toEqual(user.id?.toString());
-
-    const res2 = await myClient.logout();
-
-    expect(myClient.config.storage.get(myClient.JWT_STORAGE_KEY)).toBeFalsy();
-
-    expect(res2).toBeFalsy();
-  });
-
-  it('should renew jwt with storage', async () => {
-    const user = users['Renew Me'];
-    const myClient = getProfileClient();
-
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password,
-      expiresInSec: 4,
-    };
-    await myClient.login(dto);
-
-    const profile: UserProfile = await myClient.findOne({
-      id: user.profileId,
-      user: user.id,
-    });
-    expect(profile.bio).toBe(user.bio);
-
-    //wait 4000ms
-    await new Promise((resolve) => setTimeout(resolve, 4000));
-
-    let error;
-    try {
-      await myClient.findOne({
-        id: user.profileId,
-        user: user.id,
-      });
-    } catch (e) {
-      console.log(e.response.data);
-      error = e.response.status;
-    }
-    expect(error).toBe(403);
-
-    dto.expiresInSec = 4;
-    const resLog = await myClient.login(dto);
-
-    expect(resLog.userId).toEqual(user.id?.toString());
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    const res = await myClient.checkJwt();
-    expect(res).toEqual(user.id?.toString());
-
-    //wait 2500ms
-    await new Promise((resolve) => setTimeout(resolve, 2500));
-
-    const profile2: UserProfile = await myClient.findOne({
-      id: user.profileId,
-      user: user.id,
-    });
-    expect(profile2.bio).toBe(user.bio);
-  }, 15000);
 });
