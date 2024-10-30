@@ -605,7 +605,7 @@ export class CrudClient<T> {
     q: object | string[],
     d: object,
     options: ICrudOptions = undefined,
-  ): Promise<T> {
+  ): Promise<PatchResponseDto<T>> {
     let query = {};
     let data = d;
     if (Array.isArray(q)) {

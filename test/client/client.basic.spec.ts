@@ -308,7 +308,9 @@ describe('AppController', () => {
       owner: user.id,
     };
 
-    await myClient.patchIn(q, patch);
+    const res = await myClient.patchIn(q, patch);
+
+    expect(res.count).toBe(10000);
 
     const updatedMelons: Melon[] = (await myClient.findIn(ids)).data;
 
@@ -335,7 +337,11 @@ describe('AppController', () => {
       astroSign: 'Aries',
     };
 
-    await myClient.patchOne({ id: user.profileId, user: user.id }, patch);
+    const res1 = await myClient.patchOne(
+      { id: user.profileId, user: user.id },
+      patch,
+    );
+    expect(res1.count).toBe(1);
 
     const profile: UserProfile = await myClient.findOne({
       id: user.profileId,
