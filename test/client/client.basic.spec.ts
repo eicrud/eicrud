@@ -110,9 +110,11 @@ describe('AppController', () => {
   let crudConfig: CrudConfigService;
   const baseName = require('path').basename(__filename);
 
+  const port = 3002;
+
   const clientConfig = (): ClientConfig => {
     return {
-      url: 'http://127.0.0.1:3002',
+      url: 'http://127.0.0.1:' + port,
       serviceName: 'user-profile',
       storage: new MemoryStorage(),
       userServiceName: 'my-user',
@@ -152,7 +154,7 @@ describe('AppController', () => {
       testAdminCreds,
     });
 
-    await app.listen(3002);
+    await app.listen(port);
   });
 
   it('should find one profile', async () => {
