@@ -198,7 +198,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: '507f191e810c19729de860ea' }), //fake id
-      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
+      options: JSON.stringify({ returnUpdatedEntity: true }) as any,
     };
 
     // should throw if entity not found
@@ -233,7 +233,7 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-    expect(res.updated[0].userName).toBe(payload.userName);
+    expect(res.updated.userName).toBe(payload.userName);
   });
 
   //@Patch('/crud/in')
@@ -253,7 +253,6 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: ids }),
-      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = null;
@@ -294,19 +293,12 @@ describe('AppController', () => {
       );
       expect(resDB.astroSign).toEqual('Aries');
     }
-
-    for (const resReturn of res.updated) {
-      expect(resReturn.astroSign).toEqual('Aries');
-      expect(resReturn.fakeProp).toBeUndefined();
-      expect(resReturn.favoriteColor).toEqual('blue');
-    }
   });
 
   //@Patch('/crud/batch')
   it('should patch batch profiles', async () => {
     const query: CrudQuery = {
       service: 'user-profile',
-      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const payloadArray = [];
@@ -360,11 +352,7 @@ describe('AppController', () => {
     }
 
     for (const batch of res) {
-      expect(batch.updated.length).toEqual(1);
-      for (const resReturn of batch.updated) {
-        expect(resReturn.astroSign).toEqual('Taurus');
-        expect(resReturn.favoriteColor).toEqual('blue');
-      }
+      expect(batch.count).toEqual(1);
     }
   });
 
@@ -377,7 +365,6 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ bio: 'BIO_FIND_KEY' }),
-      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = null;
@@ -411,17 +398,12 @@ describe('AppController', () => {
     });
 
     expect(res.count).toEqual(3);
-    expect(res.updated.length).toEqual(3);
     for (const profile in profiles) {
       const resDB: any = await profileService.$findOne(
         { id: profiles[profile].id },
         null,
       );
       expect(resDB.chineseSign).toEqual('Pig');
-    }
-    for (const resReturn of res.updated) {
-      expect(resReturn.chineseSign).toEqual('Pig');
-      expect(resReturn.favoriteColor).toEqual('blue');
     }
   });
 
@@ -435,7 +417,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: formatedId }),
-      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
+      options: JSON.stringify({ returnUpdatedEntity: true }) as any,
     };
 
     const expectedObject = null;
@@ -453,12 +435,9 @@ describe('AppController', () => {
       crudConfig,
     });
     expect(res.count).toEqual(1);
-    expect(res.deleted.length).toEqual(1);
+    expect(res.deleted.id).toEqual(formatedId);
+    expect(res.deleted.favoriteColor).toEqual('blue');
 
-    for (const resReturn of res.deleted) {
-      expect(resReturn.id).toEqual(formatedId);
-      expect(resReturn.favoriteColor).toEqual('blue');
-    }
     const resDb = await profileService.$findOne(
       { id: users['Delme Dude'].id },
       null,
@@ -480,7 +459,6 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ id: ids }),
-      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = null;
@@ -499,12 +477,6 @@ describe('AppController', () => {
     });
     expect(ids.length).toBeGreaterThan(0);
     expect(res.count).toEqual(ids.length);
-    expect(res.deleted.length).toEqual(ids.length);
-
-    for (const resReturn of res.deleted) {
-      expect(ids.includes(resReturn.id)).toBeTruthy();
-      expect(resReturn.favoriteColor).toEqual('blue');
-    }
 
     for (const profile in profilesToRemoveIn) {
       const resDb = await profileService.$findOne(
@@ -521,7 +493,6 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ bio: 'BIO_DELETE_KEY' }),
-      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
     };
 
     const expectedObject = null;
@@ -539,12 +510,6 @@ describe('AppController', () => {
       crudConfig,
     });
     expect(res.count).toEqual(2);
-    expect(res.deleted.length).toEqual(2);
-
-    for (const resReturn of res.deleted) {
-      expect(resReturn.favoriteColor).toEqual('blue');
-      expect(resReturn.bio).toEqual('BIO_DELETE_KEY');
-    }
 
     for (const profile in profilesToRemoveMany) {
       const resDb = await profileService.$findOne(

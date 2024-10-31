@@ -25,7 +25,7 @@ export class CrudOptions<T = any> implements ICrudOptions {
 
   @IsOptional()
   @IsBoolean()
-  returnUpdatedEntities?: boolean;
+  returnUpdatedEntity?: boolean;
 
   @IsOptional()
   @IsBoolean()

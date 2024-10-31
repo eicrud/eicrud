@@ -616,11 +616,8 @@ export class Export {
             type: 'object',
             properties: {
               updated: {
-                type: 'array',
-                items: {
-                  $ref: entityRef,
-                },
-                title: `Updated ${tk_entity_name}s if returnUpdatedEntities CrudOption is specified`,
+                $ref: entityRef,
+                title: `Updated ${tk_entity_name} if returnUpdatedEntity CrudOption is specified`,
               },
               count: {
                 type: 'number',
@@ -639,11 +636,8 @@ export class Export {
             type: 'object',
             properties: {
               deleted: {
-                type: 'array',
-                items: {
-                  $ref: entityRef,
-                },
-                title: `Deleted ${tk_entity_name}s if returnUpdatedEntities CrudOption is specified`,
+                $ref: entityRef,
+                title: `Deleted ${tk_entity_name} if returnUpdatedEntity CrudOption is specified`,
               },
               count: {
                 type: 'number',

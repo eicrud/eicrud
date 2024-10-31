@@ -159,7 +159,7 @@ describe('AppController', () => {
         query: {
           options: JSON.stringify({
             jwtCookie: true,
-            returnUpdatedEntities: true,
+            returnUpdatedEntity: true,
           }) as any,
           query: JSON.stringify(query) as any,
         },
@@ -170,13 +170,13 @@ describe('AppController', () => {
           authorization: authorization,
         },
       });
-      expect(res3.data?.updated?.[0]?.name).toBe('patched'); //testing the type here
+      expect(res3.data?.updated?.name).toBe('patched'); //testing the type here
 
       let res4 = await services.deleteCrudSStarFruitOne({
         query: {
           options: JSON.stringify({
             jwtCookie: true,
-            returnUpdatedEntities: true,
+            returnUpdatedEntity: true,
           }) as any,
           query: JSON.stringify(query) as any,
         },
@@ -184,7 +184,7 @@ describe('AppController', () => {
           authorization: authorization,
         },
       });
-      expect(res4.data?.deleted?.[0]?.name).toBe('patched'); //testing the type here
+      expect(res4.data?.deleted?.name).toBe('patched'); //testing the type here
     },
   );
 

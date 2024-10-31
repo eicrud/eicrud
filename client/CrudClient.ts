@@ -694,10 +694,6 @@ export class CrudClient<T> {
     return res.reduce(
       (acc, val) => {
         acc.count += val.count;
-        if (val.updated) {
-          acc.updated = acc.updated || [];
-          acc.updated.push(...val.updated);
-        }
         return acc;
       },
       { count: 0 },
@@ -922,10 +918,6 @@ export class CrudClient<T> {
     return res?.reduce(
       (acc, val) => {
         acc.count += val.count;
-        if (val.deleted) {
-          acc.deleted = acc.deleted || [];
-          acc.deleted.push(...val.deleted);
-        }
         return acc;
       },
       { count: 0 },

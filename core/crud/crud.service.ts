@@ -79,7 +79,6 @@ interface _OpOpts {
   secure?: boolean;
   em?: EntityManager;
   noFlush?: boolean;
-  skipCtxOptions?: boolean;
   skipCtxLimit?: boolean;
 }
 type ExcludedInheritanceKeys = 'hooks' | 'secure' | 'em' | 'noFlush';
@@ -601,9 +600,6 @@ export class CrudService<T extends CrudEntity> {
   }
 
   getReadOptions(ctx: CrudContext, opOptions: OpOpts): CrudOptions {
-    if (opOptions.skipCtxOptions) {
-      return {};
-    }
     const opts = { ...(ctx?.options || {}) };
     if (opOptions.skipCtxLimit) {
       delete opts.limit;
@@ -756,19 +752,6 @@ export class CrudService<T extends CrudEntity> {
         this.makeInQuery(query[this.crudConfig.id_field], finalQuery);
       }
 
-      if (ctx?.options?.returnUpdatedEntities) {
-        IDs = await this.$findIds(finalQuery, ctx, {
-          hooks: false,
-          skipCtxOptions: true,
-        });
-        if (IDs.length) {
-          finalQuery = {};
-          this.makeInQuery(IDs, finalQuery);
-        } else {
-          skipUpdate = true;
-        }
-      }
-
       let results: PatchResponseDto<T> = { count: 0 };
 
       if (!skipUpdate) {
@@ -783,14 +766,6 @@ export class CrudService<T extends CrudEntity> {
           opOpts,
         );
         results.count = patchResult;
-      }
-
-      if (ctx?.options?.returnUpdatedEntities && IDs.length) {
-        let resFind = await this.$findIn(IDs, {}, ctx, {
-          hooks: false,
-          skipCtxLimit: true,
-        });
-        results.updated = resFind?.data || [];
       }
 
       if (hooks) {
@@ -934,7 +909,7 @@ export class CrudService<T extends CrudEntity> {
       );
       await em.flush();
 
-      if (ctx?.options?.returnUpdatedEntities) {
+      if (ctx?.options?.returnUpdatedEntity) {
         let resFind = await this.$findOne(
           {
             [this.crudConfig.id_field]: patchResult[this.crudConfig.id_field],
@@ -943,7 +918,7 @@ export class CrudService<T extends CrudEntity> {
           { hooks: false, skipCtxLimit: true },
         );
 
-        ret.updated = resFind ? [resFind] : [];
+        ret.updated = resFind;
       }
 
       if (opOpts.hooks) {
@@ -1011,10 +986,7 @@ export class CrudService<T extends CrudEntity> {
     let result = query;
     if (secure || !query[this.crudConfig.id_field]) {
       const tempEm = em.fork();
-      result = await this.$findOne(query, ctx, {
-        hooks: false,
-        skipCtxOptions: true,
-      });
+      result = await tempEm.findOne(this.entity, query);
       if (!result) {
         throw new BadRequestException(CrudErrors.ENTITY_NOT_FOUND.str());
       }
@@ -1081,37 +1053,14 @@ export class CrudService<T extends CrudEntity> {
       const em = this.entityManager.fork();
       const opts = this.getReadOptions(ctx, opOpts);
 
-      let skipDelete = false;
-      if (ctx?.options?.returnUpdatedEntities) {
-        let resFind = await this.$find(finalQuery, ctx, {
-          hooks: false,
-          skipCtxLimit: true,
-        });
-        const IDs = resFind.data?.map((d) => d[this.crudConfig.id_field]) || [];
-        if (IDs.length) {
-          finalQuery = {};
-          this.makeInQuery(IDs, finalQuery);
-          result.deleted = resFind.data;
-        } else {
-          skipDelete = true;
-          result.deleted = [];
-          result.count = 0;
-        }
-      }
-
-      if (!skipDelete) {
-        this.checkObjectForIds(finalQuery);
-        let length = await em.nativeDelete(
-          this.entity,
-          finalQuery,
-          opts as any,
-        );
-        result.count = length;
-      }
+      this.checkObjectForIds(finalQuery);
+      let length = await em.nativeDelete(this.entity, finalQuery, opts as any);
+      result.count = length;
 
       if (opOpts.hooks) {
         result = await this.afterDeleteHook(result, query, ctx);
       }
+
       return result;
     } catch (e) {
       if (opOpts.hooks) {
@@ -1155,8 +1104,8 @@ export class CrudService<T extends CrudEntity> {
       }
       em.remove(entity);
       let result: DeleteResponseDto<T> = { count: 1 };
-      if (ctx?.options?.returnUpdatedEntities) {
-        result.deleted = [entity];
+      if (ctx?.options?.returnUpdatedEntity) {
+        result.deleted = entity;
       }
       await em.flush();
       if (opOpts.hooks) {
