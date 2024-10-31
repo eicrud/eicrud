@@ -7,7 +7,7 @@ export interface ICrudOptions {
   cached?: boolean;
   allowIdOverride?: boolean;
 
-  returnUpdatedEntities?: boolean;
+  returnUpdatedEntity?: boolean;
 
   /**
    * Used by the client to indicate to the server that the JWT should be stored in a cookie.
@@ -33,11 +33,11 @@ export interface FindResponseDto<T = any> {
 
 export interface PatchResponseDto<T = any> {
   count: number;
-  updated?: T[];
+  updated?: T;
 }
 export interface DeleteResponseDto<T = any> {
   count: number;
-  deleted?: T[];
+  deleted?: T;
 }
 
 export interface ILoginDto {

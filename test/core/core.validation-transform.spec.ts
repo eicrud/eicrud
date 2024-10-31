@@ -217,7 +217,7 @@ describe('AppController', () => {
       service: 'user-profile',
       query: JSON.stringify({ user: userId }),
       options: JSON.stringify({
-        returnUpdatedEntities: true,
+        returnUpdatedEntity: true,
       }) as any,
     };
     const expectedObject = {
@@ -301,7 +301,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ user: userId }),
-      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
+      options: JSON.stringify({ returnUpdatedEntity: true }) as any,
     };
     await testMethod({
       url: '/crud/one',
@@ -393,7 +393,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ user: userId }),
-      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
+      options: JSON.stringify({ returnUpdatedEntity: true }) as any,
     };
 
     const expectedObject = {
@@ -509,7 +509,7 @@ describe('AppController', () => {
     const query: CrudQuery = {
       service: 'user-profile',
       query: JSON.stringify({ user: userId }),
-      options: JSON.stringify({ returnUpdatedEntities: true }) as any,
+      options: JSON.stringify({ returnUpdatedEntity: true }) as any,
     };
 
     await testMethod({

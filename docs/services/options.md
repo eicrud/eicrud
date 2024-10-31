@@ -10,7 +10,7 @@ export interface ICrudOptions {
     cached?: boolean;
     allowIdOverride?: boolean;
     skipServiceHooks?: boolean;
-    returnUpdatedEntities?: boolean;
+    returnUpdatedEntity?: boolean;
 }
 ```
 
@@ -70,8 +70,8 @@ Allow skipping of all service hooks.
 !!! note 
     `skipServiceHooks` doesn't affect controller hooks.
 
-### returnUpdatedEntities
+### returnUpdatedEntity
 Enable the return of updated/deleted entities in patch and delete operations.
  
 !!! note 
-    `returnUpdatedEntities` impacts the operation' performance.
+    `returnUpdatedEntity` impacts the operation' performance.

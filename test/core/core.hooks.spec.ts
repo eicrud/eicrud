@@ -559,11 +559,11 @@ describe('AppController', () => {
       payload,
       query: {
         ...query,
-        options: JSON.stringify({ returnUpdatedEntities: true }),
+        options: JSON.stringify({ returnUpdatedEntity: true }),
       },
       crudConfig,
     });
-    expect(res.updated[0].message).toBe('replaced in hook (update)');
+    expect(res.updated.message).toBe('replaced in hook (update)');
     const res00: any = await hookTriggerService.$findOne(
       { originalMessage: createMessage, throwError: true },
       null,
