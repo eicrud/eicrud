@@ -746,27 +746,24 @@ export class CrudService<T extends CrudEntity> {
       }
 
       let finalQuery = { ...query };
-      let IDs = [];
-      let skipUpdate = false;
+
       if (Array.isArray(query[this.crudConfig.id_field])) {
         this.makeInQuery(query[this.crudConfig.id_field], finalQuery);
       }
 
       let results: PatchResponseDto<T> = { count: 0 };
 
-      if (!skipUpdate) {
-        this.checkObjectForIds(finalQuery);
-        this.checkObjectForIds(data);
-        const em = opOpts.em || this.entityManager.fork();
-        let patchResult = await this.doQueryPatch(
-          finalQuery,
-          data,
-          ctx,
-          em,
-          opOpts,
-        );
-        results.count = patchResult;
-      }
+      this.checkObjectForIds(finalQuery);
+      this.checkObjectForIds(data);
+      const em = opOpts.em || this.entityManager.fork();
+      let patchResult = await this.doQueryPatch(
+        finalQuery,
+        data,
+        ctx,
+        em,
+        opOpts,
+      );
+      results.count = patchResult;
 
       if (hooks) {
         [results] = await this.afterUpdateHook(
