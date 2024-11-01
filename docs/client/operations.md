@@ -135,7 +135,7 @@ const ids = ['4d3ed089fb60ab534684b7e9', '4d3ed089fb60ab534684b7ff']
 const update: Partial<Profile> = {
     bio: "Is nice."
 }
-await profileClient.patch(query, update);
+await profileClient.patchIn(ids, update);
 ```
 
 ### patchBatch
