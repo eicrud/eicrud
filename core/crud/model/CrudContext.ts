@@ -25,7 +25,7 @@ export interface CrudContext<T = any> {
   query?: any;
   data?: any;
   origin?: 'crud' | 'cmd' | 'webhook' | string;
-  originOptions?: CrudOptionsType<T>;
+  queryOptions?: CrudOptionsType<T>;
   cmdName?: string;
   ids?: string[];
   ip?: string;

@@ -1,4 +1,3 @@
-
 ## CrudOptions
 
 You can pass the [CrudOptions](../services/options.md) with every client method call.

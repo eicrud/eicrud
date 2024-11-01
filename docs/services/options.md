@@ -1,4 +1,7 @@
-You can pass `CrudOptions` when performing [operations](operations.md) or [commands](commands.md).
+You can pass various options when performing [operations](operations.md) or [commands](commands.md).
+
+## CrudOptions
+`CrudOptions` is a shared set of parameters that can be set from the [client](../client/setup.md).
 
 ```typescript
 export interface ICrudOptions {
@@ -14,21 +17,21 @@ export interface ICrudOptions {
 }
 ```
 
-Options are passed via the [context](../context.md):
+You can pass it when calling [service](./definition.md) methods from the server side:
 
 ```typescript
-import { CrudContext } from "@eicrud/core/crud";
+import { OpParams } from "@eicrud/core/crud";
 
 const query: Partial<Profile> = {
     astroSign: "Aries"
 }
-const ctx: Partial<CrudContext> = {
+const opParams: OpParams = {
     options: {
         limit: 20
     }
 }
 
-const {data, total, limit} = await profileService.$find(query, ctx);
+const {data, total, limit} = await profileService.$find(query, null, opParams);
 ``` 
 
 !!! note
@@ -71,7 +74,40 @@ Allow skipping of all service hooks.
     `skipServiceHooks` doesn't affect controller hooks.
 
 ### returnUpdatedEntity
-Enable the return of updated/deleted entities in patch and delete operations.
+Enable the return of the updated/deleted entity in patchOne and deleteOne operations.
  
 !!! note 
     `returnUpdatedEntity` impacts the operation' performance.
+
+## OpParams
+
+`OpParams` are parameters only accessible from the server. 
+
+```typescript
+interface OpParams {
+  options?: CrudOptions;
+  secure?: boolean;
+  em?: EntityManager;
+  noFlush?: boolean;
+}
+```
+Each parameter will be set to a default value if not provided.
+```typescript
+  _defaultOpParams: OpParams = {
+    options: {},
+    secure: true,
+    em: null,
+    noFlush: false,
+  };
+```
+### options
+The `CrudOptions` for the operation.
+
+### secure
+Adds extra checks depending on the operation (i.e: verify `maxItemsInDb` for create, check if the entity exists for patch). Usually you want to set this parameter if the method call results from a user interaction.
+
+### em
+Provide a specific [entity manager](https://mikro-orm.io/docs/entity-manager) to perform the operation.
+
+### noFlush
+Disable the entity manager flush (for create operations only). 

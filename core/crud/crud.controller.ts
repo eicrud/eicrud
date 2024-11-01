@@ -146,7 +146,7 @@ export class CrudController {
     ctx.serviceName = crudQuery.service;
     ctx.query = query;
     ctx.data = data;
-    ctx.originOptions = crudQuery.options;
+    ctx.queryOptions = crudQuery.options;
     ctx.origin = type;
 
     ctx._temp = ctx._temp || {};
@@ -567,7 +567,7 @@ export class CrudController {
     try {
       await this.performValidationAuthorizationAndHooks(ctx, currentService);
       let res;
-      if (ctx.originOptions?.cached) {
+      if (ctx.queryOptions?.cached) {
         res = await currentService.$findOneCached_(ctx);
       } else {
         res = await currentService.$findOne_(ctx);
@@ -950,12 +950,9 @@ export class CrudController {
   limitQuery(ctx: CrudContext, nonAdmin, admin) {
     const isAdmin = this.crudAuthorization.getCtxUserRole(ctx)?.isAdminRole;
     const MAX_LIMIT_FIND = isAdmin ? admin : nonAdmin;
-    if (
-      !ctx.originOptions?.limit ||
-      ctx.originOptions?.limit > MAX_LIMIT_FIND
-    ) {
-      ctx.originOptions = ctx.originOptions || {};
-      ctx.originOptions.limit = MAX_LIMIT_FIND;
+    if (!ctx.queryOptions?.limit || ctx.queryOptions?.limit > MAX_LIMIT_FIND) {
+      ctx.queryOptions = ctx.queryOptions || {};
+      ctx.queryOptions.limit = MAX_LIMIT_FIND;
     }
   }
 

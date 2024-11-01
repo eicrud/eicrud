@@ -31,9 +31,9 @@ export async function search(
   };
 
   await this.crudAuthorization.authorize(fakeCtx, this.security);
-  const opOpts = ctx.originOptions ? { options: ctx.originOptions } : undefined;
+  const opParams = ctx.queryOptions ? { options: ctx.queryOptions } : undefined;
   if (dto.ids) {
-    return this.$findIn(dto.ids, query, fakeCtx, opOpts, inheritance);
+    return this.$findIn(dto.ids, query, fakeCtx, opParams, inheritance);
   }
-  return this.$find(query, fakeCtx, opOpts, inheritance);
+  return this.$find(query, fakeCtx, opParams, inheritance);
 }
