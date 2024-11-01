@@ -193,7 +193,7 @@ export class CrudAuthorizationService {
     if (ctx.origin == 'crud' && ctx.data?.[this.crudConfig.id_field]) {
       if (ctx.method == 'PATCH') {
         throw new BadRequestException(CrudErrors.CANNOT_UPDATE_ID.str());
-      } else if (ctx.method == 'POST' && !ctx.options?.allowIdOverride) {
+      } else if (ctx.method == 'POST' && !ctx.queryOptions?.allowIdOverride) {
         throw new BadRequestException(CrudErrors.ID_OVERRIDE_NOT_SET.str());
       }
     }
@@ -272,10 +272,10 @@ export class CrudAuthorizationService {
     const fieldsToExclude = security.alwaysExcludeFields;
     if (
       fieldsToExclude?.length &&
-      (ctx.method == 'GET' || ctx?.options?.returnUpdatedEntities)
+      (ctx.method == 'GET' || ctx?.queryOptions?.returnUpdatedEntity)
     ) {
-      if (ctx.options.fields?.length) {
-        for (const field of ctx.options.fields) {
+      if (ctx.queryOptions.fields?.length) {
+        for (const field of ctx.queryOptions.fields) {
           if (fieldsToExclude.includes(field)) {
             throw new BadRequestException(
               `Always excluded field ${field} cannot be in fields option.`,
@@ -283,7 +283,7 @@ export class CrudAuthorizationService {
           }
         }
       } else {
-        ctx.options.exclude = fieldsToExclude as any;
+        ctx.queryOptions.exclude = fieldsToExclude as any;
       }
     }
 
@@ -365,19 +365,21 @@ export class CrudAuthorizationService {
       }
     }
 
-    if (!currentResult && ctx.options) {
+    if (!currentResult && ctx.queryOptions) {
       const userOptionsAbilities = await defineAbility(async (can, cannot) => {
         await roleRights.defineOPTAbility?.(can, cannot, ctx);
       }, {});
 
-      for (const key of Object.keys(ctx.options) as (keyof CrudOptions)[]) {
+      for (const key of Object.keys(
+        ctx.queryOptions,
+      ) as (keyof CrudOptions)[]) {
         if (
           SKIPPABLE_OPTIONS.includes(key) ||
           security?.alwaysAllowedCrudOptions?.includes(key)
         ) {
           continue;
         }
-        let ofields = ctx.options[key];
+        let ofields = ctx.queryOptions[key];
         ofields = _utils.makeArray(ofields);
         ofields = ofields.map((f) => f.toString());
         if (!ofields.length) {
@@ -403,9 +405,9 @@ export class CrudAuthorizationService {
 
       if (
         roleRights.fields &&
-        (ctx.method == 'GET' || ctx?.options?.returnUpdatedEntities)
+        (ctx.method == 'GET' || ctx?.queryOptions?.returnUpdatedEntity)
       ) {
-        ctx.options.fields = roleRights.fields as any;
+        ctx.queryOptions.fields = roleRights.fields as any;
       }
 
       return result;

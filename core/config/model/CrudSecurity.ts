@@ -202,7 +202,7 @@ export class CrudSecurity<T = any, TRoleType extends string = string> {
   /**
    * Always allow specified CRUD options (for all roles).
    * @example
-   * alwaysAllowedCrudOptions = ['returnUpdatedEntities']
+   * alwaysAllowedCrudOptions = ['returnUpdatedEntity']
    *
    */
   alwaysAllowedCrudOptions?: (keyof CrudOptions)[];

@@ -7,7 +7,7 @@ export interface CrudContext {
     userId?: string,
     query?: any, 
     data?: any,
-    options?: CrudOptions,
+    queryOptions?: CrudOptions,
     getCurrentService?: () => CrudService<any>;
     getHttpRequest?: () => any;
     getHttpResponse?: () => any;

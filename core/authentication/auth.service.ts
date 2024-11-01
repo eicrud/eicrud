@@ -87,7 +87,7 @@ export class CrudAuthService {
     });
     payload = { ...payload, ...addToPayload };
     let csrf;
-    if (ctx && ctx.options?.jwtCookie) {
+    if (ctx && ctx.queryOptions?.jwtCookie) {
       csrf = await _utils.generateRandomString(16);
       payload['csrf'] = csrf;
     }
@@ -96,7 +96,7 @@ export class CrudAuthService {
       secret: this.JWT_SECRET,
       expiresIn,
     });
-    if (ctx && ctx.options?.jwtCookie) {
+    if (ctx && ctx.queryOptions?.jwtCookie) {
       ctx.setCookies = ctx.setCookies || {};
       ctx.setCookies['eicrud-jwt'] = {
         value: token,

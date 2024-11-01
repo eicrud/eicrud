@@ -12,7 +12,7 @@ export function getSecurity(starFruit: string): CrudSecurity<StarFruit> {
         },
 
         async defineOPTAbility(can, cannot, ctx) {
-          can('returnUpdatedEntities', starFruit);
+          can('returnUpdatedEntity', starFruit);
         },
       },
     },

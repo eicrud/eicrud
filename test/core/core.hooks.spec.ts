@@ -207,12 +207,12 @@ describe('AppController', () => {
     await hookTriggerService.$createBatch(
       [hookToUpdate, ...hooksToUpdateMany, hookToDelete, ...hooksToDeleteMany],
       { skipMsLinkHooks: true } as any,
-      { hooks: false },
+      { options: { skipServiceHooks: true } },
     );
     hooksToUpdateBatch = await hookTriggerService.$createBatch(
       hooksToUpdateBatch,
       { skipMsLinkHooks: true } as any,
-      { hooks: false },
+      { options: { skipServiceHooks: true } },
     );
 
     hooksToUpdateIn = [
@@ -232,7 +232,7 @@ describe('AppController', () => {
     hooksToUpdateIn = await hookTriggerService.$createBatch(
       hooksToUpdateIn,
       { skipMsLinkHooks: true } as any,
-      { hooks: false },
+      { options: { skipServiceHooks: true } },
     );
 
     hooksToDeleteIn = [
@@ -252,7 +252,7 @@ describe('AppController', () => {
     hooksToDeleteIn = await hookTriggerService.$createBatch(
       hooksToDeleteIn,
       { skipMsLinkHooks: true } as any,
-      { hooks: false },
+      { options: { skipServiceHooks: true } },
     );
 
     await createAccountsAndProfiles(users, userService, crudConfig, {
@@ -559,11 +559,11 @@ describe('AppController', () => {
       payload,
       query: {
         ...query,
-        options: JSON.stringify({ returnUpdatedEntities: true }),
+        options: JSON.stringify({ returnUpdatedEntity: true }),
       },
       crudConfig,
     });
-    expect(res.updated[0].message).toBe('replaced in hook (update)');
+    expect(res.updated.message).toBe('replaced in hook (update)');
     const res00: any = await hookTriggerService.$findOne(
       { originalMessage: createMessage, throwError: true },
       null,

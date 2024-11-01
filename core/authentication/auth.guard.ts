@@ -31,6 +31,7 @@ import { LRUCache } from 'mnemonist';
 import { Mutex } from 'async-mutex';
 import { CrudAuthorizationService } from '../crud/crud.authorization.service';
 import { LoginDto } from '../config/basecmd_dtos/user/login.dto';
+import { CrudQuery } from '../crud';
 
 export interface TrafficCache {
   get: (key: string) => Promise<any>;
@@ -257,7 +258,8 @@ export class CrudAuthGuard implements CanActivate {
     crudContext.authType = type;
     let user: Partial<CrudUser> = { role: this.crudConfig.guest_role };
     let userId;
-    const options: CrudOptions = request.query?.query?.options || {};
+    const options: CrudOptions =
+      (request.query?.query as CrudQuery)?.options || {};
     if (token && this.extractUserCheck(url)) {
       user = await this.extractUser(token, request, crudContext);
 

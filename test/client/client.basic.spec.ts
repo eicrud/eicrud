@@ -110,9 +110,11 @@ describe('AppController', () => {
   let crudConfig: CrudConfigService;
   const baseName = require('path').basename(__filename);
 
+  const port = 3002;
+
   const clientConfig = (): ClientConfig => {
     return {
-      url: 'http://127.0.0.1:3002',
+      url: 'http://127.0.0.1:' + port,
       serviceName: 'user-profile',
       storage: new MemoryStorage(),
       userServiceName: 'my-user',
@@ -146,12 +148,13 @@ describe('AppController', () => {
     melonService = app.get<MelonService>(MelonService);
 
     crudConfig.authenticationOptions.minTimeBetweenLoginAttempsMs = 0;
+    crudConfig.watchTrafficOptions.ddosProtection = false;
 
     await createAccountsAndProfiles(users, userService, crudConfig, {
       testAdminCreds,
     });
 
-    await app.listen(3002);
+    await app.listen(port);
   });
 
   it('should find one profile', async () => {
@@ -234,7 +237,7 @@ describe('AppController', () => {
   }, 10000);
 
   //@Patch('many')
-  it('should find & patch many melons', async () => {
+  it('should find & patch many & delete melons', async () => {
     const user = users['Melon Many'];
     const dto: LoginDto = {
       email: user.email,
@@ -254,15 +257,9 @@ describe('AppController', () => {
       price: 136,
     };
 
-    const resPatch = await myClient.patch({ owner: user.id }, patch, {
-      returnUpdatedEntities: true,
-    });
+    const resPatch = await myClient.patch({ owner: user.id }, patch);
     expect(resPatch.count).toBe(user.melons);
-    expect(resPatch.updated.length).toBe(user.melons);
     expect(user.melons).toBeGreaterThan(0);
-    for (let mel of resPatch.updated) {
-      expect(mel.price).toBe(patch.price);
-    }
 
     const updatedMelons: Melon[] = (await myClient.find({ owner: user.id }))
       .data;
@@ -271,9 +268,17 @@ describe('AppController', () => {
     for (let mel of updatedMelons) {
       expect(mel.price).toBe(patch.price);
     }
+
+    const resDelete = await myClient.delete({ owner: user.id });
+    expect(resDelete.count).toBe(user.melons);
+
+    const missingMelons: Melon[] = (await myClient.find({ owner: user.id }))
+      .data;
+
+    expect(missingMelons.length).toBe(0);
   });
 
-  it('should findIds & patchIn & findIn melons', async () => {
+  it('should findIds & patchIn & findIn & deleteIn melons', async () => {
     //wait 200ms
     await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -308,7 +313,9 @@ describe('AppController', () => {
       owner: user.id,
     };
 
-    await myClient.patchIn(q, patch);
+    const res = await myClient.patchIn(q, patch);
+
+    expect(res.count).toBe(10000);
 
     const updatedMelons: Melon[] = (await myClient.findIn(ids)).data;
 
@@ -316,10 +323,16 @@ describe('AppController', () => {
     for (let i = 0; i < updatedMelons.length; i++) {
       expect(updatedMelons[i].price).toBe(patch.price);
     }
-  }, 15000);
+
+    const res2 = await myClient.deleteIn(q);
+    expect(res2.count).toBe(10000);
+
+    const missingMelons: Melon[] = (await myClient.findIn(ids)).data;
+    expect(missingMelons.length).toBe(0);
+  }, 17000);
 
   //@Patch('one')
-  it('should patch one profile', async () => {
+  it('should patch and delete one profile', async () => {
     const user = users['Jon Doe'];
     const dto: LoginDto = {
       email: user.email,
@@ -335,7 +348,11 @@ describe('AppController', () => {
       astroSign: 'Aries',
     };
 
-    await myClient.patchOne({ id: user.profileId, user: user.id }, patch);
+    const res1 = await myClient.patchOne(
+      { id: user.profileId, user: user.id },
+      patch,
+    );
+    expect(res1.count).toBe(1);
 
     const profile: UserProfile = await myClient.findOne({
       id: user.profileId,
@@ -343,6 +360,20 @@ describe('AppController', () => {
     });
 
     expect(profile.astroSign).toBe(patch.astroSign);
+
+    const res2 = await myClient.deleteOne({
+      id: user.profileId,
+      user: user.id,
+    });
+
+    expect(res2.count).toBe(1);
+
+    const missingProfile: UserProfile = await myClient.findOne({
+      id: user.profileId,
+      user: user.id,
+    });
+
+    expect(missingProfile).toBeFalsy();
   });
 
   //@Patch('one')

@@ -192,8 +192,8 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     await logHook(this, updates, 'after', 'update', ctx);
 
     for (const r in results) {
-      if (results[r]?.updated?.[0]?.message) {
-        results[r].updated[0].message = 'replaced in hook (update)';
+      if (results[r]?.updated?.message) {
+        results[r].updated.message = 'replaced in hook (update)';
       } else {
         results[r] = 'replaced in hook (update)';
       }

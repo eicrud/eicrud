@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudSecurity } from '../config/model/CrudSecurity';
-import { CrudContext } from './model/CrudContext';
+import { CrudContext, CrudOptionsType } from './model/CrudContext';
 import { toKebabCase } from '@eicrud/shared/utils';
 import { CrudUser } from '../config/model/CrudUser';
 import {
@@ -74,16 +74,14 @@ function getAllMethodNames(obj) {
   return methodNames;
 }
 
-interface _OpOpts {
-  hooks?: boolean;
+interface _OpParams<T = any> {
+  options?: CrudOptionsType<T>;
   secure?: boolean;
   em?: EntityManager;
   noFlush?: boolean;
-  skipCtxOptions?: boolean;
-  skipCtxLimit?: boolean;
 }
 type ExcludedInheritanceKeys = 'hooks' | 'secure' | 'em' | 'noFlush';
-export type OpOpts = RequireAtLeastOne<_OpOpts>;
+export type OpParams = RequireAtLeastOne<_OpParams>;
 
 export type Inheritance = {
   [key: string]: any;
@@ -109,8 +107,8 @@ export class CrudService<T extends CrudEntity> {
   cacheManager: CrudCache;
   cacheOptions = new CacheOptions();
 
-  _defaultOpOpts: OpOpts = {
-    hooks: true,
+  _defaultOpParams: OpParams = {
+    options: {},
     secure: true,
     em: null,
     noFlush: false,
@@ -155,7 +153,7 @@ export class CrudService<T extends CrudEntity> {
     return this.getExternalMsMatches().length == 0;
   }
 
-  getExternalMsMatches(msConf?) {
+  private getExternalMsMatches(msConf?) {
     const msConfig: MicroServicesOptions =
       msConf || this.crudConfig.microServicesOptions;
 
@@ -260,7 +258,7 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
-  async forwardToMsLink(
+  private async forwardToMsLink(
     args: any[],
     methodName: string,
     msConfig: MicroServiceConfig,
@@ -336,29 +334,29 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $create_(ctx: CrudContext, secure: boolean = true) {
-    return this.$create(ctx.data, ctx, { secure });
+    return this.$create(ctx.data, ctx, { secure, options: ctx.queryOptions });
   }
 
   async $create(
     newEntity: Partial<T>,
     ctx: CrudContext,
-    opOptions: OpOpts = { secure: true },
+    opOptions: OpParams = { secure: true },
     inheritance?: Inheritance,
   ) {
-    const opOpts = this.getOpOpts(opOptions, ctx);
-    const hooks = opOpts?.hooks;
+    const opParams = this.getOpParams(opOptions, ctx);
+    const hooks = !opParams.options?.skipServiceHooks;
     try {
       if (hooks) {
         [newEntity] = await this.beforeCreateHook([newEntity], ctx);
       }
       this.checkObjectForIds(newEntity);
 
-      const em = opOpts?.em || this.entityManager.fork();
-      if (opOpts.secure) {
+      const em = opParams?.em || this.entityManager.fork();
+      if (opParams.secure) {
         await this.checkItemDbCount(em, ctx);
       }
 
-      const opts = this.getReadOptions(ctx, opOpts);
+      const opts = this.getReadOptions(ctx, opParams);
       newEntity.createdAt = new Date();
       newEntity.updatedAt = newEntity.createdAt;
 
@@ -375,7 +373,7 @@ export class CrudService<T extends CrudEntity> {
       }
 
       await em.persist(entity);
-      if (!opOpts?.noFlush) {
+      if (!opParams?.noFlush) {
         await em.flush();
       }
 
@@ -395,39 +393,46 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $createBatch_(ctx: CrudContext, secure: boolean = true) {
-    return this.$createBatch(ctx.data, ctx, { secure });
+    return this.$createBatch(ctx.data, ctx, {
+      secure,
+      options: ctx.queryOptions,
+    });
   }
 
   async $createBatch(
     newEntities: Partial<T>[],
     ctx: CrudContext,
-    opOptions: OpOpts = { secure: true },
+    opOptions: OpParams = { secure: true },
     inheritance?: Inheritance,
   ) {
-    const opOpts = this.getOpOpts(opOptions, ctx);
+    const opParams = this.getOpParams(opOptions, ctx);
     try {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         newEntities = await this.beforeCreateHook(newEntities, ctx);
       }
 
-      const subOpOpts = {
-        hooks: false,
+      const subOpParams: OpParams = {
+        ...opOptions,
         noFlush: true,
         em: this.entityManager.fork(),
-        secure: opOpts.secure,
+        secure: opParams.secure,
+        options: {
+          ...opParams.options,
+          skipServiceHooks: true,
+        },
       };
       let results = [];
       for (let entity of newEntities) {
-        const res = await this.$create(entity, ctx, subOpOpts, inheritance);
+        const res = await this.$create(entity, ctx, subOpParams, inheritance);
         results.push(res);
       }
-      await subOpOpts.em.flush();
-      if (opOpts.hooks) {
+      await subOpParams.em.flush();
+      if (!opParams.options?.skipServiceHooks) {
         results = await this.afterCreateHook(results, newEntities, ctx);
       }
       return results;
     } catch (e) {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         const res = await this.errorCreateHook(newEntities, ctx, e);
         if (res) {
           return res;
@@ -438,34 +443,44 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $patchBatch_(ctx: CrudContext) {
-    return this.$patchBatch(ctx.data, ctx);
+    return this.$patchBatch(ctx.data, ctx, { options: ctx.queryOptions });
   }
 
   async $patchBatch(
     data: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext,
-    opOptions: OpOpts = { secure: true },
+    opOptions: OpParams = { secure: true },
     inheritance?: Inheritance,
-  ) {
-    const opOpts = this.getOpOpts(opOptions, ctx);
+  ): Promise<PatchResponseDto<T>[]> {
+    const opParams = this.getOpParams(opOptions, ctx);
     try {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         data = await this.beforeUpdateHook(data, ctx);
       }
 
       let results = [];
-      const subOpOpts = { em: this.entityManager.fork(), hooks: false };
+      const subOpParams: OpParams = {
+        ...opOptions,
+        noFlush: true,
+        em: this.entityManager.fork(),
+        secure: opParams.secure,
+        options: {
+          ...opParams.options,
+          skipServiceHooks: true,
+        },
+      };
+
       let proms = [];
       for (let d of data) {
-        proms.push(this.$patch(d.query, d.data, ctx, subOpOpts, inheritance));
+        proms.push(this.$patch(d.query, d.data, ctx, subOpParams, inheritance));
       }
       results = await Promise.all(proms);
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         results = await this.afterUpdateHook(results, data, ctx);
       }
       return results;
     } catch (e) {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         const res = await this.errorUpdateHook(data, ctx, e);
         if (res) {
           return res;
@@ -482,7 +497,7 @@ export class CrudService<T extends CrudEntity> {
   async $unsecure_saveBatch(
     toSave: Partial<T>[],
     ctx: CrudContext,
-    opOptions: OpOpts = { secure: true },
+    opOptions: OpParams = { secure: true },
     inheritance?: Inheritance,
   ) {
     let data = toSave.map((d) => {
@@ -515,28 +530,30 @@ export class CrudService<T extends CrudEntity> {
       newEntity,
       ctx,
       {
-        hooks: false,
         em: null,
         noFlush: false,
         secure: false,
+        options: { skipServiceHooks: true },
       },
       inheritance,
     );
   }
 
   async $find_(ctx: CrudContext): Promise<FindResponseDto<T>> {
-    return this.$find(ctx.query, ctx);
+    return this.$find(ctx.query, ctx, {
+      options: ctx.queryOptions,
+    });
   }
 
   async $find(
     entity: Partial<T>,
     ctx: CrudContext,
-    opOptions: OpOpts = { secure: true },
+    opOptions: OpParams = { secure: true },
     inheritance?: Inheritance,
   ): Promise<FindResponseDto<T>> {
-    const opOpts = this.getOpOpts(opOptions, ctx);
+    const opParams = this.getOpParams(opOptions, ctx);
     try {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         entity = await this.beforeReadHook(entity, ctx);
       }
 
@@ -546,8 +563,8 @@ export class CrudService<T extends CrudEntity> {
 
       this.checkObjectForIds(entity);
 
-      const em = this.entityManager.fork();
-      const opts = this.getReadOptions(ctx, opOpts);
+      const em = opParams.em || this.entityManager.fork();
+      const opts = this.getReadOptions(ctx, opParams);
       let result: FindResponseDto<T>;
       if (opts.limit) {
         const res = await em.findAndCount(this.entity, entity, opts as any);
@@ -556,12 +573,12 @@ export class CrudService<T extends CrudEntity> {
         const res = await em.find(this.entity, entity, opts as any);
         result = { data: res };
       }
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         result = await this.afterReadHook(result, entity, ctx);
       }
       return result;
     } catch (e) {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         const res = await this.errorReadHook(entity, ctx, e);
         if (res) {
           return res;
@@ -574,41 +591,39 @@ export class CrudService<T extends CrudEntity> {
   async $findIds(
     entity: Partial<T>,
     ctx: CrudContext,
-    opOptions: OpOpts = { secure: true },
+    opOptions: OpParams = { secure: true },
     inheritance?: Inheritance,
   ): Promise<string[]> {
-    const newCtx: CrudContext = {
-      ...ctx,
-      options: { ...ctx.options, fields: [this.crudConfig.id_field] },
+    const newOpts = {
+      ...opOptions,
+      options: {
+        ...(opOptions.options || {}),
+        fields: [this.crudConfig.id_field],
+      },
     };
-    const res = await this.$find(entity, newCtx, opOptions);
+    const res = await this.$find(entity, ctx, newOpts);
     return res.data.map((d) => d[this.crudConfig.id_field]);
   }
 
   async $findIn_(ctx: CrudContext) {
-    return this.$findIn(ctx.ids, ctx.query, ctx);
+    return this.$findIn(ctx.ids, ctx.query, ctx, {
+      options: ctx.queryOptions,
+    });
   }
 
   async $findIn(
     ids: string[],
     entity: Partial<T>,
     ctx: CrudContext,
-    opOptions: OpOpts = { secure: true },
+    opOptions: OpParams = { secure: true },
     inheritance?: Inheritance,
   ) {
     this.makeInQuery(ids, entity);
     return this.$find(entity, ctx, opOptions, inheritance);
   }
 
-  getReadOptions(ctx: CrudContext, opOptions: OpOpts): CrudOptions {
-    if (opOptions.skipCtxOptions) {
-      return {};
-    }
-    const opts = { ...(ctx?.options || {}) };
-    if (opOptions.skipCtxLimit) {
-      delete opts.limit;
-      delete opts.offset;
-    }
+  getReadOptions(ctx: CrudContext, opOptions: OpParams): CrudOptions {
+    const opts = { ...(opOptions?.options || {}) };
     return opts;
   }
 
@@ -628,33 +643,33 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $findOne_(ctx: CrudContext) {
-    return this.$findOne(ctx.query, ctx);
+    return this.$findOne(ctx.query, ctx, { options: ctx.queryOptions });
   }
 
   async $findOne(
     entity: Partial<T>,
     ctx: CrudContext,
-    opOptions: OpOpts = { secure: true },
+    opOptions: OpParams = { secure: true },
     inheritance?: Inheritance,
   ): Promise<T> {
-    const opOpts = this.getOpOpts(opOptions, ctx);
+    const opParams = this.getOpParams(opOptions, ctx);
     try {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         entity = await this.beforeReadHook(entity, ctx);
       }
 
       this.checkObjectForIds(entity);
-      const em = this.entityManager.fork();
-      const opts = this.getReadOptions(ctx, opOpts);
+      const em = opParams.em || this.entityManager.fork();
+      const opts = this.getReadOptions(ctx, opParams);
       let result: T = await em.findOne(this.entity, entity, opts as any);
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         const fDto: FindResponseDto<T> = { data: [result], total: 1, limit: 1 };
         const resHook = await this.afterReadHook(fDto, entity, ctx);
         result = resHook.data[0];
       }
       return result;
     } catch (e) {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         const res = await this.errorReadHook(entity, ctx, e);
         if (res) {
           return res?.data?.[0] || (res as unknown as T);
@@ -665,43 +680,46 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $findOneCached_(ctx: CrudContext) {
-    return this.$findOneCached(ctx.query, ctx);
+    return this.$findOneCached(ctx.query, ctx, { options: ctx.queryOptions });
   }
 
   async $findOneCached(
     entity: Partial<T>,
     ctx: CrudContext,
-    opOptions: OpOpts = { secure: true },
+    opOptions: OpParams = { secure: true },
     inheritance?: Inheritance,
   ) {
-    const opOpts = this.getOpOpts(opOptions, ctx);
+    const opParams = this.getOpParams(opOptions, ctx);
     try {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         entity = await this.beforeReadHook(entity, ctx);
       }
       if (!entity[this.crudConfig.id_field]) {
         throw new BadRequestException('id field is required for findOneCached');
       }
 
-      let cacheKey = this.getCacheKey(entity, ctx?.options);
+      let cacheKey = this.getCacheKey(entity, opOptions?.options);
       let result = await this.cacheManager.get(cacheKey);
       if (!result) {
         result = await this.$findOne(
           entity,
           ctx,
-          { hooks: false },
+          { options: { ...opParams.options, skipServiceHooks: true } },
           inheritance,
         );
-        if (!ctx.options?.cached || this.cacheOptions.allowClientCacheFilling) {
+        if (
+          !opOptions.options?.cached ||
+          this.cacheOptions.allowClientCacheFilling
+        ) {
           this.cacheManager.set(cacheKey, result, this.cacheOptions.TTL);
         }
       }
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         result = await this.afterReadHook(result, entity, ctx);
       }
       return result;
     } catch (e) {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         const res = await this.errorReadHook(entity, ctx, e);
         if (res) {
           return res;
@@ -732,66 +750,44 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $patch_(ctx: CrudContext) {
-    return this.$patch(ctx.query, ctx.data, ctx);
+    return this.$patch(ctx.query, ctx.data, ctx, {
+      options: ctx.queryOptions,
+    });
   }
 
   async $patch(
     query: Partial<T>,
     data: Partial<T>,
     ctx: CrudContext,
-    opOptions: OpOpts = { secure: true },
+    opOptions: OpParams = { secure: true },
     inheritance?: Inheritance,
-  ) {
-    const opOpts = this.getOpOpts(opOptions, ctx);
-    const hooks = opOpts?.hooks;
+  ): Promise<PatchResponseDto<T>> {
+    const opParams = this.getOpParams(opOptions, ctx);
+    const hooks = !opParams.options?.skipServiceHooks;
     try {
       if (hooks) {
         [{ query, data }] = await this.beforeUpdateHook([{ query, data }], ctx);
       }
 
       let finalQuery = { ...query };
-      let IDs = [];
-      let skipUpdate = false;
+
       if (Array.isArray(query[this.crudConfig.id_field])) {
         this.makeInQuery(query[this.crudConfig.id_field], finalQuery);
       }
 
-      if (ctx?.options?.returnUpdatedEntities) {
-        IDs = await this.$findIds(finalQuery, ctx, {
-          hooks: false,
-          skipCtxOptions: true,
-        });
-        if (IDs.length) {
-          finalQuery = {};
-          this.makeInQuery(IDs, finalQuery);
-        } else {
-          skipUpdate = true;
-        }
-      }
-
       let results: PatchResponseDto<T> = { count: 0 };
 
-      if (!skipUpdate) {
-        this.checkObjectForIds(finalQuery);
-        this.checkObjectForIds(data);
-        const em = opOpts.em || this.entityManager.fork();
-        let patchResult = await this.doQueryPatch(
-          finalQuery,
-          data,
-          ctx,
-          em,
-          opOpts,
-        );
-        results.count = patchResult;
-      }
-
-      if (ctx?.options?.returnUpdatedEntities && IDs.length) {
-        let resFind = await this.$findIn(IDs, {}, ctx, {
-          hooks: false,
-          skipCtxLimit: true,
-        });
-        results.updated = resFind?.data || [];
-      }
+      this.checkObjectForIds(finalQuery);
+      this.checkObjectForIds(data);
+      const em = opParams.em || this.entityManager.fork();
+      let patchResult = await this.doQueryPatch(
+        finalQuery,
+        data,
+        ctx,
+        em,
+        opParams,
+      );
+      results.count = patchResult;
 
       if (hooks) {
         [results] = await this.afterUpdateHook(
@@ -843,7 +839,9 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $patchIn_(ctx: CrudContext) {
-    return this.$patchIn(ctx.ids, ctx.query, ctx.data, ctx);
+    return this.$patchIn(ctx.ids, ctx.query, ctx.data, ctx, {
+      options: ctx.queryOptions,
+    });
   }
 
   async $patchIn(
@@ -864,7 +862,9 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $deleteIn_(ctx: CrudContext) {
-    return this.$deleteIn(ctx.ids, ctx.query, ctx);
+    return this.$deleteIn(ctx.ids, ctx.query, ctx, {
+      options: ctx.queryOptions,
+    });
   }
 
   async $deleteIn(
@@ -891,22 +891,24 @@ export class CrudService<T extends CrudEntity> {
       newEntity,
       ctx,
       {
-        hooks: false,
         em: null,
+        options: {
+          skipServiceHooks: true,
+        },
       },
       inheritance,
     );
   }
 
   async $patchOne_(ctx: CrudContext, secure: boolean = true) {
-    return this.$patchOne(ctx.query, ctx.data, ctx, { secure });
+    return this.$patchOne(ctx.query, ctx.data, ctx, {
+      secure,
+      options: ctx.queryOptions,
+    });
   }
 
-  getOpOpts(opOptions: OpOpts, ctx: CrudContext) {
-    const res = { ...this._defaultOpOpts, ...opOptions };
-    if (ctx?.options?.skipServiceHooks) {
-      res.hooks = false;
-    }
+  protected getOpParams(opOptions: OpParams, ctx: CrudContext) {
+    const res = { ...this._defaultOpParams, ...(opOptions || {}) };
     return res;
   }
 
@@ -914,44 +916,51 @@ export class CrudService<T extends CrudEntity> {
     query: Partial<T>,
     data: Partial<T>,
     ctx: CrudContext,
-    opOptions: OpOpts = { secure: true },
+    opOptions: OpParams = { secure: true },
     inheritance?: Inheritance,
   ): Promise<PatchResponseDto<T>> {
-    const opOpts = this.getOpOpts(opOptions, ctx);
+    const opParams = this.getOpParams(opOptions, ctx);
     try {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         [{ data, query }] = await this.beforeUpdateHook([{ query, data }], ctx);
       }
 
-      const em = this.entityManager.fork();
+      const em = opParams.em || this.entityManager.fork();
       let ret: PatchResponseDto<T> = { count: 1 };
       let patchResult = await this.doOnePatch(
         query,
         data,
         ctx,
         em,
-        opOpts.secure,
+        opParams.secure,
       );
       await em.flush();
 
-      if (ctx?.options?.returnUpdatedEntities) {
+      if (opOptions?.options?.returnUpdatedEntity) {
         let resFind = await this.$findOne(
           {
             [this.crudConfig.id_field]: patchResult[this.crudConfig.id_field],
           } as any,
           ctx,
-          { hooks: false, skipCtxLimit: true },
+          {
+            options: {
+              ...(opOptions?.options || {}),
+              limit: undefined,
+              offset: undefined,
+              skipServiceHooks: true,
+            },
+          },
         );
 
-        ret.updated = resFind ? [resFind] : [];
+        ret.updated = resFind;
       }
 
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         [ret] = await this.afterUpdateHook([ret], [{ data, query }], ctx);
       }
       return ret;
     } catch (e) {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         const res = await this.errorUpdateHook([{ query, data }], ctx, e);
         if (res) {
           return res;
@@ -974,7 +983,7 @@ export class CrudService<T extends CrudEntity> {
       { [this.crudConfig.id_field]: id } as any,
       newEntity,
       ctx,
-      { hooks: false, em: null },
+      { options: { skipServiceHooks: true } },
       inheritance,
     );
   }
@@ -984,7 +993,7 @@ export class CrudService<T extends CrudEntity> {
     newEntity: Partial<T>,
     ctx: CrudContext,
     em: EntityManager,
-    opOpts: OpOpts,
+    opParams: OpParams,
   ) {
     let ormEntity = {};
     Object.setPrototypeOf(ormEntity, this.entity.prototype);
@@ -1011,10 +1020,7 @@ export class CrudService<T extends CrudEntity> {
     let result = query;
     if (secure || !query[this.crudConfig.id_field]) {
       const tempEm = em.fork();
-      result = await this.$findOne(query, ctx, {
-        hooks: false,
-        skipCtxOptions: true,
-      });
+      result = await tempEm.findOne(this.entity, query);
       if (!result) {
         throw new BadRequestException(CrudErrors.ENTITY_NOT_FOUND.str());
       }
@@ -1039,7 +1045,7 @@ export class CrudService<T extends CrudEntity> {
     return !this.notGuest(user);
   }
 
-  async checkItemDbCount(em: EntityManager, ctx: CrudContext) {
+  private async checkItemDbCount(em: EntityManager, ctx: CrudContext) {
     if (this.security.maxItemsInDb) {
       const count = await em.count(this.entity);
       if (count >= this.security.maxItemsInDb) {
@@ -1056,20 +1062,20 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $delete_(ctx: CrudContext) {
-    return this.$delete(ctx.query, ctx);
+    return this.$delete(ctx.query, ctx, { options: ctx.queryOptions });
   }
 
   async $delete(
     query: Partial<T>,
     ctx: CrudContext,
-    opOptions: OpOpts = { secure: true },
+    opOptions: OpParams = { secure: true },
     inheritance?: Inheritance,
   ): Promise<DeleteResponseDto<T>> {
-    const opOpts = this.getOpOpts(opOptions, ctx);
+    const opParams = this.getOpParams(opOptions, ctx);
     let result: DeleteResponseDto<T> = { count: 0 };
 
     try {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         query = await this.beforeDeleteHook(query, ctx);
       }
       let finalQuery = { ...query };
@@ -1078,43 +1084,20 @@ export class CrudService<T extends CrudEntity> {
         this.makeInQuery(query[this.crudConfig.id_field], finalQuery);
       }
 
-      const em = this.entityManager.fork();
-      const opts = this.getReadOptions(ctx, opOpts);
+      const em = opParams.em || this.entityManager.fork();
+      const opts = this.getReadOptions(ctx, opParams);
 
-      let skipDelete = false;
-      if (ctx?.options?.returnUpdatedEntities) {
-        let resFind = await this.$find(finalQuery, ctx, {
-          hooks: false,
-          skipCtxLimit: true,
-        });
-        const IDs = resFind.data?.map((d) => d[this.crudConfig.id_field]) || [];
-        if (IDs.length) {
-          finalQuery = {};
-          this.makeInQuery(IDs, finalQuery);
-          result.deleted = resFind.data;
-        } else {
-          skipDelete = true;
-          result.deleted = [];
-          result.count = 0;
-        }
-      }
+      this.checkObjectForIds(finalQuery);
+      let length = await em.nativeDelete(this.entity, finalQuery, opts as any);
+      result.count = length;
 
-      if (!skipDelete) {
-        this.checkObjectForIds(finalQuery);
-        let length = await em.nativeDelete(
-          this.entity,
-          finalQuery,
-          opts as any,
-        );
-        result.count = length;
-      }
-
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         result = await this.afterDeleteHook(result, query, ctx);
       }
+
       return result;
     } catch (e) {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         const res = await this.errorDeleteHook(query, ctx, e);
         if (res) {
           return res;
@@ -1124,47 +1107,53 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
-  makeInQuery(IDs: string[], finalQuery) {
+  private makeInQuery(IDs: string[], finalQuery) {
     this.dbAdapter.makeInQuery(IDs, finalQuery);
   }
 
   async $deleteOne_(ctx: CrudContext) {
-    return this.$deleteOne(ctx.query, ctx);
+    return this.$deleteOne(ctx.query, ctx, {
+      options: ctx.queryOptions,
+    });
   }
 
   async $deleteOne(
     query: Partial<T>,
     ctx: CrudContext,
-    opOptions: OpOpts = { secure: true },
+    opOptions: OpParams = { secure: true },
     inheritance?: Inheritance,
   ): Promise<DeleteResponseDto<T>> {
-    const opOpts = this.getOpOpts(opOptions, ctx);
+    const opParams = this.getOpParams(opOptions, ctx);
     try {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         query = await this.beforeDeleteHook(query, ctx);
       }
 
       this.checkObjectForIds(query);
-      const em = this.entityManager.fork();
+      const em = opParams.em || this.entityManager.fork();
       let entity: T = await this.$findOne(query, ctx, {
-        hooks: false,
-        skipCtxLimit: true,
+        options: {
+          ...(opParams?.options || {}),
+          limit: undefined,
+          offset: undefined,
+          skipServiceHooks: true,
+        },
       });
       if (!entity) {
         throw new BadRequestException(CrudErrors.ENTITY_NOT_FOUND.str());
       }
       em.remove(entity);
       let result: DeleteResponseDto<T> = { count: 1 };
-      if (ctx?.options?.returnUpdatedEntities) {
-        result.deleted = [entity];
+      if (opParams?.options?.returnUpdatedEntity) {
+        result.deleted = entity;
       }
       await em.flush();
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         result = await this.afterDeleteHook(result, query, ctx);
       }
       return result;
     } catch (e) {
-      if (opOpts.hooks) {
+      if (!opParams.options?.skipServiceHooks) {
         const res = await this.errorDeleteHook(query, ctx, e);
         if (res) {
           return res;
