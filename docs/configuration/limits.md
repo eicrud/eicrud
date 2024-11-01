@@ -23,7 +23,7 @@ export function getSecurity(entity: string): CrudSecurity {
 
 #### **maxItemsInDb** 
 
-Limit how many instances of an entity can be stored in DB. If `MaxItemsInDb` is exceeded, calls to [CrudService](../services/definition.md)->`$create` will throw an error.
+Limit how many instances of an entity can be stored in DB. If `maxItemsInDb` is exceeded, calls to [CrudService](../services/definition.md)->`$create` will throw an error.
 
 #### **maxItemsPerUser**
 
