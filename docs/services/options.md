@@ -17,7 +17,7 @@ export interface ICrudOptions {
 }
 ```
 
-You can pass it when calling [service](./definition.md) methods from the server side:
+You can pass it when calling [service](./definition.md) methods.
 
 ```typescript
 import { OpParams } from "@eicrud/core/crud";
@@ -25,6 +25,7 @@ import { OpParams } from "@eicrud/core/crud";
 const query: Partial<Profile> = {
     astroSign: "Aries"
 }
+
 const opParams: OpParams = {
     options: {
         limit: 20
@@ -57,24 +58,24 @@ Corresponds to [MikroOrm's limit option](https://mikro-orm.io/docs/entity-manage
 Corresponds to [MikroOrm's offset option](https://mikro-orm.io/docs/entity-manager#fetching-paginated-results){:target="_blank"}.
 
 ### cached
-Indicate if `findOne` results should be fetched from the cache.
+Indicates if `findOne` results should be fetched from the cache.
 !!! note
     `cached` only works in client calls.
 
 ### allowIdOverride
-Allow Entity primary keys to be pre-generated in $create operations.
+Allows Entity primary keys to be pre-generated in $create operations.
 
 !!! warning
      Letting users set their Entities' ID opens security risks. For example, impersonation of deleted entities.
 
 ### skipServiceHooks
-Allow skipping of all service hooks.
+Allows skipping of all service hooks.
 
 !!! note 
     `skipServiceHooks` doesn't affect controller hooks.
 
 ### returnUpdatedEntity
-Enable the return of the updated/deleted entity in patchOne and deleteOne operations.
+Returns the updated/deleted entity in patchOne and deleteOne operations.
  
 !!! note 
     `returnUpdatedEntity` impacts the operation' performance.
@@ -101,7 +102,7 @@ Each parameter will be set to a default value if not provided.
   };
 ```
 ### options
-The `CrudOptions` for the operation.
+The [CrudOptions](#crudoptions) for the operation.
 
 ### secure
 Adds extra checks depending on the operation (i.e: verify `maxItemsInDb` for create, check if the entity exists for patch). Usually you want to set this parameter if the method call results from a user interaction.
