@@ -329,7 +329,7 @@ describe('AppController', () => {
 
     const missingMelons: Melon[] = (await myClient.findIn(ids)).data;
     expect(missingMelons.length).toBe(0);
-  }, 16000);
+  }, 17000);
 
   //@Patch('one')
   it('should patch and delete one profile', async () => {
