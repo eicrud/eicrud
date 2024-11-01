@@ -27,7 +27,8 @@ export async function search(
     method: 'GET',
   };
 
+  const opOpts = ctx.originOptions ? { options: ctx.originOptions } : undefined;
   await this.crudAuthorization.authorize(fakeCtx, this.security);
 
-  return this.$find(query, fakeCtx);
+  return this.$find(query, fakeCtx, opOpts);
 }

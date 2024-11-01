@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { CrudEntity } from './model/CrudEntity';
 import { CrudSecurity } from '../config/model/CrudSecurity';
-import { CrudContext } from './model/CrudContext';
+import { CrudContext, CrudOptionsType } from './model/CrudContext';
 import { toKebabCase } from '@eicrud/shared/utils';
 import { CrudUser } from '../config/model/CrudUser';
 import {
@@ -74,12 +74,12 @@ function getAllMethodNames(obj) {
   return methodNames;
 }
 
-interface _OpOpts {
+interface _OpOpts<T = any> {
   hooks?: boolean;
   secure?: boolean;
   em?: EntityManager;
   noFlush?: boolean;
-  skipCtxLimit?: boolean;
+  options?: CrudOptionsType<T>;
 }
 type ExcludedInheritanceKeys = 'hooks' | 'secure' | 'em' | 'noFlush';
 export type OpOpts = RequireAtLeastOne<_OpOpts>;
@@ -154,7 +154,7 @@ export class CrudService<T extends CrudEntity> {
     return this.getExternalMsMatches().length == 0;
   }
 
-  getExternalMsMatches(msConf?) {
+  private getExternalMsMatches(msConf?) {
     const msConfig: MicroServicesOptions =
       msConf || this.crudConfig.microServicesOptions;
 
@@ -259,7 +259,7 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
-  async forwardToMsLink(
+  private async forwardToMsLink(
     args: any[],
     methodName: string,
     msConfig: MicroServiceConfig,
@@ -335,7 +335,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $create_(ctx: CrudContext, secure: boolean = true) {
-    return this.$create(ctx.data, ctx, { secure });
+    return this.$create(ctx.data, ctx, { secure, options: ctx.originOptions });
   }
 
   async $create(
@@ -394,7 +394,10 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $createBatch_(ctx: CrudContext, secure: boolean = true) {
-    return this.$createBatch(ctx.data, ctx, { secure });
+    return this.$createBatch(ctx.data, ctx, {
+      secure,
+      options: ctx.originOptions,
+    });
   }
 
   async $createBatch(
@@ -437,7 +440,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $patchBatch_(ctx: CrudContext) {
-    return this.$patchBatch(ctx.data, ctx);
+    return this.$patchBatch(ctx.data, ctx, { options: ctx.originOptions });
   }
 
   async $patchBatch(
@@ -524,7 +527,9 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $find_(ctx: CrudContext): Promise<FindResponseDto<T>> {
-    return this.$find(ctx.query, ctx);
+    return this.$find(ctx.query, ctx, {
+      options: ctx.originOptions,
+    });
   }
 
   async $find(
@@ -576,16 +581,18 @@ export class CrudService<T extends CrudEntity> {
     opOptions: OpOpts = { secure: true },
     inheritance?: Inheritance,
   ): Promise<string[]> {
-    const newCtx: CrudContext = {
-      ...ctx,
-      options: { ...ctx.options, fields: [this.crudConfig.id_field] },
+    const newOpts = {
+      ...opOptions,
+      options: { ...opOptions.options, fields: [this.crudConfig.id_field] },
     };
-    const res = await this.$find(entity, newCtx, opOptions);
+    const res = await this.$find(entity, ctx, newOpts);
     return res.data.map((d) => d[this.crudConfig.id_field]);
   }
 
   async $findIn_(ctx: CrudContext) {
-    return this.$findIn(ctx.ids, ctx.query, ctx);
+    return this.$findIn(ctx.ids, ctx.query, ctx, {
+      options: ctx.originOptions,
+    });
   }
 
   async $findIn(
@@ -600,11 +607,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   getReadOptions(ctx: CrudContext, opOptions: OpOpts): CrudOptions {
-    const opts = { ...(ctx?.options || {}) };
-    if (opOptions.skipCtxLimit) {
-      delete opts.limit;
-      delete opts.offset;
-    }
+    const opts = { ...(opOptions?.options || {}) };
     return opts;
   }
 
@@ -624,7 +627,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $findOne_(ctx: CrudContext) {
-    return this.$findOne(ctx.query, ctx);
+    return this.$findOne(ctx.query, ctx, { options: ctx.originOptions });
   }
 
   async $findOne(
@@ -661,7 +664,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $findOneCached_(ctx: CrudContext) {
-    return this.$findOneCached(ctx.query, ctx);
+    return this.$findOneCached(ctx.query, ctx, { options: ctx.originOptions });
   }
 
   async $findOneCached(
@@ -679,7 +682,7 @@ export class CrudService<T extends CrudEntity> {
         throw new BadRequestException('id field is required for findOneCached');
       }
 
-      let cacheKey = this.getCacheKey(entity, ctx?.options);
+      let cacheKey = this.getCacheKey(entity, opOptions?.options);
       let result = await this.cacheManager.get(cacheKey);
       if (!result) {
         result = await this.$findOne(
@@ -688,7 +691,10 @@ export class CrudService<T extends CrudEntity> {
           { hooks: false },
           inheritance,
         );
-        if (!ctx.options?.cached || this.cacheOptions.allowClientCacheFilling) {
+        if (
+          !opOptions.options?.cached ||
+          this.cacheOptions.allowClientCacheFilling
+        ) {
           this.cacheManager.set(cacheKey, result, this.cacheOptions.TTL);
         }
       }
@@ -728,7 +734,9 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $patch_(ctx: CrudContext) {
-    return this.$patch(ctx.query, ctx.data, ctx);
+    return this.$patch(ctx.query, ctx.data, ctx, {
+      options: ctx.originOptions,
+    });
   }
 
   async $patch(
@@ -815,7 +823,9 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $patchIn_(ctx: CrudContext) {
-    return this.$patchIn(ctx.ids, ctx.query, ctx.data, ctx);
+    return this.$patchIn(ctx.ids, ctx.query, ctx.data, ctx, {
+      options: ctx.originOptions,
+    });
   }
 
   async $patchIn(
@@ -836,7 +846,9 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $deleteIn_(ctx: CrudContext) {
-    return this.$deleteIn(ctx.ids, ctx.query, ctx);
+    return this.$deleteIn(ctx.ids, ctx.query, ctx, {
+      options: ctx.originOptions,
+    });
   }
 
   async $deleteIn(
@@ -871,12 +883,15 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $patchOne_(ctx: CrudContext, secure: boolean = true) {
-    return this.$patchOne(ctx.query, ctx.data, ctx, { secure });
+    return this.$patchOne(ctx.query, ctx.data, ctx, {
+      secure,
+      options: ctx.originOptions,
+    });
   }
 
-  getOpOpts(opOptions: OpOpts, ctx: CrudContext) {
+  protected getOpOpts(opOptions: OpOpts, ctx: CrudContext) {
     const res = { ...this._defaultOpOpts, ...opOptions };
-    if (ctx?.options?.skipServiceHooks) {
+    if (opOptions?.options?.skipServiceHooks) {
       res.hooks = false;
     }
     return res;
@@ -906,13 +921,20 @@ export class CrudService<T extends CrudEntity> {
       );
       await em.flush();
 
-      if (ctx?.options?.returnUpdatedEntity) {
+      if (opOptions?.options?.returnUpdatedEntity) {
         let resFind = await this.$findOne(
           {
             [this.crudConfig.id_field]: patchResult[this.crudConfig.id_field],
           } as any,
           ctx,
-          { hooks: false, skipCtxLimit: true },
+          {
+            hooks: false,
+            options: {
+              ...(opOptions?.options || {}),
+              limit: undefined,
+              offset: undefined,
+            },
+          },
         );
 
         ret.updated = resFind;
@@ -1008,7 +1030,7 @@ export class CrudService<T extends CrudEntity> {
     return !this.notGuest(user);
   }
 
-  async checkItemDbCount(em: EntityManager, ctx: CrudContext) {
+  private async checkItemDbCount(em: EntityManager, ctx: CrudContext) {
     if (this.security.maxItemsInDb) {
       const count = await em.count(this.entity);
       if (count >= this.security.maxItemsInDb) {
@@ -1025,7 +1047,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $delete_(ctx: CrudContext) {
-    return this.$delete(ctx.query, ctx);
+    return this.$delete(ctx.query, ctx, { options: ctx.originOptions });
   }
 
   async $delete(
@@ -1070,12 +1092,14 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
-  makeInQuery(IDs: string[], finalQuery) {
+  private makeInQuery(IDs: string[], finalQuery) {
     this.dbAdapter.makeInQuery(IDs, finalQuery);
   }
 
   async $deleteOne_(ctx: CrudContext) {
-    return this.$deleteOne(ctx.query, ctx);
+    return this.$deleteOne(ctx.query, ctx, {
+      options: ctx.originOptions,
+    });
   }
 
   async $deleteOne(
@@ -1094,14 +1118,18 @@ export class CrudService<T extends CrudEntity> {
       const em = this.entityManager.fork();
       let entity: T = await this.$findOne(query, ctx, {
         hooks: false,
-        skipCtxLimit: true,
+        options: {
+          ...(opOpts?.options || {}),
+          limit: undefined,
+          offset: undefined,
+        },
       });
       if (!entity) {
         throw new BadRequestException(CrudErrors.ENTITY_NOT_FOUND.str());
       }
       em.remove(entity);
       let result: DeleteResponseDto<T> = { count: 1 };
-      if (ctx?.options?.returnUpdatedEntity) {
+      if (opOpts?.options?.returnUpdatedEntity) {
         result.deleted = entity;
       }
       await em.flush();

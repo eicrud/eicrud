@@ -6,6 +6,7 @@ import { FindResponseDto } from '@eicrud/shared/interfaces';
 import { Melon } from '../../melon.entity';
 
 export async function search(
+  this: MelonService,
   dto: SearchDto,
   service: MelonService,
   ctx: CrudContext,
@@ -30,9 +31,9 @@ export async function search(
   };
 
   await this.crudAuthorization.authorize(fakeCtx, this.security);
-
+  const opOpts = ctx.originOptions ? { options: ctx.originOptions } : undefined;
   if (dto.ids) {
-    return this.$findIn(dto.ids, query, fakeCtx, inheritance);
+    return this.$findIn(dto.ids, query, fakeCtx, opOpts, inheritance);
   }
-  return this.$find(query, fakeCtx, inheritance);
+  return this.$find(query, fakeCtx, opOpts, inheritance);
 }

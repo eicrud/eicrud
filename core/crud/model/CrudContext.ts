@@ -8,7 +8,7 @@ import { FastifyReply, FastifyRequest } from 'fastify';
 import { AuthType, JwtPayload } from '../../authentication';
 import { FindOptions } from '@mikro-orm/core';
 
-type CrudOptionType<T = any> = CrudOptions<T> &
+export type CrudOptionsType<T = any> = CrudOptions<T> &
   Omit<FindOptions<any>, keyof CrudOptions>;
 
 /**
@@ -25,7 +25,7 @@ export interface CrudContext<T = any> {
   query?: any;
   data?: any;
   origin?: 'crud' | 'cmd' | 'webhook' | string;
-  options?: CrudOptionType<T>;
+  originOptions?: CrudOptionsType<T>;
   cmdName?: string;
   ids?: string[];
   ip?: string;
