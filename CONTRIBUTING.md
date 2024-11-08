@@ -13,7 +13,7 @@ Do not open issues for general support questions, GitHub issues are for bug repo
 
 ### Before you start coding
 
-If you want to implement a new feature of bugfix please submit an issue with a proposal for your work first.
+If you want to implement a new feature of bugfix please submit an issue with a proposal for your work first. A PR should only address one feature/fix. Ideally, it should take less than 15 minutes to review.
 
 ## Contributing
 
