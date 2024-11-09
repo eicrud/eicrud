@@ -25,7 +25,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{core,client,shared,test,db_*}/**/*.ts\" --fix --ignore-pattern test/cli-app/** --ignore-pattern cli/templates/**",
-    "test": "jest --forceExit --maxWorkers=50%",
+    "test:mongo": "jest --forceExit --maxWorkers=50%",
     "test:postgre": "cross-env TEST_CRUD_DB=postgre jest --forceExit --maxWorkers=30%",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -105,6 +105,7 @@
       "^@eicrud/core$": "<rootDir>/../core",
       "^@eicrud/shared/(.*)$": "<rootDir>/../shared/$1",
       "^@eicrud/shared$": "<rootDir>/../shared"
-    }
+    },
+    "setupFiles": ["dotenv/config"]
   }
 }
