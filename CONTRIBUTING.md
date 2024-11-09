@@ -33,7 +33,7 @@ Make sure to run all the test suites to ensure your setup is working :
 ```
 npm run setup:tests
 
-npm run test 
+npm run test:mongo
 
 npm run test:postgre
 
@@ -78,6 +78,18 @@ Please copy the other tests' structure and use the helper methods (`testMethod`,
 Never call the orm directly but use the CRUDService methods instead (ex: `userService.$find`).
 
 Ensure all the test suites are passing before submitting your merge request.
+
+## Branch Naming Guideline
+
+When creating new branches, please use the following naming conventions to ensure consistency and clarity across the project:
+
+### Feature branches:
+Use the prefix ft/ followed by a short description or ticket number for the feature being developed.
+Example: ft/user-authentication or ft/123-login-page
+
+### Bugfix branches:
+Use the prefix bf/ followed by a short description or ticket number for the bug being fixed.
+Example: bf/fix-navbar-issue or bf/456-fix-login-error
 
 ## Commit Message Guidelines
 

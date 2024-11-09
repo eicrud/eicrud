@@ -32,8 +32,12 @@ export const getModule = (dbName) => {
             ? PostgreSqlDriver
             : MongoDriver,
         dbName,
-        password: process.env.TEST_CRUD_DB == 'postgre' ? ( process.env.POSTGRES_PASSWORD || 'admin') : undefined,
-        user: process.env.TEST_CRUD_DB == 'postgre' ? ( process.env.POSTGRES_USERNAME || 'postgres') : undefined,
+        password: process.env.TEST_CRUD_DB == 'postgre' ? (
+          process.env.POSTGRES_PASSWORD || 'admin'
+        ) : undefined,
+        user: process.env.TEST_CRUD_DB == 'postgre' ? (
+          process.env.POSTGRES_USERNAME || 'postgres'
+        ) : undefined,
       }),
       EICRUDModule.forRoot(),
     ],
