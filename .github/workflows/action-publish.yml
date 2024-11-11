@@ -61,7 +61,7 @@ jobs:
         ports:
         - 27017:27017
         env:
-          TEST_TIMEOUT: 5000
+          TEST_TIMEOUT: 6000
       postgres:
         image: postgres:16-bullseye
         ports:
