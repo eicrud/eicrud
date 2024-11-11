@@ -50,6 +50,7 @@ const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
 };
+const timeout = Number(process.env.TEST_TIMEOUT);
 
 describe('AppController', () => {
   let appController: CrudController;
@@ -180,7 +181,7 @@ describe('AppController', () => {
       usersWithoutProfiles,
       testAdminCreds,
     });
-  }, 10000);
+  }, timeout*2);
 
   //@Post('/crud/one')
   it('should authorize createAccount for guest and provide working accessToken', async () => {
@@ -454,7 +455,7 @@ describe('AppController', () => {
       query,
       crudConfig,
     });
-  }, 17000);
+  }, timeout*3);
 
   it('should reset password', async () => {
     const user = users['PassReset Gus'];
@@ -551,7 +552,7 @@ describe('AppController', () => {
       query,
       crudConfig,
     });
-  }, 7000);
+  }, timeout);
 
   it('should change password', async () => {
     const user = users['PassChange Gus'];
@@ -641,7 +642,7 @@ describe('AppController', () => {
       query,
       crudConfig,
     });
-  }, 8000);
+  }, timeout*2);
 
   it('should rate limit login attempts (too fast)', async () => {
     const user = users['RateLimit Joe'];
@@ -825,7 +826,7 @@ describe('AppController', () => {
       null,
     );
     expect(currentUser2.verifiedEmail).toBeTruthy();
-  }, 7000);
+  }, timeout);
 
   it('should timeout to many email sent', async () => {
     const user = users['Manyverif Email'];
@@ -903,7 +904,7 @@ describe('AppController', () => {
 
     await sendEmail();
     expect((await fetchEmails()).data.length).toBe(3);
-  }, 7000);
+  }, timeout);
 
   it('should change user email', async () => {
     const user = users['Changemy Email'];
@@ -1234,7 +1235,7 @@ describe('AppController', () => {
       query: timeoutUserQuery,
       crudConfig,
     });
-  }, 6000);
+  }, timeout);
 
   it('should log with 2fa', async () => {
     const user = users['2Fa Dude'];
@@ -1368,5 +1369,5 @@ describe('AppController', () => {
     });
 
     crudConfig.authenticationOptions.twoFaEmailTimeoutMinutes = oldValue;
-  }, 8000);
+  }, timeout*2);
 });

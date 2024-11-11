@@ -46,6 +46,7 @@ const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
 };
+const timeout = Number(process.env.TEST_TIMEOUT);
 
 function subCheckHookLogs(allHooks, check, len) {
   const log = allHooks.find(
@@ -1295,7 +1296,7 @@ describe('AppController', () => {
       );
     }
     checkHookLogs(logCheck, allHooks);
-  }, 8000);
+  }, timeout*2);
 
   it('should call hook error hooks on cmd error', async () => {
     const user = users['Michael Doe'];
@@ -1449,7 +1450,7 @@ describe('AppController', () => {
       );
     }
     checkHookLogs(logCheck, allHooks, true);
-  }, 8000);
+  }, timeout*2);
 
   it('should call hooks on cmd', async () => {
     const user = users['Michael Doe'];
@@ -1535,5 +1536,5 @@ describe('AppController', () => {
       );
     }
     checkHookLogs(logCheck, allHooks, true);
-  }, 8000);
+  }, timeout*2);
 });

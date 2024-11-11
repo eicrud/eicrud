@@ -96,6 +96,8 @@ const users: Record<string, TestUser> = {
   },
 };
 
+const timeout = Number(process.env.TEST_TIMEOUT);
+
 describe('AppController', () => {
   let appController: CrudController;
   let userService: MyUserService;
@@ -194,7 +196,7 @@ describe('AppController', () => {
 
     expect(melon.ownerEmail).toBe(user.email);
     expect(myClient.config.storage.get(myClient.JWT_STORAGE_KEY)).toBeFalsy();
-  }, 10000);
+  }, timeout*2);
 
   it('should detect limit when fetching melon ids', async () => {
     //wait 200ms
@@ -211,7 +213,7 @@ describe('AppController', () => {
 
     const melons: string[] = (await myClient.findIds({ owner: user.id })).data;
     expect(melons.length).toBe(10000);
-  }, 10000);
+  }, timeout*2);
 
   it('should apply limits when fetching melon Id', async () => {
     //wait 200ms
@@ -234,7 +236,7 @@ describe('AppController', () => {
 
     expect(melons.data.length).toBe(500);
     expect(melons.total).toBe(10000);
-  }, 10000);
+  }, timeout*2);
 
   //@Patch('many')
   it('should find & patch many & delete melons', async () => {
@@ -329,7 +331,7 @@ describe('AppController', () => {
 
     const missingMelons: Melon[] = (await myClient.findIn(ids)).data;
     expect(missingMelons.length).toBe(0);
-  }, 17000);
+  }, timeout*3);
 
   //@Patch('one')
   it('should patch and delete one profile', async () => {
@@ -601,5 +603,5 @@ describe('AppController', () => {
       user: user.id,
     });
     expect(profile2.bio).toBe(user.bio);
-  }, 15000);
+  }, timeout*3);
 });

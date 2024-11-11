@@ -60,6 +60,8 @@ jobs:
         image: mongo:7.0
         ports:
         - 27017:27017
+        env:
+          TEST_TIMEOUT: 5000
       postgres:
         image: postgres:16-bullseye
         ports:

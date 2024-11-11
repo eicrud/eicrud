@@ -60,6 +60,7 @@ const users: Record<string, TestUser> = {
 };
 
 const port = 2999;
+const timeout = Number(process.env.TEST_TIMEOUT);
 
 describe('AppController', () => {
   let appController: CrudController;
@@ -206,7 +207,7 @@ describe('AppController', () => {
       user: user.id,
     });
     expect(profile2.bio).toBe(user.bio);
-  }, 15000);
+  }, timeout*3);
 
   it('should detect CSRF mismatches', async () => {
     const user = users['CSRF Dude'];
@@ -278,7 +279,7 @@ describe('AppController', () => {
     const profile2 = await testMethod();
 
     expect(profile2).toBe('COOKIE TEST');
-  }, 10000);
+  }, timeout*2);
 
   it('401 should unset jwt cookie', async () => {
     const myClient = getProfileClient();
@@ -293,5 +294,5 @@ describe('AppController', () => {
     );
     expect(matchLogout).toBeTruthy();
     expect(matchLogout[1]).toBe('0');
-  }, 6000);
+  }, timeout);
 });

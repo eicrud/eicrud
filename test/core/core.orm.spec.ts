@@ -36,6 +36,7 @@ const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
 };
+const timeout = Number(process.env.TEST_TIMEOUT);
 
 describe('AppController', () => {
   let appController: CrudController;
@@ -149,7 +150,7 @@ describe('AppController', () => {
     const accRes = await userService.$create_account(createAccountDto, null);
     jwt = accRes.accessToken;
     userId = crudConfig.dbAdapter.formatId(accRes.userId, crudConfig);
-  }, 10000);
+  }, timeout*2);
 
   //@Post('/crud/one')
   it('should not allow duplicate username @Unique()', async () => {

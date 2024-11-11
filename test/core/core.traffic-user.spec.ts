@@ -38,6 +38,7 @@ const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
 };
+const timeout = Number(process.env.TEST_TIMEOUT);
 
 describe('AppController', () => {
   let appController: CrudController;
@@ -252,5 +253,5 @@ describe('AppController', () => {
     });
 
     crudConfig.captchaService = null;
-  }, 30000);
+  }, timeout*6);
 });

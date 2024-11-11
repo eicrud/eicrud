@@ -90,6 +90,8 @@ const users: Record<string, TestUser> = {
   },
 };
 
+const timeout = Number(process.env.TEST_TIMEOUT);
+
 describe('AppController', () => {
   let appController: CrudController;
   let userService: MyUserService;
@@ -304,7 +306,7 @@ describe('AppController', () => {
     for (let i = 0; i < res3.data?.length; i++) {
       expect(res3.data[i].name).toContain(`${i}`);
     }
-  }, 15000);
+  }, timeout*3);
 
   it('should auto fetch melon search cmd (specified batch)', async () => {
     // if (process.env.TEST_CRUD_DB == 'postgre') {
@@ -372,5 +374,5 @@ describe('AppController', () => {
 
     expect(myClient.fetchNb).toBeGreaterThan(lastFetch);
     expect(res4.data?.length).toBe(michael.melons);
-  }, 16000);
+  }, timeout*3);
 });

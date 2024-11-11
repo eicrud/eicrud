@@ -32,6 +32,7 @@ const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
 };
+const timeout = Number(process.env.TEST_TIMEOUT)
 
 describe('AppController', () => {
   let appController: CrudController;
@@ -174,7 +175,7 @@ describe('AppController', () => {
     const accRes = await userService.$create_account(createAccountDto, null);
     jwt = accRes.accessToken;
     userId = crudConfig.dbAdapter.formatId(accRes.userId, crudConfig);
-  }, 10000);
+  }, timeout*2);
 
   it('should merge embedded object when patching', async () => {
     const user = users['Michael Doe'];

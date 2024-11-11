@@ -40,6 +40,7 @@ const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
 };
+const timeout = Number(process.env.TEST_TIMEOUT);
 
 describe('AppController', () => {
   let appController: CrudController;
@@ -458,7 +459,7 @@ describe('AppController', () => {
       query,
       crudConfig,
     });
-  }, 10000);
+  }, timeout*2);
 
   it('should offset and no result should be returned if offset is greater than the number of results', async () => {
     const user = users['Michael Doe'];
@@ -535,5 +536,5 @@ describe('AppController', () => {
       query,
       crudConfig,
     });
-  }, 7000);
+  }, timeout);
 });
