@@ -37,6 +37,7 @@ import { LoginDto } from '@eicrud/core/config/basecmd_dtos/user/login.dto';
 import { FindResponseDto } from '../../shared/interfaces';
 import { CrudOptions } from '@eicrud/core/crud';
 import { SearchDto as SearchMelonDto } from '../src/services/melon/cmds/search/search.dto';
+import { timeout } from "../env";
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -304,7 +305,7 @@ describe('AppController', () => {
     for (let i = 0; i < res3.data?.length; i++) {
       expect(res3.data[i].name).toContain(`${i}`);
     }
-  }, 15000);
+  }, timeout*3);
 
   it('should auto fetch melon search cmd (specified batch)', async () => {
     // if (process.env.TEST_CRUD_DB == 'postgre') {
@@ -372,5 +373,5 @@ describe('AppController', () => {
 
     expect(myClient.fetchNb).toBeGreaterThan(lastFetch);
     expect(res4.data?.length).toBe(michael.melons);
-  }, 16000);
+  }, timeout*3);
 });

@@ -27,6 +27,7 @@ import { Picture } from '../src/services/picture/picture.entity';
 import { Melon } from '../src/services/melon/melon.entity';
 import { PictureService as MyPictureService } from '../src/services/picture/picture.service';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
+import { timeout } from "../env";
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -174,7 +175,7 @@ describe('AppController', () => {
     const accRes = await userService.$create_account(createAccountDto, null);
     jwt = accRes.accessToken;
     userId = crudConfig.dbAdapter.formatId(accRes.userId, crudConfig);
-  }, 10000);
+  }, timeout*2);
 
   it('should merge embedded object when patching', async () => {
     const user = users['Michael Doe'];

@@ -12,15 +12,21 @@ import { CRUD_CONFIG_KEY } from '@eicrud/core/config/crud.config.service';
 
 import { FastifyAdapter } from '@nestjs/platform-fastify';
 import { EntityManager, MikroORM } from '@mikro-orm/core';
+import { postgresUsername, postgresPassword, timeout } from '../env';
 
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, './.env') });
 
 export const getModule = (dbName) => {
   dbName = 'test-' + dbName.replace('.spec.ts', '').replaceAll('.', '-');
-
+  
   if (process.env.CRUD_CURRENT_MS) {
     dbName = 'test-core-ms';
+  }
+
+  if (typeof jest !== 'undefined') {
+     // set timeout for testcases
+      jest.setTimeout(timeout);
   }
 
   return {
@@ -32,12 +38,8 @@ export const getModule = (dbName) => {
             ? PostgreSqlDriver
             : MongoDriver,
         dbName,
-        password: process.env.TEST_CRUD_DB == 'postgre' ? (
-          process.env.POSTGRES_PASSWORD || 'admin'
-        ) : undefined,
-        user: process.env.TEST_CRUD_DB == 'postgre' ? (
-          process.env.POSTGRES_USERNAME || 'postgres'
-        ) : undefined,
+        password: process.env.TEST_CRUD_DB == 'postgre' ? postgresPassword : undefined,
+        user: process.env.TEST_CRUD_DB == 'postgre' ? postgresUsername : undefined,
       }),
       EICRUDModule.forRoot(),
     ],

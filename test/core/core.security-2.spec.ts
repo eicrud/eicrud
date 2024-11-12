@@ -31,6 +31,7 @@ import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { DragonFruit } from '../src/services/dragon-fruit/dragon-fruit.entity';
 import { FindResponseDto } from '../../shared/interfaces';
 import { DragonFruitService } from '../src/services/dragon-fruit/dragon-fruit.service';
+import { timeout } from "../env";
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -388,5 +389,5 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-  }, 8000);
+  }, timeout*2);
 });

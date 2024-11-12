@@ -34,6 +34,7 @@ import { format } from 'path';
 import exp from 'constants';
 import { CrudAuthGuard } from '../../core/authentication/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { timeout } from "../env";
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -160,5 +161,5 @@ describe('AppController', () => {
       expectedCode: 200,
       crudConfig,
     });
-  }, 10000);
+  }, timeout*2);
 });

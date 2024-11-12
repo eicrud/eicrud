@@ -29,6 +29,8 @@ import {
 import { TestUser } from '../test.utils';
 import exp from 'constants';
 import { ICreateAccountDto } from '../../shared/interfaces';
+import { timeout } from "../env";
+
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
@@ -160,7 +162,7 @@ describe('AppController', () => {
     const accRes = await userService.$create_account(dto, null);
     jwt = accRes.accessToken;
     userId = crudConfig.dbAdapter.formatId(accRes.userId, crudConfig);
-  }, 10000);
+  }, timeout*2);
 
   //@Post('/crud/one')
   it('should create a new profile', async () => {
