@@ -33,12 +33,12 @@ import {
 import { format } from 'path';
 import exp from 'constants';
 import { CrudAuthGuard } from '@eicrud/core/authentication/auth.guard';
+import { timeout } from "../env";
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
 };
-const timeout = Number(process.env.TEST_TIMEOUT);
 
 describe('AppController', () => {
   let appController: CrudController;

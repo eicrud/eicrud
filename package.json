@@ -84,7 +84,6 @@
   },
   "rootDir": "test",
   "jest": {
-    "testTimeout": 6000,
     "moduleFileExtensions": [
       "js",
       "json",

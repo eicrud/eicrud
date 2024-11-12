@@ -45,12 +45,12 @@ import { FakeEmail } from '../src/services/fake-email/fake-email.entity';
 import { FakeEmailService as MyEmailService } from '../src/services/fake-email/fake-email.service';
 import { CrudUser } from '@eicrud/core/config';
 import { CrudErrors } from '../../shared/CrudErrors';
+import { timeout } from "../env";
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
 };
-const timeout = Number(process.env.TEST_TIMEOUT);
 
 describe('AppController', () => {
   let appController: CrudController;

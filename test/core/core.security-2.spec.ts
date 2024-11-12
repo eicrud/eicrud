@@ -31,12 +31,12 @@ import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { DragonFruit } from '../src/services/dragon-fruit/dragon-fruit.entity';
 import { FindResponseDto } from '../../shared/interfaces';
 import { DragonFruitService } from '../src/services/dragon-fruit/dragon-fruit.service';
+import { timeout } from "../env";
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
 };
-const timeout = Number(process.env.TEST_TIMEOUT);
 
 describe('AppController', () => {
   let appController: CrudController;

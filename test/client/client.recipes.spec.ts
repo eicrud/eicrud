@@ -37,6 +37,7 @@ import { LoginDto } from '@eicrud/core/config/basecmd_dtos/user/login.dto';
 import { FindResponseDto } from '../../shared/interfaces';
 import { CrudOptions } from '@eicrud/core/crud';
 import { SearchDto as SearchMelonDto } from '../src/services/melon/cmds/search/search.dto';
+import { timeout } from "../env";
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -89,8 +90,6 @@ const users: Record<string, TestUser> = {
     melons: 7,
   },
 };
-
-const timeout = Number(process.env.TEST_TIMEOUT);
 
 describe('AppController', () => {
   let appController: CrudController;

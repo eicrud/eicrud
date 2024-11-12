@@ -19,6 +19,8 @@ import {
 import * as services from '../oapi-client/services.gen';
 import { StarFruit } from '../src/services/star-fruit/star-fruit.entity';
 import { StarFruitService } from '../src/services/star-fruit/star-fruit.service';
+import { timeout } from "../env";
+
 const path = require('path');
 
 const testAdminCreds = {
@@ -49,8 +51,6 @@ const users: Record<string, TestUser> = {
     skipProfile: true,
   },
 };
-
-const timeout = Number(process.env.TEST_TIMEOUT);
 
 describe('AppController', () => {
   let appController: CrudController;

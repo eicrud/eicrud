@@ -29,11 +29,12 @@ import {
 import { TestUser } from '../test.utils';
 import exp from 'constants';
 import { ICreateAccountDto } from '@eicrud/shared/interfaces';
+import { timeout } from "../env";
+
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
 };
-const timeout = Number(process.env.TEST_TIMEOUT);
 
 describe('AppController', () => {
   let appController: CrudController;

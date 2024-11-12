@@ -36,6 +36,7 @@ import { LoginDto } from '../../core/config/basecmd_dtos/user/login.dto';
 import { MelonService } from '../src/services/melon/melon.service';
 import exp from 'constants';
 import { MyUser } from '../src/services/my-user/my-user.entity';
+import { timeout } from '../env';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -95,8 +96,6 @@ const users: Record<string, TestUser> = {
     bio: 'I am staying.',
   },
 };
-
-const timeout = Number(process.env.TEST_TIMEOUT);
 
 describe('AppController', () => {
   let appController: CrudController;

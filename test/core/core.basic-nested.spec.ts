@@ -27,12 +27,12 @@ import { Picture } from '../src/services/picture/picture.entity';
 import { Melon } from '../src/services/melon/melon.entity';
 import { PictureService as MyPictureService } from '../src/services/picture/picture.service';
 import { CrudQuery } from '../../core/crud/model/CrudQuery';
+import { timeout } from "../env";
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
 };
-const timeout = Number(process.env.TEST_TIMEOUT)
 
 describe('AppController', () => {
   let appController: CrudController;

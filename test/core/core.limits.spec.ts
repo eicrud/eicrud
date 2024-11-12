@@ -35,12 +35,12 @@ import { format } from 'path';
 import exp from 'constants';
 import { Picture } from '../src/services/picture/picture.entity';
 import { CrudErrors } from '../../shared/CrudErrors';
+import { timeout } from "../env";
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
 };
-const timeout = Number(process.env.TEST_TIMEOUT);
 
 describe('AppController', () => {
   let appController: CrudController;

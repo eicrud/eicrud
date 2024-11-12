@@ -41,12 +41,12 @@ import { _utils } from '@eicrud/core/utils';
 import { HookTriggerService } from '../src/services/hook-trigger/hook-trigger.service';
 import { TestTriggerDto } from '../src/services/hook-trigger/cmds/test_trigger/test_trigger.dto';
 import { TestTriggerHelloDto } from '../src/services/hook-trigger/cmds/test_trigger_hello/test_trigger_hello.dto';
+import { timeout } from "../env";
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
 };
-const timeout = Number(process.env.TEST_TIMEOUT);
 
 function subCheckHookLogs(allHooks, check, len) {
   const log = allHooks.find(
