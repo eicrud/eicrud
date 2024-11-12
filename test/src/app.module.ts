@@ -24,8 +24,10 @@ export const getModule = (dbName) => {
     dbName = 'test-core-ms';
   }
 
-  // set timeout for testcases
-  jest?.setTimeout(timeout);
+  if (typeof jest !== 'undefined') {
+     // set timeout for testcases
+      jest.setTimeout(timeout);
+  }
 
   return {
     imports: [
