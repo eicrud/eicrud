@@ -25,7 +25,7 @@ export const getModule = (dbName) => {
   }
 
   // set timeout for testcases
-  jest.setTimeout(timeout);
+  jest?.setTimeout(timeout);
 
   return {
     imports: [
