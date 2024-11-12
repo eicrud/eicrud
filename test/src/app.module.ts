@@ -12,7 +12,7 @@ import { CRUD_CONFIG_KEY } from '@eicrud/core/config/crud.config.service';
 
 import { FastifyAdapter } from '@nestjs/platform-fastify';
 import { EntityManager, MikroORM } from '@mikro-orm/core';
-import { postgresUsername, postgresPasword, timeout } from '../env';
+import { postgresUsername, postgresPassword, timeout } from '../env';
 
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, './.env') });
@@ -36,7 +36,7 @@ export const getModule = (dbName) => {
             ? PostgreSqlDriver
             : MongoDriver,
         dbName,
-        password: process.env.TEST_CRUD_DB == 'postgre' ? postgresPasword : undefined,
+        password: process.env.TEST_CRUD_DB == 'postgre' ? postgresPassword : undefined,
         user: process.env.TEST_CRUD_DB == 'postgre' ? postgresUsername : undefined,
       }),
       EICRUDModule.forRoot(),
