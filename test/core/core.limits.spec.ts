@@ -35,6 +35,7 @@ import { format } from 'path';
 import exp from 'constants';
 import { Picture } from '../src/services/picture/picture.entity';
 import { CrudErrors } from '../../shared/CrudErrors';
+import { timeout } from "../env";
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -458,7 +459,7 @@ describe('AppController', () => {
       query,
       crudConfig,
     });
-  }, 10000);
+  }, timeout*2);
 
   it('should offset and no result should be returned if offset is greater than the number of results', async () => {
     const user = users['Michael Doe'];
@@ -535,5 +536,5 @@ describe('AppController', () => {
       query,
       crudConfig,
     });
-  }, 7000);
+  }, timeout);
 });

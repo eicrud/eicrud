@@ -45,6 +45,7 @@ import { FakeEmail } from '../src/services/fake-email/fake-email.entity';
 import { FakeEmailService as MyEmailService } from '../src/services/fake-email/fake-email.service';
 import { CrudUser } from '@eicrud/core/config';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
+import { timeout } from "../env";
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -147,7 +148,7 @@ describe('AppController', () => {
       usersWithoutProfiles,
       testAdminCreds,
     });
-  }, 10000);
+  }, timeout*2);
 
   //@Post('/crud/one')
   it('should authorize createAccount for guest and provide working accessToken', async () => {
@@ -403,7 +404,7 @@ describe('AppController', () => {
       query,
       crudConfig,
     });
-  }, 17000);
+  }, timeout*3);
 
   it('should rate limit login attempts (too fast)', async () => {
     const user = users['RateLimit Joe'];
@@ -643,7 +644,7 @@ describe('AppController', () => {
     });
 
     crudConfig.authenticationOptions.twoFaEmailTimeoutMinutes = oldValue;
-  }, 8000);
+  }, timeout*2);
 
   it('should authorize with basic auth', async () => {
     const user: TestUser = users['Michael Foe'];
@@ -699,5 +700,5 @@ describe('AppController', () => {
       expectedObject,
       crudConfig,
     });
-  }, 8000);
+  }, timeout*2);
 });

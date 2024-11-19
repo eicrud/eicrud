@@ -32,6 +32,8 @@ import { CrudError, CrudErrors } from '../../shared/CrudErrors';
 import { Melon } from '../src/services/melon/melon.entity';
 import { MelonService } from '../src/services/melon/melon.service';
 import exp from 'constants';
+import { timeout } from "../env";
+
 const testAdminCreds = {
   email: 'admin@testmail.com',
   password: 'testpassword',
@@ -149,7 +151,7 @@ describe('AppController', () => {
     const accRes = await userService.$create_account(createAccountDto, null);
     jwt = accRes.accessToken;
     userId = crudConfig.dbAdapter.formatId(accRes.userId, crudConfig);
-  }, 10000);
+  }, timeout*2);
 
   //@Post('/crud/one')
   it('should not allow duplicate username @Unique()', async () => {

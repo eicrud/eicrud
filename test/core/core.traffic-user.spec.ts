@@ -33,6 +33,7 @@ import {
 import { format } from 'path';
 import exp from 'constants';
 import { CrudAuthGuard } from '@eicrud/core/authentication/auth.guard';
+import { timeout } from "../env";
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -252,5 +253,5 @@ describe('AppController', () => {
     });
 
     crudConfig.captchaService = null;
-  }, 30000);
+  }, timeout*6);
 });

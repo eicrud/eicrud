@@ -13,7 +13,7 @@ Do not open issues for general support questions, GitHub issues are for bug repo
 
 ### Before you start coding
 
-If you want to implement a new feature of bugfix please submit an issue with a proposal for your work first.
+If you want to implement a new feature of bugfix please submit an issue with a proposal for your work first. A PR should only address one feature/fix. Ideally, it should take less than 15 minutes to review.
 
 ## Contributing
 
@@ -25,12 +25,15 @@ If you want to implement a new feature of bugfix please submit an issue with a p
 - a postgresql server listening localhost:5432
 - nodejs (>= 18.x) installed
 
+### Create .env file
+Create a .env file in your project root directory by copying the contents of .env.sample and filling in the necessary values.
+
 Make sure to run all the test suites to ensure your setup is working :
 
 ```
 npm run setup:tests
 
-npm run test 
+npm run test:mongo
 
 npm run test:postgre
 
@@ -56,6 +59,16 @@ npm run setup:oapi:client && node -e "fs.renameSync('./test/client/client.oapi-t
 npm run test client.oapi-types.spec.ts
 ```
 
+### Note on Test Failures
+If any test cases fail, try increasing the testTimeout value in your package.json file. You can modify it under the jest configuration section like this:
+
+```
+"jest": {
+  "testTimeout": 60000
+}
+```
+This can help resolve issues if tests are timing out due to slow network or other environment-related factors.
+
 ### Testing your code
 
 Every new feature or bug fix must include specification tests. Consider writing the tests as you develop instead of testing by hand with tools like Postman.
@@ -65,6 +78,18 @@ Please copy the other tests' structure and use the helper methods (`testMethod`,
 Never call the orm directly but use the CRUDService methods instead (ex: `userService.$find`).
 
 Ensure all the test suites are passing before submitting your merge request.
+
+## Branch Naming Guideline
+
+When creating new branches, please use the following naming conventions to ensure consistency and clarity across the project:
+
+### Feature branches:
+Use the prefix ft/ followed by a short description or ticket number for the feature being developed.
+Example: ft/user-authentication or ft/123-login-page
+
+### Bugfix branches:
+Use the prefix bf/ followed by a short description or ticket number for the bug being fixed.
+Example: bf/fix-navbar-issue or bf/456-fix-login-error
 
 ## Commit Message Guidelines
 

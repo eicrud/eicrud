@@ -19,6 +19,8 @@ import {
 import * as services from '../oapi-client/services.gen';
 import { StarFruit } from '../src/services/star-fruit/star-fruit.entity';
 import { StarFruitService } from '../src/services/star-fruit/star-fruit.service';
+import { timeout } from "../env";
+
 const path = require('path');
 
 const testAdminCreds = {
@@ -313,7 +315,7 @@ describe('AppController', () => {
       },
     })) as any;
     expect(res.data.data['length']).toBe(1);
-  }, 8000);
+  }, timeout*2);
 
   it('should run create methods', async () => {
     const user = users['Jon Doe'];
@@ -371,7 +373,7 @@ describe('AppController', () => {
       null,
     );
     expect(fruitsBatch.data.length).toBe(2);
-  }, 8000);
+  }, timeout*2);
 
   it('should run update methods', async () => {
     const user = users['Jon Doe'];
@@ -480,7 +482,7 @@ describe('AppController', () => {
     for (let fm of fruitsMany.data) {
       expect(fm.quality).toBe('updated many');
     }
-  }, 8000);
+  }, timeout*2);
 
   it('should run delete methods', async () => {
     const user = users['Jon Doe'];
@@ -556,7 +558,7 @@ describe('AppController', () => {
 
     toBeDeletedMany = await starFruitService.$find(manyQuery, null);
     expect(toBeDeletedMany.data.length).toBe(0);
-  }, 8000);
+  }, timeout*2);
 
   it('should run find methods', async () => {
     const user = users['Jon Doe'];
@@ -622,5 +624,5 @@ describe('AppController', () => {
     for (let i = 0; i < resMany.data.data.length; i++) {
       expect(resMany.data.data[i].key).toBe('many');
     }
-  }, 8000);
+  }, timeout*2);
 });

@@ -48,7 +48,7 @@ jobs:
         run: npm run build
 
       - name: Mongodb tests
-        run: npm run test
+        run: npm run test:mongo
 
   release-test:
     if: contains(github.ref_name, 'beta') == false
@@ -83,7 +83,7 @@ jobs:
         run: npm run build
 
       - name: Mongodb tests
-        run: npm run test
+        run: npm run test:mongo
 
       - name: PostgreSQL tests
         run: npm run test:postgre

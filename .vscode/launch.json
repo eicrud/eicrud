@@ -4,8 +4,8 @@
     {
       "type": "node-terminal",
       "request": "launch",
-      "name": "npm run test",
-      "command": "npm run test"
+      "name": "npm run test mongo",
+      "command": "npm run test:mongo"
     },
     {
       "type": "node-terminal",

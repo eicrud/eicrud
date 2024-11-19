@@ -55,7 +55,7 @@ export class Profile implements CrudEntity {
 ```
 
 !!! note
-    Non annotated fields are not allowed in the DTO
+    Non-annotated fields are not allowed in the DTO, and thus cannot be queried by the [client](../client/setup.md).
 
 
 ## [Transform](../validation/transform.md)
