@@ -268,7 +268,12 @@ export class Export {
           replace: '<$1=$2>',
         },
         { regex: /replaced_semicolon_5498615_2/g, replace: ';' },
-        { regex: /([^?]):(.+);$/gm, replace: '$1?:$2;' },
+
+        { regex: /([^!])![ ]*:(.+);$/gm, replace: '$1:$2;' },
+
+        // { regex: /([^?]):(.+);$/gm, replace: '$1?:$2;' },
+        // { regex: /([^!?])!\?:(.+);$/gm, replace: '$1?:$2;' }, //remove !?:
+
         { regex: /([^\r\n:]+) ;$/gm, replace: '$1;' },
         { regex: / \?;$/gm, replace: '?;' },
       );
