@@ -242,6 +242,7 @@ export class CrudClient<T> {
     return res?.userId || null;
   }
 
+  async login(dto: ILoginDto): Promise<LoginResponseDto>;
   async login(dto: ILoginDto, returnRaw = false): Promise<any> {
     const response = await this.userServiceCmd('login', dto, true, false);
     let res: LoginResponseDto = response?.data;
@@ -365,7 +366,7 @@ export class CrudClient<T> {
   }
 
   async find(
-    query: any,
+    query: Partial<T>,
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
   ): Promise<FindResponseDto<T>> {
@@ -392,12 +393,12 @@ export class CrudClient<T> {
     copts?: ClientOptions,
   ): Promise<FindResponseDto<T>>;
   async findIn(
-    q: any[],
+    q: string[],
     options: ICrudOptions,
     copts?: ClientOptions,
   ): Promise<FindResponseDto<T>>;
   async findIn(
-    q: any[] | Partial<T>,
+    q: string[] | Partial<T>,
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
   ): Promise<FindResponseDto<T>> {
@@ -676,19 +677,19 @@ export class CrudClient<T> {
 
   async patchIn(
     q: string[],
-    data: any,
+    data: Partial<T>,
     options: ICrudOptions,
     copts?: ClientOptions,
   ): Promise<PatchResponseDto<T>>;
   async patchIn(
     q: Partial<T>,
-    data: any,
+    data: Partial<T>,
     options: ICrudOptions,
     copts?: ClientOptions,
   ): Promise<PatchResponseDto<T>>;
   async patchIn(
     q: string[] | Partial<T>,
-    data: any,
+    data: Partial<T>,
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
   ): Promise<PatchResponseDto<T>> {
@@ -734,7 +735,7 @@ export class CrudClient<T> {
 
   async saveBatch(
     limitingFields: string[],
-    objects: any[],
+    objects: T[],
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
   ): Promise<PatchResponseDto<T>[]> {
@@ -765,7 +766,7 @@ export class CrudClient<T> {
   }
 
   async patchBatch(
-    datas: { query: any; data: any }[],
+    datas: { query: Partial<T>; data: Partial<T> }[],
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
   ): Promise<PatchResponseDto<T>[]> {
@@ -918,12 +919,12 @@ export class CrudClient<T> {
     copts?: ClientOptions,
   ): Promise<DeleteResponseDto>;
   async deleteIn(
-    q: any[],
+    q: string[],
     options: ICrudOptions,
     copts?: ClientOptions,
   ): Promise<DeleteResponseDto>;
   async deleteIn(
-    q: any[] | Partial<T>,
+    q: string[] | Partial<T>,
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
   ): Promise<DeleteResponseDto> {
