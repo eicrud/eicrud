@@ -105,7 +105,7 @@ export class CrudTransformer {
           }
           if (length > maxLength) {
             throw new BadRequestException(
-              `Array ${key} length is too big (max: ${maxLength})`,
+              `Array ${key} length is too big (max: ${maxLength}). Either change the defaultMaxArLength ValidationOptions or add a @$MaxArLength decorator on the field.`,
             );
           }
         }
@@ -153,7 +153,7 @@ export class CrudTransformer {
           }
           if (entitySize > maxSize) {
             throw new BadRequestException(
-              `Field ${key} size is too big (max: ${maxSize})`,
+              `Field ${key} size is too big (max: ${maxSize}). Either change the defaultMaxSize ValidationOptions or add a @$MaxSize decorator on the field.`,
             );
           }
         }
