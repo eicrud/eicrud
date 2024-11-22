@@ -11,6 +11,7 @@ import {
 } from 'class-validator';
 import { CrudController } from '../crud/crud.controller';
 import { CrudAuthorizationService } from '../crud/crud.authorization.service';
+import { CrudErrors } from '@eicrud/shared/CrudErrors';
 
 export const crudClassMetadataMap: Record<
   string,
@@ -68,10 +69,9 @@ export class CrudTransformer {
     const classKey = CrudTransformer.subGetClassKey(cls);
 
     const metadata = crudClassMetadataMap[classKey];
-    if (!metadata) return obj;
 
     for (const key in obj) {
-      const field_metadata = metadata[key] || { transforms: [] };
+      const field_metadata = metadata?.[key] || { transforms: [] };
       if (field_metadata.delete) {
         delete obj[key];
         continue;
@@ -103,9 +103,13 @@ export class CrudTransformer {
               maxLength += add * trust;
             }
           }
-          if (length > maxLength) {
+          if (maxLength > 0 && length > maxLength) {
             throw new BadRequestException(
-              `Array ${key} length is too big (max: ${maxLength})`,
+              CrudErrors.ARRAY_LENGTH_IS_TOO_BIG.str({
+                problemField: key,
+                fieldLength: length,
+                maxLength,
+              }),
             );
           }
         }
@@ -153,7 +157,11 @@ export class CrudTransformer {
           }
           if (entitySize > maxSize) {
             throw new BadRequestException(
-              `Field ${key} size is too big (max: ${maxSize})`,
+              CrudErrors.FIELD_SIZE_IS_TOO_BIG.str({
+                problemField: key,
+                fieldSize: entitySize,
+                maxSize: maxSize,
+              }),
             );
           }
         }

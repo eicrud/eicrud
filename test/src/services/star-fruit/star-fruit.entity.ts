@@ -1,7 +1,8 @@
 import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator'; //this is a test, no semi-colon here
 import { CrudEntity } from '@eicrud/core/crud';
 
+//Must not have any @$ decorators in the class, or it will break validation tests
 @Entity()
 export class StarFruit implements CrudEntity {
   @PrimaryKey({ name: '_id' })
