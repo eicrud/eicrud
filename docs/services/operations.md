@@ -3,6 +3,9 @@ Eicrud's services offer the following CRUD methods out of the box. Check out the
 !!! warning
     In the following examples CRUD methods are called directly from CrudServices, this means Security rules are **not** enforced and Validations/Transforms are **not** applied. All these checks happen at the controller level.
 
+!!! warning 
+    For performance reasons, `$delete`, `$patch`,`$patchIn` and `$patchBatch` operations make use of MikroOrm's [native collection methods](https://mikro-orm.io/docs/usage-with-sql#native-collection-methods){:target="_blank"}. This means some of the ORM functionalities such as [cascading](https://mikro-orm.io/docs/cascading){:target="_blank"} and [lifecycle hooks](https://mikro-orm.io/docs/events){:target="_blank"} will not take trigger on these. 
+
 ## Create Operations
 
 ### $create
