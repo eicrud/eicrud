@@ -563,10 +563,25 @@ export class Export {
       const tk_entity_name = kebakToPascalCase(entity_kebab_name);
       const entityYamlPath = path.join(dir, `${entity_kebab_name}.entity.yaml`);
       const entityYamlPresent = fs.existsSync(entityYamlPath);
-      if (!options?.oapiSeparateRefs && entityYamlPresent) {
+      if (entityYamlPresent) {
         const entityYamlObj: OpenAPIV3.Document =
           loadEntityYaml(entityYamlPath);
-        lodash.merge(specs.components, entityYamlObj.components);
+        let deleted = false;
+        for (const key in entityYamlObj.components.schemas) {
+          if (
+            (entityYamlObj.components.schemas[key] as OpenAPIV3.SchemaObject)
+              .required
+          ) {
+            delete (
+              entityYamlObj.components.schemas[key] as OpenAPIV3.SchemaObject
+            ).required;
+            deleted = true;
+          }
+        }
+        deleted && saveEntityYaml(entityYamlPath, entityYamlObj);
+        if (!options?.oapiSeparateRefs) {
+          lodash.merge(specs.components, entityYamlObj.components);
+        }
       }
 
       const basePath = dir.replace(src, '.');
@@ -1128,6 +1143,15 @@ function loadEntityYaml(entityYamlDir: string): OpenAPIV3.Document {
     entityYamlContent,
   ) as OpenAPIV3.Document;
   return entityYamlObj;
+}
+
+function saveEntityYaml(
+  entityYamlDir: string,
+  entityYamlObj: OpenAPIV3.Document,
+) {
+  let yamlStr = yaml.dump(entityYamlObj);
+  fs.writeFileSync(entityYamlDir, yamlStr);
+  console.log('UPDATED: ' + entityYamlDir);
 }
 
 // Recursively copy files that end with the specific string
