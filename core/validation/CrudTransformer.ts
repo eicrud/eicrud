@@ -103,7 +103,7 @@ export class CrudTransformer {
               maxLength += add * trust;
             }
           }
-          if (length > maxLength) {
+          if (maxLength > 0 && length > maxLength) {
             throw new BadRequestException(
               CrudErrors.ARRAY_LENGTH_IS_TOO_BIG.str({
                 problemField: key,
