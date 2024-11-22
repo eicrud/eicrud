@@ -13,6 +13,9 @@ export class CrudError {
       code: this.code,
       data: data,
     };
+    for (const key in data) {
+      obj.message = obj.message.replace(`{${key}}`, data[key]);
+    }
     return JSON.stringify(obj);
   }
 }
@@ -76,6 +79,14 @@ export class CrudErrors {
   static readonly ID_FIELD_IS_REQUIRED_FOR_SAVE = new CrudError(
     'Id field is required for saveBatch',
     22,
+  );
+  static readonly FIELD_SIZE_IS_TOO_BIG = new CrudError(
+    'Field ({problemField}) size is too big. Add a @$MaxSize decorator on the field or increase defaultMaxSize.',
+    23,
+  );
+  static readonly ARRAY_LENGTH_IS_TOO_BIG = new CrudError(
+    'Array ({problemField}) length is too big. Add a @$MaxArLength decorator on the field or increase defaultMaxArLength.',
+    24,
   );
 }
 

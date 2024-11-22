@@ -34,6 +34,7 @@ import { format } from 'path';
 import { IChangePasswordDto } from '../../shared/interfaces';
 import exp from 'constants';
 import { SearchDto as SearchMelonDto } from '../src/services/melon/cmds/search/search.dto';
+import { CrudErrors } from '../../shared/CrudErrors';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -609,6 +610,7 @@ describe('AppController', () => {
       expectedCode: 400,
       app,
       jwt: user.jwt,
+      expectedCrudCode: CrudErrors.FIELD_SIZE_IS_TOO_BIG.code,
       entityManager,
       payload,
       query,
@@ -656,6 +658,7 @@ describe('AppController', () => {
       expectedCode: 400,
       app,
       jwt: user.jwt,
+      expectedCrudCode: CrudErrors.FIELD_SIZE_IS_TOO_BIG.code,
       entityManager,
       payload,
       query,
@@ -694,7 +697,7 @@ describe('AppController', () => {
     });
   });
 
-  it('should validate nested seed name stringigied size when creating melon', async () => {
+  it('should validate nested seed name stringified size when creating melon', async () => {
     const user = users['Michael Doe'];
     const payload: Partial<Melon> = {
       name: 'MyMelon',
@@ -734,6 +737,7 @@ describe('AppController', () => {
       method: 'POST',
       expectedCode: 400,
       app,
+      expectedCrudCode: CrudErrors.FIELD_SIZE_IS_TOO_BIG.code,
       jwt: user.jwt,
       entityManager,
       payload,
@@ -742,7 +746,7 @@ describe('AppController', () => {
     });
   });
 
-  it('should validate nested slice name stringigied size when creating melon', async () => {
+  it('should validate nested slice name stringified size when creating melon', async () => {
     const user = users['Michael Doe'];
     const payload: Partial<Melon> = {
       name: 'MyMelon',
@@ -782,6 +786,7 @@ describe('AppController', () => {
       app,
       jwt: user.jwt,
       entityManager,
+      expectedCrudCode: CrudErrors.FIELD_SIZE_IS_TOO_BIG.code,
       payload,
       query,
       crudConfig,
@@ -937,7 +942,7 @@ describe('AppController', () => {
     });
   });
 
-  it('should validate nested seed array thanks to $type decorator', async () => {
+  it('should validate nested array seed thanks to $type decorator', async () => {
     const user = users['Michael Doe'];
     const payload: Partial<Melon> = {
       name: 'MyMelon',
@@ -976,6 +981,20 @@ describe('AppController', () => {
       query,
       crudConfig,
       fetchEntity,
+    });
+
+    payload.seeds[1].size = 2;
+
+    await testMethod({
+      url: '/crud/one',
+      method: 'POST',
+      expectedCode: 201,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload,
+      query,
+      crudConfig,
     });
   });
 
