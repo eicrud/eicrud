@@ -243,6 +243,7 @@ export class CrudClient<T> {
   }
 
   async login(dto: ILoginDto): Promise<LoginResponseDto>;
+  async login(dto: ILoginDto, returnRaw);
   async login(dto: ILoginDto, returnRaw = false): Promise<any> {
     const response = await this.userServiceCmd('login', dto, true, false);
     let res: LoginResponseDto = response?.data;
@@ -389,12 +390,12 @@ export class CrudClient<T> {
 
   async findIn(
     q: Partial<T>,
-    options: ICrudOptions,
+    options?: ICrudOptions,
     copts?: ClientOptions,
   ): Promise<FindResponseDto<T>>;
   async findIn(
     q: string[],
-    options: ICrudOptions,
+    options?: ICrudOptions,
     copts?: ClientOptions,
   ): Promise<FindResponseDto<T>>;
   async findIn(
@@ -615,12 +616,12 @@ export class CrudClient<T> {
   async patchOne(
     q: string[],
     d: Partial<T>,
-    options: ICrudOptions,
+    options?: ICrudOptions,
   ): Promise<PatchResponseDto<T>>;
   async patchOne(
     q: Partial<T>,
     d: Partial<T>,
-    options: ICrudOptions,
+    options?: ICrudOptions,
   ): Promise<PatchResponseDto<T>>;
   async patchOne(
     q: Partial<T> | string[],
@@ -678,13 +679,13 @@ export class CrudClient<T> {
   async patchIn(
     q: string[],
     data: Partial<T>,
-    options: ICrudOptions,
+    options?: ICrudOptions,
     copts?: ClientOptions,
   ): Promise<PatchResponseDto<T>>;
   async patchIn(
     q: Partial<T>,
     data: Partial<T>,
-    options: ICrudOptions,
+    options?: ICrudOptions,
     copts?: ClientOptions,
   ): Promise<PatchResponseDto<T>>;
   async patchIn(
@@ -735,7 +736,7 @@ export class CrudClient<T> {
 
   async saveBatch(
     limitingFields: string[],
-    objects: T[],
+    objects: Partial<T>[],
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
   ): Promise<PatchResponseDto<T>[]> {
@@ -860,7 +861,7 @@ export class CrudClient<T> {
   }
 
   async createBatch(
-    objects: T[],
+    objects: Partial<T>[],
     options: ICrudOptions = undefined,
     copts?: ClientOptions,
   ): Promise<T[]> {
@@ -881,7 +882,10 @@ export class CrudClient<T> {
     return await this._doBatch(batchFunc, objects, copts);
   }
 
-  async create(data: T, options: ICrudOptions = undefined): Promise<T> {
+  async create(
+    data: Partial<T>,
+    options: ICrudOptions = undefined,
+  ): Promise<T> {
     const ICrudQuery: ICrudQuery = {
       options: JSON.stringify(options) as any,
     };
@@ -915,12 +919,12 @@ export class CrudClient<T> {
 
   async deleteIn(
     q: Partial<T>,
-    options: ICrudOptions,
+    options?: ICrudOptions,
     copts?: ClientOptions,
   ): Promise<DeleteResponseDto>;
   async deleteIn(
     q: string[],
-    options: ICrudOptions,
+    options?: ICrudOptions,
     copts?: ClientOptions,
   ): Promise<DeleteResponseDto>;
   async deleteIn(
