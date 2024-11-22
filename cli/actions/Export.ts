@@ -422,7 +422,7 @@ export class Export {
     replaces = [],
     opts = { replaceNews: false },
   ) {
-    const libraryRegexStr = `import[^{;]*{([^{;]+)}[^{;]+${library}.+;`;
+    const libraryRegexStr = `import[^{;]*{([^{;]+)}[^{;]+${library}.+`;
     //console.log('libraryRegexStr', libraryRegexStr);
     const libraryRegex = new RegExp(libraryRegexStr, 'gm');
     // loop through all files in the eicrud_exports directory

@@ -1,5 +1,5 @@
 import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator'; //this is a test, no semi-colon here
 import { CrudEntity } from '@eicrud/core/crud';
 
 @Entity()
