@@ -1,3 +1,8 @@
+---
+description: Here's a detailed explanation of how Eicrud manages users.
+comments: true
+---
+
 In Eicrud, every authenticated request fetches (from cache or DB) a `CrudUser` and stores it inside the [CrudContext](../context.md).  
 
 

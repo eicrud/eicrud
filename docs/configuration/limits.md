@@ -1,3 +1,8 @@
+---
+description: Eicrud provides various ways to limit what users can do in your application. Here are the options.
+comments: true
+---
+
 Eicrud provides various ways to limit what users can do in your application.
 
 !!! note

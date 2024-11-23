@@ -1,3 +1,8 @@
+---
+description: Eicrud's services can store single results in a cache. Here's how to configure that cache.
+comments: true
+---
+
 [CrudServices](./definition.md) can store single results in a cache.
 
 By default, a basic in-memory (RAM) cache is used.

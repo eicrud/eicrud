@@ -1,6 +1,8 @@
 ---
 description: Eicrud's client offers multiple ways to store the JWT token used for authentication.
+comments: true
 ---
+
 
 Eicrud's [client](./setup.md) offers multiple ways to store the JWT token used for authentication.
 

@@ -1,3 +1,8 @@
+---
+description: Here's a detailed explanation of Eicrud's entities, your database schema, and a DTO (data transfer object) for CRUD operations.
+comments: true
+---
+
 An Eicrud Entity is a database schema as well as a DTO (data transfer object) for CRUD operations. It represents "what the data can be".
 
 ## Schema

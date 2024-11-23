@@ -1,3 +1,8 @@
+---
+description: Here is how to get started with an Eicrud project.
+comments: true
+---
+
 Eicrud plugs itself on a working [NestJS](https://nestjs.com){:target="_blank"} application (configured with [Fastify](https://fastify.dev){:target="_blank"}). You'll need a database server ([MongoDB](https://www.mongodb.com/docs/v5.0/tutorial/convert-replica-set-to-replicated-shard-cluster){:target="_blank"} or [PostgreSQL](https://www.postgresql.org/){:target="_blank"}) listening on the right port.
 
 ## Install with the CLI (recommended)

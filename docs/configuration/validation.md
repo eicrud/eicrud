@@ -1,3 +1,8 @@
+---
+description: Here are global validation options you can configure Eicrud with.
+comments: true
+---
+
 ```typescript
 export class ValidationOptions{
   defaultMaxSize = 50;

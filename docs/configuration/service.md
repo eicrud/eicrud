@@ -1,3 +1,8 @@
+---
+description: Most of Eicrud's application configuration is done through the CrudConfigService.
+comments: true
+---
+
 Most of Eicrud's application configuration is done through the `CrudConfigService`. 
 ```typescript title="eicrud.config.service.ts"
 @Injectable()

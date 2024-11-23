@@ -1,3 +1,8 @@
+---
+description: Here's a tutorial that explains how to create a search command in Eicrud. 
+comments: true
+---
+
 If you need to perform complex queries, [read operations](../services/operations.md) may not suffice. 
 
 You can create a `search` command to use the full potential of your Database / [ORM](https://mikro-orm.io/){:target="_blank"}.

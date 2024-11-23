@@ -1,3 +1,8 @@
+---
+description: Here is the list of transforming decorators you can apply to Eicrud's data transfer objects.
+comments: true
+---
+
 Eicrud's transformations happen at the controller level (between the client, and your services).
 
 [Entities](../services/entity.md) and [commands DTOs](../services/commands.md) are transformed the same way.

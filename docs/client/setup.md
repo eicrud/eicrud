@@ -1,3 +1,8 @@
+---
+description: Here's how to install Eicrud's client in your front-end to query your services.
+comments: true
+---
+
 Install Eicrud's client in your front-end to query your services.
 
 ```

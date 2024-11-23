@@ -1,3 +1,8 @@
+---
+description: Here are details on Eicrud's global context, which is passed in each request.
+comments: true
+---
+
 Each request in Eicrud is assigned a `CrudContext`. It contains various information about the request and authenticated user.
 
 ```typescript

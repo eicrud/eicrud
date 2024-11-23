@@ -1,3 +1,8 @@
+---
+description: Here's the list of the different options for Eicrud's service operations.
+comments: true
+---
+
 You can pass various options when performing [operations](operations.md) or [commands](commands.md).
 
 ## CrudOptions

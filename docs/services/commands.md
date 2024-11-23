@@ -1,3 +1,8 @@
+---
+description: Here's a detailed explanation of Eicrud's commands. Personalized functions that execute on the server.
+comments: true
+---
+
 Commands are user-defined functions attached to a service. They're useful when you need to perform complex non-crud operations.
 
 ## Generate a new command

@@ -1,3 +1,8 @@
+---
+description: Here's a detailed explanation of Eicrud's authorization system.
+comments: true
+---
+
 A security dictates how a resource can be accessed by [roles](./roles.md). Each service and command has its own security.
 
 Securities let you use the [CASL](https://casl.js.org/){:target="_blank"} library to define abilities for your services.

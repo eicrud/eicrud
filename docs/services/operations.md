@@ -1,3 +1,8 @@
+---
+description: Here's the list of the different service operations in Eicrud.
+comments: true
+---
+
 Eicrud's services offer the following CRUD methods out of the box. Check out the [client page](../client/operations.md) to call them from your front end.
 
 !!! warning

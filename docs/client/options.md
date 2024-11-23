@@ -1,3 +1,8 @@
+---
+description: Here are the different options available to the Eicrud client.
+comments: true
+---
+
 ## CrudOptions
 
 You can pass the [CrudOptions](../services/options.md) with every client method call.

@@ -1,5 +1,6 @@
 ---
 description: You can generate a super-client with Eicrud's CLI, it comes with all your DTO/Entity types and provides powerful auto-completion to access your services/commands.
+comments: true
 ---
 
 You can generate a **super-[client](../client/setup.md)** with Eicrud's [CLI](https://www.npmjs.com/package/@eicrud/cli){:target="_blank"}, it comes with all your DTO/Entity types and provides powerful auto-completion to access your [services](../services/definition.md) and [commands](../services/commands.md).
