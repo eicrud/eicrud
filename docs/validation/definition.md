@@ -1,3 +1,8 @@
+---
+description: Here are details on how Eicrud validates incoming requests.
+comments: true
+---
+
 Eicrud's validation happens at the controller level (between the client, and your services).
 
 [Entities](../services/entity.md) and [commands DTOs](../services/commands.md) are validated the same way.

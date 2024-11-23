@@ -1,3 +1,8 @@
+---
+description: Here's a tutorial that explains how to build batchable commands in Eicrud. 
+comments: true
+---
+
 Eicrud provides batching options to help split large [DTO](../validation/definition.md) arrays into smaller batches. This functionality can smooth the impact of commands on your infrastructure and prevent potential issues with requests being too large.
 
 ## Create a batchable command

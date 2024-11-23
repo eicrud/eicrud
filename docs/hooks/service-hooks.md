@@ -1,5 +1,6 @@
 ---
 description: Eicrud offers a variety of CRUD hooks to perform actions triggered by entity modification or query.
+comments: true
 ---
 Eicrud offers a variety of CRUD hooks to perform actions triggered by entity modification or query.
 

@@ -1,3 +1,8 @@
+---
+description: Here's how to configure Eicrud's database access.
+comments: true
+---
+
 The database access configuration is done through [Mikro-orm](https://mikro-orm.io/){:target="_blank"} via the `MikroOrmModule`.
 
 ```typescript title="app.module.ts"

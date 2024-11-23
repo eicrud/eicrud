@@ -1,3 +1,8 @@
+---
+description: Here's how to set up user roles in Eicrud.
+comments: true
+---
+
 Every ability in Eicrud is attached to a role. Roles are dynamically assigned to users via the property [CrudUser](../user/definition.md)->`role`.
 
 ```typescript title="eicrud.roles.ts"

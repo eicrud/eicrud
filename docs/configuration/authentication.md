@@ -1,3 +1,8 @@
+---
+description: Here's how to configure how Eicrud handles the authentication of users.
+comments: true
+---
+
 Eicrud handles the authentication of [users](../user/definition.md) in a global [NestJS guard](https://docs.nestjs.com/guards#guards){:target="_blank"}.
 
 ```typescript

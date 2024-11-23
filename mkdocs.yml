@@ -1,5 +1,6 @@
 site_name: Eicrud - Documentation
 theme:
+  custom_dir: docs/overrides
   logo: planet.svg
   favicon: favicon.ico
   name: material

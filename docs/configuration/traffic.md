@@ -1,4 +1,9 @@
-Eicrud provides various ways to control traffic to your application.
+---
+description: Eicrud provides various ways to limit traffic to your application. Here are the options.
+comments: true
+---
+
+Eicrud provides various ways to limit traffic to your application.
 
 ```typescript
 export class WatchTrafficOptions{

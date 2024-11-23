@@ -1,0 +1,21 @@
+{% if page.meta.comments %}
+  <h2 id="__comments">{{ lang.t("meta.comments") }}</h2>
+  <!-- Insert generated snippet here -->
+  <script src="https://giscus.app/client.js"
+    data-repo="eicrud/eicrud"
+    data-repo-id="R_kgDOLq9Mcg"
+    data-category="Comments"
+    data-category-id="DIC_kwDOLq9Mcs4CkieT"
+    data-mapping="pathname"
+    data-strict="1"
+    data-reactions-enabled="0"
+    data-emit-metadata="0"
+    data-input-position="top"
+    data-theme="transparent_dark"
+    data-lang="en"
+    data-loading="lazy"
+    crossorigin="anonymous"
+    async>
+   </script>
+  <!-- Synchronize Giscus theme with palette -->
+{% endif %}

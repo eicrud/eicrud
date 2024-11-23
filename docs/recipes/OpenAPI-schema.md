@@ -1,5 +1,6 @@
 ---
 description: Eicrud's CLI lets you generate an OpenAPI schema specifying all your services' CRUD and command endpoints.
+comments: true
 ---
 
 Eicrud's [CLI](https://www.npmjs.com/package/@eicrud/cli){:target="_blank"} lets you generate an [OpenAPI](https://www.openapis.org/){:target="_blank"} schema specifying all your services' CRUD and command endpoints. 

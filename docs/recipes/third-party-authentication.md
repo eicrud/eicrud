@@ -1,3 +1,8 @@
+---
+description: Here's a tutorial that explains how to integrate third-party authentication with Eicrud.
+comments: true
+---
+
 You can extend your [UserService](../user/service.md) to use third-party authentication services like [Google Identity](https://developers.google.com/identity){:target="_blank"} or [Facebook Login](https://developers.facebook.com/docs/facebook-login/){:target="_blank"}.
 
 ## Account Creation / Login

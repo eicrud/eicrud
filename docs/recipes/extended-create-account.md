@@ -1,5 +1,6 @@
 ---
-description: Let's extend Eicrud's create_account command to personalize the user's sign-up
+description: Let's extend Eicrud's create_account command to personalize the user's sign-up.
+comments: true
 ---
 
 As your application grows you might need to register additional fields when creating user accounts. To implement this we will extend the [create_account command](../user/service.md#account-creation) with a new one.

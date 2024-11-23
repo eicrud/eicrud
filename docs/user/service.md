@@ -1,3 +1,8 @@
+---
+description: Here are details on Eicrud's user service.
+comments: true
+---
+
 `CrudUserService` has prebuilt [commands](../services/commands.md) you can use to manage your users. 
 
 Some commands make use of the `EmailService`. The [CLI](https://www.npmjs.com/package/@eicrud/cli){:target="_blank"}'s setup has a shell service that you can complete with your mailing provider api. 

@@ -1,5 +1,6 @@
 ---
 description: provides offers controller hooks to perform actions triggered by commands.
+comments: true
 ---
 Eicrud provides controller hooks to perform actions triggered by [commands](../services/commands.md).
 

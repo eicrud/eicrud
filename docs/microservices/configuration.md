@@ -1,3 +1,8 @@
+---
+description: Eicrud lets you split your CrudServices in microservices using a simple configuration.
+comments: true
+---
+
 Eicrud lets you split your [CrudServices](../services/definition.md) in microservices using a simple configuration.
 
 ```typescript title="eicrud.config.service.ts"
