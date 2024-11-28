@@ -122,3 +122,6 @@ const { data, total, limit } = await profileClient.cmdL(
 ```
 !!! note
     If no `limit` is specified, the client will perform multiple requests until `total` profiles have been fetched. The maximum `limit` that can be used is set in the [CmdSecurity](../configuration/limits.md#cmdsecurity).
+
+!!! note
+    Since search is a read-only command, you can enable `allowGetMethod` in the [CmdSecurity](../configuration/limits.md#cmdsecurity). This allows for searching using a simple url: `/crud/s/profile/cmd/search?query={"userNameLike":"doe"}"`

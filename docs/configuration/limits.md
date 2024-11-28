@@ -79,6 +79,7 @@ const getCmdSecurity = (command, user): CmdSecurity => {
     secureOnly: true,
     nonAdminQueryLimit: 50,
     adminQueryLimit: 200
+    allowGetMethod?: boolean;
     //...
 
     }
@@ -106,6 +107,10 @@ The default `CrudOptions`->`limit` set when calling the command (for admin users
 !!! note
     `CrudOptions`->`limit` can be used in commands to return limited results. See this [tutorial](../recipes/search-command.md) for more info.
 
+#### **allowGetMethod**
+Allow the command to be used with a GET request. It is usefull for triggering a command with a simple URL.
+!!! warning
+    CSRF protection is not enforced on GET requests, make sure your command doesn't change your application state when enabling this.
 
 
 ## LimitOptions
