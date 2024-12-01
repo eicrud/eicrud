@@ -32,7 +32,7 @@ import { CrudError, CrudErrors } from '../../shared/CrudErrors';
 import { Melon } from '../src/services/melon/melon.entity';
 import { MelonService } from '../src/services/melon/melon.service';
 import exp from 'constants';
-import { timeout } from "../env";
+import { timeout } from '../env';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -151,7 +151,7 @@ describe('AppController', () => {
     const accRes = await userService.$create_account(createAccountDto, null);
     jwt = accRes.accessToken;
     userId = crudConfig.dbAdapter.formatId(accRes.userId, crudConfig);
-  }, timeout*2);
+  }, timeout * 2);
 
   //@Post('/crud/one')
   it('should not allow duplicate username @Unique()', async () => {
@@ -581,5 +581,129 @@ describe('AppController', () => {
 
     const userMelons2 = await melonService.$find({ owner: user.id }, null);
     expect(userMelons2.data.length).toBe(user.melons - 2);
+  });
+
+  it('Should allow orderBy mikro-orm option', async () => {
+    const user = users['Michael Doe'];
+
+    const qry: Partial<Melon> = {
+      owner: user.id,
+    };
+
+    const query: CrudQuery = {
+      service: 'melon',
+      query: JSON.stringify(qry),
+      options: JSON.stringify({ orderBy: 'wrong' }) as any,
+    };
+
+    await testMethod({
+      url: '/crud/many',
+      method: 'GET',
+      expectedCode: 400,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: {},
+      query,
+      crudConfig,
+    });
+
+    query.options = JSON.stringify({ orderBy: { price: 'DESC' } }) as any;
+
+    const res2 = await testMethod({
+      url: '/crud/many',
+      method: 'GET',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: {},
+      query,
+      crudConfig,
+    });
+
+    expect(res2.length).toBe(user.melons);
+    expect(res2.length).toBeGreaterThan(2);
+
+    for (let i = 1; i < res2.length; i++) {
+      expect(res2[i].price).toBeLessThan(res2[i - 1].price);
+    }
+
+    query.options = JSON.stringify({ orderBy: { price: 'asc' } }) as any;
+
+    const res3 = await testMethod({
+      url: '/crud/many',
+      method: 'GET',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: {},
+      query,
+      crudConfig,
+    });
+
+    expect(res3.length).toBe(user.melons);
+    expect(res3.length).toBeGreaterThan(2);
+
+    for (let i = 1; i < res3.length; i++) {
+      expect(res3[i].price).toBeGreaterThan(res3[i - 1].price);
+    }
+
+    query.options = JSON.stringify({ orderBy: ['wrong'] }) as any;
+
+    await testMethod({
+      url: '/crud/many',
+      method: 'GET',
+      expectedCode: 400,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: {},
+      query,
+      crudConfig,
+    });
+
+    query.options = JSON.stringify({ orderBy: [{ price: 'desc' }] }) as any;
+
+    const res4 = await testMethod({
+      url: '/crud/many',
+      method: 'GET',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: {},
+      query,
+      crudConfig,
+    });
+
+    expect(res4.length).toBe(user.melons);
+    expect(res4.length).toBeGreaterThan(2);
+
+    for (let i = 1; i < res4.length; i++) {
+      expect(res4[i].price).toBeLessThan(res4[i - 1].price);
+    }
+
+    query.options = JSON.stringify({ orderBy: [{ price: 'ASC' }] }) as any;
+
+    const res5 = await testMethod({
+      url: '/crud/many',
+      method: 'GET',
+      expectedCode: 200,
+      app,
+      jwt: user.jwt,
+      entityManager,
+      payload: {},
+      query,
+      crudConfig,
+    });
+
+    expect(res5.length).toBe(user.melons);
+    expect(res5.length).toBeGreaterThan(2);
+
+    for (let i = 1; i < res5.length; i++) {
+      expect(res5[i].price).toBeGreaterThan(res5[i - 1].price);
+    }
   });
 });
