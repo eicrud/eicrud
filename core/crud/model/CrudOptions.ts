@@ -2,11 +2,12 @@ import {
   IsArray,
   IsBoolean,
   IsInt,
+  IsObject,
   IsOptional,
   IsString,
 } from 'class-validator';
 import { $MaxSize } from '@eicrud/core/validation/decorators';
-import { ICrudOptions } from '@eicrud/shared/interfaces';
+import { ICrudOptions, OrderByType } from '@eicrud/shared/interfaces';
 
 export class CrudOptions<T = any> implements ICrudOptions {
   @IsOptional()
@@ -50,6 +51,10 @@ export class CrudOptions<T = any> implements ICrudOptions {
   @IsOptional()
   @IsInt()
   offset?: number;
+
+  @IsOptional()
+  @IsObject({ each: true })
+  orderBy?: OrderByType<T>;
 
   /**
    * Allow the entity ID to be pregenerated in create operations
