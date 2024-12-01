@@ -32,7 +32,7 @@ import { CrudOptions } from './model/CrudOptions';
 const SKIPPABLE_OPTIONS = [
   'limit',
   'offset',
-  'sort',
+  'orderBy',
   'fields',
   'mockRole',
   'cached',

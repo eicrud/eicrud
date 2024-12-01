@@ -37,6 +37,7 @@ import { MelonService } from '../src/services/melon/melon.service';
 import exp from 'constants';
 import { MyUser } from '../src/services/my-user/my-user.entity';
 import { timeout } from '../env';
+import { ICrudOptions } from '../../shared/interfaces';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -176,66 +177,81 @@ describe('AppController', () => {
     expect(profile.bio).toBe(user.bio);
   });
 
-  it('should disconnect when invalid jwt when getting melon', async () => {
-    const user = users['Jon Doe'];
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password,
-      expiresInSec: 1,
-    };
-    const myClient = getMelonClient();
+  it(
+    'should disconnect when invalid jwt when getting melon',
+    async () => {
+      const user = users['Jon Doe'];
+      const dto: LoginDto = {
+        email: user.email,
+        password: testAdminCreds.password,
+        expiresInSec: 1,
+      };
+      const myClient = getMelonClient();
 
-    await myClient.login(dto);
+      await myClient.login(dto);
 
-    expect(myClient.config.storage.get(myClient.JWT_STORAGE_KEY)).toBeTruthy();
+      expect(
+        myClient.config.storage.get(myClient.JWT_STORAGE_KEY),
+      ).toBeTruthy();
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const melon: Melon = await myClient.findOne({ owner: user.id });
+      const melon: Melon = await myClient.findOne({ owner: user.id });
 
-    expect(melon.ownerEmail).toBe(user.email);
-    expect(myClient.config.storage.get(myClient.JWT_STORAGE_KEY)).toBeFalsy();
-  }, timeout*2);
+      expect(melon.ownerEmail).toBe(user.email);
+      expect(myClient.config.storage.get(myClient.JWT_STORAGE_KEY)).toBeFalsy();
+    },
+    timeout * 2,
+  );
 
-  it('should detect limit when fetching melon ids', async () => {
-    //wait 200ms
-    await new Promise((resolve) => setTimeout(resolve, 200));
+  it(
+    'should detect limit when fetching melon ids',
+    async () => {
+      //wait 200ms
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
-    const user = users['Michael Doe'];
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password,
-    };
-    const myClient = getMelonClient();
+      const user = users['Michael Doe'];
+      const dto: LoginDto = {
+        email: user.email,
+        password: testAdminCreds.password,
+      };
+      const myClient = getMelonClient();
 
-    await myClient.login(dto);
+      await myClient.login(dto);
 
-    const melons: string[] = (await myClient.findIds({ owner: user.id })).data;
-    expect(melons.length).toBe(10000);
-  }, timeout*2);
+      const melons: string[] = (await myClient.findIds({ owner: user.id }))
+        .data;
+      expect(melons.length).toBe(10000);
+    },
+    timeout * 2,
+  );
 
-  it('should apply limits when fetching melon Id', async () => {
-    //wait 200ms
-    await new Promise((resolve) => setTimeout(resolve, 200));
+  it(
+    'should apply limits when fetching melon Id',
+    async () => {
+      //wait 200ms
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
-    const account = users['Jon Doe'];
-    const user = users['Michael Doe'];
-    const dto: LoginDto = {
-      email: account.email,
-      password: testAdminCreds.password,
-    };
-    const myClient = getMelonClient();
+      const account = users['Jon Doe'];
+      const user = users['Michael Doe'];
+      const dto: LoginDto = {
+        email: account.email,
+        password: testAdminCreds.password,
+      };
+      const myClient = getMelonClient();
 
-    await myClient.login(dto);
+      await myClient.login(dto);
 
-    const melons: any = await myClient.findIds(
-      { owner: user.id },
-      { limit: 500 },
-    );
+      const melons: any = await myClient.findIds(
+        { owner: user.id },
+        { limit: 500 },
+      );
 
-    expect(melons.data.length).toBe(500);
-    expect(melons.total).toBe(10000);
-  }, timeout*2);
+      expect(melons.data.length).toBe(500);
+      expect(melons.total).toBe(10000);
+    },
+    timeout * 2,
+  );
 
   //@Patch('many')
   it('should find & patch many & delete melons', async () => {
@@ -279,58 +295,62 @@ describe('AppController', () => {
     expect(missingMelons.length).toBe(0);
   });
 
-  it('should findIds & patchIn & findIn & deleteIn melons', async () => {
-    //wait 200ms
-    await new Promise((resolve) => setTimeout(resolve, 200));
+  it(
+    'should findIds & patchIn & findIn & deleteIn melons',
+    async () => {
+      //wait 200ms
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
-    const user = users['Michael Doe'];
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password,
-    };
-    const myClient = getMelonClient();
+      const user = users['Michael Doe'];
+      const dto: LoginDto = {
+        email: user.email,
+        password: testAdminCreds.password,
+      };
+      const myClient = getMelonClient();
 
-    //wait 600ms
-    await new Promise((resolve) => setTimeout(resolve, 600));
+      //wait 600ms
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
-    await myClient.login(dto);
+      await myClient.login(dto);
 
-    const ids: string[] = (await myClient.findIds({ owner: user.id })).data;
+      const ids: string[] = (await myClient.findIds({ owner: user.id })).data;
 
-    const melons: Melon[] = (await myClient.findIn(ids)).data;
+      const melons: Melon[] = (await myClient.findIn(ids)).data;
 
-    expect(melons.length).toBe(10000);
-    for (let i = 0; i < melons.length; i++) {
-      expect(melons[i].owner).toBe(user.id?.toString());
-      expect(melons[i].price).toBe(i);
-    }
+      expect(melons.length).toBe(10000);
+      for (let i = 0; i < melons.length; i++) {
+        expect(melons[i].owner).toBe(user.id?.toString());
+        expect(melons[i].price).toBe(i);
+      }
 
-    const patch: Partial<Melon> = {
-      price: 982,
-    };
+      const patch: Partial<Melon> = {
+        price: 982,
+      };
 
-    const q = {
-      [myClient.config.id_field]: ids,
-      owner: user.id,
-    };
+      const q = {
+        [myClient.config.id_field]: ids,
+        owner: user.id,
+      };
 
-    const res = await myClient.patchIn(q, patch);
+      const res = await myClient.patchIn(q, patch);
 
-    expect(res.count).toBe(10000);
+      expect(res.count).toBe(10000);
 
-    const updatedMelons: Melon[] = (await myClient.findIn(ids)).data;
+      const updatedMelons: Melon[] = (await myClient.findIn(ids)).data;
 
-    expect(updatedMelons.length).toBe(10000);
-    for (let i = 0; i < updatedMelons.length; i++) {
-      expect(updatedMelons[i].price).toBe(patch.price);
-    }
+      expect(updatedMelons.length).toBe(10000);
+      for (let i = 0; i < updatedMelons.length; i++) {
+        expect(updatedMelons[i].price).toBe(patch.price);
+      }
 
-    const res2 = await myClient.deleteIn(q);
-    expect(res2.count).toBe(10000);
+      const res2 = await myClient.deleteIn(q);
+      expect(res2.count).toBe(10000);
 
-    const missingMelons: Melon[] = (await myClient.findIn(ids)).data;
-    expect(missingMelons.length).toBe(0);
-  }, timeout*3);
+      const missingMelons: Melon[] = (await myClient.findIn(ids)).data;
+      expect(missingMelons.length).toBe(0);
+    },
+    timeout * 3,
+  );
 
   //@Patch('one')
   it('should patch and delete one profile', async () => {
@@ -553,54 +573,99 @@ describe('AppController', () => {
     expect(res2).toBeFalsy();
   });
 
-  it('should renew jwt with storage', async () => {
-    const user = users['Renew Me'];
-    const myClient = getProfileClient();
+  it(
+    'should renew jwt with storage',
+    async () => {
+      const user = users['Renew Me'];
+      const myClient = getProfileClient();
+
+      const dto: LoginDto = {
+        email: user.email,
+        password: testAdminCreds.password,
+        expiresInSec: 4,
+      };
+      await myClient.login(dto);
+
+      const profile: UserProfile = await myClient.findOne({
+        id: user.profileId,
+        user: user.id,
+      });
+      expect(profile.bio).toBe(user.bio);
+
+      //wait 4000ms
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+
+      let error;
+      try {
+        await myClient.findOne({
+          id: user.profileId,
+          user: user.id,
+        });
+      } catch (e) {
+        console.log(e.response.data);
+        error = e.response.status;
+      }
+      expect(error).toBe(403);
+
+      dto.expiresInSec = 4;
+      const resLog = await myClient.login(dto);
+
+      expect(resLog.userId).toEqual(user.id?.toString());
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const res = await myClient.checkJwt();
+      expect(res).toEqual(user.id?.toString());
+
+      //wait 2500ms
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+
+      const profile2: UserProfile = await myClient.findOne({
+        id: user.profileId,
+        user: user.id,
+      });
+      expect(profile2.bio).toBe(user.bio);
+    },
+    timeout * 3,
+  );
+
+  it('should expose orderBy option', async () => {
+    const user = users['Jon Doe'];
 
     const dto: LoginDto = {
       email: user.email,
       password: testAdminCreds.password,
-      expiresInSec: 4,
     };
+
+    const myClient = getMelonClient();
+
     await myClient.login(dto);
 
-    const profile: UserProfile = await myClient.findOne({
-      id: user.profileId,
-      user: user.id,
-    });
-    expect(profile.bio).toBe(user.bio);
+    let options: ICrudOptions<Melon> = {
+      orderBy: { price: 'desc' },
+    };
 
-    //wait 4000ms
-    await new Promise((resolve) => setTimeout(resolve, 4000));
+    const res = await myClient.find({ owner: user.id }, options);
 
-    let error;
-    try {
-      await myClient.findOne({
-        id: user.profileId,
-        user: user.id,
-      });
-    } catch (e) {
-      console.log(e.response.data);
-      error = e.response.status;
+    const melons = res.data;
+
+    expect(melons.length).toBe(5);
+
+    for (let i = 1; i < melons.length; i++) {
+      expect(melons[i].price).toBeLessThan(melons[i - 1].price);
     }
-    expect(error).toBe(403);
 
-    dto.expiresInSec = 4;
-    const resLog = await myClient.login(dto);
+    options = {
+      orderBy: [{ price: 'asc' }],
+    };
 
-    expect(resLog.userId).toEqual(user.id?.toString());
+    const res2 = await myClient.find({ owner: user.id }, options);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    const res = await myClient.checkJwt();
-    expect(res).toEqual(user.id?.toString());
+    const melons2 = res2.data;
 
-    //wait 2500ms
-    await new Promise((resolve) => setTimeout(resolve, 2500));
+    expect(melons2.length).toBe(5);
 
-    const profile2: UserProfile = await myClient.findOne({
-      id: user.profileId,
-      user: user.id,
-    });
-    expect(profile2.bio).toBe(user.bio);
-  }, timeout*3);
+    for (let i = 1; i < melons2.length; i++) {
+      expect(melons2[i].price).toBeGreaterThan(melons2[i - 1].price);
+    }
+  });
 });
