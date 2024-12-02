@@ -64,6 +64,8 @@ const getCmdSecurity = (search, profile): CmdSecurity => {
 
 We can now implement the command action, to make things simpler we use the [CrudService->$find](../services/operations.md#read-operations) method.
 
+We're using a simple regex to search on the `username` field, but you can use any of [MikroOrm's operators](https://mikro-orm.io/docs/query-conditions) like `$and` & `$or`.
+
 ```typescript title="search.action.ts"
 export async function search(this: ProfileService, dto: SearchDto, ctx: CrudContext, inheritance?: any ){
     const query: Partial<Profile> = {
