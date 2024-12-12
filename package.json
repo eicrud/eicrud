@@ -47,7 +47,8 @@
     "@eicrud/mongodb": "file:db_mongo",
     "@eicrud/postgresql": "file:db_postgre",
     "@eicrud/shared": "file:shared",
-    "@hey-api/client-axios": "^0.2.2"
+    "@hey-api/client-axios": "^0.2.2",
+    "is-network-error": "^1.1.0"
   },
   "devDependencies": {
     "@eicrud/cli": "file:cli",
@@ -106,6 +107,8 @@
       "^@eicrud/shared/(.*)$": "<rootDir>/../shared/$1",
       "^@eicrud/shared$": "<rootDir>/../shared"
     },
-    "setupFiles": ["dotenv/config"]
+    "setupFiles": [
+      "dotenv/config"
+    ]
   }
 }
