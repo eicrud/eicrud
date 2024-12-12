@@ -38,6 +38,7 @@ import { EntityClass, EntityManager, MikroORM, wrap } from '@mikro-orm/core';
 import { CrudOptions } from '.';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { truncate } from 'fs';
+import isNetworkError from 'is-network-error';
 
 const NAMES_REGEX = /([^\s,]+)/g;
 const COMMENTS_REGEX = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm;
@@ -295,34 +296,45 @@ export class CrudService<T extends CrudEntity> {
       } as CrudContext;
     }
 
-    const res = await axios
-      .patch(url, payload, {
-        params: query,
-        auth: {
-          username: this.crudConfig.microServicesOptions.username,
-          password: this.crudConfig.microServicesOptions.password,
-        },
-      })
-      .catch((e) => {
-        const error = e.response?.data || e;
-        throw new HttpException(
-          {
-            statusCode: error.statusCode,
-            error: error.error,
-            message: error.message,
+    const retries: number = 2;
+    let attempt: number = 0;
+    const delayStartValue: number = 100;
+    while (attempt < retries) {
+      try {
+        const res = await axios.patch(url, payload, {
+          params: query,
+          auth: {
+            username: this.crudConfig.microServicesOptions.username,
+            password: this.crudConfig.microServicesOptions.password,
           },
-          error.statusCode,
-        );
-      });
+        });
 
-    const result = res.data.res;
-    const partialCtx = res.data.ctx;
-    if (partialCtx && ctxPos != null && args[ctxPos]) {
-      for (const key in partialCtx) {
-        args[ctxPos][key] = partialCtx[key];
+        const result = res.data.res;
+        const partialCtx = res.data.ctx;
+        if (partialCtx && ctxPos != null && args[ctxPos]) {
+          for (const key in partialCtx) {
+            args[ctxPos][key] = partialCtx[key];
+          }
+        }
+        return result;
+      } catch (e) {
+        ++attempt;
+        const error = e.response?.data || e;
+
+        if (!isNetworkError(e) || attempt > retries) {
+          throw new HttpException(
+            {
+              statusCode: error.statusCode,
+              error: error.error,
+              message: error.message,
+            },
+            error.statusCode,
+          );
+        }
+        const delay = delayStartValue * Math.pow(2, attempt - 1);
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
-    return result;
   }
 
   getName() {
