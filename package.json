@@ -47,14 +47,15 @@
     "@eicrud/mongodb": "file:db_mongo",
     "@eicrud/postgresql": "file:db_postgre",
     "@eicrud/shared": "file:shared",
-    "@hey-api/client-axios": "^0.2.2"
+    "@hey-api/client-axios": "^0.6.2"
   },
   "devDependencies": {
     "@eicrud/cli": "file:cli",
-    "@hey-api/openapi-ts": "^0.52.4",
-    "@nestjs/cli": "^10.4.4",
-    "@nestjs/schematics": "^10.1.4",
-    "@nestjs/testing": "^10.4.1",
+    "@hey-api/openapi-ts": "^0.64.13",
+    "@nestjs/cli": "^11.0.5",
+    "@nestjs/schematics": "^11.0.2",
+    "@nestjs/testing": "^11.0.12",
+    "@nestjs/platform-fastify": "^11.0.12",
     "@types/bcrypt": "^5.0.2",
     "@types/jest": "^29.5.12",
     "@types/node": "20.11.19",
