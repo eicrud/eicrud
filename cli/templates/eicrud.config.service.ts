@@ -19,7 +19,7 @@ export class MyConfigService extends CrudConfigService {
             userService,
             entityManager,
             emailService,
-            jwtSecret: process.env.JWT_SECRET,
+            jwtSecret: process.env.JWT_SECRET as string,
             cacheManager: new BasicMemoryCache(),
             orm,
             id_field: 'id',

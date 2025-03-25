@@ -35,7 +35,7 @@ import { format } from 'path';
 import exp from 'constants';
 import { Picture } from '../src/services/picture/picture.entity';
 import { CrudErrors } from '../../shared/CrudErrors';
-import { timeout } from "../env";
+import { timeout } from '../env';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -274,6 +274,8 @@ describe('AppController', () => {
     });
     expect(res2.count).toBe(10);
 
+    await new Promise((r) => setTimeout(r, 50));
+
     delete query.query;
     const res3 = await testMethod({
       url: '/crud/one',
@@ -415,24 +417,45 @@ describe('AppController', () => {
     });
   });
 
-  it('trusted user should be able to use more cmd', async () => {
-    const user = users['Admin Dude'];
+  it(
+    'trusted user should be able to use more cmd',
+    async () => {
+      const user = users['Admin Dude'];
 
-    const payload: TestCmdDto = {
-      returnMessage: 'Hello World',
-    };
+      const payload: TestCmdDto = {
+        returnMessage: 'Hello World',
+      };
 
-    const query: CrudQuery = {
-      service: 'user-profile',
-      cmd: 'test_cmd',
-    };
+      const query: CrudQuery = {
+        service: 'user-profile',
+        cmd: 'test_cmd',
+      };
 
-    const promises = [];
-    for (let i = 0; i < 14; i++) {
-      const prom = testMethod({
+      const promises = [];
+      for (let i = 0; i < 14; i++) {
+        const prom = testMethod({
+          url: '/crud/cmd',
+          method: 'POST',
+          expectedCode: 201,
+          app,
+          jwt: user.jwt,
+          entityManager,
+          payload,
+          query,
+          crudConfig,
+        });
+        promises.push(prom);
+      }
+
+      await Promise.all(promises);
+
+      //50ms delay
+      await new Promise((r) => setTimeout(r, 50));
+
+      const res = await testMethod({
         url: '/crud/cmd',
         method: 'POST',
-        expectedCode: 201,
+        expectedCode: 403,
         app,
         jwt: user.jwt,
         entityManager,
@@ -440,26 +463,9 @@ describe('AppController', () => {
         query,
         crudConfig,
       });
-      promises.push(prom);
-    }
-
-    await Promise.all(promises);
-
-    //50ms delay
-    await new Promise((r) => setTimeout(r, 50));
-
-    const res = await testMethod({
-      url: '/crud/cmd',
-      method: 'POST',
-      expectedCode: 403,
-      app,
-      jwt: user.jwt,
-      entityManager,
-      payload,
-      query,
-      crudConfig,
-    });
-  }, timeout*2);
+    },
+    timeout * 2,
+  );
 
   it('should offset and no result should be returned if offset is greater than the number of results', async () => {
     const user = users['Michael Doe'];
@@ -509,32 +515,36 @@ describe('AppController', () => {
     expect(res2.data.length).toBe(0);
   });
 
-  it('should limit maximum number of items in DB', async () => {
-    const user = users['Super Admin Dude'];
+  it(
+    'should limit maximum number of items in DB',
+    async () => {
+      const user = users['Super Admin Dude'];
 
-    const payload: Partial<Picture> = {
-      src: 'https://www.google.com',
-      width: 100,
-      height: 100,
-      alt: 'A picture',
-      profile: user.profileId,
-    };
+      const payload: Partial<Picture> = {
+        src: 'https://www.google.com',
+        width: 100,
+        height: 100,
+        alt: 'A picture',
+        profile: user.profileId,
+      };
 
-    const query: CrudQuery = {
-      service: 'picture',
-    };
+      const query: CrudQuery = {
+        service: 'picture',
+      };
 
-    await testMethod({
-      url: '/crud/one',
-      method: 'POST',
-      expectedCode: 507,
-      expectedCrudCode: CrudErrors.MAX_ITEMS_IN_DB.code,
-      app,
-      jwt: user.jwt,
-      entityManager,
-      payload,
-      query,
-      crudConfig,
-    });
-  }, timeout);
+      await testMethod({
+        url: '/crud/one',
+        method: 'POST',
+        expectedCode: 507,
+        expectedCrudCode: CrudErrors.MAX_ITEMS_IN_DB.code,
+        app,
+        jwt: user.jwt,
+        entityManager,
+        payload,
+        query,
+        crudConfig,
+      });
+    },
+    timeout,
+  );
 });
