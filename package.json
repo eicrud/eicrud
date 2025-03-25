@@ -47,7 +47,7 @@
     "@eicrud/mongodb": "file:db_mongo",
     "@eicrud/postgresql": "file:db_postgre",
     "@eicrud/shared": "file:shared",
-    "@hey-api/client-axios": "^0.2.2"
+    "@hey-api/client-axios": "^0.6.2"
   },
   "devDependencies": {
     "@eicrud/cli": "file:cli",
