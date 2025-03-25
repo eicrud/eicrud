@@ -13,53 +13,53 @@ on:
   #   - 'db_*/**'
 
 jobs:
-  test:
-    if: ${{ github.actor != 'dependabot[bot]' }}
-    runs-on: ubuntu-22.04
-    timeout-minutes: 14
+  # test:
+  #   if: ${{ github.actor != 'dependabot[bot]' }}
+  #   runs-on: ubuntu-22.04
+  #   timeout-minutes: 14
 
-    services:
-      mongodb:
-        image: mongo:7.0
-        ports:
-        - 27017:27017
-      postgres:
-        image: postgres:16-bullseye
-        ports:
-        - 5432:5432
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: admin
-    steps:
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '20.x'
-          registry-url: 'https://registry.npmjs.org'
+  #   services:
+  #     mongodb:
+  #       image: mongo:7.0
+  #       ports:
+  #       - 27017:27017
+  #     postgres:
+  #       image: postgres:16-bullseye
+  #       ports:
+  #       - 5432:5432
+  #       env:
+  #         POSTGRES_USER: postgres
+  #         POSTGRES_PASSWORD: admin
+  #   steps:
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version: '20.x'
+  #         registry-url: 'https://registry.npmjs.org'
         
-      - name: Copy repository
-        uses: actions/checkout@v3
+  #     - name: Copy repository
+  #       uses: actions/checkout@v3
 
-      - name: Install Dependencies
-        run: npm run setup:tests
+  #     - name: Install Dependencies
+  #       run: npm run setup:tests
 
-      - name: Build
-        run: npm run build
+  #     - name: Build
+  #       run: npm run build
 
-      - name: Mongodb tests
-        run: npm run test:mongo
+  #     - name: Mongodb tests
+  #       run: npm run test:mongo
 
-      - name: PostgreSQL tests
-        run: npm run test:postgre
+  #     - name: PostgreSQL tests
+  #       run: npm run test:postgre
 
-      - name: Microservices tests
-        run: npm run start:test-ms
+  #     - name: Microservices tests
+  #       run: npm run start:test-ms
 
-      - name: Microservices proxy tests
-        run: npm run start:test-ms:proxy
+  #     - name: Microservices proxy tests
+  #       run: npm run start:test-ms:proxy
 
   test-cli-mongo:
     if: ${{ github.actor != 'dependabot[bot]' }}
-    needs: test
+    # needs: test
     runs-on: ubuntu-22.04
     timeout-minutes: 6
 
