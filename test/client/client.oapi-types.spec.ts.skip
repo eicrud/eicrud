@@ -20,7 +20,8 @@ import {
   CrudConfigService,
 } from '@eicrud/core/config/crud.config.service';
 import { CrudAuthGuard } from '@eicrud/core/authentication/auth.guard';
-import * as services from '../oapi-client/services.gen';
+import * as services from '../oapi-client/sdk.gen';
+import { client } from '../oapi-client/client.gen';
 import { CrudOptions, StarFruit, UserProfile_TestCmdGetDto, UserProfile_TestCmdGetReturnDto } from '../oapi-client';
 import { StarFruitService } from '../src/services/star-fruit/star-fruit.service';
 const path = require('path');
