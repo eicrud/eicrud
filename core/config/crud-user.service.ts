@@ -35,7 +35,10 @@ import { LoginResponseDto } from '@eicrud/shared/interfaces';
 import * as bcrypt from 'bcrypt';
 import { TimeoutUserDto } from './basecmd_dtos/user/timeout_user.dto';
 import { ChangePasswordDto } from './basecmd_dtos/user/change_password.dto';
-import { CreateAccountDto } from './basecmd_dtos/user/create_account.dto';
+import {
+  CreateAccountDto,
+  CreateAccountReturnDto,
+} from './basecmd_dtos/user/create_account.dto';
 import { ResetPasswordDto } from './basecmd_dtos/user/reset_password.dto';
 import { SendPasswordResetEmailDto } from './basecmd_dtos/user/send_password_reset_email.dto';
 import { SendVerificationEmailDto } from './basecmd_dtos/user/send_verification_email.dto';
@@ -702,7 +705,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     dto: CreateAccountDto,
     ctx: CrudContext,
     inheritance?: Inheritance,
-  ) {
+  ): Promise<CreateAccountReturnDto> {
     let { email, password, role, username } = dto;
     if (
       password?.length > this.crudConfig.authenticationOptions.passwordMaxLength
