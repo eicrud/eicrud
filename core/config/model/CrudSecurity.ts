@@ -99,7 +99,7 @@ export interface CmdSecurity<
 export type CanCannot<T, A = string> = (
   action: A,
   subject: string,
-  a?: string | string[] | Partial<T>,
+  a?: keyof T | (keyof T)[] | Partial<T>,
   b?: Partial<T>,
 ) => void;
 

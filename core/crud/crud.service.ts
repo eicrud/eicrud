@@ -832,6 +832,7 @@ export class CrudService<T extends CrudEntity> {
     addPatch = this.dbAdapter.getSetUpdate(addPatch);
     update = { ...update, ...addPatch };
     try {
+      this.checkObjectForIds(update);
       const res = await em.nativeUpdate(this.entity, args.query, update as any);
       return res;
     } catch (e) {
@@ -1007,6 +1008,7 @@ export class CrudService<T extends CrudEntity> {
       ignoreUndefined: true,
     });
     ormEntity = (ormEntity as any).toJSON();
+    this.checkObjectForIds(ormEntity);
     return em.nativeUpdate(this.entity, query, ormEntity);
   }
 
