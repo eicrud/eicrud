@@ -821,6 +821,8 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
     if (updatePass) {
       userSuccessPatch.password = updatePass;
+      userSuccessPatch.role = user.role;
+      userSuccessPatch.rvkd = user.rvkd || 0;
     }
     await this.$unsecure_fastPatchOne(
       user[this.crudConfig.id_field],

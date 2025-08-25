@@ -259,12 +259,12 @@ export interface CrudSecurityRights<T = any> {
   defineCRUDAbility?(
     can: CanCannot<T, keyof CrudAction>,
     cannot: CanCannot<T, keyof CrudAction>,
-    ctx: CrudContext,
+    ctx: CrudContext<T>,
   ): Promise<any>;
 
   defineOPTAbility?(
     can: CanCannot<T, keyof CrudOptions>,
     cannot: CanCannot<T, keyof CrudOptions>,
-    ctx: CrudContext,
+    ctx: CrudContext<T>,
   ): Promise<any>;
 }
