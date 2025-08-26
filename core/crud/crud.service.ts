@@ -1184,7 +1184,11 @@ export class CrudService<T extends CrudEntity> {
 
   checkObjectForIds(obj: any) {
     for (let key in obj || {}) {
-      obj[key] = this.dbAdapter.checkId(obj[key]);
+      if (Array.isArray(obj[key])) {
+        obj[key] = obj[key].map((id) => this.dbAdapter.checkId(id));
+      } else {
+        obj[key] = this.dbAdapter.checkId(obj[key]);
+      }
     }
   }
 
