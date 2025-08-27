@@ -254,7 +254,7 @@ export const httpAliasResolver = createAliasResolver(
 export interface CrudSecurityRights<T = any> {
   maxBatchSize?: number;
 
-  fields?: string[];
+  fields?: (keyof T)[];
 
   defineCRUDAbility?(
     can: CanCannot<T, keyof CrudAction>,
