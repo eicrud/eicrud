@@ -22,6 +22,7 @@
     "publish:package": "npm i && npm run compile && npm publish",
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
   },
+  "main": "index.js",
   "dependencies": {
     "axios": "^1.8.4",
     "js-cookie": "^3.0.5",
