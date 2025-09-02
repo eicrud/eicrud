@@ -246,7 +246,12 @@ export class Setup {
   const orm = app.get(MikroORM);
   const generator = orm.getSchemaGenerator();
   await generator.ensureDatabase();
-  await generator.createSchema();`,
+  await generator.updateSchema({
+      safe: true,
+      dropTables: false,
+      dropColumns: false,
+      dropIndexes: false,
+  });`,
       );
     fs.writeFileSync(mainFile, mainFileContent);
     console.log('UPDATED:', mainFile);
