@@ -34,7 +34,7 @@ import { format } from 'path';
 import exp from 'constants';
 import { CrudAuthGuard } from '../../core/authentication/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
-import { timeout } from "../env";
+import { timeout } from '../env';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -73,21 +73,43 @@ describe('AppController', () => {
     crudConfig = app.get<CrudConfigService>(CRUD_CONFIG_KEY, { strict: false });
   });
 
-  it('should limit ip requests', async () => {
-    const query: CrudQuery = {
-      service: 'melon',
-      query: JSON.stringify({}),
-    };
-    const payload = {};
+  it(
+    'should limit ip requests',
+    async () => {
+      const query: CrudQuery = {
+        service: 'melon',
+        query: JSON.stringify({}),
+      };
+      const payload = {};
 
-    const promises = [];
+      const promises = [];
 
-    for (
-      let i = 0;
-      i <= crudConfig.watchTrafficOptions.ipRequestsThreshold;
-      i++
-    ) {
-      const prom = testMethod({
+      for (
+        let i = 0;
+        i <= crudConfig.watchTrafficOptions.ipRequestsThreshold;
+        i++
+      ) {
+        const prom = testMethod({
+          url: '/crud/many',
+          method: 'GET',
+          app,
+          entityManager,
+          payload,
+          query,
+          expectedCode: 200,
+          crudConfig,
+        });
+        promises.push(prom);
+      }
+      await Promise.all(promises);
+
+      let res = 0;
+      while (res < crudConfig.watchTrafficOptions.ipRequestsThreshold) {
+        res = (await authGuard.ipTrafficCache.get('127.0.0.1')) || 0;
+        await new Promise((r) => setTimeout(r, 200));
+      }
+
+      await testMethod({
         url: '/crud/many',
         method: 'GET',
         app,
@@ -97,69 +119,51 @@ describe('AppController', () => {
         expectedCode: 200,
         crudConfig,
       });
-      promises.push(prom);
-    }
-    await Promise.all(promises);
 
-    let res = 0;
-    while (res < crudConfig.watchTrafficOptions.ipRequestsThreshold) {
-      res = (await authGuard.ipTrafficCache.get('127.0.0.1')) || 0;
       await new Promise((r) => setTimeout(r, 200));
-    }
 
-    await testMethod({
-      url: '/crud/many',
-      method: 'GET',
-      app,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 200,
-      crudConfig,
-    });
+      await testMethod({
+        url: '/crud/many',
+        method: 'GET',
+        app,
+        entityManager,
+        payload,
+        query,
+        expectedCode: 429,
+        crudConfig,
+      });
 
-    await new Promise((r) => setTimeout(r, 200));
+      authGuard.ipTrafficCache.clear?.();
 
-    await testMethod({
-      url: '/crud/many',
-      method: 'GET',
-      app,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 429,
-      crudConfig,
-    });
+      await testMethod({
+        url: '/crud/many',
+        method: 'GET',
+        app,
+        entityManager,
+        payload,
+        query,
+        expectedCode: 429,
+        crudConfig,
+      });
 
-    authGuard.ipTrafficCache.clear?.();
+      authGuard.ipTimeoutCache.set('127.0.0.1', 0);
+      res = 1;
+      while (res != 0) {
+        res = await authGuard.ipTimeoutCache.get('127.0.0.1');
+        await new Promise((r) => setTimeout(r, 200));
+      }
 
-    await testMethod({
-      url: '/crud/many',
-      method: 'GET',
-      app,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 429,
-      crudConfig,
-    });
-
-    authGuard.ipTimeoutCache.set('127.0.0.1', 0);
-    res = 1;
-    while (res != 0) {
-      res = await authGuard.ipTimeoutCache.get('127.0.0.1');
-      await new Promise((r) => setTimeout(r, 200));
-    }
-
-    await testMethod({
-      url: '/crud/many',
-      method: 'GET',
-      app,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 200,
-      crudConfig,
-    });
-  }, timeout*2);
+      await testMethod({
+        url: '/crud/many',
+        method: 'GET',
+        app,
+        entityManager,
+        payload,
+        query,
+        expectedCode: 200,
+        crudConfig,
+      });
+    },
+    timeout * 2,
+  );
 });

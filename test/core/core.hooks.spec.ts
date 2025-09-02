@@ -41,7 +41,7 @@ import { _utils } from '@eicrud/core/utils';
 import { HookTriggerService } from '../src/services/hook-trigger/hook-trigger.service';
 import { TestTriggerDto } from '../src/services/hook-trigger/cmds/test_trigger/test_trigger.dto';
 import { TestTriggerHelloDto } from '../src/services/hook-trigger/cmds/test_trigger_hello/test_trigger_hello.dto';
-import { timeout } from "../env";
+import { timeout } from '../env';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -1189,352 +1189,367 @@ describe('AppController', () => {
     checkHookLogs(logCheck, allHooks);
   });
 
-  it('should call hooks on deleteMany and find', async () => {
-    const user = users['Michael Doe'];
-    const createMessage = 'delete me many';
-    const search: Partial<HookTrigger> = {
-      message: 'replace Query with ' + createMessage,
-    };
-    const createdTriggers0: any = await hookTriggerService.$find(
-      { ...search },
-      null,
-    );
-    expect(createdTriggers0.data.length).toBe(3);
-
-    const payload = {};
-    const query: CrudQuery = {
-      service: 'hook-trigger',
-      query: JSON.stringify({ message: createMessage }),
-    };
-    const res0 = await testMethod({
-      url: '/crud/many',
-      method: 'DELETE',
-      expectedCode: 200,
-      app,
-      jwt: user.jwt,
-      entityManager,
-      payload,
-      query: {
-        ...query,
-        query: JSON.stringify({ message: createMessage, throwError: true }),
-      },
-      crudConfig,
-    });
-    expect(res0).toBe(true);
-    const res = await testMethod({
-      url: '/crud/many',
-      method: 'DELETE',
-      expectedCode: 200,
-      app,
-      jwt: user.jwt,
-      entityManager,
-      payload,
-      query,
-      crudConfig,
-    });
-
-    expect(res).toBe(5311373);
-    const createdTriggers: any = await hookTriggerService.$find(
-      { ...search },
-      null,
-    );
-    expect(createdTriggers.data.length).toBe(0);
-
-    const allHooks = await findAllHooks(createMessage, hookLogService);
-    expect(allHooks.length).toBe(helperCurrentConfig(8, 14, 12) + 1);
-    const logCheck = [
-      {
-        pos: 'error',
-        type: 'delete',
-        expectedMessage: createMessage,
-      },
-      {
-        pos: 'before',
-        type: 'controller',
-        expectedMessage: createMessage,
-      },
-      {
-        pos: 'before',
-        type: 'delete',
-        expectedMessage: createMessage,
-      },
-      {
-        pos: 'after',
-        type: 'delete',
-        expectedMessage: createMessage,
-      },
-      {
-        pos: 'after',
-        type: 'controller',
-        expectedMessage: createMessage,
-      },
-      {
-        pos: 'before',
-        type: 'read',
-        expectedMessage: 'replace Query with ' + createMessage,
-      },
-      {
-        pos: 'after',
-        type: 'read',
-        expectedMessage: createMessage,
-      },
-    ];
-    if (process.env.CRUD_CURRENT_MS) {
-      allHooks.push(
-        ...[
-          {
-            pos: 'before',
-            type: 'ms-link',
-            expectedMessage: 'replace Query with ' + createMessage,
-          },
-          {
-            pos: 'after',
-            type: 'ms-link',
-            expectedMessage: createMessage,
-          },
-        ],
+  it(
+    'should call hooks on deleteMany and find',
+    async () => {
+      const user = users['Michael Doe'];
+      const createMessage = 'delete me many';
+      const search: Partial<HookTrigger> = {
+        message: 'replace Query with ' + createMessage,
+      };
+      const createdTriggers0: any = await hookTriggerService.$find(
+        { ...search },
+        null,
       );
-    }
-    checkHookLogs(logCheck, allHooks);
-  }, timeout*2);
+      expect(createdTriggers0.data.length).toBe(3);
 
-  it('should call hook error hooks on cmd error', async () => {
-    const user = users['Michael Doe'];
-    const createMessage = '400';
-    const payload: TestTriggerDto = {
-      message: createMessage,
-      setLen: 400,
-    };
-    const query: CrudQuery = {
-      service: 'hook-trigger',
-      cmd: 'test_trigger',
-    };
+      const payload = {};
+      const query: CrudQuery = {
+        service: 'hook-trigger',
+        query: JSON.stringify({ message: createMessage }),
+      };
+      const res0 = await testMethod({
+        url: '/crud/many',
+        method: 'DELETE',
+        expectedCode: 200,
+        app,
+        jwt: user.jwt,
+        entityManager,
+        payload,
+        query: {
+          ...query,
+          query: JSON.stringify({ message: createMessage, throwError: true }),
+        },
+        crudConfig,
+      });
+      expect(res0).toBe(true);
+      const res = await testMethod({
+        url: '/crud/many',
+        method: 'DELETE',
+        expectedCode: 200,
+        app,
+        jwt: user.jwt,
+        entityManager,
+        payload,
+        query,
+        crudConfig,
+      });
 
-    let error;
-    await testMethod({
-      url: '/crud/cmd',
-      method: 'PATCH',
-      expectedCode: 400,
-      app,
-      jwt: user.jwt,
-      entityManager,
-      payload,
-      query,
-      crudConfig,
-    });
-    payload.message = '403';
-    payload.setLen = 403;
-    const res = await testMethod({
-      url: '/crud/cmd',
-      method: 'PATCH',
-      expectedCode: 200,
-      app,
-      jwt: user.jwt,
-      entityManager,
-      payload,
-      query,
-      crudConfig,
-    });
-    expect(res).toBe(true);
-    const createHookLogs = await hookLogService.$find({ message: '400' }, null);
-    const createHookLogs2 = await hookLogService.$find(
-      { message: 'error 400' },
-      null,
-    );
-    const createHookLogs3 = await hookLogService.$find(
-      { message: '403' },
-      null,
-    );
-    const createHookLogs4 = await hookLogService.$find(
-      { message: 'error 403' },
-      null,
-    );
-    const allHooks = [
-      ...createHookLogs.data,
-      ...createHookLogs2.data,
-      ...createHookLogs3.data,
-      ...createHookLogs4.data,
-    ];
-
-    expect(allHooks.length).toBe(helperCurrentConfig(10, 14, 10));
-    const logCheck = [
-      {
-        pos: 'before',
-        type: 'controller',
-        expectedMessage: '400',
-        length: 400,
-      },
-      {
-        pos: 'before',
-        type: 'controller',
-        expectedMessage: '403',
-        length: 403,
-      },
-      {
-        pos: 'error',
-        type: 'controller',
-        expectedMessage: '400',
-        length: 400,
-      },
-      {
-        pos: 'error',
-        type: 'controller',
-        expectedMessage: '403',
-        length: 403,
-      },
-      {
-        pos: 'before',
-        type: 'cmd',
-        expectedMessage: '400',
-        length: 400,
-      },
-      {
-        pos: 'before',
-        type: 'cmd',
-        expectedMessage: '403',
-        length: 403,
-      },
-      {
-        pos: 'error',
-        type: 'cmd',
-        expectedMessage: '400',
-        length: 400,
-      },
-      {
-        pos: 'error',
-        type: 'cmd',
-        expectedMessage: '403',
-        length: 403,
-      },
-      {
-        pos: 'error',
-        type: 'crud',
-        expectedMessage: 'error 400',
-        length: 400,
-      },
-      {
-        pos: 'error',
-        type: 'crud',
-        expectedMessage: 'error 403',
-        length: 403,
-      },
-    ];
-    if (helperCurrentConfig(false, true, false)) {
-      logCheck.push(
-        ...[
-          {
-            pos: 'before',
-            type: 'ms-link',
-            expectedMessage: '400',
-            length: 400,
-          },
-          {
-            pos: 'error',
-            type: 'ms-link',
-            expectedMessage: '400',
-            length: 400,
-          },
-          {
-            pos: 'before',
-            type: 'ms-link',
-            expectedMessage: '403',
-            length: 403,
-          },
-          {
-            pos: 'error',
-            type: 'ms-link',
-            expectedMessage: '403',
-            length: 403,
-          },
-        ],
+      expect(res).toBe(5311373);
+      const createdTriggers: any = await hookTriggerService.$find(
+        { ...search },
+        null,
       );
-    }
-    checkHookLogs(logCheck, allHooks, true);
-  }, timeout*2);
+      expect(createdTriggers.data.length).toBe(0);
 
-  it('should call hooks on cmd', async () => {
-    const user = users['Michael Doe'];
-    const createMessage = 'world';
-    const payload: TestTriggerHelloDto = {
-      message: createMessage,
-    };
-    const query: CrudQuery = {
-      service: 'hook-trigger',
-      cmd: 'test_trigger_hello',
-    };
+      const allHooks = await findAllHooks(createMessage, hookLogService);
+      expect(allHooks.length).toBe(helperCurrentConfig(8, 14, 12) + 1);
+      const logCheck = [
+        {
+          pos: 'error',
+          type: 'delete',
+          expectedMessage: createMessage,
+        },
+        {
+          pos: 'before',
+          type: 'controller',
+          expectedMessage: createMessage,
+        },
+        {
+          pos: 'before',
+          type: 'delete',
+          expectedMessage: createMessage,
+        },
+        {
+          pos: 'after',
+          type: 'delete',
+          expectedMessage: createMessage,
+        },
+        {
+          pos: 'after',
+          type: 'controller',
+          expectedMessage: createMessage,
+        },
+        {
+          pos: 'before',
+          type: 'read',
+          expectedMessage: 'replace Query with ' + createMessage,
+        },
+        {
+          pos: 'after',
+          type: 'read',
+          expectedMessage: createMessage,
+        },
+      ];
+      if (process.env.CRUD_CURRENT_MS) {
+        allHooks.push(
+          ...[
+            {
+              pos: 'before',
+              type: 'ms-link',
+              expectedMessage: 'replace Query with ' + createMessage,
+            },
+            {
+              pos: 'after',
+              type: 'ms-link',
+              expectedMessage: createMessage,
+            },
+          ],
+        );
+      }
+      checkHookLogs(logCheck, allHooks);
+    },
+    timeout * 2,
+  );
 
-    let error;
-    const res = await testMethod({
-      url: '/crud/cmd',
-      method: 'PATCH',
-      expectedCode: 200,
-      app,
-      jwt: user.jwt,
-      entityManager,
-      payload,
-      query,
-      crudConfig,
-    });
-    expect(res).toBe('hello world!');
+  it(
+    'should call hook error hooks on cmd error',
+    async () => {
+      const user = users['Michael Doe'];
+      const createMessage = '400';
+      const payload: TestTriggerDto = {
+        message: createMessage,
+        setLen: 400,
+      };
+      const query: CrudQuery = {
+        service: 'hook-trigger',
+        cmd: 'test_trigger',
+      };
 
-    const createHookLogs = await hookLogService.$find(
-      { message: 'world' },
-      null,
-    );
-    const createHookLogs2 = await hookLogService.$find(
-      { message: 'world!' },
-      null,
-    );
-    const createHookLogs3 = await hookLogService.$find(
-      { message: 'hello world!' },
-      null,
-    );
-
-    const allHooks = [
-      ...createHookLogs.data,
-      ...createHookLogs2.data,
-      ...createHookLogs3.data,
-    ];
-
-    expect(allHooks.length).toBe(helperCurrentConfig(4, 6, 4));
-    const logCheck = [
-      {
-        pos: 'before',
-        type: 'cmd',
-        expectedMessage: 'world',
-      },
-      {
-        pos: 'after',
-        type: 'cmd',
-        expectedMessage: 'world!',
-      },
-      {
-        pos: 'before',
-        type: 'controller',
-        expectedMessage: 'world',
-      },
-      {
-        pos: 'after',
-        type: 'controller',
-        expectedMessage: 'world!',
-      },
-    ];
-    if (helperCurrentConfig(false, true, false)) {
-      logCheck.push(
-        ...[
-          {
-            pos: 'before',
-            type: 'ms-link',
-            expectedMessage: 'world!',
-          },
-          {
-            pos: 'after',
-            type: 'ms-link',
-            expectedMessage: 'world!',
-          },
-        ],
+      let error;
+      await testMethod({
+        url: '/crud/cmd',
+        method: 'PATCH',
+        expectedCode: 400,
+        app,
+        jwt: user.jwt,
+        entityManager,
+        payload,
+        query,
+        crudConfig,
+      });
+      payload.message = '403';
+      payload.setLen = 403;
+      const res = await testMethod({
+        url: '/crud/cmd',
+        method: 'PATCH',
+        expectedCode: 200,
+        app,
+        jwt: user.jwt,
+        entityManager,
+        payload,
+        query,
+        crudConfig,
+      });
+      expect(res).toBe(true);
+      const createHookLogs = await hookLogService.$find(
+        { message: '400' },
+        null,
       );
-    }
-    checkHookLogs(logCheck, allHooks, true);
-  }, timeout*2);
+      const createHookLogs2 = await hookLogService.$find(
+        { message: 'error 400' },
+        null,
+      );
+      const createHookLogs3 = await hookLogService.$find(
+        { message: '403' },
+        null,
+      );
+      const createHookLogs4 = await hookLogService.$find(
+        { message: 'error 403' },
+        null,
+      );
+      const allHooks = [
+        ...createHookLogs.data,
+        ...createHookLogs2.data,
+        ...createHookLogs3.data,
+        ...createHookLogs4.data,
+      ];
+
+      expect(allHooks.length).toBe(helperCurrentConfig(10, 14, 10));
+      const logCheck = [
+        {
+          pos: 'before',
+          type: 'controller',
+          expectedMessage: '400',
+          length: 400,
+        },
+        {
+          pos: 'before',
+          type: 'controller',
+          expectedMessage: '403',
+          length: 403,
+        },
+        {
+          pos: 'error',
+          type: 'controller',
+          expectedMessage: '400',
+          length: 400,
+        },
+        {
+          pos: 'error',
+          type: 'controller',
+          expectedMessage: '403',
+          length: 403,
+        },
+        {
+          pos: 'before',
+          type: 'cmd',
+          expectedMessage: '400',
+          length: 400,
+        },
+        {
+          pos: 'before',
+          type: 'cmd',
+          expectedMessage: '403',
+          length: 403,
+        },
+        {
+          pos: 'error',
+          type: 'cmd',
+          expectedMessage: '400',
+          length: 400,
+        },
+        {
+          pos: 'error',
+          type: 'cmd',
+          expectedMessage: '403',
+          length: 403,
+        },
+        {
+          pos: 'error',
+          type: 'crud',
+          expectedMessage: 'error 400',
+          length: 400,
+        },
+        {
+          pos: 'error',
+          type: 'crud',
+          expectedMessage: 'error 403',
+          length: 403,
+        },
+      ];
+      if (helperCurrentConfig(false, true, false)) {
+        logCheck.push(
+          ...[
+            {
+              pos: 'before',
+              type: 'ms-link',
+              expectedMessage: '400',
+              length: 400,
+            },
+            {
+              pos: 'error',
+              type: 'ms-link',
+              expectedMessage: '400',
+              length: 400,
+            },
+            {
+              pos: 'before',
+              type: 'ms-link',
+              expectedMessage: '403',
+              length: 403,
+            },
+            {
+              pos: 'error',
+              type: 'ms-link',
+              expectedMessage: '403',
+              length: 403,
+            },
+          ],
+        );
+      }
+      checkHookLogs(logCheck, allHooks, true);
+    },
+    timeout * 2,
+  );
+
+  it(
+    'should call hooks on cmd',
+    async () => {
+      const user = users['Michael Doe'];
+      const createMessage = 'world';
+      const payload: TestTriggerHelloDto = {
+        message: createMessage,
+      };
+      const query: CrudQuery = {
+        service: 'hook-trigger',
+        cmd: 'test_trigger_hello',
+      };
+
+      let error;
+      const res = await testMethod({
+        url: '/crud/cmd',
+        method: 'PATCH',
+        expectedCode: 200,
+        app,
+        jwt: user.jwt,
+        entityManager,
+        payload,
+        query,
+        crudConfig,
+      });
+      expect(res).toBe('hello world!');
+
+      const createHookLogs = await hookLogService.$find(
+        { message: 'world' },
+        null,
+      );
+      const createHookLogs2 = await hookLogService.$find(
+        { message: 'world!' },
+        null,
+      );
+      const createHookLogs3 = await hookLogService.$find(
+        { message: 'hello world!' },
+        null,
+      );
+
+      const allHooks = [
+        ...createHookLogs.data,
+        ...createHookLogs2.data,
+        ...createHookLogs3.data,
+      ];
+
+      expect(allHooks.length).toBe(helperCurrentConfig(4, 6, 4));
+      const logCheck = [
+        {
+          pos: 'before',
+          type: 'cmd',
+          expectedMessage: 'world',
+        },
+        {
+          pos: 'after',
+          type: 'cmd',
+          expectedMessage: 'world!',
+        },
+        {
+          pos: 'before',
+          type: 'controller',
+          expectedMessage: 'world',
+        },
+        {
+          pos: 'after',
+          type: 'controller',
+          expectedMessage: 'world!',
+        },
+      ];
+      if (helperCurrentConfig(false, true, false)) {
+        logCheck.push(
+          ...[
+            {
+              pos: 'before',
+              type: 'ms-link',
+              expectedMessage: 'world!',
+            },
+            {
+              pos: 'after',
+              type: 'ms-link',
+              expectedMessage: 'world!',
+            },
+          ],
+        );
+      }
+      checkHookLogs(logCheck, allHooks, true);
+    },
+    timeout * 2,
+  );
 });

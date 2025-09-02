@@ -35,7 +35,7 @@ export class MemoryStorage implements ClientStorage {
   get(name: string): string {
     return this.memory.get(name);
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   set(
     name: string,
     value: string,
@@ -53,7 +53,7 @@ export class LocalStorage implements ClientStorage {
   get(name: string): string {
     return localStorage.getItem(name);
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   set(
     name: string,
     value: string,
