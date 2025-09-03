@@ -6,8 +6,8 @@
   "homepage": "https://eicrud.com/",
   "license": "MIT",
   "dependencies": {
-    "@mikro-orm/core": "^6.5.1",
-    "@mikro-orm/postgresql": "^6.5.1"
+    "@mikro-orm/core": "^6.5.2",
+    "@mikro-orm/postgresql": "^6.5.2"
   },
   "scripts": {
     "compile": "npm run clean && tsc",
