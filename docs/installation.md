@@ -12,7 +12,7 @@ It is recommended to use Eicrud's [CLI](https://www.npmjs.com/package/@eicrud/cl
 First create your nest app as specified in the [NestJS documentation](https://docs.nestjs.com/#installation){:target="_blank"}.
 
 ```
- npm i -g @nestjs/cli@11.0.5
+ npm i -g @nestjs/cli@11.0.10
  nest new project-name
  cd project-name
 ```
