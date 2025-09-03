@@ -53,6 +53,7 @@ export default defineConfig([
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-empty-object-type': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/prefer-ts-expect-error': 'off',
       'import/no-default-export': 2,
     },
   },
