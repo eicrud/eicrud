@@ -54,7 +54,7 @@
     "@eslint/compat": "^1.3.2",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.34.0",
-    "@hey-api/openapi-ts": "^0.82.3",
+    "@hey-api/openapi-ts": "^0.81.1",
     "@nestjs/cli": "^11.0.10",
     "@nestjs/platform-fastify": "^11.1.6",
     "@nestjs/schematics": "^11.0.7",
