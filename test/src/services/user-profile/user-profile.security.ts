@@ -1,8 +1,9 @@
 import { CrudSecurity, CrudUser } from '@eicrud/core/config';
 import { serviceCmds } from './cmds';
 import { CrudContext } from '@eicrud/core/crud';
+import { UserProfile } from './user-profile.entity';
 
-export function getSecurity(userprofile: string): CrudSecurity {
+export function getSecurity(userprofile: string): CrudSecurity<UserProfile> {
   return {
     alwaysAllowedCrudOptions: ['returnUpdatedEntity'],
     rolesRights: {
@@ -13,6 +14,7 @@ export function getSecurity(userprofile: string): CrudSecurity {
 
         async defineOPTAbility(can, cannot, ctx) {
           can('allowIdOverride', userprofile);
+          can('populate', userprofile, ['friends']);
         },
       },
       admin: {
