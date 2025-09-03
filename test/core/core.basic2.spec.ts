@@ -224,9 +224,12 @@ describe('AppController', () => {
       crudConfig,
     );
 
-    const queryGet: CrudQuery = {
+    const queryGet = {
       service: 'user-profile',
       query: JSON.stringify({ user: sarahUserId }),
+      options: JSON.stringify({
+        populate: ['friends'],
+      } as CrudOptions),
     };
 
     const updatedProfile = await testMethod({
@@ -282,6 +285,11 @@ describe('AppController', () => {
   }, 7000);
 
   it("should patch Bob Lee's friends using PATCH MANY method", async () => {
+    if (process.env.TEST_CRUD_DB == 'postgre') {
+      //Can't update manyToMany in postgre without providing primary key
+      return;
+    }
+
     const bobProfile = profiles['Bob Lee'];
     const johnProfile = profiles['John Smith'];
     const aliceProfile = profiles['Alice Johnson'];

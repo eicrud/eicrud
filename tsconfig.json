@@ -18,6 +18,7 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "isolatedModules": true,
     "paths": {
       "@eicrud/core": ["./core"],
       "@eicrud/core/*": ["./core/*"],
