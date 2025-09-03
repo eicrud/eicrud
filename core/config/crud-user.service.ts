@@ -7,11 +7,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { LRUCache } from 'mnemonist';
-import {
-  CrudService,
-  CrudServiceConfig,
-  Inheritance,
-} from '../crud/crud.service';
+import { CrudService, Inheritance } from '../crud/crud.service';
+import type { CrudServiceConfig } from '../crud/crud.service';
 import { CrudSecurity } from './model/CrudSecurity';
 import { _utils } from '../utils';
 import { CrudUser } from './model/CrudUser';
