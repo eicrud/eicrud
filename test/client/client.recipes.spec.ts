@@ -37,7 +37,7 @@ import { LoginDto } from '@eicrud/core/config/basecmd_dtos/user/login.dto';
 import { FindResponseDto } from '../../shared/interfaces';
 import { CrudOptions } from '@eicrud/core/crud';
 import { SearchDto as SearchMelonDto } from '../src/services/melon/cmds/search/search.dto';
-import { timeout } from "../env";
+import { timeout } from '../env';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -245,133 +245,141 @@ describe('AppController', () => {
     expect(res.data?.length).toBe(1);
   });
 
-  it('should auto fetch melon search cmd (limit & batch)', async () => {
-    // if (process.env.TEST_CRUD_DB == 'postgre') {
-    //   jest.retryTimes(1);
-    // }
+  it(
+    'should auto fetch melon search cmd (limit & batch)',
+    async () => {
+      // if (process.env.TEST_CRUD_DB == 'postgre') {
+      //   jest.retryTimes(1);
+      // }
 
-    const user = users['Moderator Funky'];
+      const user = users['Moderator Funky'];
 
-    const michael = users['Michael Doe'];
+      const michael = users['Michael Doe'];
 
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password,
-    };
-    const myClient = getMelonClient();
+      const dto: LoginDto = {
+        email: user.email,
+        password: testAdminCreds.password,
+      };
+      const myClient = getMelonClient();
 
-    await myClient.login(dto);
+      await myClient.login(dto);
 
-    const searchDto: SearchMelonDto = {
-      nameLike: 'melon',
-      ownerEmail: michael.email,
-    };
+      const searchDto: SearchMelonDto = {
+        nameLike: 'melon',
+        ownerEmail: michael.email,
+      };
 
-    const option: CrudOptions = {
-      limit: 1,
-    };
+      const option: CrudOptions = {
+        limit: 1,
+      };
 
-    const res: FindResponseDto<Melon> = await myClient.cmdL(
-      'search',
-      searchDto,
-      option,
-    );
+      const res: FindResponseDto<Melon> = await myClient.cmdL(
+        'search',
+        searchDto,
+        option,
+      );
 
-    expect(res.data?.length).toBe(1);
+      expect(res.data?.length).toBe(1);
 
-    delete option.limit;
+      delete option.limit;
 
-    const res2: FindResponseDto<Melon> = await myClient.cmdL(
-      'search',
-      searchDto,
-      option,
-    );
+      const res2: FindResponseDto<Melon> = await myClient.cmdL(
+        'search',
+        searchDto,
+        option,
+      );
 
-    expect(res2.data?.length).toBe(michael.melons);
+      expect(res2.data?.length).toBe(michael.melons);
 
-    const ids = res2.data?.map((m) => m.id);
+      const ids = res2.data?.map((m) => m.id);
 
-    delete searchDto.nameLike;
-    searchDto.ids = ids;
+      delete searchDto.nameLike;
+      searchDto.ids = ids;
 
-    const res3: FindResponseDto<Melon> = await myClient.cmdL(
-      'search',
-      searchDto,
-      option,
-    );
+      const res3: FindResponseDto<Melon> = await myClient.cmdL(
+        'search',
+        searchDto,
+        option,
+      );
 
-    expect(res3.data?.length).toBe(michael.melons);
+      expect(res3.data?.length).toBe(michael.melons);
 
-    for (let i = 0; i < res3.data?.length; i++) {
-      expect(res3.data[i].name).toContain(`${i}`);
-    }
-  }, timeout*3);
+      for (let i = 0; i < res3.data?.length; i++) {
+        expect(res3.data[i].name).toContain(`${i}`);
+      }
+    },
+    timeout * 3,
+  );
 
-  it('should auto fetch melon search cmd (specified batch)', async () => {
-    // if (process.env.TEST_CRUD_DB == 'postgre') {
-    //   jest.retryTimes(1);
-    // }
+  it(
+    'should auto fetch melon search cmd (specified batch)',
+    async () => {
+      // if (process.env.TEST_CRUD_DB == 'postgre') {
+      //   jest.retryTimes(1);
+      // }
 
-    const user = users['Moderator Pal'];
+      const user = users['Moderator Pal'];
 
-    const michael = users['Michael Doe'];
+      const michael = users['Michael Doe'];
 
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password,
-    };
-    const myClient = getMelonClient();
-    myClient.config.cmdDefaultBatchMap = {
-      search: { batchField: 'ids', batchSize: 2500 },
-    };
+      const dto: LoginDto = {
+        email: user.email,
+        password: testAdminCreds.password,
+      };
+      const myClient = getMelonClient();
+      myClient.config.cmdDefaultBatchMap = {
+        search: { batchField: 'ids', batchSize: 2500 },
+      };
 
-    await myClient.login(dto);
+      await myClient.login(dto);
 
-    const searchDto: SearchMelonDto = {
-      nameLike: 'melon',
-      ownerEmail: michael.email,
-    };
+      const searchDto: SearchMelonDto = {
+        nameLike: 'melon',
+        ownerEmail: michael.email,
+      };
 
-    const option: CrudOptions = {};
+      const option: CrudOptions = {};
 
-    const res2: FindResponseDto<Melon> = await myClient.cmdL(
-      'search',
-      searchDto,
-      option,
-    );
+      const res2: FindResponseDto<Melon> = await myClient.cmdL(
+        'search',
+        searchDto,
+        option,
+      );
 
-    expect(res2.data?.length).toBe(michael.melons);
+      expect(res2.data?.length).toBe(michael.melons);
 
-    const ids = res2.data?.map((m) => m.id);
+      const ids = res2.data?.map((m) => m.id);
 
-    delete searchDto.nameLike;
-    searchDto.ids = ids;
-    myClient.fetchNb = 0;
+      delete searchDto.nameLike;
+      searchDto.ids = ids;
+      myClient.fetchNb = 0;
 
-    const res3: FindResponseDto<Melon> = await myClient.cmdL(
-      'search',
-      searchDto,
-      option,
-    );
+      const res3: FindResponseDto<Melon> = await myClient.cmdL(
+        'search',
+        searchDto,
+        option,
+      );
 
-    const lastFetch = myClient.fetchNb;
-    expect(res3.data?.length).toBe(michael.melons);
+      const lastFetch = myClient.fetchNb;
+      expect(res3.data?.length).toBe(michael.melons);
 
-    for (let i = 0; i < res3.data?.length; i++) {
-      expect(res3.data[i].name).toContain(`${i}`);
-    }
+      for (let i = 0; i < res3.data?.length; i++) {
+        expect(res3.data[i].name).toContain(`${i}`);
+      }
 
-    myClient.config.cmdDefaultBatchMap = {
-      search: { batchField: 'ids', batchSize: 100 },
-    };
-    myClient.fetchNb = 0;
-    const res4: FindResponseDto<Melon> = await myClient.cmdL(
-      'search',
-      searchDto,
-      option,
-    );
+      myClient.config.cmdDefaultBatchMap = {
+        search: { batchField: 'ids', batchSize: 100 },
+      };
+      myClient.fetchNb = 0;
+      const res4: FindResponseDto<Melon> = await myClient.cmdL(
+        'search',
+        searchDto,
+        option,
+      );
 
-    expect(myClient.fetchNb).toBeGreaterThan(lastFetch);
-    expect(res4.data?.length).toBe(michael.melons);
-  }, timeout*3);
+      expect(myClient.fetchNb).toBeGreaterThan(lastFetch);
+      expect(res4.data?.length).toBe(michael.melons);
+    },
+    timeout * 3,
+  );
 });

@@ -234,13 +234,22 @@ export class Setup {
     let mainFileContent = fs.readFileSync(mainFile, 'utf8');
     const mainFileImports = [
       "import { FastifyAdapter } from '@nestjs/platform-fastify';",
+      "import { MikroORM } from '@mikro-orm/core';",
     ];
     mainFileContent =
       mainFileImports.join('\n') +
       '\n' +
       mainFileContent.replace(
-        'NestFactory.create(AppModule)',
-        'NestFactory.create(AppModule, new FastifyAdapter())',
+        'NestFactory.create(AppModule);',
+        `NestFactory.create(AppModule, new FastifyAdapter());
+  
+  const orm = app.get(MikroORM);
+  const generator = orm.getSchemaGenerator();
+  await generator.ensureDatabase();
+  await generator.updateSchema({
+      safe: true,
+      dropTables: false,
+  });`,
       );
     fs.writeFileSync(mainFile, mainFileContent);
     console.log('UPDATED:', mainFile);

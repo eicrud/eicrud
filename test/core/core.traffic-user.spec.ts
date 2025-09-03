@@ -33,7 +33,7 @@ import {
 import { format } from 'path';
 import exp from 'constants';
 import { CrudAuthGuard } from '@eicrud/core/authentication/auth.guard';
-import { timeout } from "../env";
+import { timeout } from '../env';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -92,34 +92,58 @@ describe('AppController', () => {
 
   //jest.retryTimes(1);
 
-  it('should limit user requests', async () => {
-    const user = users['Michael Doe'];
+  it(
+    'should limit user requests',
+    async () => {
+      const user = users['Michael Doe'];
 
-    // await authGuard.ipTrafficCache.clear?.();
-    // await authGuard.userTrafficCache.clear?.();
+      // await authGuard.ipTrafficCache.clear?.();
+      // await authGuard.userTrafficCache.clear?.();
 
-    const query: CrudQuery = {
-      service: 'melon',
-      query: JSON.stringify({}),
-    };
-    const payload = {};
+      const query: CrudQuery = {
+        service: 'melon',
+        query: JSON.stringify({}),
+      };
+      const payload = {};
 
-    const promises = [];
+      const promises = [];
 
-    crudConfig.captchaService = 'captcha';
-    let didCaptcha = false;
+      crudConfig.captchaService = 'captcha';
+      let didCaptcha = false;
 
-    for (
-      let u = 0;
-      u <= crudConfig.watchTrafficOptions.totalTimeoutThreshold;
-      u++
-    ) {
       for (
-        let i = 0;
-        i <= crudConfig.watchTrafficOptions.userRequestsThreshold - 1;
-        i++
+        let u = 0;
+        u <= crudConfig.watchTrafficOptions.totalTimeoutThreshold;
+        u++
       ) {
-        const prom = testMethod({
+        for (
+          let i = 0;
+          i <= crudConfig.watchTrafficOptions.userRequestsThreshold - 1;
+          i++
+        ) {
+          const prom = testMethod({
+            url: '/crud/many',
+            method: 'GET',
+            app,
+            jwt: user.jwt,
+            entityManager,
+            payload,
+            query,
+            expectedCode: 200,
+            crudConfig,
+          });
+          promises.push(prom);
+        }
+
+        await Promise.all(promises);
+        let res = 0;
+        while (res < crudConfig.watchTrafficOptions.userRequestsThreshold) {
+          res =
+            (await authGuard.userTrafficCache.get(user.id?.toString())) || 0;
+          await new Promise((r) => setTimeout(r, 200));
+        }
+
+        await testMethod({
           url: '/crud/many',
           method: 'GET',
           app,
@@ -130,15 +154,63 @@ describe('AppController', () => {
           expectedCode: 200,
           crudConfig,
         });
-        promises.push(prom);
+        while (res > 0) {
+          res = await authGuard.userTrafficCache.get(user.id?.toString());
+          await new Promise((r) => setTimeout(r, 200));
+        }
+
+        if (!didCaptcha) {
+          await testMethod({
+            url: '/crud/many',
+            method: 'GET',
+            app,
+            jwt: user.jwt,
+            entityManager,
+            payload,
+            query,
+            expectedCode: 401,
+            crudConfig,
+          });
+
+          await userService.$unsecure_fastPatchOne(
+            user.id,
+            { didCaptcha: true } as any,
+            null,
+          );
+
+          //Will refresh user cache (POST)
+          await testMethod({
+            url: '/crud/one',
+            method: 'POST',
+            app,
+            jwt: user.jwt,
+            entityManager,
+            payload,
+            query,
+            expectedCode: 400,
+            crudConfig,
+          });
+
+          await testMethod({
+            url: '/crud/many',
+            method: 'GET',
+            app,
+            jwt: user.jwt,
+            entityManager,
+            payload,
+            query,
+            expectedCode: 200,
+            crudConfig,
+          });
+          didCaptcha = true;
+        }
+
+        await authGuard.ipTrafficCache.clear?.();
+        await authGuard.userTrafficCache.clear?.();
       }
 
-      await Promise.all(promises);
-      let res = 0;
-      while (res < crudConfig.watchTrafficOptions.userRequestsThreshold) {
-        res = (await authGuard.userTrafficCache.get(user.id?.toString())) || 0;
-        await new Promise((r) => setTimeout(r, 200));
-      }
+      //50ms delay
+      await new Promise((r) => setTimeout(r, 50));
 
       await testMethod({
         url: '/crud/many',
@@ -148,110 +220,43 @@ describe('AppController', () => {
         entityManager,
         payload,
         query,
+        expectedCode: 401,
+        crudConfig,
+      });
+
+      await userService.$unsecure_fastPatchOne(
+        user.id,
+        { timeout: new Date() } as any,
+        null,
+      );
+
+      //Will refresh user cache (POST)
+      await testMethod({
+        url: '/crud/one',
+        method: 'POST',
+        app,
+        jwt: user.jwt,
+        entityManager,
+        payload,
+        query,
+        expectedCode: 400,
+        crudConfig,
+      });
+
+      await testMethod({
+        url: '/crud/many',
+        method: 'GET',
+        jwt: user.jwt,
+        app,
+        entityManager,
+        payload,
+        query,
         expectedCode: 200,
         crudConfig,
       });
-      while (res > 0) {
-        res = await authGuard.userTrafficCache.get(user.id?.toString());
-        await new Promise((r) => setTimeout(r, 200));
-      }
 
-      if (!didCaptcha) {
-        await testMethod({
-          url: '/crud/many',
-          method: 'GET',
-          app,
-          jwt: user.jwt,
-          entityManager,
-          payload,
-          query,
-          expectedCode: 401,
-          crudConfig,
-        });
-
-        await userService.$unsecure_fastPatchOne(
-          user.id,
-          { didCaptcha: true } as any,
-          null,
-        );
-
-        //Will refresh user cache (POST)
-        await testMethod({
-          url: '/crud/one',
-          method: 'POST',
-          app,
-          jwt: user.jwt,
-          entityManager,
-          payload,
-          query,
-          expectedCode: 400,
-          crudConfig,
-        });
-
-        await testMethod({
-          url: '/crud/many',
-          method: 'GET',
-          app,
-          jwt: user.jwt,
-          entityManager,
-          payload,
-          query,
-          expectedCode: 200,
-          crudConfig,
-        });
-        didCaptcha = true;
-      }
-
-      await authGuard.ipTrafficCache.clear?.();
-      await authGuard.userTrafficCache.clear?.();
-    }
-
-    //50ms delay
-    await new Promise((r) => setTimeout(r, 50));
-
-    await testMethod({
-      url: '/crud/many',
-      method: 'GET',
-      app,
-      jwt: user.jwt,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 401,
-      crudConfig,
-    });
-
-    await userService.$unsecure_fastPatchOne(
-      user.id,
-      { timeout: new Date() } as any,
-      null,
-    );
-
-    //Will refresh user cache (POST)
-    await testMethod({
-      url: '/crud/one',
-      method: 'POST',
-      app,
-      jwt: user.jwt,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 400,
-      crudConfig,
-    });
-
-    await testMethod({
-      url: '/crud/many',
-      method: 'GET',
-      jwt: user.jwt,
-      app,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 200,
-      crudConfig,
-    });
-
-    crudConfig.captchaService = null;
-  }, timeout*6);
+      crudConfig.captchaService = null;
+    },
+    timeout * 6,
+  );
 });

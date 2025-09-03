@@ -1,6 +1,7 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
 import { CrudConfigService } from '../config/crud.config.service';
-import { CrudTransformer, CrudTransformerConfig } from './CrudTransformer';
+import { CrudTransformer } from './CrudTransformer';
+import type { CrudTransformerConfig } from './CrudTransformer';
 
 @Injectable()
 export class CrudValidationPipe implements PipeTransform<any> {

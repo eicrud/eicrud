@@ -99,7 +99,7 @@ export interface CmdSecurity<
 export type CanCannot<T, A = string> = (
   action: A,
   subject: string,
-  a?: string | string[] | Partial<T>,
+  a?: keyof T | (keyof T)[] | Partial<T>,
   b?: Partial<T>,
 ) => void;
 
@@ -254,17 +254,17 @@ export const httpAliasResolver = createAliasResolver(
 export interface CrudSecurityRights<T = any> {
   maxBatchSize?: number;
 
-  fields?: string[];
+  fields?: (keyof T)[];
 
   defineCRUDAbility?(
     can: CanCannot<T, keyof CrudAction>,
     cannot: CanCannot<T, keyof CrudAction>,
-    ctx: CrudContext,
+    ctx: CrudContext<T>,
   ): Promise<any>;
 
   defineOPTAbility?(
     can: CanCannot<T, keyof CrudOptions>,
     cannot: CanCannot<T, keyof CrudOptions>,
-    ctx: CrudContext,
+    ctx: CrudContext<T>,
   ): Promise<any>;
 }

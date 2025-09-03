@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
+    "module": "Node16",
     "declaration": true,
     "noImplicitAny": false,
     "allowSyntheticDefaultImports": true,

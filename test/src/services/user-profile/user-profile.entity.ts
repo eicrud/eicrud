@@ -8,11 +8,13 @@ import {
   Unique,
   Collection,
   OneToMany,
+  ManyToMany,
 } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import {
   Allow,
   Equals,
+  IsArray,
   IsMongoId,
   IsNumber,
   IsOptional,
@@ -31,6 +33,7 @@ import {
 } from '@eicrud/core/validation';
 import { CrudEntity } from '@eicrud/core/crud';
 import { Picture } from '../picture/picture.entity';
+import { triggerAsyncId } from 'async_hooks';
 
 @Embeddable()
 export class Geoloc {
@@ -62,6 +65,13 @@ export class UserProfile implements CrudEntity {
   @OneToOne(() => MyUser, (user) => user.profile, { owner: true })
   @IsString()
   user: MyUser | string;
+
+  @$MaxSize(500)
+  @IsString({ each: true })
+  @IsArray()
+  @IsOptional()
+  @ManyToMany(() => MyUser)
+  friends = new Collection<MyUser>(this);
 
   @OneToMany(() => Picture, (mel) => mel.profile)
   @$MaxSize(200)

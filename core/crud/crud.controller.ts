@@ -13,7 +13,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { CrudService } from './crud.service';
-import { CrudContext } from './model/CrudContext';
+import type { CrudContext } from './model/CrudContext';
 import { Context } from '../authentication/auth.utils';
 import { MsLinkQuery, CrudQuery } from '../crud/model/CrudQuery';
 import { CrudAuthorizationService } from './crud.authorization.service';

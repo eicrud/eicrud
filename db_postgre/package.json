@@ -6,8 +6,8 @@
   "homepage": "https://eicrud.com/",
   "license": "MIT",
   "dependencies": {
-    "@mikro-orm/core": "^6.4.11",
-    "@mikro-orm/postgresql": "^6.4.11"
+    "@mikro-orm/core": "^6.5.2",
+    "@mikro-orm/postgresql": "^6.5.2"
   },
   "scripts": {
     "compile": "npm run clean && tsc",
@@ -23,7 +23,7 @@
     "directory": "db_postgre"
   },
   "devDependencies": {
-    "del-cli": "^5.1.0"
+    "del-cli": "^6.0.0"
   },
   "keywords": [
     "eicrud",

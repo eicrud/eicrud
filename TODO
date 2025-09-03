@@ -74,3 +74,9 @@
 [x] skipServiceHooks in CrudOptions
 
 [ ] add global crudSecurity defaults?
+
+[ ] user base cmds return DTOs
+
+[x] type import use type (typescript new version)
+
+[ ] add a test for password rehash (when role has changed)
