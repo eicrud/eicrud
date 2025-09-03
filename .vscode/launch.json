@@ -65,6 +65,12 @@
       "request": "launch",
       "name": "npm run test basic",
       "command": "npm run test core.basic.spec.ts"
+    }, 
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "npm run test basic2",
+      "command": "npm run test core.basic2.spec.ts"
     },
     {
       "type": "node-terminal",

@@ -31,7 +31,7 @@ import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { DragonFruit } from '../src/services/dragon-fruit/dragon-fruit.entity';
 import { FindResponseDto } from '../../shared/interfaces';
 import { DragonFruitService } from '../src/services/dragon-fruit/dragon-fruit.service';
-import { timeout } from "../env";
+import { timeout } from '../env';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -338,56 +338,60 @@ describe('AppController', () => {
   });
 
   //@Get('/crud/one')
-  it('should authorize with basic auth', async () => {
-    const user: TestUser = users['Michael Foe'];
-    const payload: Partial<UserProfile> = {} as any;
-    const query: CrudQuery = {
-      service: 'user-profile',
-      query: JSON.stringify({
-        user: crudConfig.dbAdapter.formatId(user.id as any, crudConfig),
-      }),
-    };
-    const expectedObject = {
-      bio: user.bio,
-    };
+  it(
+    'should authorize with basic auth',
+    async () => {
+      const user: TestUser = users['Michael Foe'];
+      const payload: Partial<UserProfile> = {} as any;
+      const query: CrudQuery = {
+        service: 'user-profile',
+        query: JSON.stringify({
+          user: crudConfig.dbAdapter.formatId(user.id as any, crudConfig),
+        }),
+      };
+      const expectedObject = {
+        bio: user.bio,
+      };
 
-    await testMethod({
-      url: '/crud/one',
-      method: 'GET',
-      app,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 403,
-      crudConfig,
-    });
+      await testMethod({
+        url: '/crud/one',
+        method: 'GET',
+        app,
+        entityManager,
+        payload,
+        query,
+        expectedCode: 403,
+        crudConfig,
+      });
 
-    await testMethod({
-      url: '/crud/one',
-      method: 'GET',
-      app,
-      basicAuth: {
-        username: users['Michael Doe'].email,
-        password: testAdminCreds.password,
-      },
-      entityManager,
-      payload,
-      query,
-      expectedCode: 403,
-      crudConfig,
-    });
+      await testMethod({
+        url: '/crud/one',
+        method: 'GET',
+        app,
+        basicAuth: {
+          username: users['Michael Doe'].email,
+          password: testAdminCreds.password,
+        },
+        entityManager,
+        payload,
+        query,
+        expectedCode: 403,
+        crudConfig,
+      });
 
-    await testMethod({
-      url: '/crud/one',
-      method: 'GET',
-      app,
-      basicAuth: { username: user.email, password: testAdminCreds.password },
-      entityManager,
-      payload,
-      query,
-      expectedCode: 200,
-      expectedObject,
-      crudConfig,
-    });
-  }, timeout*2);
+      await testMethod({
+        url: '/crud/one',
+        method: 'GET',
+        app,
+        basicAuth: { username: user.email, password: testAdminCreds.password },
+        entityManager,
+        payload,
+        query,
+        expectedCode: 200,
+        expectedObject,
+        crudConfig,
+      });
+    },
+    timeout * 2,
+  );
 });

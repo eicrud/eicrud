@@ -45,7 +45,7 @@ import { FakeEmail } from '../src/services/fake-email/fake-email.entity';
 import { FakeEmailService as MyEmailService } from '../src/services/fake-email/fake-email.service';
 import { CrudUser } from '@eicrud/core/config';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
-import { timeout } from "../env";
+import { timeout } from '../env';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -148,7 +148,7 @@ describe('AppController', () => {
       usersWithoutProfiles,
       testAdminCreds,
     });
-  }, timeout*2);
+  }, timeout * 2);
 
   //@Post('/crud/one')
   it('should authorize createAccount for guest and provide working accessToken', async () => {
@@ -278,23 +278,39 @@ describe('AppController', () => {
     });
   });
 
-  it('should rate limit login attempts (too many)', async () => {
-    const user = users['RateLimit Gus'];
-    user.username = user.username.toLocaleLowerCase();
-    user.email = user.email.toLocaleLowerCase();
-    const payload: LoginDto = {
-      email: user.username,
-      password: 'badpassword',
-    };
-    const query = {};
+  it(
+    'should rate limit login attempts (too many)',
+    async () => {
+      const user = users['RateLimit Gus'];
+      user.username = user.username.toLocaleLowerCase();
+      user.email = user.email.toLocaleLowerCase();
+      const payload: LoginDto = {
+        email: user.username,
+        password: 'badpassword',
+      };
+      const query = {};
 
-    let jwt = null;
+      let jwt = null;
 
-    for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 6; i++) {
+        await testMethod({
+          url: '/crud/auth',
+          method: 'POST',
+          expectedCode: 401,
+          app,
+          jwt,
+          entityManager,
+          payload,
+          query,
+          crudConfig,
+        });
+        await new Promise((r) => setTimeout(r, 600));
+      }
+      payload.password = testAdminCreds.password;
       await testMethod({
         url: '/crud/auth',
         method: 'POST',
-        expectedCode: 401,
+        expectedCode: 429,
         app,
         jwt,
         entityManager,
@@ -302,109 +318,97 @@ describe('AppController', () => {
         query,
         crudConfig,
       });
+
+      // password reset should allow login even if rate limited
+      const resetPassEmailDto: ISendPasswordResetEmailDto = {
+        email: user.email,
+      };
+
+      const resetPassQuery: CrudQuery = {
+        service: 'my-user',
+        cmd: 'send_password_reset_email',
+      };
+      await testMethod({
+        url: '/crud/cmd',
+        method: 'POST',
+        expectedCode: 201,
+        app,
+        jwt,
+        entityManager,
+        payload: resetPassEmailDto,
+        query: resetPassQuery,
+        crudConfig,
+      });
+
+      const email: FakeEmail = await emailService.$findOne(
+        { to: user.email, type: 'passwordReset' },
+        null,
+      );
+      expect(email).toBeTruthy();
+      const resetPassDto: IResetPasswordDto = {
+        token_id: email.message,
+        newPassword: 'newpassword',
+        logMeIn: true,
+      };
+      resetPassQuery.cmd = 'reset_password';
+      const res = await testMethod({
+        url: '/crud/cmd',
+        method: 'POST',
+        expectedCode: 201,
+        app,
+        jwt,
+        entityManager,
+        payload: resetPassDto,
+        query: resetPassQuery,
+        crudConfig,
+      });
+
       await new Promise((r) => setTimeout(r, 600));
-    }
-    payload.password = testAdminCreds.password;
-    await testMethod({
-      url: '/crud/auth',
-      method: 'POST',
-      expectedCode: 429,
-      app,
-      jwt,
-      entityManager,
-      payload,
-      query,
-      crudConfig,
-    });
 
-    // password reset should allow login even if rate limited
-    const resetPassEmailDto: ISendPasswordResetEmailDto = {
-      email: user.email,
-    };
+      payload.password = 'newpassword';
+      await testMethod({
+        url: '/crud/auth',
+        method: 'POST',
+        expectedCode: 429,
+        app,
+        jwt,
+        entityManager,
+        payload,
+        query,
+        crudConfig,
+      });
 
-    const resetPassQuery: CrudQuery = {
-      service: 'my-user',
-      cmd: 'send_password_reset_email',
-    };
-    await testMethod({
-      url: '/crud/cmd',
-      method: 'POST',
-      expectedCode: 201,
-      app,
-      jwt,
-      entityManager,
-      payload: resetPassEmailDto,
-      query: resetPassQuery,
-      crudConfig,
-    });
+      jwt = res.accessToken;
 
-    const email: FakeEmail = await emailService.$findOne(
-      { to: user.email, type: 'passwordReset' },
-      null,
-    );
-    expect(email).toBeTruthy();
-    const resetPassDto: IResetPasswordDto = {
-      token_id: email.message,
-      newPassword: 'newpassword',
-      logMeIn: true,
-    };
-    resetPassQuery.cmd = 'reset_password';
-    const res = await testMethod({
-      url: '/crud/cmd',
-      method: 'POST',
-      expectedCode: 201,
-      app,
-      jwt,
-      entityManager,
-      payload: resetPassDto,
-      query: resetPassQuery,
-      crudConfig,
-    });
+      const res2 = await testMethod({
+        url: '/crud/auth',
+        method: 'GET',
+        expectedCode: 200,
+        app,
+        jwt,
+        entityManager,
+        payload,
+        query,
+        crudConfig,
+      });
+      expect(res2.userId).toEqual(user.id?.toString());
 
-    await new Promise((r) => setTimeout(r, 600));
-
-    payload.password = 'newpassword';
-    await testMethod({
-      url: '/crud/auth',
-      method: 'POST',
-      expectedCode: 429,
-      app,
-      jwt,
-      entityManager,
-      payload,
-      query,
-      crudConfig,
-    });
-
-    jwt = res.accessToken;
-
-    const res2 = await testMethod({
-      url: '/crud/auth',
-      method: 'GET',
-      expectedCode: 200,
-      app,
-      jwt,
-      entityManager,
-      payload,
-      query,
-      crudConfig,
-    });
-    expect(res2.userId).toEqual(user.id?.toString());
-
-    // check that initial JWT has ben unvalidated
-    await testMethod({
-      url: '/crud/auth',
-      method: 'GET',
-      expectedCode: 401,
-      app,
-      jwt: user.jwt,
-      entityManager,
-      payload,
-      expectedCrudCode: CrudErrors.TOKEN_MISMATCH.code,
-      query,
-      crudConfig,
-    });
-  }, timeout*3);
+      // check that initial JWT has ben unvalidated
+      await testMethod({
+        url: '/crud/auth',
+        method: 'GET',
+        expectedCode: 401,
+        app,
+        jwt: user.jwt,
+        entityManager,
+        payload,
+        expectedCrudCode: CrudErrors.TOKEN_MISMATCH.code,
+        query,
+        crudConfig,
+      });
+    },
+    timeout * 3,
+  );
 
   it('should rate limit login attempts (too fast)', async () => {
     const user = users['RateLimit Joe'];
@@ -512,24 +516,99 @@ describe('AppController', () => {
     expect(userDb.username).toEqual(payload.username.trim().toLowerCase());
   });
 
-  it('should log with 2fa', async () => {
-    const user = users['2Fa Dude'];
+  it(
+    'should log with 2fa',
+    async () => {
+      const user = users['2Fa Dude'];
 
-    const patch: Partial<MyUser> = {
-      twoFA: true,
-    };
-    await userService.$patchOne(
-      { id: crudConfig.dbAdapter.formatId(user.id, crudConfig) } as any,
-      patch as any,
-      null,
-    );
+      const patch: Partial<MyUser> = {
+        twoFA: true,
+      };
+      await userService.$patchOne(
+        { id: crudConfig.dbAdapter.formatId(user.id, crudConfig) } as any,
+        patch as any,
+        null,
+      );
 
-    const query = {};
+      const query = {};
 
-    let jwt = null;
+      let jwt = null;
 
-    // 2 times for loop
-    for (let i = 0; i < 2; i++) {
+      // 2 times for loop
+      for (let i = 0; i < 2; i++) {
+        const payload: LoginDto = {
+          email: user.username,
+          password: testAdminCreds.password,
+        };
+
+        await testMethod({
+          url: '/crud/auth',
+          method: 'POST',
+          expectedCode: 401,
+          expectedCrudCode: CrudErrors.TWOFA_REQUIRED.code,
+          app,
+          jwt,
+          entityManager,
+          payload,
+          query,
+          crudConfig,
+        });
+
+        const res = await emailService.$find(
+          { to: user.email.toLowerCase().trim(), type: 'twoFactor' },
+          null,
+        );
+
+        const email: FakeEmail = res.data[res.data.length - 1];
+
+        expect(email).toBeTruthy();
+
+        payload.twoFA_code = email.message;
+
+        // wait 600ms
+        await new Promise((r) => setTimeout(r, 600));
+
+        await testMethod({
+          url: '/crud/auth',
+          method: 'POST',
+          expectedCode: 201,
+          app,
+          jwt,
+          entityManager,
+          payload,
+          query,
+          crudConfig,
+        });
+
+        // wait 600ms
+        await new Promise((r) => setTimeout(r, 600));
+
+        await testMethod({
+          url: '/crud/auth',
+          method: 'POST',
+          expectedCode: 401,
+          expectedCrudCode: CrudErrors.INVALID_CREDENTIALS.code,
+          app,
+          jwt,
+          entityManager,
+          payload,
+          query,
+          crudConfig,
+        });
+
+        // wait 600ms
+        await new Promise((r) => setTimeout(r, 600));
+      }
+
+      if (process.env.CRUD_CURRENT_MS) {
+        // changing crudConfig doesn't work in ms configuration
+        return;
+      }
+
+      const oldValue =
+        crudConfig.authenticationOptions.twoFaEmailTimeoutMinutes;
+      crudConfig.authenticationOptions.twoFaEmailTimeoutMinutes = 0;
+
       const payload: LoginDto = {
         email: user.username,
         password: testAdminCreds.password,
@@ -552,11 +631,7 @@ describe('AppController', () => {
         { to: user.email.toLowerCase().trim(), type: 'twoFactor' },
         null,
       );
-
       const email: FakeEmail = res.data[res.data.length - 1];
-
-      expect(email).toBeTruthy();
-
       payload.twoFA_code = email.message;
 
       // wait 600ms
@@ -565,7 +640,8 @@ describe('AppController', () => {
       await testMethod({
         url: '/crud/auth',
         method: 'POST',
-        expectedCode: 201,
+        expectedCode: 401,
+        expectedCrudCode: CrudErrors.TOKEN_EXPIRED.code,
         app,
         jwt,
         entityManager,
@@ -574,131 +650,68 @@ describe('AppController', () => {
         crudConfig,
       });
 
-      // wait 600ms
-      await new Promise((r) => setTimeout(r, 600));
+      crudConfig.authenticationOptions.twoFaEmailTimeoutMinutes = oldValue;
+    },
+    timeout * 2,
+  );
+
+  it(
+    'should authorize with basic auth',
+    async () => {
+      const user: TestUser = users['Michael Foe'];
+      const payload: Partial<UserProfile> = {} as any;
+      const query: CrudQuery = {
+        service: 'user-profile',
+        query: JSON.stringify({
+          user: crudConfig.dbAdapter.formatId(user.id as any, crudConfig),
+        }),
+      };
+      const expectedObject = {
+        bio: user.bio,
+      };
 
       await testMethod({
-        url: '/crud/auth',
-        method: 'POST',
-        expectedCode: 401,
-        expectedCrudCode: CrudErrors.INVALID_CREDENTIALS.code,
+        url: '/crud/one',
+        method: 'GET',
         app,
-        jwt,
         entityManager,
         payload,
         query,
+        expectedCode: 403,
         crudConfig,
       });
 
-      // wait 600ms
-      await new Promise((r) => setTimeout(r, 600));
-    }
+      await testMethod({
+        url: '/crud/one',
+        method: 'GET',
+        app,
+        basicAuth: {
+          username: users['Michael Joe'].username,
+          password: testAdminCreds.password,
+        },
+        entityManager,
+        payload,
+        query,
+        expectedCode: 403,
+        crudConfig,
+      });
 
-    if (process.env.CRUD_CURRENT_MS) {
-      // changing crudConfig doesn't work in ms configuration
-      return;
-    }
-
-    const oldValue = crudConfig.authenticationOptions.twoFaEmailTimeoutMinutes;
-    crudConfig.authenticationOptions.twoFaEmailTimeoutMinutes = 0;
-
-    const payload: LoginDto = {
-      email: user.username,
-      password: testAdminCreds.password,
-    };
-
-    await testMethod({
-      url: '/crud/auth',
-      method: 'POST',
-      expectedCode: 401,
-      expectedCrudCode: CrudErrors.TWOFA_REQUIRED.code,
-      app,
-      jwt,
-      entityManager,
-      payload,
-      query,
-      crudConfig,
-    });
-
-    const res = await emailService.$find(
-      { to: user.email.toLowerCase().trim(), type: 'twoFactor' },
-      null,
-    );
-    const email: FakeEmail = res.data[res.data.length - 1];
-    payload.twoFA_code = email.message;
-
-    // wait 600ms
-    await new Promise((r) => setTimeout(r, 600));
-
-    await testMethod({
-      url: '/crud/auth',
-      method: 'POST',
-      expectedCode: 401,
-      expectedCrudCode: CrudErrors.TOKEN_EXPIRED.code,
-      app,
-      jwt,
-      entityManager,
-      payload,
-      query,
-      crudConfig,
-    });
-
-    crudConfig.authenticationOptions.twoFaEmailTimeoutMinutes = oldValue;
-  }, timeout*2);
-
-  it('should authorize with basic auth', async () => {
-    const user: TestUser = users['Michael Foe'];
-    const payload: Partial<UserProfile> = {} as any;
-    const query: CrudQuery = {
-      service: 'user-profile',
-      query: JSON.stringify({
-        user: crudConfig.dbAdapter.formatId(user.id as any, crudConfig),
-      }),
-    };
-    const expectedObject = {
-      bio: user.bio,
-    };
-
-    await testMethod({
-      url: '/crud/one',
-      method: 'GET',
-      app,
-      entityManager,
-      payload,
-      query,
-      expectedCode: 403,
-      crudConfig,
-    });
-
-    await testMethod({
-      url: '/crud/one',
-      method: 'GET',
-      app,
-      basicAuth: {
-        username: users['Michael Joe'].username,
-        password: testAdminCreds.password,
-      },
-      entityManager,
-      payload,
-      query,
-      expectedCode: 403,
-      crudConfig,
-    });
-
-    await testMethod({
-      url: '/crud/one',
-      method: 'GET',
-      app,
-      basicAuth: {
-        username: user.username,
-        password: testAdminCreds.password,
-      },
-      entityManager,
-      payload,
-      query,
-      expectedCode: 200,
-      expectedObject,
-      crudConfig,
-    });
-  }, timeout*2);
+      await testMethod({
+        url: '/crud/one',
+        method: 'GET',
+        app,
+        basicAuth: {
+          username: user.username,
+          password: testAdminCreds.password,
+        },
+        entityManager,
+        payload,
+        query,
+        expectedCode: 200,
+        expectedObject,
+        crudConfig,
+      });
+    },
+    timeout * 2,
+  );
 });

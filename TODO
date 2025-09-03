@@ -74,3 +74,7 @@
 [x] skipServiceHooks in CrudOptions
 
 [ ] add global crudSecurity defaults?
+
+[ ] user base cmds return DTOs
+
+[ ] type import use type (typescript new version)

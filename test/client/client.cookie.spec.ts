@@ -35,7 +35,7 @@ import {
 } from '../../client/CrudClient';
 import { LoginDto } from '@eicrud/core/config/basecmd_dtos/user/login.dto';
 import { MelonService } from '../src/services/melon/melon.service';
-import { timeout } from "../env";
+import { timeout } from '../env';
 
 const testAdminCreds = {
   email: 'admin@testmail.com',
@@ -145,153 +145,165 @@ describe('AppController', () => {
     expect(matchLogout[1]).toBe('0');
   });
 
-  it('should renew jwt with cookie', async () => {
-    const user = users['Renew Me'];
-    const myClient = getProfileClient();
-    myClient.config.globalOptions = { jwtCookie: true };
+  it(
+    'should renew jwt with cookie',
+    async () => {
+      const user = users['Renew Me'];
+      const myClient = getProfileClient();
+      myClient.config.globalOptions = { jwtCookie: true };
 
-    // myClient.config.onLogout = () => {
-    //   myClient.config.globalHeaders = null;
-    // }
+      // myClient.config.onLogout = () => {
+      //   myClient.config.globalHeaders = null;
+      // }
 
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password,
-      expiresInSec: 4,
-    };
-    const raw = await myClient.login(dto, true);
-    extractAndSetCRSF(raw, myClient);
+      const dto: LoginDto = {
+        email: user.email,
+        password: testAdminCreds.password,
+        expiresInSec: 4,
+      };
+      const raw = await myClient.login(dto, true);
+      extractAndSetCRSF(raw, myClient);
 
-    const profile: UserProfile = await myClient.findOne({
-      id: user.profileId,
-      user: user.id,
-    });
-    expect(profile.bio).toBe(user.bio);
-
-    //wait 4000ms
-    await new Promise((resolve) => setTimeout(resolve, 4000));
-
-    let error;
-    try {
-      await myClient.findOne({
+      const profile: UserProfile = await myClient.findOne({
         id: user.profileId,
         user: user.id,
       });
-    } catch (e) {
-      console.log(e.response.data);
-      error = e.response.status;
-    }
-    expect(error).toBe(403);
+      expect(profile.bio).toBe(user.bio);
 
-    dto.expiresInSec = 4;
-    const raw2 = await myClient.login(dto, true);
-    extractAndSetCRSF(raw2, myClient);
-    const resLog = raw2.data;
+      //wait 4000ms
+      await new Promise((resolve) => setTimeout(resolve, 4000));
 
-    expect(resLog.userId).toEqual(user.id?.toString());
+      let error;
+      try {
+        await myClient.findOne({
+          id: user.profileId,
+          user: user.id,
+        });
+      } catch (e) {
+        console.log(e.response.data);
+        error = e.response.status;
+      }
+      expect(error).toBe(403);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    const res = await myClient.userServiceCmd('check_jwt', {}, true);
-    const match = parseJwtCookieFromRes(res);
-    expect(match).toBeTruthy();
-    myClient.setJwt(match[1]);
-    extractAndSetCRSF(res, myClient);
-    expect(res.data.accessToken).toBeFalsy();
+      dto.expiresInSec = 4;
+      const raw2 = await myClient.login(dto, true);
+      extractAndSetCRSF(raw2, myClient);
+      const resLog = raw2.data;
 
-    //wait 2500ms
-    await new Promise((resolve) => setTimeout(resolve, 2500));
+      expect(resLog.userId).toEqual(user.id?.toString());
 
-    const profile2: UserProfile = await myClient.findOne({
-      id: user.profileId,
-      user: user.id,
-    });
-    expect(profile2.bio).toBe(user.bio);
-  }, timeout*3);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const res = await myClient.userServiceCmd('check_jwt', {}, true);
+      const match = parseJwtCookieFromRes(res);
+      expect(match).toBeTruthy();
+      myClient.setJwt(match[1]);
+      extractAndSetCRSF(res, myClient);
+      expect(res.data.accessToken).toBeFalsy();
 
-  it('should detect CSRF mismatches', async () => {
-    const user = users['CSRF Dude'];
-    const myClient = getProfileClient();
-    myClient.config.globalOptions = { jwtCookie: true };
+      //wait 2500ms
+      await new Promise((resolve) => setTimeout(resolve, 2500));
 
-    const dto: LoginDto = {
-      email: user.email,
-      password: testAdminCreds.password,
-      expiresInSec: 10,
-    };
-    await myClient.login(dto, true);
-
-    let error = null;
-    //GET do not require check
-    try {
-      await myClient.findOne({
+      const profile2: UserProfile = await myClient.findOne({
         id: user.profileId,
         user: user.id,
       });
-    } catch (e) {
-      console.log(e.response.data);
-      error = e.response.status;
-    }
-    expect(error).toBe(null);
+      expect(profile2.bio).toBe(user.bio);
+    },
+    timeout * 3,
+  );
 
-    async function testMethod() {
-      return myClient.cmdS('test_cmd', {
-        returnMessage: 'cookie test',
-      });
-    }
+  it(
+    'should detect CSRF mismatches',
+    async () => {
+      const user = users['CSRF Dude'];
+      const myClient = getProfileClient();
+      myClient.config.globalOptions = { jwtCookie: true };
 
-    try {
-      await testMethod();
-    } catch (e) {
-      console.log(e.response.data);
-      error = e.response.status;
-    }
-    expect(error).toBe(403);
+      const dto: LoginDto = {
+        email: user.email,
+        password: testAdminCreds.password,
+        expiresInSec: 10,
+      };
+      await myClient.login(dto, true);
 
-    //wait 600ms
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    const raw = await myClient.login(dto, true);
-    extractAndSetCRSF(raw, myClient);
+      let error = null;
+      //GET do not require check
+      try {
+        await myClient.findOne({
+          id: user.profileId,
+          user: user.id,
+        });
+      } catch (e) {
+        console.log(e.response.data);
+        error = e.response.status;
+      }
+      expect(error).toBe(null);
 
-    const ret: string = await testMethod();
-    expect(ret).toBe('COOKIE TEST');
+      async function testMethod() {
+        return myClient.cmdS('test_cmd', {
+          returnMessage: 'cookie test',
+        });
+      }
 
-    //wait 4000ms
-    await new Promise((resolve) => setTimeout(resolve, 4000));
+      try {
+        await testMethod();
+      } catch (e) {
+        console.log(e.response.data);
+        error = e.response.status;
+      }
+      expect(error).toBe(403);
 
-    const res = await myClient.userServiceCmd('check_jwt', {}, true);
-    const match = parseJwtCookieFromRes(res);
-    expect(match).toBeTruthy();
-    myClient.setJwt(match[1]);
+      //wait 600ms
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      const raw = await myClient.login(dto, true);
+      extractAndSetCRSF(raw, myClient);
 
-    error = null;
-    try {
-      await testMethod();
-    } catch (e) {
-      console.log(e.response.data);
-      error = e.response.status;
-    }
-    expect(error).toBe(403);
+      const ret: string = await testMethod();
+      expect(ret).toBe('COOKIE TEST');
 
-    myClient.setJwt(match[1]);
-    extractAndSetCRSF(res, myClient);
+      //wait 4000ms
+      await new Promise((resolve) => setTimeout(resolve, 4000));
 
-    const profile2 = await testMethod();
+      const res = await myClient.userServiceCmd('check_jwt', {}, true);
+      const match = parseJwtCookieFromRes(res);
+      expect(match).toBeTruthy();
+      myClient.setJwt(match[1]);
 
-    expect(profile2).toBe('COOKIE TEST');
-  }, timeout*2);
+      error = null;
+      try {
+        await testMethod();
+      } catch (e) {
+        console.log(e.response.data);
+        error = e.response.status;
+      }
+      expect(error).toBe(403);
 
-  it('401 should unset jwt cookie', async () => {
-    const myClient = getProfileClient();
-    myClient.config.globalOptions = { jwtCookie: true };
+      myClient.setJwt(match[1]);
+      extractAndSetCRSF(res, myClient);
 
-    myClient.setJwt('badjwt');
+      const profile2 = await testMethod();
 
-    const res = await myClient.userServiceCmd('check_jwt', {}, true, false);
-    const matchLogout = parseJwtCookieFromRes(
-      res.response,
-      /eicrud-jwt=; Max-Age=([^;]*);/,
-    );
-    expect(matchLogout).toBeTruthy();
-    expect(matchLogout[1]).toBe('0');
-  }, timeout);
+      expect(profile2).toBe('COOKIE TEST');
+    },
+    timeout * 2,
+  );
+
+  it(
+    '401 should unset jwt cookie',
+    async () => {
+      const myClient = getProfileClient();
+      myClient.config.globalOptions = { jwtCookie: true };
+
+      myClient.setJwt('badjwt');
+
+      const res = await myClient.userServiceCmd('check_jwt', {}, true, false);
+      const matchLogout = parseJwtCookieFromRes(
+        res.response,
+        /eicrud-jwt=; Max-Age=([^;]*);/,
+      );
+      expect(matchLogout).toBeTruthy();
+      expect(matchLogout[1]).toBe('0');
+    },
+    timeout,
+  );
 });

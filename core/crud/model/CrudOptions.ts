@@ -7,7 +7,8 @@ import {
   IsString,
 } from 'class-validator';
 import { $MaxSize } from '@eicrud/core/validation/decorators';
-import { ICrudOptions, OrderByType } from '@eicrud/shared/interfaces';
+import { ICrudOptions } from '@eicrud/shared/interfaces';
+import type { OrderByType } from '@eicrud/shared/interfaces';
 
 export class CrudOptions<T = any> implements ICrudOptions {
   @IsOptional()

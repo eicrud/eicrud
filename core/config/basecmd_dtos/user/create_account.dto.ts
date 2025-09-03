@@ -35,3 +35,8 @@ export class CreateAccountDto implements ICreateAccountDto {
   //@eicrud:cli:export:delete:next-line
   addToUser?: any;
 }
+
+export class CreateAccountReturnDto {
+  userId: string;
+  accessToken?: string;
+}

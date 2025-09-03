@@ -22,15 +22,16 @@
     "publish:package": "npm i && npm run compile && npm publish",
     "clean": "del-cli **.js **.d.ts **.js.map !node_modules"
   },
+  "main": "index.js",
   "dependencies": {
-    "axios": "^1.8.4",
+    "axios": "^1.11.0",
     "js-cookie": "^3.0.5",
-    "tslib": "^2.6.3",
+    "tslib": "^2.8.1",
     "wildcard": "^2.0.1"
   },
   "devDependencies": {
-    "del-cli": "^5.1.0",
-    "@types/node": "^20.12.12"
+    "del-cli": "^6.0.0",
+    "@types/node": "^24.3.0"
   },
   "peerDependencies": {
     "@eicrud/shared": "0.0.1"

@@ -131,7 +131,6 @@ describe('AppController', () => {
       service: 'melon',
       query: '{}',
       options: JSON.stringify({
-        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
         limit: 99999999999999999999,
       }) as any,
     };

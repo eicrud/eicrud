@@ -35,7 +35,7 @@ export class MemoryStorage implements ClientStorage {
   get(name: string): string {
     return this.memory.get(name);
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   set(
     name: string,
     value: string,
@@ -53,7 +53,7 @@ export class LocalStorage implements ClientStorage {
   get(name: string): string {
     return localStorage.getItem(name);
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   set(
     name: string,
     value: string,
@@ -80,6 +80,7 @@ export interface ClientConfig {
   userServiceName?: string;
   onLogout?: () => void;
   storage?: ClientStorage;
+  csrfCookieGetter?: (name: string) => string;
   useSecureCookie?: boolean;
   id_field?: string;
   globalMockRole?: string;
@@ -111,7 +112,7 @@ export interface ClientOptions {
  * A client for CRUD operations.
  */
 export class CrudClient<T> {
-  JWT_STORAGE_KEY = 'eicrud-jwt';
+  JWT_STORAGE_KEY = 'eicrud-ljwt'; //local jwt
   fetchNb = 0;
   sessionStorage = typeof document !== 'undefined' ? sessionStorage : null;
 
@@ -170,7 +171,9 @@ export class CrudClient<T> {
         headers.Authorization = 'Bearer ' + jwt;
       }
     } else {
-      const csrf = Cookie.get('eicrud-csrf');
+      const csrf =
+        this.config.csrfCookieGetter?.('eicrud-csrf') ||
+        Cookie.get('eicrud-csrf');
       if (csrf) {
         this._checkHttps();
         headers['eicrud-csrf'] = csrf;

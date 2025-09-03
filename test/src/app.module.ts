@@ -19,14 +19,14 @@ require('dotenv').config({ path: path.resolve(__dirname, './.env') });
 
 export const getModule = (dbName) => {
   dbName = 'test-' + dbName.replace('.spec.ts', '').replaceAll('.', '-');
-  
+
   if (process.env.CRUD_CURRENT_MS) {
     dbName = 'test-core-ms';
   }
 
   if (typeof jest !== 'undefined') {
-     // set timeout for testcases
-      jest.setTimeout(timeout);
+    // set timeout for testcases
+    jest.setTimeout(timeout);
   }
 
   return {
@@ -38,8 +38,10 @@ export const getModule = (dbName) => {
             ? PostgreSqlDriver
             : MongoDriver,
         dbName,
-        password: process.env.TEST_CRUD_DB == 'postgre' ? postgresPassword : undefined,
-        user: process.env.TEST_CRUD_DB == 'postgre' ? postgresUsername : undefined,
+        password:
+          process.env.TEST_CRUD_DB == 'postgre' ? postgresPassword : undefined,
+        user:
+          process.env.TEST_CRUD_DB == 'postgre' ? postgresUsername : undefined,
       }),
       EICRUDModule.forRoot(),
     ],
