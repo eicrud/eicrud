@@ -77,4 +77,6 @@
 
 [ ] user base cmds return DTOs
 
-[ ] type import use type (typescript new version)
+[x] type import use type (typescript new version)
+
+[ ] add a test for password rehash (when role has changed)
