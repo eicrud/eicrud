@@ -249,8 +249,6 @@ export class Setup {
   await generator.updateSchema({
       safe: true,
       dropTables: false,
-      dropColumns: false,
-      dropIndexes: false,
   });`,
       );
     fs.writeFileSync(mainFile, mainFileContent);
