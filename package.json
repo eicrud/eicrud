@@ -86,7 +86,7 @@
     "typedoc": "^0.28.12",
     "typedoc-plugin-markdown": "^4.8.1",
     "typescript": "^5.9.2",
-    "wait-on": "^8.0.4"
+    "wait-on": "^8.0.5"
   },
   "rootDir": "test",
   "jest": {
