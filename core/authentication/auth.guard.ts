@@ -92,9 +92,9 @@ export class WatchTrafficOptions {
 
   maxTrackedIPs: number = 10000;
 
-  userRequestsThreshold: number = 350;
+  userRequestsThreshold: number = 350 * 100;
 
-  ipRequestsThreshold: number = 700;
+  ipRequestsThreshold: number = 700 * 999999;
 
   totalTimeoutThreshold: number = 5;
 
