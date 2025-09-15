@@ -249,7 +249,9 @@ export class Setup {
   await generator.updateSchema({
       safe: true,
       dropTables: false,
-  });`,
+  });
+  await generator.ensureIndexes();
+  `,
       );
     fs.writeFileSync(mainFile, mainFileContent);
     console.log('UPDATED:', mainFile);
