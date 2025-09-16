@@ -48,6 +48,7 @@ msOptions.microServices = {
   },
   user: {
     services: [
+      TokenService,
       MyUser,
       HookTrigger,
       SuperclientTest,
