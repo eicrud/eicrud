@@ -95,3 +95,7 @@ export class ProfileService extends CrudService<Profile> {
     //..
 }
 ```
+
+## Use a different cache key
+Instead of using `id_field` to identify your cached entity you can use any other unique field. 
+

@@ -77,10 +77,12 @@ msOptions.microServices = {
 @Injectable()
 export class MyConfigService extends CrudConfigService {
   constructor(
+    @Inject(forwardRef(() => MyUserService))
     public userService: MyUserService,
     public entityManager: EntityManager,
     public emailService: FakeEmailService,
     public hookTriggerService: HookTriggerService,
+    @Inject(forwardRef(() => TokenService))
     public tokenService: TokenService,
     protected orm: MikroORM,
   ) {
@@ -96,6 +98,8 @@ export class MyConfigService extends CrudConfigService {
         userTrafficProtection: PROXY_TEST ? false : true,
         ddosProtection: PROXY_TEST ? false : true,
         useForwardedIp: PROXY_TEST ? true : false,
+        userRequestsThreshold: 350,
+        ipRequestsThreshold: 700,
       },
       authenticationOptions: {
         renewJwt: true,

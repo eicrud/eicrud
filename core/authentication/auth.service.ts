@@ -82,6 +82,9 @@ export class CrudAuthService {
       );
     }
     this.tokenService = this.crudConfig.authenticationOptions.tokenService;
+    if (this.tokenService) {
+      this.tokenService.cacheField = 'token';
+    }
   }
 
   hmacCSRFToken(token) {

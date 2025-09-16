@@ -122,6 +122,10 @@ export class Token implements CrudToken {
 
 }
 ```
+
+!!! note
+    Passed tokenService `cacheField` is automatically set to `"token"`. Token is fetched from cache unless a fresh user is needed (`POST` requests).
+
 Each token maps to a `CrudUser`, each token request is identified as an user request but no `login` is performed.
 
 !!! note

@@ -490,6 +490,8 @@ describe('AppController', () => {
         null,
       );
 
+      tokenService.$deleteCached(createdToken, {});
+
       // 6. Test with expired token (should fail)
       await testMethod({
         url: '/crud/one',
