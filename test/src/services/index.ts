@@ -1,3 +1,5 @@
+import { Token } from './token/token.entity';
+import { TokenService } from './token/token.service';
 import { StarFruit } from './star-fruit/star-fruit.entity';
 import { StarFruitService } from './star-fruit/star-fruit.service';
 import {
@@ -24,6 +26,7 @@ import { MyUserService } from './my-user/my-user.service';
 //Auto generated file
 
 export const CRUDServices = [
+  TokenService,
   StarFruitService,
   ...superclientCRUDServices,
   HookTriggerService,
@@ -37,6 +40,7 @@ export const CRUDServices = [
 ];
 
 export const CRUDEntities = [
+  Token,
   StarFruit,
   ...superclientCRUDEntities,
   HookTrigger,

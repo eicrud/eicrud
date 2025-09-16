@@ -29,6 +29,7 @@ import { SuperclientTestExclude } from './services/superclient-ms/superclient-te
 import { SuperclientTestExclude2 } from './services/superclient-ms/superclient-test-exclude2/superclient-test-exclude2.entity';
 import { StarFruit } from './services/star-fruit/star-fruit.entity';
 import { roles } from './eicrud.roles';
+import { TokenService } from './services/token/token.service';
 
 const msOptions = new MicroServicesOptions();
 
@@ -80,6 +81,7 @@ export class MyConfigService extends CrudConfigService {
     public entityManager: EntityManager,
     public emailService: FakeEmailService,
     public hookTriggerService: HookTriggerService,
+    public tokenService: TokenService,
     protected orm: MikroORM,
   ) {
     super({
@@ -97,6 +99,7 @@ export class MyConfigService extends CrudConfigService {
       },
       authenticationOptions: {
         renewJwt: true,
+        tokenService: tokenService,
       },
       dbAdapter:
         process.env.TEST_CRUD_DB == 'postgre'
