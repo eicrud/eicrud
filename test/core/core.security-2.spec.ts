@@ -462,32 +462,35 @@ describe('AppController', () => {
         crudConfig,
       });
 
-      if (!process.env.CRUD_CURRENT_MS) {
+      if (process.env.CRUD_CURRENT_MS) {
         // deleteCached doesn't work in ms configuration
-
-        // 4.1. Set valid expiration for token
-        await tokenService.$patch(
-          { id: createdToken.id },
-          { expiresAt: new Date(Date.now() + 60000) }, // 1 minute from now
-          null,
-        );
-
-        // 4.2 Test with correct expiring token (should succeed)
-        await testMethod({
-          url: '/crud/one',
-          method: 'GET',
-          app,
-          tokenAuth: createdToken.token,
-          entityManager,
-          payload,
-          query,
-          expectedCode: 200,
-          expectedObject,
-          crudConfig,
-        });
-
-        await tokenService.$deleteCached(createdToken, {});
+        return;
       }
+
+      await tokenService.$deleteCached(createdToken, {});
+
+      // 4.1. Set valid expiration for token
+      await tokenService.$patch(
+        { id: createdToken.id },
+        { expiresAt: new Date(Date.now() + 60000) }, // 1 minute from now
+        null,
+      );
+
+      // 4.2 Test with correct expiring token (should succeed)
+      await testMethod({
+        url: '/crud/one',
+        method: 'GET',
+        app,
+        tokenAuth: createdToken.token,
+        entityManager,
+        payload,
+        query,
+        expectedCode: 200,
+        expectedObject,
+        crudConfig,
+      });
+
+      await tokenService.$deleteCached(createdToken, {});
 
       // 5. Expire the token
       await tokenService.$patch(

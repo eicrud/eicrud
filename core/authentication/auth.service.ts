@@ -155,13 +155,10 @@ export class CrudAuthService {
     }
     const user = cachedUser
       ? await this.crudConfig.userService.$findOneCached(
-          { [this.crudConfig.id_field]: dbToken.user },
+          dbToken.user,
           crudContext,
         )
-      : await this.crudConfig.userService.$findOne(
-          { [this.crudConfig.id_field]: dbToken.user },
-          crudContext,
-        );
+      : await this.crudConfig.userService.$findOne(dbToken.user, crudContext);
     if (!user) {
       throw new UnauthorizedException('Token user not found');
     }
