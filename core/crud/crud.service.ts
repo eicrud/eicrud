@@ -634,7 +634,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   getCacheField() {
-    return this.cacheField || this.crudConfig.id_field;
+    return this.cacheField?.toString() || this.crudConfig.id_field;
   }
 
   getCacheKey(entity: Partial<T>, opts?: CrudOptions) {
