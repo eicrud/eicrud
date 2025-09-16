@@ -5,7 +5,7 @@ import { CrudSecurity } from '../../config/model/CrudSecurity';
 import { CrudConfigService } from '../../config/crud.config.service';
 import { CrudService } from '../crud.service';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { AuthType, JwtPayload } from '../../authentication';
+import { AuthType, CrudToken, JwtPayload } from '../../authentication';
 import { FindOptions } from '@mikro-orm/core';
 
 export type CrudOptionsType<T = any> = CrudOptions<T> &
@@ -51,6 +51,7 @@ export interface CrudContext<T = any> {
   getCurrentService?: () => CrudService<any>;
   getHttpRequest?: () => FastifyRequest;
   getHttpResponse?: () => FastifyReply;
+  authToken?: CrudToken;
 }
 
 export interface CookieToSet {

@@ -133,28 +133,36 @@ export class CrudAuthService {
     }
     return token;
   }
-
   async extractUserFromToken(
     token: any,
     crudContext: CrudContext<any>,
+    cachedUser: boolean,
   ): Promise<CrudUser> {
     if (!this.tokenService) {
       throw new Error('Token service not configured');
     }
-    const dbToken = await this.tokenService.$findOne({ token }, crudContext);
+    const dbToken = cachedUser
+      ? await this.tokenService.$findOneCached({ token }, crudContext)
+      : await this.tokenService.$findOne({ token }, crudContext);
     if (!dbToken) {
       throw new UnauthorizedException('Invalid token');
     }
     if (dbToken.expiresAt && new Date(dbToken.expiresAt) <= new Date()) {
       throw new UnauthorizedException('Token expired');
     }
-    const user = await this.crudConfig.userService.$findOne(
-      { [this.crudConfig.id_field]: dbToken.user },
-      crudContext,
-    );
+    const user = cachedUser
+      ? await this.crudConfig.userService.$findOneCached(
+          { [this.crudConfig.id_field]: dbToken.user },
+          crudContext,
+        )
+      : await this.crudConfig.userService.$findOne(
+          { [this.crudConfig.id_field]: dbToken.user },
+          crudContext,
+        );
     if (!user) {
       throw new UnauthorizedException('Token user not found');
     }
+    crudContext.authToken = dbToken;
     return user;
   }
 

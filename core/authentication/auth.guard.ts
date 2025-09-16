@@ -322,7 +322,11 @@ export class CrudAuthGuard implements CanActivate {
       };
       user = await this.crudConfig.userService.$login(loginDto, crudContext);
     } else if (type == 'token') {
-      user = await this.authService.extractUserFromToken(token, crudContext);
+      user = await this.authService.extractUserFromToken(
+        token,
+        crudContext,
+        cachedUser,
+      );
     } else {
       payload = await this.authService.getJwtPayload(token);
       if (payload.csrf && request.method != 'GET') {
