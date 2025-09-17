@@ -7,8 +7,20 @@ import {
 } from '../config/crud.config.service';
 import { ModuleRef } from '@nestjs/core';
 import { CrudAuthGuard } from './auth.guard';
-import { CrudContext } from '../crud';
+import { CrudContext, CrudEntity, CrudService } from '../crud';
 import * as crypto from 'crypto';
+import { CrudUser } from '../config';
+
+export interface CrudToken extends CrudEntity {
+  user: CrudUser | string;
+  token: string;
+  expiresAt?: Date;
+}
+
+type TokenServiceLike = {
+  $findOne(query: any, ctx: any): Promise<CrudToken>;
+  // other essential CrudService methods you need
+} & CrudService<any>;
 
 export class AuthenticationOptions {
   saltRounds = 11;
@@ -25,6 +37,7 @@ export class AuthenticationOptions {
   maxJwtexpiresInSec = 60 * 60 * 24 * 30;
   extractUserOnRoutes: string[] = [];
   resetTokenLength: number = 17;
+  tokenService?: TokenServiceLike;
 }
 
 @Injectable()
@@ -34,6 +47,8 @@ export class CrudAuthService {
   protected FIELDS_IN_PAYLOAD: string[] = ['rvkd'];
   protected username_field = 'email';
   protected crudConfig: CrudConfigService;
+  protected tokenService?: CrudService<CrudToken>;
+
   _authGuard: CrudAuthGuard;
 
   constructor(
@@ -65,6 +80,10 @@ export class CrudAuthService {
       this.crudConfig.authenticationOptions.fieldsThatResetRevokedCount.push(
         this.username_field,
       );
+    }
+    this.tokenService = this.crudConfig.authenticationOptions.tokenService;
+    if (this.tokenService) {
+      this.tokenService.cacheField = 'token';
     }
   }
 
@@ -116,6 +135,35 @@ export class CrudAuthService {
       }
     }
     return token;
+  }
+  async extractUserFromToken(
+    token: any,
+    crudContext: CrudContext<any>,
+    cachedUser: boolean,
+  ): Promise<CrudUser> {
+    if (!this.tokenService) {
+      throw new Error('Token service not configured');
+    }
+    const dbToken = cachedUser
+      ? await this.tokenService.$findOneCached({ token }, crudContext)
+      : await this.tokenService.$findOne({ token }, crudContext);
+    if (!dbToken) {
+      throw new UnauthorizedException('Invalid token');
+    }
+    if (dbToken.expiresAt && new Date(dbToken.expiresAt) <= new Date()) {
+      throw new UnauthorizedException('Token expired');
+    }
+    const user = cachedUser
+      ? await this.crudConfig.userService.$findOneCached(
+          dbToken.user,
+          crudContext,
+        )
+      : await this.crudConfig.userService.$findOne(dbToken.user, crudContext);
+    if (!user) {
+      throw new UnauthorizedException('Token user not found');
+    }
+    crudContext.authToken = dbToken;
+    return user;
   }
 
   async getJwtPayload(token: string) {

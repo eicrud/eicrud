@@ -11,7 +11,12 @@ tk_service_config_import
 export class tk_entity_nameService extends CrudService<tk_entity_name> {
     constructor(protected moduleRef: ModuleRef) {
         const serviceName = CrudService.getName(tk_entity_name);
-        super(moduleRef, tk_entity_name, getSecurity(serviceName), tk_service_config_usage);
+        super(moduleRef, tk_entity_name, getSecurity(serviceName), { hooks });
+    }
+
+    async onModuleInit(): Promise<void> {
+        tk_service_config_usage
+        await super.onModuleInit();
     }
     
     // GENERATED START - do not remove

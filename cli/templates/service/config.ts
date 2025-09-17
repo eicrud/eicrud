@@ -1,5 +1,7 @@
 import { CrudServiceConfig } from "@eicrud/core/crud";
 
-export const msConfig: Partial<CrudServiceConfig> = {
-    orm: undefined,
+export async function msConfig(): Promise<Partial<CrudServiceConfig>> {
+    return {
+        orm: undefined,
+    };
 }

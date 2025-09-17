@@ -29,6 +29,7 @@ import { SuperclientTestExclude } from './services/superclient-ms/superclient-te
 import { SuperclientTestExclude2 } from './services/superclient-ms/superclient-test-exclude2/superclient-test-exclude2.entity';
 import { StarFruit } from './services/star-fruit/star-fruit.entity';
 import { roles } from './eicrud.roles';
+import { TokenService } from './services/token/token.service';
 
 const msOptions = new MicroServicesOptions();
 
@@ -47,6 +48,7 @@ msOptions.microServices = {
   },
   user: {
     services: [
+      TokenService,
       MyUser,
       HookTrigger,
       SuperclientTest,
@@ -76,10 +78,13 @@ msOptions.microServices = {
 @Injectable()
 export class MyConfigService extends CrudConfigService {
   constructor(
+    @Inject(forwardRef(() => MyUserService))
     public userService: MyUserService,
     public entityManager: EntityManager,
     public emailService: FakeEmailService,
     public hookTriggerService: HookTriggerService,
+    @Inject(forwardRef(() => TokenService))
+    public tokenService: TokenService,
     protected orm: MikroORM,
   ) {
     super({
@@ -94,9 +99,12 @@ export class MyConfigService extends CrudConfigService {
         userTrafficProtection: PROXY_TEST ? false : true,
         ddosProtection: PROXY_TEST ? false : true,
         useForwardedIp: PROXY_TEST ? true : false,
+        userRequestsThreshold: 350,
+        ipRequestsThreshold: 700,
       },
       authenticationOptions: {
         renewJwt: true,
+        tokenService: tokenService,
       },
       dbAdapter:
         process.env.TEST_CRUD_DB == 'postgre'

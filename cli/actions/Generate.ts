@@ -76,8 +76,9 @@ export class Generate {
         ? `import { msConfig } from '../config';`
         : '//delete-this-line',
       tk_service_config_usage: options?.ms
-        ? '{ hooks, ...msConfig}'
-        : '{ hooks }',
+        ? `const config = await msConfig();
+        this.config = { ...this.config, ...config } as any;`
+        : ' ',
     };
 
     _utils_cli.addRoleTypeKeys(fs, msPath, keys, false);

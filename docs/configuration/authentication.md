@@ -21,6 +21,7 @@ export class AuthenticationOptions {
   maxJwtexpiresInSec = 60*60*24*30; //30 days
   extractUserOnRoutes: string[] = [];
   resetTokenLength: number = 17;
+  tokenService?: CrudService<CrudToken>;
 }
 ```
 
@@ -77,8 +78,58 @@ As an alternative to JWTs, you can use basic authentication to authorize your AP
     Authorization: Basic <Base64(username:password)>;
     ```
 
+!!! warning
+    Basic authentication is considered as a login by Eicrud, option `minTimeBetweenLoginAttempsMs` impose a minimum amount of time required between two request.
+
 !!! note 
-    Basic authentication is slightly less performant than using JWTs. Consider this if you need to perform multiple requests.
+    Basic authentication is less performant and not suitable for an API key remplacement. Consider other options you need to perform frequent requests.
+
+## Token Auth
+
+You can also use Eicrud's token authentication to authorize your API requests. 
+    ```
+    Authorization: Token <url_safe_token>;
+    ```
+
+Options parameter `tokenService` must be provided, which is a simple CrudService of a `Token` type entity.
+
+```typescript
+import { CrudToken } from "@eicrud/core/authentication"
+
+@Entity()
+export class Token implements CrudToken {
+
+    @PrimaryKey({ name: '_id' })
+    @IsString()
+    @IsOptional()
+    id: string;
+
+    @Unique()
+    @Property()
+    token: string; //A secure API key
+
+    @Property({ nullable: true })
+    expiresAt?: Date; //Invalid after this date
+
+    @ManyToOne(() => User)
+    user: User | string;
+
+    @Property()
+    createdAt: Date;
+
+    @Property()
+    updatedAt: Date;
+
+}
+```
+
+!!! note
+    Passed tokenService's `cacheField` is automatically set to `"token"` during initialization. Token is always fetched from [cache](../services/cache.md) unless a fresh user is needed (`POST` requests).
+
+Each token maps to a `CrudUser`, each token request is identified as an user request but no `login` is performed.
+
+!!! note
+    Eicrud do not create or delete tokens and only check for `expiresAt` validity, you can manage application tokens as you please.
 
 ## Username login
 

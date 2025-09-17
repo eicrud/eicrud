@@ -56,16 +56,18 @@ export class UserService extends CrudUserService<User> {
 `$findOneCached` tries to retrieve the result from the cache using `id_field` + `CrudOptions?` as a key.
 If no result is found, `$findOne` is called and the result is stored in cache.
 
-### $setCached
-`$setCached` inserts a given entity into the `CrudCache`.
-
 !!! note
     When `$findOneCached` is called through the client, found results are not stored in the cache to prevent users from maliciously filling it. You can disable that behavior with `allowClientCacheFilling`.
     ```typescript 
     cacheOptions.allowClientCacheFilling = true;
     ```
     In that case, make sure your cache has a maximum and an eviction strategy in place.
-    
+
+### $setCached
+`$setCached` inserts a given entity into the `CrudCache`.
+
+### $deleteCached
+`$deleteCached` removes a given entity into the `CrudCache`.
 
 ## Authentication
 
@@ -95,3 +97,17 @@ export class ProfileService extends CrudService<Profile> {
     //..
 }
 ```
+
+## Use a different cache key
+Each [CrudService](./definition.md) takes an optional `cacheField` config parameter.
+
+```typescript title="token.service.ts"
+  constructor(protected moduleRef: ModuleRef) {
+    const serviceName = CrudService.getName(Token);
+    super(moduleRef, Token, getSecurity(serviceName), { hooks, cacheField: 'token' });
+  }
+```
+
+
+The new field replaces `id_field` to identify your cached entities (`$findOneCached`, `$setCached`...)
+

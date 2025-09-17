@@ -656,7 +656,7 @@ describe('AppController', () => {
   );
 
   it(
-    'should authorize with basic auth',
+    'should authorize with basic auth and username',
     async () => {
       const user: TestUser = users['Michael Foe'];
       const payload: Partial<UserProfile> = {} as any;

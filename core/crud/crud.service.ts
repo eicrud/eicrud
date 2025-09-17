@@ -95,6 +95,7 @@ export interface CrudServiceConfig<T extends CrudEntity = any> {
   dbAdapter?: CrudDbAdapter;
   cacheManager?: CrudCache;
   hooks?: CrudHooks<T>;
+  cacheField?: keyof T;
 }
 
 export class CrudService<T extends CrudEntity> {
@@ -106,6 +107,7 @@ export class CrudService<T extends CrudEntity> {
   protected crudAuthorization: CrudAuthorizationService;
   cacheManager: CrudCache;
   cacheOptions = new CacheOptions();
+  cacheField: keyof T;
 
   _defaultOpParams: OpParams = {
     options: {},
@@ -125,6 +127,9 @@ export class CrudService<T extends CrudEntity> {
       this.config.hooks = new CrudHooks<T>();
     }
     this.serviceName = CrudService.getName(entity);
+    if (this.config?.cacheField) {
+      this.cacheField = this.config.cacheField;
+    }
   }
 
   onModuleInit() {
@@ -628,9 +633,13 @@ export class CrudService<T extends CrudEntity> {
     return opts;
   }
 
+  getCacheField() {
+    return this.cacheField?.toString() || this.crudConfig.id_field;
+  }
+
   getCacheKey(entity: Partial<T>, opts?: CrudOptions) {
     let key =
-      this.serviceName + '_one_' + entity[this.crudConfig.id_field].toString();
+      this.serviceName + '_one_' + entity[this.getCacheField()].toString();
     if (opts?.exclude?.length) {
       key += '_e_' + opts.exclude.sort().join(',');
     }
@@ -691,12 +700,15 @@ export class CrudService<T extends CrudEntity> {
     inheritance?: Inheritance,
   ) {
     const opParams = this.getOpParams(opOptions, ctx);
+    const cacheF = this.getCacheField();
     try {
       if (!opParams.options?.skipServiceHooks) {
         entity = await this.beforeReadHook(entity, ctx);
       }
-      if (!entity[this.crudConfig.id_field]) {
-        throw new BadRequestException('id field is required for findOneCached');
+      if (!entity[cacheF]) {
+        throw new BadRequestException(
+          `${cacheF} field is required for findOneCached`,
+        );
       }
 
       let cacheKey = this.getCacheKey(entity, opOptions?.options);

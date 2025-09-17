@@ -153,7 +153,11 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return super.$create(newEntity, ctx);
   }
 
-  override async $patch(entity: T, newEntity: T, ctx: CrudContext) {
+  override async $patch(
+    entity: Partial<T>,
+    newEntity: Partial<T>,
+    ctx: CrudContext,
+  ) {
     const revoked = await this.checkUserBeforePatch(newEntity, ctx);
     const res = await super.$patch(entity, newEntity, ctx);
     if (revoked && entity[this.crudConfig.id_field]) {
@@ -162,7 +166,11 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return res;
   }
 
-  override async $patchOne(query: T, newEntity: T, ctx: CrudContext) {
+  override async $patchOne(
+    query: Partial<T>,
+    newEntity: Partial<T>,
+    ctx: CrudContext,
+  ) {
     const revoked = await this.checkUserBeforePatch(newEntity, ctx);
     const res = await super.$patchOne(query, newEntity, ctx);
     if (revoked && query[this.crudConfig.id_field]) {
@@ -171,7 +179,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     return res;
   }
 
-  async checkPassword(newEntity: T) {
+  async checkPassword(newEntity: Partial<T>) {
     if (newEntity.password) {
       const rounds = this.crudConfig.getSaltRounds(newEntity);
       newEntity.saltRounds = rounds;
@@ -182,13 +190,13 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     }
   }
 
-  async checkUserBeforePatch(newEntity: T, ctx: CrudContext) {
+  async checkUserBeforePatch(newEntity: Partial<T>, ctx: CrudContext) {
     await this.checkPassword(newEntity);
     const revoked = this.checkFieldsThatIncrementRevokedCount(newEntity);
     return revoked;
   }
 
-  checkFieldsThatIncrementRevokedCount(newEntity: T) {
+  checkFieldsThatIncrementRevokedCount(newEntity: Partial<T>) {
     const fieldsThatResetRevokedCount =
       this.crudConfig.authenticationOptions.fieldsThatResetRevokedCount;
     if (fieldsThatResetRevokedCount.some((field) => newEntity[field])) {

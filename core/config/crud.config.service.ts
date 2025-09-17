@@ -275,7 +275,7 @@ export class CrudConfigService {
     return getParentRoles(role.name, this.rolesMap);
   }
 
-  getSaltRounds(newEntity: CrudUser): number {
+  getSaltRounds(newEntity: Partial<CrudUser>): number {
     if (!newEntity.role) {
       throw new Error('Role is required when updating password');
     }

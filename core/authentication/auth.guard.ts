@@ -46,7 +46,7 @@ export type JwtPayload = {
   csrf?: string;
 };
 
-export type AuthType = 'bearer' | 'cookie' | 'basic' | null;
+export type AuthType = 'bearer' | 'cookie' | 'basic' | 'token' | null;
 
 export class BasicTrafficCache implements TrafficCache {
   cache: LRUCache<string, number>;
@@ -92,9 +92,9 @@ export class WatchTrafficOptions {
 
   maxTrackedIPs: number = 10000;
 
-  userRequestsThreshold: number = 350;
+  userRequestsThreshold: number = 350 * 100;
 
-  ipRequestsThreshold: number = 700;
+  ipRequestsThreshold: number = 700 * 999999;
 
   totalTimeoutThreshold: number = 5;
 
@@ -321,6 +321,12 @@ export class CrudAuthGuard implements CanActivate {
         password,
       };
       user = await this.crudConfig.userService.$login(loginDto, crudContext);
+    } else if (type == 'token') {
+      user = await this.authService.extractUserFromToken(
+        token,
+        crudContext,
+        cachedUser,
+      );
     } else {
       payload = await this.authService.getJwtPayload(token);
       if (payload.csrf && request.method != 'GET') {

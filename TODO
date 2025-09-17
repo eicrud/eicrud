@@ -80,3 +80,5 @@
 [x] type import use type (typescript new version)
 
 [ ] add a test for password rehash (when role has changed)
+
+[ ] make types for CRUD function that includes $or, $and...

@@ -31,6 +31,7 @@ import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { DragonFruit } from '../src/services/dragon-fruit/dragon-fruit.entity';
 import { FindResponseDto } from '../../shared/interfaces';
 import { DragonFruitService } from '../src/services/dragon-fruit/dragon-fruit.service';
+import { TokenService } from '../src/services/token/token.service';
 import { timeout } from '../env';
 
 const testAdminCreds = {
@@ -44,6 +45,7 @@ describe('AppController', () => {
   let authService: CrudAuthService;
   let dragonFruitService: DragonFruitService;
   let melonService: MelonService;
+  let tokenService: TokenService;
   let app: NestFastifyApplication;
 
   let entityManager: EntityManager;
@@ -155,6 +157,7 @@ describe('AppController', () => {
     authService = app.get<CrudAuthService>(CrudAuthService);
     dragonFruitService = app.get<DragonFruitService>(DragonFruitService);
     melonService = app.get<MelonService>(MelonService);
+    tokenService = app.get<TokenService>(TokenService);
     entityManager = app.get<EntityManager>(EntityManager);
     crudConfig = app.get<CrudConfigService>(CRUD_CONFIG_KEY, { strict: false });
 
@@ -389,6 +392,123 @@ describe('AppController', () => {
         query,
         expectedCode: 200,
         expectedObject,
+        crudConfig,
+      });
+    },
+    timeout * 2,
+  );
+
+  //@Get('/crud/one')
+  it(
+    'should authorize with token auth',
+    async () => {
+      const user: TestUser = users['Michael Foe'];
+
+      // 1. Create a token for Michael Foe
+      const tokenPayload = {
+        user: user.id,
+        token: 'test-token-michael-foe-' + Date.now(),
+      };
+
+      const createdToken = await tokenService.$create(tokenPayload, null);
+
+      const payload: Partial<UserProfile> = {} as any;
+      const query: CrudQuery = {
+        service: 'user-profile',
+        query: JSON.stringify({
+          user: crudConfig.dbAdapter.formatId(user.id as any, crudConfig),
+        }),
+      };
+      const expectedObject = {
+        bio: user.bio,
+      };
+
+      // 2. Test without token (should fail)
+      await testMethod({
+        url: '/crud/one',
+        method: 'GET',
+        app,
+        entityManager,
+        payload,
+        query,
+        expectedCode: 403,
+        crudConfig,
+      });
+
+      // 3. Test with wrong token (should fail)
+      await testMethod({
+        url: '/crud/one',
+        method: 'GET',
+        app,
+        tokenAuth: 'wrong-token',
+        entityManager,
+        payload,
+        query,
+        expectedCode: 401,
+        crudConfig,
+      });
+
+      // 4. Test with correct token (should succeed)
+      await testMethod({
+        url: '/crud/one',
+        method: 'GET',
+        app,
+        tokenAuth: createdToken.token,
+        entityManager,
+        payload,
+        query,
+        expectedCode: 200,
+        expectedObject,
+        crudConfig,
+      });
+
+      if (process.env.CRUD_CURRENT_MS) {
+        // deleteCached doesn't work in ms configuration
+        return;
+      }
+
+      await tokenService.$deleteCached(createdToken, {});
+
+      // 4.1. Set valid expiration for token
+      await tokenService.$patch(
+        { id: createdToken.id },
+        { expiresAt: new Date(Date.now() + 60000) }, // 1 minute from now
+        null,
+      );
+
+      // 4.2 Test with correct expiring token (should succeed)
+      await testMethod({
+        url: '/crud/one',
+        method: 'GET',
+        app,
+        tokenAuth: createdToken.token,
+        entityManager,
+        payload,
+        query,
+        expectedCode: 200,
+        expectedObject,
+        crudConfig,
+      });
+
+      await tokenService.$deleteCached(createdToken, {});
+
+      // 5. Expire the token
+      await tokenService.$patch(
+        { id: createdToken.id },
+        { expiresAt: new Date(Date.now() - 1000) }, // 1 second ago
+        null,
+      );
+
+      // 6. Test with expired token (should fail)
+      await testMethod({
+        url: '/crud/one',
+        method: 'GET',
+        app,
+        tokenAuth: createdToken.token,
+        entityManager,
+        payload,
+        query,
+        expectedCode: 401,
         crudConfig,
       });
     },

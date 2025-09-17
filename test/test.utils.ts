@@ -67,6 +67,7 @@ export function testMethod(arg: {
   crudConfig: CrudConfigService;
   returnLimitAndTotal?: boolean;
   basicAuth?: { username: string; password: string };
+  tokenAuth?: string;
 }) {
   const headers = {};
   if (arg.jwt) {
@@ -75,6 +76,9 @@ export function testMethod(arg: {
   if (arg.basicAuth) {
     headers['Authorization'] =
       `Basic ${Buffer.from(`${arg.basicAuth.username}:${arg.basicAuth.password}`).toString('base64')}`;
+  }
+  if (arg.tokenAuth) {
+    headers['Authorization'] = `Token ${arg.tokenAuth}`;
   }
   let url = ['/ms-link', '/auth'].some((r) => arg.url.includes(r))
     ? arg.url
