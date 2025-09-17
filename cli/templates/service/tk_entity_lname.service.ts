@@ -5,6 +5,7 @@ import { getSecurity } from "./tk_entity_lname.security";
 import { CrudService, Inheritance, CrudContext } from "@eicrud/core/crud";
 import { serviceCmds } from "./cmds";
 import { hooks } from "./tk_entity_lname.hooks";
+tk_service_config_import
 
 @Injectable()
 export class tk_entity_nameService extends CrudService<tk_entity_name> {
@@ -14,7 +15,7 @@ export class tk_entity_nameService extends CrudService<tk_entity_name> {
     }
 
     async onModuleInit(): Promise<void> {
-        tk_service_config_import
+        tk_service_config_usage
         await super.onModuleInit();
     }
     
