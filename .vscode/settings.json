@@ -8,5 +8,5 @@
         "**/Thumbs.db": true,
         "**/node_modules": false
     },
-    "workbench.colorTheme": "Solarized Dark"
+    "workbench.colorTheme": "Tomorrow Night Blue"
 }
