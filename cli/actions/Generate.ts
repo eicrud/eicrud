@@ -77,7 +77,7 @@ export class Generate {
         : '//delete-this-line',
       tk_service_config_usage: options?.ms
         ? `const config = await msConfig();
-        this.config = { ...this.config, ...config };`
+        this.config = { ...this.config, ...config } as any;`
         : ' ',
     };
 
