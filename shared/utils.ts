@@ -65,12 +65,15 @@ export function getEntityId(entity: any, idField = 'id'): any {
   if (!entity) {
     return entity;
   }
-  if (typeof entity == 'string' || typeof entity == 'number') {
+  if (typeof entity === 'string' || typeof entity === 'number') {
     return entity;
   }
   const id = entity?.[idField];
-  if (typeof id == 'string' || typeof id == 'number') {
+  if (typeof id === 'string' || typeof id === 'number') {
     return id;
   }
-  return id?.toString();
+  if (!id && entity?.toString) {
+    return entity.toString();
+  }
+  return id?.toString?.() || id;
 }
