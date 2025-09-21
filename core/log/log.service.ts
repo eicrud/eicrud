@@ -32,12 +32,31 @@ export class LogService extends CrudService<Log> {
     log.userId = ctx.userId;
     log.cmdName = ctx.cmdName;
     log.level = level;
+
+    switch (log.type) {
+      case LogType.CRITICAL:
+      case LogType.ERROR:
+        console.error(log.message);
+        break;
+      case LogType.SECURITY:
+      case LogType.WARNING:
+        console.warn(log.message);
+        break;
+      case LogType.DEBUG:
+        console.debug(log.message);
+        break;
+      default:
+      case LogType.INFO:
+        console.log(log.message);
+        break;
+    }
+
     try {
       await this.notificationService?.checkNotification(log);
     } catch (error) {
       log.failNotif = true;
     }
-    return (this['$$create'] as typeof this.$create)(log, ctx);
+    return this.$create(log, ctx);
   }
 
   override async $create(newEntity: Log, ctx: CrudContext): Promise<any> {
@@ -48,23 +67,6 @@ export class LogService extends CrudService<Log> {
       ]
     ) {
       res = await super.$create(newEntity, ctx);
-    }
-    switch (newEntity.type) {
-      case LogType.CRITICAL:
-      case LogType.ERROR:
-        console.error(newEntity.message);
-        break;
-      case LogType.SECURITY:
-      case LogType.WARNING:
-        console.warn(newEntity.message);
-        break;
-      case LogType.DEBUG:
-        console.debug(newEntity.message);
-        break;
-      default:
-      case LogType.INFO:
-        console.log(newEntity.message);
-        break;
     }
 
     return res;

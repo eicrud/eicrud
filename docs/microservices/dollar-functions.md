@@ -26,42 +26,31 @@ msOptions.microServices = {
 
 - Calling `myUserService.$find` on **ms-B** will perform an HTTP request to **ms-A** (passing the arguments), then the function implementation will be run, and the result returned to **ms-B**.
 
-This means you must be careful when defining `$` functions inside your CrudServices since the behavior of the function might change depending on where it is called. 
+To ensure consistency between monolithic and microservices configurations, all `$` functions have their arguments and return values automatically stringified with `JSON.stringify()` and then parsed with `JSON.parse()`. This ensures that the behavior remains identical whether the function is called locally or over HTTP.
 
-**Here are a few guidelines that will make your transition from monolithic to microservices simple.**
+**Here are the guidelines for working with `$` functions:**
 
 ## Treat all functions as async
 
-Make sure to treat all `$` functions as `async` and to `await` them if needed.
+All `$` functions should be treated as `async` and must be `await`ed when called.
 
 ```typescript
 // in your CrudService
-$methodA(a, b){
-  return a + b;
-}
-```
-```typescript
-// somewhere else
-const res = myUserService.$methodA(2, 2);
-
-console.log(res)
-```
-
-The above code will display `4` on **ms-A** but display `[object Promise]` on **ms-B**.  
-
-`$` functions should always be defined async:
-```typescript
 async $methodA(a, b){
   return a + b;
 }
 ```
 ```typescript
+// somewhere else
 const res = await myUserService.$methodA(2, 2);
+console.log(res) // displays 4
 ```
 
 ## Ensure arguments and return value can be serialized
 
-In javascript, **functions** are not serialized, for example:
+Since all `$` function arguments and return values go through JSON serialization, certain JavaScript types cannot be passed or returned.
+
+**Functions** are not serialized:
 
 ```typescript
 // in your CrudService
@@ -75,33 +64,24 @@ const fun = () => return 5;
 
 const res = await myUserService.$methodB(fun);
 
-console.log(res())
+console.log(res()) // Error: res is not a function
 ```
-The above code will display `5` on **ms-A**, but throw an error on **ms-B**.
-!!! failure   
-    `Error: res is not a function`
 
-Additionally, passing or returning **circular references** will throw an error:
+**Circular references** will throw an error:
 
 ```typescript
 const objA = { };
-
 const objB = { objA: objA }
-
 objA['objB'] = objB
 
-await myUserService.$methodB(objA);
+await myUserService.$methodB(objA); // Error: Converting circular structure to JSON
 ```
-On **ms-B**, the above code will throw.
-!!! failure   
-    `Error: Converting circular structure to JSON`
 
-
-You can call `JSON.stringify(obj)` to test what can and can't be serialized. **Note that passing very large objects will impact your performance when switching to microservices.**
+You can call `JSON.stringify(obj)` to test what can and can't be serialized. **Note that passing very large objects will impact performance.**
 
 ## Always return by value
 
-Since arguments are not returned by the HTTP method. Any "return by reference" logic will stop working if called from another ms.
+Since arguments go through JSON serialization, any "return by reference" logic will not work. Objects are always passed and returned by value.
 
 ```typescript
 // in your CrudService
@@ -115,14 +95,13 @@ const obj = { value: 1 };
 
 const res = await myUserService.$methodC(obj);
 
-console.log(obj.value)
+console.log(obj.value) // displays 1 (unchanged)
 ```
-The above code will display `2` on **ms-A** but display `1` on **ms-B**.
 
-You can return the `obj` to make it work on both ms:
+You must return the `obj` to get the modified value:
 ```typescript
 // in your CrudService
-$methodC(obj){
+async $methodC(obj){
   obj.value++;
   return obj;
 }
@@ -133,12 +112,33 @@ let obj = { value: 1 };
 
 obj = await myUserService.$methodC(obj);
 
-console.log(obj.value)
+console.log(obj.value) // displays 2
 ```
 
-## Naming your arguments
+## Context propagation
 
-Argument name `ctx` is reserved in `$` function, and should only be used to pass the [CrudContext](../context.md).
+Argument name `ctx` is reserved in `$` functions and should only be used to pass the [CrudContext](../context.md).
+
+If you want to propagate parameters from the context back to the caller, you can use the following context properties:
+
+```typescript
+ctx.store_bidirectional?: Record<string, any>;
+ctx.setCookies?: Record<string, CookieToSet>;
+```
+
+These properties are sent back even with HTTP requests, allowing bidirectional communication between services.
 
 !!! note
-    You might want to pass the [CrudContext](../context.md) to every `$` function to enable reliable logging in ms-link [hooks](../configuration/service.md#hooks).
+    You should pass the [CrudContext](../context.md) to every `$` function to enable reliable logging in ms-link [hooks](../configuration/service.md#hooks).
+
+## Optimization with `$$` functions
+
+When appropriate, you can call the `$$` (runtime created function) that does not stringify/serialize arguments and output for better performance:
+
+```typescript
+// Example with proper typing
+(this['$$someMethod'] as typeof this.$someMethod)(query, ctx)
+```
+
+!!! info "Safe usage of `$$` functions"
+    It is safe to use `$$` functions when inside another `$` function and only when calling direct `this.$` methods (not `this.otherService.$`). This ensures consistent behavior since in these cases the calling context and the function implementation are always on the same microservice.

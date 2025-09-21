@@ -41,7 +41,7 @@ import {
   ReferenceKind,
   wrap,
 } from '@mikro-orm/core';
-import { CrudOptions } from '.';
+import { CrudOptions, BIDIRECTIONAL_CTX_FIELDS } from '.';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { truncate } from 'fs';
 
@@ -193,28 +193,44 @@ export class CrudService<T extends CrudEntity> {
 
   onApplicationBootstrap() {
     let allMethodNames = getAllMethodNames(this);
+    const methodParamNamesCache = {};
 
     for (const methodName of allMethodNames) {
       if (methodName.startsWith('$')) {
         const originalMethod = this[methodName].bind(this);
         this['$' + methodName] = originalMethod;
         const names = getFunctionParamsNames(this[methodName]);
+
+        methodParamNamesCache[methodName] = names;
+        methodParamNamesCache['$' + methodName] = names;
+
+        const stringyParse = (obj) => {
+          if (obj && typeof obj === 'object') {
+            return JSON.parse(JSON.stringify(obj));
+          }
+          return obj;
+        };
+
         this[methodName] = async (...args) => {
+          let ctxPos = -1;
           const processedArgs = args.map((arg, index) => {
             const paramName = names[index];
-            if (paramName === 'ctx' || paramName === 'inheritance') {
-              return arg;
+            if (paramName == 'ctx') {
+              ctxPos = index;
+              return stringyParse({ ...arg, _temp: undefined });
             }
-            if (arg !== null && typeof arg === 'object') {
-              return JSON.parse(JSON.stringify(arg));
-            }
-            return arg;
+            return stringyParse(arg);
           });
           const res = await originalMethod(...processedArgs);
-          if (res !== null && typeof res === 'object') {
-            return JSON.parse(JSON.stringify(res));
+          // Merge back any changes to ctx
+          if (ctxPos > -1 && args[ctxPos]) {
+            for (const key of BIDIRECTIONAL_CTX_FIELDS) {
+              if (processedArgs[ctxPos][key] !== undefined)
+                args[ctxPos][key] = stringyParse(processedArgs[ctxPos][key]);
+            }
           }
-          return res;
+
+          return stringyParse(res);
         };
       }
     }
@@ -229,12 +245,9 @@ export class CrudService<T extends CrudEntity> {
 
     for (const methodName of allMethodNames) {
       if (methodName.startsWith('$')) {
-        const names = getFunctionParamsNames(this[methodName]);
+        const names = methodParamNamesCache[methodName];
 
         let ctxPos: number = names.findIndex((name) => name === 'ctx');
-        let inheritancePos: number = names.findIndex(
-          (name) => name === 'inheritance',
-        );
 
         if (ctxPos == -1) {
           console.warn('No ctx found in method call:' + methodName);
@@ -280,13 +293,16 @@ export class CrudService<T extends CrudEntity> {
           );
         }
 
+        const targetMethodName = methodName.startsWith('$$')
+          ? methodName
+          : '$' + methodName;
+
         this[methodName] = async (...args) => {
           const res = await this.forwardToMsLink(
             args,
-            '$' + methodName,
+            targetMethodName,
             targetServiceConfig,
             ctxPos,
-            inheritancePos,
           );
           return res;
         };
@@ -299,12 +315,10 @@ export class CrudService<T extends CrudEntity> {
     methodName: string,
     msConfig: MicroServiceConfig,
     ctxPos: number,
-    inheritancePos: number,
   ) {
     const query: Partial<MsLinkQuery> = {
       methodName,
       ctxPos,
-      inheritancePos,
     };
 
     for (let i = 0; i < args.length; i++) {

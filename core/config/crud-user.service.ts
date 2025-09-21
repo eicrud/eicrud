@@ -479,7 +479,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       this.getVerificationEmailTimeoutHours(ctx.user),
       keys[1],
       (email, token) =>
-        this.crudConfig.emailService.sendVerificationEmail(email, token, ctx),
+        this.crudConfig.emailService?.$sendVerificationEmail(email, token, ctx),
       keys[2],
     );
   }
@@ -553,7 +553,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     };
     const proms = [];
     proms.push(
-      this.crudConfig.emailService.sendTwoFactorEmail(user.email, code, ctx),
+      this.crudConfig.emailService?.$sendTwoFactorEmail(user.email, code, ctx),
     );
     proms.push(
       (this['$$unsecure_fastPatchOne'] as typeof this.$unsecure_fastPatchOne)(
@@ -597,7 +597,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         this.getPasswordResetEmailTimeoutHours(ctx.user),
         keys[1],
         (email, token) =>
-          this.crudConfig.emailService.sendPasswordResetEmail(
+          this.crudConfig.emailService?.$sendPasswordResetEmail(
             email,
             token,
             ctx,
@@ -759,7 +759,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       throw e;
     }
 
-    this.crudConfig.emailService?.sendAccountCreationEmail(
+    this.crudConfig.emailService?.$sendAccountCreationEmail(
       user.email,
       res,
       ctx,

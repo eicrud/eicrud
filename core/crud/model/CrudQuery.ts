@@ -34,8 +34,6 @@ export class MsLinkQuery {
 
   ctxPos?: number;
 
-  inheritancePos?: number;
-
   @$Transform(_utils.parseIfString)
   undefinedArgs?: string | number[];
 }

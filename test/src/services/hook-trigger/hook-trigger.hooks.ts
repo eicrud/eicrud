@@ -79,6 +79,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
       d.originalMessage = d.message;
       d.message = d.message + ' - hooked';
     }
+    // data;
     return data;
   }
 
@@ -94,6 +95,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     result.forEach((r) => {
       r.message = 'replaced in hook';
     });
+    // result;
     return result;
   }
 
@@ -105,6 +107,8 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
   ): Promise<HookTrigger[]> {
     // after HookTrigger error
     await logHook(this, data, 'error', 'create', ctx);
+
+    console.error('errorCreateHook', error);
 
     return true as any;
   }
@@ -129,6 +133,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
         '',
       );
 
+    // query;
     return query;
   }
 
@@ -145,6 +150,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
       result.data[r] = { result: result.data[r], hooked: 'read' } as any;
     }
 
+    // result;
     return result;
   }
 
@@ -156,6 +162,8 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
   ): Promise<FindResponseDto<HookTrigger>> {
     //after HookTrigger error
     await logHook(this, query, 'error', 'read', ctx);
+
+    console.log('errorReadHook', error);
 
     return true as any;
   }
@@ -179,6 +187,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
       u.data.message = u.data.message + ' - hooked';
     }
 
+    // updates;
     return updates;
   }
 
@@ -199,6 +208,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
       }
     }
 
+    // results;
     return results;
   }
 
@@ -210,6 +220,8 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
   ): Promise<any[]> {
     // after HookTrigger error
     await logHook(this, updates, 'error', 'update', ctx);
+
+    console.error('errorUpdateHook', error);
 
     return true as any;
   }
@@ -237,6 +249,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
         );
     }
 
+    // queries;
     return queries;
   }
 
@@ -251,6 +264,7 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
 
     result = 5311373;
 
+    // result;
     return result;
   }
 
@@ -263,6 +277,8 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
     // after HookTrigger error
     await logHook(this, queries, 'error', 'delete', ctx);
 
+    console.error('errorDeleteHook', error);
+
     return true;
   }
 
@@ -273,6 +289,8 @@ export class HookTriggerHooks extends CrudHooks<HookTrigger> {
   ): Promise<any> {
     //after HookTrigger error
     await logHook(this, error, 'error', 'crud', ctx);
+
+    console.error('errorControllerHook', error);
 
     if (error.status == 403) {
       return true;

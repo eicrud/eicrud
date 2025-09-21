@@ -93,15 +93,15 @@ function helperCurrentConfig(normal, ms, msProxy) {
 async function findAllHooks(createMessage, hookLogService) {
   const createHookLogs = await hookLogService.$find(
     { message: createMessage },
-    null,
+    {},
   );
   const createHookLogs2 = await hookLogService.$find(
     { message: createMessage + ' - hooked' },
-    null,
+    {},
   );
   const createHookLogs3 = await hookLogService.$find(
     { message: 'replace Query with ' + createMessage },
-    null,
+    {},
   );
   const allHooks = [
     ...createHookLogs.data,
@@ -296,25 +296,25 @@ describe('AppController', () => {
     expect(res.message).toBe('replaced in hook');
     await hookTriggerService.$findOne(
       { throwError: true, message: createMessage },
-      null,
+      {},
     );
     const createdTrigger: any = await hookTriggerService.$findOne(
       { originalMessage: 'replace Query with ' + createMessage },
-      null,
+      {},
     );
     expect(createdTrigger.hooked).toBe('read');
     expect(createdTrigger.result.message).toBe(createMessage + ' - hooked');
     const createHookLogs = await hookLogService.$find(
       { message: createMessage },
-      null,
+      {},
     );
     const createHookLogs2 = await hookLogService.$find(
       { message: createMessage + ' - hooked' },
-      null,
+      {},
     );
     const createHookLogs3 = await hookLogService.$find(
       { message: 'replace Query with ' + createMessage },
-      null,
+      {},
     );
     const allHooks = [
       ...createHookLogs.data,
@@ -351,8 +351,7 @@ describe('AppController', () => {
       {
         pos: 'after',
         type: 'controller',
-        expectedMessage:
-          createMessage + helperCurrentConfig(' - hooked', '', ' - hooked'),
+        expectedMessage: createMessage,
       },
       {
         pos: 'before',
@@ -449,12 +448,12 @@ describe('AppController', () => {
       }
       const res00: any = await hookTriggerService.$find(
         { throwError: true, originalMessage: createMessage },
-        null,
+        {},
       );
       expect(res00).toBe(true);
       const createdTriggers: any = await hookTriggerService.$find(
         { originalMessage: 'replace Query with ' + createMessage },
-        null,
+        {},
       );
       expect(createdTriggers.data.length).toBe(payload.length);
       for (const createdTrigger of createdTriggers.data) {
@@ -463,15 +462,15 @@ describe('AppController', () => {
       }
       const createHookLogs = await hookLogService.$find(
         { message: createMessage },
-        null,
+        {},
       );
       const createHookLogs2 = await hookLogService.$find(
         { message: createMessage + ' - hooked' },
-        null,
+        {},
       );
       const createHookLogs3 = await hookLogService.$find(
         { message: 'replace Query with ' + createMessage },
-        null,
+        {},
       );
       const allHooks = [
         ...createHookLogs.data,
@@ -511,8 +510,7 @@ describe('AppController', () => {
         {
           pos: 'after',
           type: 'controller',
-          expectedMessage:
-            createMessage + helperCurrentConfig(' - hooked', '', ' - hooked'),
+          expectedMessage: createMessage,
         },
         {
           pos: 'before',
@@ -572,25 +570,25 @@ describe('AppController', () => {
     expect(res.updated.message).toBe('replaced in hook (update)');
     const res00: any = await hookTriggerService.$findOne(
       { originalMessage: createMessage, throwError: true },
-      null,
+      {},
     );
     expect(res00).toBe(true);
     const createdTrigger: any = await hookTriggerService.$findOne(
       { originalMessage: 'replace Query with ' + createMessage },
-      null,
+      {},
     );
     expect(createdTrigger.result.message).toBe(createMessage + ' - hooked');
     const createHookLogs = await hookLogService.$find(
       { message: createMessage },
-      null,
+      {},
     );
     const createHookLogs2 = await hookLogService.$find(
       { message: createMessage + ' - hooked' },
-      null,
+      {},
     );
     const createHookLogs3 = await hookLogService.$find(
       { message: 'replace Query with ' + createMessage },
-      null,
+      {},
     );
     const allHooks = [
       ...createHookLogs.data,
@@ -627,8 +625,7 @@ describe('AppController', () => {
       {
         pos: 'after',
         type: 'controller',
-        expectedMessage:
-          createMessage + helperCurrentConfig(' - hooked', '', ' - hooked'),
+        expectedMessage: createMessage,
       },
       {
         pos: 'before',
@@ -701,13 +698,13 @@ describe('AppController', () => {
     const res00: any = await hookTriggerService.$findIn(
       hooksToUpdateBatch.map((h) => h.id.toString()),
       { originalMessage: createMessage, throwError: true },
-      null,
+      {},
     );
     expect(res00).toBe(true);
     const createdTriggers: any = await hookTriggerService.$findIn(
       hooksToUpdateBatch.map((h) => h.id.toString()),
       { originalMessage: 'replace Query with ' + createMessage },
-      null,
+      {},
     );
     expect(createdTriggers.data.length).toBe(payload.length);
     for (const createdTrigger of createdTriggers.data) {
@@ -716,15 +713,15 @@ describe('AppController', () => {
     }
     const createHookLogs = await hookLogService.$find(
       { message: createMessage },
-      null,
+      {},
     );
     const createHookLogs2 = await hookLogService.$find(
       { message: createMessage + ' - hooked' },
-      null,
+      {},
     );
     const createHookLogs3 = await hookLogService.$find(
       { message: 'replace Query with ' + createMessage },
-      null,
+      {},
     );
     const allHooks = [
       ...createHookLogs.data,
@@ -764,8 +761,7 @@ describe('AppController', () => {
       {
         pos: 'after',
         type: 'controller',
-        expectedMessage:
-          createMessage + helperCurrentConfig(' - hooked', '', ' - hooked'),
+        expectedMessage: createMessage,
       },
       {
         pos: 'before',
@@ -821,7 +817,7 @@ describe('AppController', () => {
     const createdTriggers: any = await hookTriggerService.$findIn(
       inIds,
       { originalMessage: 'replace Query with ' + createMessage },
-      null,
+      {},
     );
     expect(createdTriggers.data.length).toBe(inIds.length);
     for (const createdTrigger of createdTriggers.data) {
@@ -830,15 +826,15 @@ describe('AppController', () => {
     }
     const createHookLogs = await hookLogService.$find(
       { message: createMessage },
-      null,
+      {},
     );
     const createHookLogs2 = await hookLogService.$find(
       { message: createMessage + ' - hooked' },
-      null,
+      {},
     );
     const createHookLogs3 = await hookLogService.$find(
       { message: 'replace Query with ' + createMessage },
-      null,
+      {},
     );
     const allHooks = [
       ...createHookLogs.data,
@@ -870,8 +866,7 @@ describe('AppController', () => {
       {
         pos: 'after',
         type: 'controller',
-        expectedMessage:
-          createMessage + helperCurrentConfig(' - hooked', '', ' - hooked'),
+        expectedMessage: createMessage,
       },
       {
         pos: 'before',
@@ -925,7 +920,7 @@ describe('AppController', () => {
     expect(res).toBe('replaced in hook (update)');
     const createdTriggers: any = await hookTriggerService.$find(
       { originalMessage: 'replace Query with ' + createMessage },
-      null,
+      {},
     );
     expect(createdTriggers.data.length).toBe(3);
     for (const createdTrigger of createdTriggers.data) {
@@ -934,15 +929,15 @@ describe('AppController', () => {
     }
     const createHookLogs = await hookLogService.$find(
       { message: createMessage },
-      null,
+      {},
     );
     const createHookLogs2 = await hookLogService.$find(
       { message: createMessage + ' - hooked' },
-      null,
+      {},
     );
     const createHookLogs3 = await hookLogService.$find(
       { message: 'replace Query with ' + createMessage },
-      null,
+      {},
     );
     const allHooks = [
       ...createHookLogs.data,
@@ -974,8 +969,7 @@ describe('AppController', () => {
       {
         pos: 'after',
         type: 'controller',
-        expectedMessage:
-          createMessage + helperCurrentConfig(' - hooked', '', ' - hooked'),
+        expectedMessage: createMessage,
       },
       {
         pos: 'before',
@@ -999,7 +993,7 @@ describe('AppController', () => {
     };
     const createdTrigger0: any = await hookTriggerService.$findOne(
       { ...search },
-      null,
+      {},
     );
     expect(createdTrigger0.result.message).toBe(createMessage);
     expect(createdTrigger0.hooked).toBe('read');
@@ -1036,19 +1030,19 @@ describe('AppController', () => {
       crudConfig,
     });
     expect(res).toBe(5311373);
-    const createdTrigger: any = await hookTriggerService.$findOne(search, null);
+    const createdTrigger: any = await hookTriggerService.$findOne(search, {});
     expect(createdTrigger.result).toBeFalsy();
     const createHookLogs = await hookLogService.$find(
       { message: createMessage },
-      null,
+      {},
     );
     const createHookLogs2 = await hookLogService.$find(
       { message: createMessage + ' - hooked' },
-      null,
+      {},
     );
     const createHookLogs3 = await hookLogService.$find(
       { message: 'replace Query with ' + createMessage },
-      null,
+      {},
     );
     const allHooks = [
       ...createHookLogs.data,
@@ -1080,8 +1074,7 @@ describe('AppController', () => {
       {
         pos: 'after',
         type: 'controller',
-        expectedMessage:
-          helperCurrentConfig('', 'replace Query with ', '') + createMessage,
+        expectedMessage: 'replace Query with ' + createMessage,
       },
       {
         pos: 'before',
@@ -1107,7 +1100,7 @@ describe('AppController', () => {
     const createdTriggers0: any = await hookTriggerService.$findIn(
       inIds,
       { ...search },
-      null,
+      {},
     );
     expect(createdTriggers0.data.length).toBe(3);
 
@@ -1148,7 +1141,7 @@ describe('AppController', () => {
     const createdTriggers: any = await hookTriggerService.$findIn(
       inIds,
       { ...search },
-      null,
+      {},
     );
     expect(createdTriggers.data.length).toBe(0);
 
@@ -1204,7 +1197,7 @@ describe('AppController', () => {
       };
       const createdTriggers0: any = await hookTriggerService.$find(
         { ...search },
-        null,
+        {},
       );
       expect(createdTriggers0.data.length).toBe(3);
 
@@ -1243,7 +1236,7 @@ describe('AppController', () => {
       expect(res).toBe(5311373);
       const createdTriggers: any = await hookTriggerService.$find(
         { ...search },
-        null,
+        {},
       );
       expect(createdTriggers.data.length).toBe(0);
 
@@ -1347,21 +1340,18 @@ describe('AppController', () => {
         crudConfig,
       });
       expect(res).toBe(true);
-      const createHookLogs = await hookLogService.$find(
-        { message: '400' },
-        null,
-      );
+      const createHookLogs = await hookLogService.$find({ message: '400' }, {});
       const createHookLogs2 = await hookLogService.$find(
         { message: 'error 400' },
-        null,
+        {},
       );
       const createHookLogs3 = await hookLogService.$find(
         { message: '403' },
-        null,
+        {},
       );
       const createHookLogs4 = await hookLogService.$find(
         { message: 'error 403' },
-        null,
+        {},
       );
       const allHooks = [
         ...createHookLogs.data,
@@ -1497,15 +1487,15 @@ describe('AppController', () => {
 
       const createHookLogs = await hookLogService.$find(
         { message: 'world' },
-        null,
+        {},
       );
       const createHookLogs2 = await hookLogService.$find(
         { message: 'world!' },
-        null,
+        {},
       );
       const createHookLogs3 = await hookLogService.$find(
         { message: 'hello world!' },
-        null,
+        {},
       );
 
       const allHooks = [

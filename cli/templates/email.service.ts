@@ -14,22 +14,22 @@ export class EmailService extends CrudService<Email> implements BaseEmailService
         super(moduleRef, Email, getSecurity(serviceName));
     }
 
-    sendVerificationEmail(to: string, token: string, ctx: CrudContext): Promise<any> {
+    $sendVerificationEmail(to: string, token: string, ctx: CrudContext): Promise<any> {
         console.log('Sending verification email to', to, 'with token', token);
         return Promise.resolve();
     }
 
-    sendTwoFactorEmail(to: string, code: string, ctx: CrudContext): Promise<any> {
+    $sendTwoFactorEmail(to: string, code: string, ctx: CrudContext): Promise<any> {
         console.log('Sending two factor email to', to, 'with code', code);
         return Promise.resolve();
     }
-    
-    sendPasswordResetEmail(to: string, token: string, ctx: CrudContext): Promise<any> {
+
+    $sendPasswordResetEmail(to: string, token: string, ctx: CrudContext): Promise<any> {
         console.log('Sending password reset email to', to, 'with token', token);
         return Promise.resolve();
     }
 
-    sendAccountCreationEmail(to: string, user: CrudUser, ctx: CrudContext): Promise<any> {
+    $sendAccountCreationEmail(to: string, user: CrudUser, ctx: CrudContext): Promise<any> {
         console.log('Sending account creation email to', to);
         return Promise.resolve();
     }

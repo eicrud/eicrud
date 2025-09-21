@@ -22,7 +22,7 @@ export class FakeEmailService
     const serviceName = CrudService.getName(FakeEmail);
     super(moduleRef, FakeEmail, getSecurity(serviceName));
   }
-  sendAccountCreationEmail(
+  $sendAccountCreationEmail(
     to: string,
     user: any,
     ctx: CrudContext,
@@ -35,7 +35,7 @@ export class FakeEmailService
     return (this['$$create'] as typeof this.$create)(email, null);
   }
 
-  sendVerificationEmail(
+  $sendVerificationEmail(
     to: string,
     token: string,
     ctx: CrudContext,
@@ -47,7 +47,12 @@ export class FakeEmailService
     };
     return (this['$$create'] as typeof this.$create)(email, null);
   }
-  sendTwoFactorEmail(to: string, code: string, ctx: CrudContext): Promise<any> {
+
+  $sendTwoFactorEmail(
+    to: string,
+    code: string,
+    ctx: CrudContext,
+  ): Promise<any> {
     const email: Partial<FakeEmail> = {
       to,
       message: code,
@@ -55,7 +60,8 @@ export class FakeEmailService
     };
     return (this['$$create'] as typeof this.$create)(email, null);
   }
-  sendPasswordResetEmail(
+
+  $sendPasswordResetEmail(
     to: string,
     token: string,
     ctx: CrudContext,

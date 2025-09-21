@@ -1,21 +1,21 @@
 import { CrudContext } from '../crud';
 
 export interface EmailService {
-  sendAccountCreationEmail(
+  $sendAccountCreationEmail(
     email: string,
     user: any,
     ctx: CrudContext,
   ): Promise<any>;
 
-  sendVerificationEmail(
+  $sendVerificationEmail(
     to: string,
     token: string,
     ctx: CrudContext,
   ): Promise<any>;
 
-  sendTwoFactorEmail(to: string, code: string, ctx: CrudContext): Promise<any>;
+  $sendTwoFactorEmail(to: string, code: string, ctx: CrudContext): Promise<any>;
 
-  sendPasswordResetEmail(
+  $sendPasswordResetEmail(
     to: string,
     token: string,
     ctx: CrudContext,
