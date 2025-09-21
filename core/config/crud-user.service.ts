@@ -407,7 +407,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       return true;
     }
 
-    return new BadRequestException(CrudErrors.EMAIL_ALREADY_SENT.str());
+    throw new BadRequestException(CrudErrors.EMAIL_ALREADY_SENT.str());
   }
 
   async useToken(
@@ -432,7 +432,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         return { ...user, ...patch };
       }
     }
-    return new BadRequestException(CrudErrors.TOKEN_EXPIRED.str());
+    throw new BadRequestException(CrudErrors.TOKEN_EXPIRED.str());
   }
 
   async $send_verification_email(
@@ -542,7 +542,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
           1000 >
         Date.now()
     ) {
-      return new UnauthorizedException(CrudErrors.EMAIL_ALREADY_SENT.str());
+      throw new UnauthorizedException(CrudErrors.EMAIL_ALREADY_SENT.str());
     }
     const code = (await _utils.generateRandomString(6)).toUpperCase();
     const twoFACodeCount = user.twoFACodeCount || 0;
