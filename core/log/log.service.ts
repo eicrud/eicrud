@@ -37,7 +37,7 @@ export class LogService extends CrudService<Log> {
     } catch (error) {
       log.failNotif = true;
     }
-    return this.$create(log, ctx);
+    return (this['$$create'] as typeof this.$create)(log, ctx);
   }
 
   override async $create(newEntity: Log, ctx: CrudContext): Promise<any> {

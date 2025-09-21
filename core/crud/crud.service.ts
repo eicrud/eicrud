@@ -34,7 +34,13 @@ import {
   ICrudRightsFieldInfo,
   ICrudRightsInfo,
 } from '../crud/model/dtos';
-import { EntityClass, EntityManager, MikroORM, wrap } from '@mikro-orm/core';
+import {
+  EntityClass,
+  EntityManager,
+  MikroORM,
+  ReferenceKind,
+  wrap,
+} from '@mikro-orm/core';
 import { CrudOptions } from '.';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { truncate } from 'fs';
@@ -186,13 +192,35 @@ export class CrudService<T extends CrudEntity> {
   }
 
   onApplicationBootstrap() {
+    let allMethodNames = getAllMethodNames(this);
+
+    for (const methodName of allMethodNames) {
+      if (methodName.startsWith('$')) {
+        const originalMethod = this[methodName].bind(this);
+        this['$' + methodName] = originalMethod;
+        this[methodName] = async (...args) => {
+          const processedArgs = args.map((arg) => {
+            if (arg !== null && typeof arg === 'object') {
+              return JSON.parse(JSON.stringify(arg));
+            }
+            return arg;
+          });
+          const res = await originalMethod(...processedArgs);
+          if (res !== null && typeof res === 'object') {
+            return JSON.parse(JSON.stringify(res));
+          }
+          return res;
+        };
+      }
+    }
+
     const msConfig: MicroServicesOptions = this.crudConfig.microServicesOptions;
     const gMatches = this.getExternalMsMatches(msConfig);
     if (!gMatches.length) {
       return;
     }
 
-    const allMethodNames = getAllMethodNames(this);
+    allMethodNames = getAllMethodNames(this);
 
     for (const methodName of allMethodNames) {
       if (methodName.startsWith('$')) {
@@ -230,8 +258,6 @@ export class CrudService<T extends CrudEntity> {
         }
         const targetServiceConfig: MicroServiceConfig = matches[0];
 
-        const orignalMethod = this[methodName].bind(this);
-
         const mustStartWith = [
           'https://',
           'http://localhost',
@@ -252,7 +278,7 @@ export class CrudService<T extends CrudEntity> {
         this[methodName] = async (...args) => {
           const res = await this.forwardToMsLink(
             args,
-            methodName,
+            '$' + methodName,
             targetServiceConfig,
             ctxPos,
             inheritancePos,
@@ -339,7 +365,10 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $create_(ctx: CrudContext<T>, secure: boolean = true) {
-    return this.$create(ctx.data, ctx, { secure, options: ctx.queryOptions });
+    return (this['$$create'] as typeof this.$create)(ctx.data, ctx, {
+      secure,
+      options: ctx.queryOptions,
+    });
   }
 
   async $create(
@@ -399,7 +428,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $createBatch_(ctx: CrudContext<T>, secure: boolean = true) {
-    return this.$createBatch(ctx.data, ctx, {
+    return (this['$$createBatch'] as typeof this.$createBatch)(ctx.data, ctx, {
       secure,
       options: ctx.queryOptions,
     });
@@ -429,7 +458,12 @@ export class CrudService<T extends CrudEntity> {
       };
       let results = [];
       for (let entity of newEntities) {
-        const res = await this.$create(entity, ctx, subOpParams, inheritance);
+        const res = await (this['$$create'] as typeof this.$create)(
+          entity,
+          ctx,
+          subOpParams,
+          inheritance,
+        );
         results.push(res);
       }
       await subOpParams.em.flush();
@@ -449,7 +483,9 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $patchBatch_(ctx: CrudContext) {
-    return this.$patchBatch(ctx.data, ctx, { options: ctx.queryOptions });
+    return (this['$$patchBatch'] as typeof this.$patchBatch)(ctx.data, ctx, {
+      options: ctx.queryOptions,
+    });
   }
 
   async $patchBatch(
@@ -478,7 +514,15 @@ export class CrudService<T extends CrudEntity> {
 
       let proms = [];
       for (let d of data) {
-        proms.push(this.$patch(d.query, d.data, ctx, subOpParams, inheritance));
+        proms.push(
+          (this['$$patch'] as typeof this.$patch)(
+            d.query,
+            d.data,
+            ctx,
+            subOpParams,
+            inheritance,
+          ),
+        );
       }
       results = await Promise.all(proms);
       if (!opParams.options?.skipServiceHooks) {
@@ -521,7 +565,12 @@ export class CrudService<T extends CrudEntity> {
         data,
       };
     });
-    return this.$patchBatch(data, ctx, opOptions, inheritance);
+    return (this['$$patchBatch'] as typeof this.$patchBatch)(
+      data,
+      ctx,
+      opOptions,
+      inheritance,
+    );
   }
 
   /**
@@ -532,7 +581,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext<T>,
     inheritance?: Inheritance,
   ) {
-    return await this.$create(
+    return await (this['$$create'] as typeof this.$create)(
       newEntity,
       ctx,
       {
@@ -546,7 +595,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $find_(ctx: CrudContext): Promise<FindResponseDto<T>> {
-    return this.$find(ctx.query, ctx, {
+    return (this['$$find'] as typeof this.$find)(ctx.query, ctx, {
       options: ctx.queryOptions,
     });
   }
@@ -607,12 +656,16 @@ export class CrudService<T extends CrudEntity> {
         fields: [this.crudConfig.id_field],
       },
     };
-    const res = await this.$find(entity, ctx, newOpts);
+    const res = await (this['$$find'] as typeof this.$find)(
+      entity,
+      ctx,
+      newOpts,
+    );
     return res.data.map((d) => d[this.crudConfig.id_field]);
   }
 
   async $findIn_(ctx: CrudContext) {
-    return this.$findIn(ctx.ids, ctx.query, ctx, {
+    return (this['$$findIn'] as typeof this.$findIn)(ctx.ids, ctx.query, ctx, {
       options: ctx.queryOptions,
     });
   }
@@ -625,7 +678,12 @@ export class CrudService<T extends CrudEntity> {
     inheritance?: Inheritance,
   ) {
     this.makeInQuery(ids, entity);
-    return this.$find(entity, ctx, opOptions, inheritance);
+    return (this['$$find'] as typeof this.$find)(
+      entity,
+      ctx,
+      opOptions,
+      inheritance,
+    );
   }
 
   getReadOptions(ctx: CrudContext<T>, opOptions: OpParams): CrudOptions {
@@ -653,7 +711,9 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $findOne_(ctx: CrudContext) {
-    return this.$findOne(ctx.query, ctx, { options: ctx.queryOptions });
+    return (this['$$findOne'] as typeof this.$findOne)(ctx.query, ctx, {
+      options: ctx.queryOptions,
+    });
   }
 
   async $findOne(
@@ -690,7 +750,11 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $findOneCached_(ctx: CrudContext) {
-    return this.$findOneCached(ctx.query, ctx, { options: ctx.queryOptions });
+    return (this['$$findOneCached'] as typeof this.$findOneCached)(
+      ctx.query,
+      ctx,
+      { options: ctx.queryOptions },
+    );
   }
 
   async $findOneCached(
@@ -714,7 +778,7 @@ export class CrudService<T extends CrudEntity> {
       let cacheKey = this.getCacheKey(entity, opOptions?.options);
       let result = await this.cacheManager.get(cacheKey);
       if (!result) {
-        result = await this.$findOne(
+        result = await (this['$$findOne'] as typeof this.$findOne)(
           entity,
           ctx,
           { options: { ...opParams.options, skipServiceHooks: true } },
@@ -763,7 +827,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $patch_(ctx: CrudContext) {
-    return this.$patch(ctx.query, ctx.data, ctx, {
+    return (this['$$patch'] as typeof this.$patch)(ctx.query, ctx.data, ctx, {
       options: ctx.queryOptions,
     });
   }
@@ -853,9 +917,15 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $patchIn_(ctx: CrudContext) {
-    return this.$patchIn(ctx.ids, ctx.query, ctx.data, ctx, {
-      options: ctx.queryOptions,
-    });
+    return (this['$$patchIn'] as typeof this.$patchIn)(
+      ctx.ids,
+      ctx.query,
+      ctx.data,
+      ctx,
+      {
+        options: ctx.queryOptions,
+      },
+    );
   }
 
   async $patchIn(
@@ -866,7 +936,7 @@ export class CrudService<T extends CrudEntity> {
     inheritance?: Inheritance,
   ) {
     this.makeInQuery(ids, query);
-    return await this.$patch(
+    return await (this['$$patch'] as typeof this.$patch)(
       query,
       newEntity,
       ctx,
@@ -876,9 +946,14 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $deleteIn_(ctx: CrudContext) {
-    return this.$deleteIn(ctx.ids, ctx.query, ctx, {
-      options: ctx.queryOptions,
-    });
+    return (this['$$deleteIn'] as typeof this.$deleteIn)(
+      ctx.ids,
+      ctx.query,
+      ctx,
+      {
+        options: ctx.queryOptions,
+      },
+    );
   }
 
   async $deleteIn(
@@ -888,7 +963,7 @@ export class CrudService<T extends CrudEntity> {
     inheritance?: Inheritance,
   ) {
     this.makeInQuery(ids, query);
-    return this.$delete(query, ctx);
+    return (this['$$delete'] as typeof this.$delete)(query, ctx);
   }
 
   /**
@@ -900,7 +975,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext<T>,
     inheritance?: Inheritance,
   ) {
-    return this.$patch(
+    return (this['$$patch'] as typeof this.$patch)(
       query,
       newEntity,
       ctx,
@@ -915,10 +990,15 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $patchOne_(ctx: CrudContext<T>, secure: boolean = true) {
-    return this.$patchOne(ctx.query, ctx.data, ctx, {
-      secure,
-      options: ctx.queryOptions,
-    });
+    return (this['$$patchOne'] as typeof this.$patchOne)(
+      ctx.query,
+      ctx.data,
+      ctx,
+      {
+        secure,
+        options: ctx.queryOptions,
+      },
+    );
   }
 
   protected getOpParams(opOptions: OpParams, ctx: CrudContext) {
@@ -951,7 +1031,7 @@ export class CrudService<T extends CrudEntity> {
       await em.flush();
 
       if (opOptions?.options?.returnUpdatedEntity) {
-        let resFind = await this.$findOne(
+        let resFind = await (this['$$findOne'] as typeof this.$findOne)(
           {
             [this.crudConfig.id_field]: patchResult[this.crudConfig.id_field],
           } as any,
@@ -993,7 +1073,7 @@ export class CrudService<T extends CrudEntity> {
     ctx: CrudContext<T>,
     inheritance?: Inheritance,
   ) {
-    return await this.$patch(
+    return await (this['$$patch'] as typeof this.$patch)(
       { [this.crudConfig.id_field]: id } as any,
       newEntity,
       ctx,
@@ -1079,7 +1159,9 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $delete_(ctx: CrudContext) {
-    return this.$delete(ctx.query, ctx, { options: ctx.queryOptions });
+    return (this['$$delete'] as typeof this.$delete)(ctx.query, ctx, {
+      options: ctx.queryOptions,
+    });
   }
 
   async $delete(
@@ -1129,7 +1211,7 @@ export class CrudService<T extends CrudEntity> {
   }
 
   async $deleteOne_(ctx: CrudContext) {
-    return this.$deleteOne(ctx.query, ctx, {
+    return (this['$$deleteOne'] as typeof this.$deleteOne)(ctx.query, ctx, {
       options: ctx.queryOptions,
     });
   }
@@ -1148,14 +1230,18 @@ export class CrudService<T extends CrudEntity> {
 
       this.checkObjectForIds(query);
       const em = opParams.em || this.entityManager.fork();
-      let entity: T = await this.$findOne(query, ctx, {
-        options: {
-          ...(opParams?.options || {}),
-          limit: undefined,
-          offset: undefined,
-          skipServiceHooks: true,
+      let entity: T = await (this['$$findOne'] as typeof this.$findOne)(
+        query,
+        ctx,
+        {
+          options: {
+            ...(opParams?.options || {}),
+            limit: undefined,
+            offset: undefined,
+            skipServiceHooks: true,
+          },
         },
-      });
+      );
       if (!entity) {
         throw new BadRequestException(CrudErrors.ENTITY_NOT_FOUND.str());
       }
@@ -1194,8 +1280,13 @@ export class CrudService<T extends CrudEntity> {
     return await this['$' + cmdName](ctx.data, ctx, inheritance);
   }
 
-  checkObjectForIds(obj: any) {
+  checkObjectForIds(obj: Partial<T>) {
+    const meta = this.entityManager.getMetadata().get(this.entity.name);
     for (let key in obj || {}) {
+      const field = meta.properties[key];
+      if (!field?.primary && field?.kind == ReferenceKind.SCALAR) {
+        continue;
+      }
       if (Array.isArray(obj[key])) {
         obj[key] = obj[key].map((id) => this.dbAdapter.checkId(id));
       } else {

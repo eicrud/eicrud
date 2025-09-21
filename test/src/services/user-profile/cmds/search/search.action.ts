@@ -30,5 +30,5 @@ export async function search(
   const opParams = ctx.queryOptions ? { options: ctx.queryOptions } : undefined;
   await this.crudAuthorization.authorize(fakeCtx, this.security);
 
-  return this.$find(query, fakeCtx, opParams);
+  return (this['$$find'] as typeof this.$find)(query, fakeCtx, opParams);
 }

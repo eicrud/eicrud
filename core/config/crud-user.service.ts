@@ -161,7 +161,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const revoked = await this.checkUserBeforePatch(newEntity, ctx);
     const res = await super.$patch(entity, newEntity, ctx);
     if (revoked && entity[this.crudConfig.id_field]) {
-      this.$deleteCached(entity, ctx);
+      (this['$$deleteCached'] as typeof this.$deleteCached)(entity, ctx);
     }
     return res;
   }
@@ -174,7 +174,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const revoked = await this.checkUserBeforePatch(newEntity, ctx);
     const res = await super.$patchOne(query, newEntity, ctx);
     if (revoked && query[this.crudConfig.id_field]) {
-      this.$deleteCached(query, ctx);
+      (this['$$deleteCached'] as typeof this.$deleteCached)(query, ctx);
     }
     return res;
   }
@@ -220,7 +220,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   }
 
   async $timeout_user(dto: TimeoutUserDto, ctx: CrudContext) {
-    const user = await this.$findOne(
+    const user = await (this['$$findOne'] as typeof this.$findOne)(
       { [this.crudConfig.id_field]: dto.userId } as any,
       ctx,
     );
@@ -237,7 +237,11 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       timeout: user.timeout,
       timeoutCount: user.timeoutCount,
     };
-    this.$unsecure_fastPatchOne(user[this.crudConfig.id_field], patch, null);
+    (this['$$unsecure_fastPatchOne'] as typeof this.$unsecure_fastPatchOne)(
+      user[this.crudConfig.id_field],
+      patch,
+      null,
+    );
   }
 
   async $logout(dto: EmptyDto, ctx: CrudContext) {
@@ -307,11 +311,15 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     //   user.captchaRequested = true;
     //   patch.captchaRequested = true;
     // }
-    this.$unsecure_fastPatchOne(user[this.crudConfig.id_field], patch, ctx);
+    (this['$$unsecure_fastPatchOne'] as typeof this.$unsecure_fastPatchOne)(
+      user[this.crudConfig.id_field],
+      patch,
+      ctx,
+    );
     user.trust = trust;
     ctx.userTrust = trust;
     user.lastComputedTrust = patch.lastComputedTrust;
-    this.$setCached(user as any, ctx);
+    (this['$$setCached'] as typeof this.$setCached)(user as any, ctx);
     return trust;
   }
 
@@ -391,11 +399,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       if (user.email != email) {
         patch.nextEmail = email;
       }
-      await this.$unsecure_fastPatchOne(
-        user[this.crudConfig.id_field],
-        patch as any,
-        ctx,
-      );
+      await (
+        this['$$unsecure_fastPatchOne'] as typeof this.$unsecure_fastPatchOne
+      )(user[this.crudConfig.id_field], patch as any, ctx);
       const token = rnd + '_' + user[this.crudConfig.id_field];
       await sendEmailFunc(email, token);
       return true;
@@ -420,11 +426,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       const { emailCount, timeout } = userGetTimeoutFunc(user);
       if (lastEmailSent && Date.now() < lastEmailSent.getTime() + timeout) {
         const patch = callBackFunc(user);
-        await this.$unsecure_fastPatchOne(
-          user[this.crudConfig.id_field],
-          patch as any,
-          ctx,
-        );
+        await (
+          this['$$unsecure_fastPatchOne'] as typeof this.$unsecure_fastPatchOne
+        )(user[this.crudConfig.id_field], patch as any, ctx);
         return { ...user, ...patch };
       }
     }
@@ -437,10 +441,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
   ) {
     if (dto?.newEmail) {
       dto.newEmail = dto.newEmail.toLowerCase().trim();
-      const userWithNewEmail = await this.$findOne(
-        { email: dto.newEmail } as any,
-        ctx,
-      );
+      const userWithNewEmail = await (
+        this['$$findOne'] as typeof this.$findOne
+      )({ email: dto.newEmail } as any, ctx);
       if (userWithNewEmail) {
         throw new BadRequestException(CrudErrors.EMAIL_ALREADY_TAKEN.str());
       }
@@ -492,7 +495,10 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const keys = Object.keys(userType);
     const entity = {};
     entity[this.crudConfig.id_field] = userId;
-    const user: CrudUser = (await this.$findOne(entity, ctx)) as any;
+    const user: CrudUser = (await (this['$$findOne'] as typeof this.$findOne)(
+      entity,
+      ctx,
+    )) as any;
     if (!user) {
       throw new BadRequestException(CrudErrors.USER_NOT_FOUND.str());
     }
@@ -549,7 +555,13 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     proms.push(
       this.crudConfig.emailService.sendTwoFactorEmail(user.email, code, ctx),
     );
-    proms.push(this.$unsecure_fastPatchOne(userId, patch as any, ctx));
+    proms.push(
+      (this['$$unsecure_fastPatchOne'] as typeof this.$unsecure_fastPatchOne)(
+        userId,
+        patch as any,
+        ctx,
+      ),
+    );
     await Promise.all(proms);
     return true;
   }
@@ -567,7 +579,10 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const keys = Object.keys(userObj);
     dto.email = dto.email.toLowerCase().trim();
     const entity: any = { email: dto.email };
-    const user: CrudUser = await this.$findOne(entity, ctx);
+    const user: CrudUser = await (this['$$findOne'] as typeof this.$findOne)(
+      entity,
+      ctx,
+    );
     if (!user) {
       console.debug('User not found for email: ', dto.email);
       //Silent error
@@ -623,7 +638,10 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const keys = Object.keys(userType);
     const entity = {};
     entity[this.crudConfig.id_field] = userId;
-    const user: CrudUser = (await this.$findOne(entity, ctx)) as any;
+    const user: CrudUser = (await (this['$$findOne'] as typeof this.$findOne)(
+      entity,
+      ctx,
+    )) as any;
     if (!user) {
       throw new BadRequestException(CrudErrors.USER_NOT_FOUND.str());
     }
@@ -688,11 +706,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       password: dto.newPassword,
       passwordResetAttempCount: 0,
     };
-    await this.$unsecure_fastPatchOne(
-      user[this.crudConfig.id_field],
-      patch as any,
-      ctx,
-    );
+    await (
+      this['$$unsecure_fastPatchOne'] as typeof this.$unsecure_fastPatchOne
+    )(user[this.crudConfig.id_field], patch as any, ctx);
     const updatedUser = { ...user, ...patch };
 
     return {
@@ -731,7 +747,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     user = { ...user, ...addToUser };
     let res;
     try {
-      res = await this.$create(user, ctx);
+      res = await (this['$$create'] as typeof this.$create)(user, ctx);
     } catch (e) {
       console.error('Error creating user: ', e);
       if (
@@ -783,7 +799,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
 
     if (user.twoFA && this.crudConfig.emailService) {
       if (!dto.twoFA_code) {
-        await this.$sendTwoFACode(
+        await (this['$$sendTwoFACode'] as typeof this.$sendTwoFACode)(
           user[this.crudConfig.id_field],
           user as CrudUser,
           ctx,
@@ -807,7 +823,10 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         [this.crudConfig.id_field]: user[this.crudConfig.id_field],
       };
       const increments = { failedLoginCount: 1 };
-      this.$unsecure_incPatch({ query, increments, addPatch }, ctx);
+      (this['$$unsecure_incPatch'] as typeof this.$unsecure_incPatch)(
+        { query, increments, addPatch },
+        ctx,
+      );
 
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
     }
@@ -829,11 +848,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
       userSuccessPatch.role = user.role;
       userSuccessPatch.rvkd = user.rvkd || 0;
     }
-    await this.$unsecure_fastPatchOne(
-      user[this.crudConfig.id_field],
-      userSuccessPatch as any,
-      ctx,
-    );
+    await (
+      this['$$unsecure_fastPatchOne'] as typeof this.$unsecure_fastPatchOne
+    )(user[this.crudConfig.id_field], userSuccessPatch as any, ctx);
 
     return ctx.authType == 'basic'
       ? user
@@ -888,7 +905,10 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const entity = {};
     entity[this.username_field] = dto.email;
 
-    const user: CrudUser = await this.$findOne(entity, ctx);
+    const user: CrudUser = await (this['$$findOne'] as typeof this.$findOne)(
+      entity,
+      ctx,
+    );
 
     if (!user) {
       throw new UnauthorizedException(CrudErrors.INVALID_CREDENTIALS.str());
@@ -899,7 +919,7 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
         CrudErrors.TIMED_OUT.str(new Date(user.timeout).toISOString()),
       );
     }
-    return await this.$authUser(ctx, user, dto);
+    return await (this['$$authUser'] as typeof this.$authUser)(ctx, user, dto);
   }
 
   async $logout_everywhere(
@@ -911,14 +931,18 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     const user =
       ctx.user?.[this.crudConfig.id_field] == dto.userId
         ? ctx.user
-        : await this.$findOne(query, ctx);
+        : await (this['$$findOne'] as typeof this.$findOne)(query, ctx);
     user.rvkd = user.rvkd || 0;
     user.rvkd++;
     const patch: any = { rvkd: user.rvkd };
 
     await Promise.all([
-      this.$unsecure_fastPatch(query, patch, ctx),
-      this.$setCached(user as any, ctx),
+      (this['$$unsecure_fastPatch'] as typeof this.$unsecure_fastPatch)(
+        query,
+        patch,
+        ctx,
+      ),
+      (this['$$setCached'] as typeof this.$setCached)(user as any, ctx),
     ]);
   }
 
@@ -959,7 +983,9 @@ export class CrudUserService<T extends CrudUser> extends CrudService<T> {
     if (!userId) {
       throw new UnauthorizedException('User not found.');
     }
-    const ret: Partial<LoginResponseDto> = await this.$renewJwt(ctx);
+    const ret: Partial<LoginResponseDto> = await (
+      this['$$renewJwt'] as typeof this.$renewJwt
+    )(ctx);
     ret.userId = userId;
     return ret;
   }

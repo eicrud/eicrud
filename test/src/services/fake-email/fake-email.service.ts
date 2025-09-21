@@ -32,7 +32,7 @@ export class FakeEmailService
       message: 'Welcome!',
       type: 'accountCreation',
     };
-    return this.$create(email, null);
+    return (this['$$create'] as typeof this.$create)(email, null);
   }
 
   sendVerificationEmail(
@@ -45,7 +45,7 @@ export class FakeEmailService
       message: token,
       type: 'emailVerification',
     };
-    return this.$create(email, null);
+    return (this['$$create'] as typeof this.$create)(email, null);
   }
   sendTwoFactorEmail(to: string, code: string, ctx: CrudContext): Promise<any> {
     const email: Partial<FakeEmail> = {
@@ -53,7 +53,7 @@ export class FakeEmailService
       message: code,
       type: 'twoFactor',
     };
-    return this.$create(email, null);
+    return (this['$$create'] as typeof this.$create)(email, null);
   }
   sendPasswordResetEmail(
     to: string,
@@ -65,7 +65,7 @@ export class FakeEmailService
       message: token,
       type: 'passwordReset',
     };
-    return this.$create(email, null);
+    return (this['$$create'] as typeof this.$create)(email, null);
   }
 
   // GENERATED START - do not remove

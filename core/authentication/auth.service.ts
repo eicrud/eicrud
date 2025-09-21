@@ -10,6 +10,7 @@ import { CrudAuthGuard } from './auth.guard';
 import { CrudContext, CrudEntity, CrudService } from '../crud';
 import * as crypto from 'crypto';
 import { CrudUser } from '../config';
+import { getEntityId } from '@eicrud/shared/utils';
 
 export interface CrudToken extends CrudEntity {
   user: CrudUser | string;
@@ -153,12 +154,16 @@ export class CrudAuthService {
     if (dbToken.expiresAt && new Date(dbToken.expiresAt) <= new Date()) {
       throw new UnauthorizedException('Token expired');
     }
+    const userId = getEntityId(dbToken.user, this.crudConfig.id_field);
     const user = cachedUser
       ? await this.crudConfig.userService.$findOneCached(
-          dbToken.user,
+          { [this.crudConfig.id_field]: userId },
           crudContext,
         )
-      : await this.crudConfig.userService.$findOne(dbToken.user, crudContext);
+      : await this.crudConfig.userService.$findOne(
+          { [this.crudConfig.id_field]: userId },
+          crudContext,
+        );
     if (!user) {
       throw new UnauthorizedException('Token user not found');
     }
