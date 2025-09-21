@@ -198,8 +198,13 @@ export class CrudService<T extends CrudEntity> {
       if (methodName.startsWith('$')) {
         const originalMethod = this[methodName].bind(this);
         this['$' + methodName] = originalMethod;
+        const names = getFunctionParamsNames(this[methodName]);
         this[methodName] = async (...args) => {
-          const processedArgs = args.map((arg) => {
+          const processedArgs = args.map((arg, index) => {
+            const paramName = names[index];
+            if (paramName === 'ctx' || paramName === 'inheritance') {
+              return arg;
+            }
             if (arg !== null && typeof arg === 'object') {
               return JSON.parse(JSON.stringify(arg));
             }
@@ -1285,6 +1290,7 @@ export class CrudService<T extends CrudEntity> {
     for (let key in obj || {}) {
       const field = meta.properties[key];
       if (!field?.primary && field?.kind == ReferenceKind.SCALAR) {
+        // Not a mikro-orm relation
         continue;
       }
       if (Array.isArray(obj[key])) {

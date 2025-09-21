@@ -404,126 +404,131 @@ describe('AppController', () => {
     expect(res.message).toBe(payload.message);
   });
 
-  it('should call hooks on createBatch and find', async () => {
-    const user = users['Michael Doe'];
-    const createMessage = 'Test create batch message';
-    const subPayload: Partial<HookTrigger> = {
-      message: createMessage,
-    };
-    const payload: Partial<HookTrigger>[] = [
-      subPayload,
-      subPayload,
-      subPayload,
-    ];
-    const query: CrudQuery = {
-      service: 'hook-trigger',
-    };
-    const res0 = await testMethod({
-      url: '/crud/batch',
-      method: 'POST',
-      expectedCode: 201,
-      app,
-      jwt: user.jwt,
-      entityManager,
-      payload: [{ ...subPayload, throwError: true }, subPayload, subPayload],
-      query,
-      crudConfig,
-    });
-    expect(res0).toBe(true);
-    const res = await testMethod({
-      url: '/crud/batch',
-      method: 'POST',
-      expectedCode: 201,
-      app,
-      jwt: user.jwt,
-      entityManager,
-      payload,
-      query,
-      crudConfig,
-    });
-    for (const trig of res) {
-      expect(trig.message).toBe('replaced in hook');
-    }
-    const res00: any = await hookTriggerService.$find(
-      { throwError: true, originalMessage: createMessage },
-      null,
-    );
-    expect(res00).toBe(true);
-    const createdTriggers: any = await hookTriggerService.$find(
-      { originalMessage: 'replace Query with ' + createMessage },
-      null,
-    );
-    expect(createdTriggers.data.length).toBe(payload.length);
-    for (const createdTrigger of createdTriggers.data) {
-      expect(createdTrigger.hooked).toBe('read');
-      expect(createdTrigger.result.message).toBe(createMessage + ' - hooked');
-    }
-    const createHookLogs = await hookLogService.$find(
-      { message: createMessage },
-      null,
-    );
-    const createHookLogs2 = await hookLogService.$find(
-      { message: createMessage + ' - hooked' },
-      null,
-    );
-    const createHookLogs3 = await hookLogService.$find(
-      { message: 'replace Query with ' + createMessage },
-      null,
-    );
-    const allHooks = [
-      ...createHookLogs.data,
-      ...createHookLogs2.data,
-      ...createHookLogs3.data,
-    ];
-    expect(allHooks.length).toBe(helperCurrentConfig(14, 22, 16) + 4);
-    const logCheck = [
-      {
-        pos: 'error',
-        type: 'create',
-        expectedMessage: createMessage,
-        length: payload.length,
-      },
-      {
-        pos: 'error',
-        type: 'read',
-        expectedMessage: createMessage,
-      },
-      {
-        pos: 'before',
-        type: 'controller',
-        expectedMessage: createMessage,
-      },
-      {
-        pos: 'before',
-        type: 'create',
-        expectedMessage: createMessage,
-        length: payload.length,
-      },
-      {
-        pos: 'after',
-        type: 'create',
-        expectedMessage: createMessage + ' - hooked',
-        length: payload.length,
-      },
-      {
-        pos: 'after',
-        type: 'controller',
-        expectedMessage:
-          createMessage + helperCurrentConfig(' - hooked', '', ' - hooked'),
-      },
-      {
-        pos: 'before',
-        type: 'read',
-        expectedMessage: 'replace Query with ' + createMessage,
-      },
-      {
-        pos: 'after',
-        type: 'read',
-        expectedMessage: createMessage,
-      },
-    ];
-    checkHookLogs(logCheck, allHooks);
-  });
+  // This also test controller hooks!
+  it(
+    'should call hooks on createBatch and find',
+    async () => {
+      const user = users['Michael Doe'];
+      const createMessage = 'Test create batch message';
+      const subPayload: Partial<HookTrigger> = {
+        message: createMessage,
+      };
+      const payload: Partial<HookTrigger>[] = [
+        subPayload,
+        subPayload,
+        subPayload,
+      ];
+      const query: CrudQuery = {
+        service: 'hook-trigger',
+      };
+      const res0 = await testMethod({
+        url: '/crud/batch',
+        method: 'POST',
+        expectedCode: 201,
+        app,
+        jwt: user.jwt,
+        entityManager,
+        payload: [{ ...subPayload, throwError: true }, subPayload, subPayload],
+        query,
+        crudConfig,
+      });
+      expect(res0).toBe(true);
+      const res = await testMethod({
+        url: '/crud/batch',
+        method: 'POST',
+        expectedCode: 201,
+        app,
+        jwt: user.jwt,
+        entityManager,
+        payload,
+        query,
+        crudConfig,
+      });
+      for (const trig of res) {
+        expect(trig.message).toBe('replaced in hook');
+      }
+      const res00: any = await hookTriggerService.$find(
+        { throwError: true, originalMessage: createMessage },
+        null,
+      );
+      expect(res00).toBe(true);
+      const createdTriggers: any = await hookTriggerService.$find(
+        { originalMessage: 'replace Query with ' + createMessage },
+        null,
+      );
+      expect(createdTriggers.data.length).toBe(payload.length);
+      for (const createdTrigger of createdTriggers.data) {
+        expect(createdTrigger.hooked).toBe('read');
+        expect(createdTrigger.result.message).toBe(createMessage + ' - hooked');
+      }
+      const createHookLogs = await hookLogService.$find(
+        { message: createMessage },
+        null,
+      );
+      const createHookLogs2 = await hookLogService.$find(
+        { message: createMessage + ' - hooked' },
+        null,
+      );
+      const createHookLogs3 = await hookLogService.$find(
+        { message: 'replace Query with ' + createMessage },
+        null,
+      );
+      const allHooks = [
+        ...createHookLogs.data,
+        ...createHookLogs2.data,
+        ...createHookLogs3.data,
+      ];
+      expect(allHooks.length).toBe(helperCurrentConfig(14, 22, 16) + 4);
+      const logCheck = [
+        {
+          pos: 'error',
+          type: 'create',
+          expectedMessage: createMessage,
+          length: payload.length,
+        },
+        {
+          pos: 'error',
+          type: 'read',
+          expectedMessage: createMessage,
+        },
+        {
+          pos: 'before',
+          type: 'controller',
+          expectedMessage: createMessage,
+        },
+        {
+          pos: 'before',
+          type: 'create',
+          expectedMessage: createMessage,
+          length: payload.length,
+        },
+        {
+          pos: 'after',
+          type: 'create',
+          expectedMessage: createMessage + ' - hooked',
+          length: payload.length,
+        },
+        {
+          pos: 'after',
+          type: 'controller',
+          expectedMessage:
+            createMessage + helperCurrentConfig(' - hooked', '', ' - hooked'),
+        },
+        {
+          pos: 'before',
+          type: 'read',
+          expectedMessage: 'replace Query with ' + createMessage,
+        },
+        {
+          pos: 'after',
+          type: 'read',
+          expectedMessage: createMessage,
+        },
+      ];
+      checkHookLogs(logCheck, allHooks);
+    },
+    timeout,
+  );
 
   it('should call hooks on patchOne and findOne', async () => {
     const user = users['Michael Doe'];
