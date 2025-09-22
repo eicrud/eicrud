@@ -205,9 +205,6 @@ export class CrudService<T extends CrudEntity> {
         const names = getFunctionParamsNames(this[methodName]);
 
         let ctxPos: number = names.findIndex((name) => name === 'ctx');
-        let inheritancePos: number = names.findIndex(
-          (name) => name === 'inheritance',
-        );
 
         if (ctxPos == -1) {
           console.warn('No ctx found in method call:' + methodName);
@@ -261,7 +258,6 @@ export class CrudService<T extends CrudEntity> {
             methodName,
             targetServiceConfig,
             ctxPos,
-            inheritancePos,
           );
           return res;
         };
@@ -274,12 +270,10 @@ export class CrudService<T extends CrudEntity> {
     methodName: string,
     msConfig: MicroServiceConfig,
     ctxPos: number,
-    inheritancePos: number,
   ) {
     const query: Partial<MsLinkQuery> = {
       methodName,
       ctxPos,
-      inheritancePos,
     };
 
     for (let i = 0; i < args.length; i++) {

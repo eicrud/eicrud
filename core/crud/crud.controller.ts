@@ -974,9 +974,7 @@ export class CrudController {
       data.args[i] = undefined;
     }
     const ctx: CrudContext = query.ctxPos ? data.args[query.ctxPos] || {} : {};
-    // const inheritance = query.inheritancePos
-    //   ? data.args[query.inheritancePos]
-    //   : null;
+
     ctx.currentMs = MicroServicesOptions.getCurrentService();
     try {
       const currentService = this.crudConfig.servicesMap[query.service];
@@ -989,9 +987,8 @@ export class CrudController {
       const res = await currentService[query.methodName](...data.args);
       await this.crudConfig.afterMsLinkHook(res, ctx, query, data.args);
 
-      const returnCtxFields = ['setCookies'];
       const response: any = { res };
-      for (const field of returnCtxFields) {
+      for (const field of BIDIRECTIONAL_CTX_FIELDS) {
         if (ctx[field]) {
           response.ctx = response.ctx || {};
           response.ctx[field] = ctx[field];
@@ -1009,3 +1006,8 @@ export class CrudController {
     return true;
   }
 }
+
+export const BIDIRECTIONAL_CTX_FIELDS: (keyof CrudContext)[] = [
+  'setCookies',
+  'store_bidirectional',
+];

@@ -133,12 +133,21 @@ let obj = { value: 1 };
 
 obj = await myUserService.$methodC(obj);
 
-console.log(obj.value)
+console.log(obj.value) // displays 2
 ```
 
-## Naming your arguments
+## Context propagation
 
-Argument name `ctx` is reserved in `$` function, and should only be used to pass the [CrudContext](../context.md).
+Argument name `ctx` is reserved in `$` functions and should only be used to pass the [CrudContext](../context.md).
+
+If you want to propagate parameters from the context back to the caller, you can use the following context properties:
+
+```typescript
+ctx.store_bidirectional?: Record<string, any>;
+ctx.setCookies?: Record<string, CookieToSet>;
+```
+
+These properties are sent back even with HTTP requests, allowing bidirectional communication between services.
 
 !!! note
-    You might want to pass the [CrudContext](../context.md) to every `$` function to enable reliable logging in ms-link [hooks](../configuration/service.md#hooks).
+    You should pass the [CrudContext](../context.md) to every `$` function to enable reliable logging in ms-link [hooks](../configuration/service.md#hooks).

@@ -47,6 +47,15 @@ export interface CrudContext<T = any> {
    */
   store?: Record<string, any>;
 
+  /**
+   * Like store, but is also propagated back to the caller in ms-links;
+   * @UsageNotes If you need to propagate data back to the original controller, regardless of the current MS.
+   */
+  store_bidirectional?: Record<string, any>;
+
+  /**
+   * Also bidirectional, use to set cookie in the caller HTTP response
+   */
   setCookies?: Record<string, CookieToSet>;
   getCurrentService?: () => CrudService<any>;
   getHttpRequest?: () => FastifyRequest;
