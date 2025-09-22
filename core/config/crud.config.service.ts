@@ -18,6 +18,13 @@ import { _utils } from '../utils';
 import { NotVoid } from '@eicrud/shared/config';
 import { getParentRoles } from '@eicrud/shared/utils';
 
+type EntityClassOnly<T = any> = EntityClass<T> & {
+  $findOne?: never;
+  prototype: {
+    $findOne?: never;
+  };
+};
+
 export class BasicMemoryCache implements CrudCache {
   cache: LRUCache<string, CrudUser>;
 
@@ -55,7 +62,7 @@ export class CacheOptions {
 export const CRUD_CONFIG_KEY = 'CRUD_CONFIG_U4u7YojMIZ';
 
 export interface MicroServiceConfig {
-  services: EntityClass<any>[];
+  services: EntityClassOnly[];
   openMsLink: boolean;
   openController: boolean;
   proxyCrudController?: boolean;

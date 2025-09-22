@@ -133,12 +133,41 @@ let obj = { value: 1 };
 
 obj = await myUserService.$methodC(obj);
 
-console.log(obj.value)
+console.log(obj.value) // displays 2
 ```
 
-## Naming your arguments
+## Context propagation
 
-Argument name `ctx` is reserved in `$` function, and should only be used to pass the [CrudContext](../context.md).
+Argument name `ctx` is reserved in `$` functions and should only be used to pass the [CrudContext](../context.md).
+
+If you want to propagate parameters from the context back to the caller, you can use the following context properties:
+
+```typescript
+ctx.store_bidirectional?: Record<string, any>;
+ctx.setCookies?: Record<string, CookieToSet>;
+```
+
+These properties are sent back even with HTTP requests, allowing bidirectional communication between services.
 
 !!! note
-    You might want to pass the [CrudContext](../context.md) to every `$` function to enable reliable logging in ms-link [hooks](../configuration/service.md#hooks).
+    You should pass the [CrudContext](../context.md) to every `$` function to enable reliable logging in ms-link [hooks](../configuration/service.md#hooks).
+
+## Use getEntityId for consistent ID extraction
+
+```typescript
+import { getEntityId } from '@eicrud/shared/utils';
+```
+
+When working with entity relations, ID serialization can vary depending on your configuration:
+
+- With MikroORM, non-populated entity relations are stored as `{ id: relationId }` but get serialized to `relationId` (string)
+- MongoDB ObjectIds are converted to strings when serialized
+
+Use `getEntityId` to extract the correct ID regardless of your microservices configuration:
+
+```typescript
+// Example usage
+const userId = getEntityId(dbToken.user);
+```
+
+This utility ensures consistent ID handling across different database types and serialization contexts.
