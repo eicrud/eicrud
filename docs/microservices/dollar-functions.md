@@ -151,3 +151,23 @@ These properties are sent back even with HTTP requests, allowing bidirectional c
 
 !!! note
     You should pass the [CrudContext](../context.md) to every `$` function to enable reliable logging in ms-link [hooks](../configuration/service.md#hooks).
+
+## Use getEntityId for consistent ID extraction
+
+```typescript
+import { getEntityId } from '@eicrud/shared/utils';
+```
+
+When working with entity relations, ID serialization can vary depending on your configuration:
+
+- With MikroORM, non-populated entity relations are stored as `{ id: relationId }` but get serialized to `relationId` (string)
+- MongoDB ObjectIds are converted to strings when serialized
+
+Use `getEntityId` to extract the correct ID regardless of your microservices configuration:
+
+```typescript
+// Example usage
+const userId = getEntityId(dbToken.user);
+```
+
+This utility ensures consistent ID handling across different database types and serialization contexts.
