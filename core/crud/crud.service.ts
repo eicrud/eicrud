@@ -34,7 +34,13 @@ import {
   ICrudRightsFieldInfo,
   ICrudRightsInfo,
 } from '../crud/model/dtos';
-import { EntityClass, EntityManager, MikroORM, wrap } from '@mikro-orm/core';
+import {
+  EntityClass,
+  EntityManager,
+  MikroORM,
+  ReferenceKind,
+  wrap,
+} from '@mikro-orm/core';
 import { CrudOptions } from '.';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { truncate } from 'fs';
@@ -199,9 +205,6 @@ export class CrudService<T extends CrudEntity> {
         const names = getFunctionParamsNames(this[methodName]);
 
         let ctxPos: number = names.findIndex((name) => name === 'ctx');
-        let inheritancePos: number = names.findIndex(
-          (name) => name === 'inheritance',
-        );
 
         if (ctxPos == -1) {
           console.warn('No ctx found in method call:' + methodName);
@@ -255,7 +258,6 @@ export class CrudService<T extends CrudEntity> {
             methodName,
             targetServiceConfig,
             ctxPos,
-            inheritancePos,
           );
           return res;
         };
@@ -268,12 +270,10 @@ export class CrudService<T extends CrudEntity> {
     methodName: string,
     msConfig: MicroServiceConfig,
     ctxPos: number,
-    inheritancePos: number,
   ) {
     const query: Partial<MsLinkQuery> = {
       methodName,
       ctxPos,
-      inheritancePos,
     };
 
     for (let i = 0; i < args.length; i++) {
@@ -1194,8 +1194,13 @@ export class CrudService<T extends CrudEntity> {
     return await this['$' + cmdName](ctx.data, ctx, inheritance);
   }
 
-  checkObjectForIds(obj: any) {
+  checkObjectForIds(obj: Partial<T>) {
+    const meta = this.entityManager.getMetadata().get(this.entity.name);
     for (let key in obj || {}) {
+      const field = meta.properties[key];
+      if (!field?.primary && field?.kind == ReferenceKind.SCALAR) {
+        continue;
+      }
       if (Array.isArray(obj[key])) {
         obj[key] = obj[key].map((id) => this.dbAdapter.checkId(id));
       } else {

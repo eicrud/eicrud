@@ -60,3 +60,20 @@ export function doesInheritRole(
   const parents = getParentRoles(currentRole, roles);
   return parents.includes(role);
 }
+
+export function getEntityId(entity: any, idField = 'id'): any {
+  if (!entity) {
+    return entity;
+  }
+  if (typeof entity === 'string' || typeof entity === 'number') {
+    return entity;
+  }
+  const id = entity?.[idField];
+  if (typeof id === 'string' || typeof id === 'number') {
+    return id;
+  }
+  if (!id && entity?.toString) {
+    return entity.toString();
+  }
+  return id?.toString?.() || id;
+}

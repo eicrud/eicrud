@@ -30,6 +30,7 @@ import { SuperclientTestExclude2 } from './services/superclient-ms/superclient-t
 import { StarFruit } from './services/star-fruit/star-fruit.entity';
 import { roles } from './eicrud.roles';
 import { TokenService } from './services/token/token.service';
+import { Token } from './services/token/token.entity';
 
 const msOptions = new MicroServicesOptions();
 
@@ -48,7 +49,7 @@ msOptions.microServices = {
   },
   user: {
     services: [
-      TokenService,
+      Token,
       MyUser,
       HookTrigger,
       SuperclientTest,
