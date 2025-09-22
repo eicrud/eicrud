@@ -34,7 +34,13 @@ import {
   ICrudRightsFieldInfo,
   ICrudRightsInfo,
 } from '../crud/model/dtos';
-import { EntityClass, EntityManager, MikroORM, wrap } from '@mikro-orm/core';
+import {
+  EntityClass,
+  EntityManager,
+  MikroORM,
+  ReferenceKind,
+  wrap,
+} from '@mikro-orm/core';
 import { CrudOptions } from '.';
 import { CrudErrors } from '@eicrud/shared/CrudErrors';
 import { truncate } from 'fs';
