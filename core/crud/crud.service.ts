@@ -1194,8 +1194,13 @@ export class CrudService<T extends CrudEntity> {
     return await this['$' + cmdName](ctx.data, ctx, inheritance);
   }
 
-  checkObjectForIds(obj: any) {
+  checkObjectForIds(obj: Partial<T>) {
+    const meta = this.entityManager.getMetadata().get(this.entity.name);
     for (let key in obj || {}) {
+      const field = meta.properties[key];
+      if (!field?.primary && field?.kind == ReferenceKind.SCALAR) {
+        continue;
+      }
       if (Array.isArray(obj[key])) {
         obj[key] = obj[key].map((id) => this.dbAdapter.checkId(id));
       } else {
