@@ -108,7 +108,7 @@ export class CrudService<T extends CrudEntity> {
   protected entityManager: EntityManager;
   protected orm: MikroORM;
   public serviceName: string;
-  protected crudConfig: CrudConfigService;
+  public crudConfig: CrudConfigService;
   public dbAdapter: CrudDbAdapter;
   protected crudAuthorization: CrudAuthorizationService;
   cacheManager: CrudCache;
