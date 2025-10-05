@@ -578,7 +578,9 @@ export class Export {
             deleted = true;
           }
         }
-        deleted && saveEntityYaml(entityYamlPath, entityYamlObj);
+        if (deleted) {
+          saveEntityYaml(entityYamlPath, entityYamlObj);
+        }
         if (!options?.oapiSeparateRefs) {
           lodash.merge(specs.components, entityYamlObj.components);
         }
@@ -733,7 +735,8 @@ export class Export {
             'Either JWT provided after authentication (if CrudOptions.jwtCookie == false) or Basic Auth',
           schema: {
             type: 'string',
-            format: 'Bearer <JWT> or Basic <base64(username:password)>',
+            format:
+              'Bearer <JWT> or Basic <base64(username:password)> or Token <token>',
           },
         },
         {
