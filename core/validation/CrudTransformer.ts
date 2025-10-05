@@ -144,7 +144,7 @@ export class CrudTransformer {
           field_metadata.maxSize ||
           this.crudConfig?.validationOptions.defaultMaxSize ||
           this.config.defaultMaxSize;
-        if (maxSize > 0) {
+        if (maxSize > 0 && obj[key]) {
           const entitySize = JSON.stringify(obj[key]).length;
           let add = field_metadata.addMaxSizePerTrustPoint || 0;
           if (add && this.ctx && this.crudConfig) {
