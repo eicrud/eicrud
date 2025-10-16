@@ -87,7 +87,7 @@ interface _OpParams<T = any> {
   noFlush?: boolean;
 }
 type ExcludedInheritanceKeys = 'hooks' | 'secure' | 'em' | 'noFlush';
-export type OpParams = RequireAtLeastOne<_OpParams>;
+export type OpParams<T = any> = RequireAtLeastOne<_OpParams<T>>;
 
 export type Inheritance = {
   [key: string]: any;
@@ -345,7 +345,7 @@ export class CrudService<T extends CrudEntity> {
   async $create(
     newEntity: Partial<T>,
     ctx: CrudContext<T>,
-    opOptions: OpParams = { secure: true },
+    opOptions: OpParams<T> = { secure: true },
     inheritance?: Inheritance,
   ) {
     const opParams = this.getOpParams(opOptions, ctx);
@@ -408,7 +408,7 @@ export class CrudService<T extends CrudEntity> {
   async $createBatch(
     newEntities: Partial<T>[],
     ctx: CrudContext<T>,
-    opOptions: OpParams = { secure: true },
+    opOptions: OpParams<T> = { secure: true },
     inheritance?: Inheritance,
   ) {
     const opParams = this.getOpParams(opOptions, ctx);
@@ -417,7 +417,7 @@ export class CrudService<T extends CrudEntity> {
         newEntities = await this.beforeCreateHook(newEntities, ctx);
       }
 
-      const subOpParams: OpParams = {
+      const subOpParams: OpParams<T> = {
         ...opOptions,
         noFlush: true,
         em: this.entityManager.fork(),
@@ -448,14 +448,14 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
-  async $patchBatch_(ctx: CrudContext) {
+  async $patchBatch_(ctx: CrudContext<T>) {
     return this.$patchBatch(ctx.data, ctx, { options: ctx.queryOptions });
   }
 
   async $patchBatch(
     data: { query: Partial<T>; data: Partial<T> }[],
     ctx: CrudContext<T>,
-    opOptions: OpParams = { secure: true },
+    opOptions: OpParams<T> = { secure: true },
     inheritance?: Inheritance,
   ): Promise<PatchResponseDto<T>[]> {
     const opParams = this.getOpParams(opOptions, ctx);
@@ -465,7 +465,7 @@ export class CrudService<T extends CrudEntity> {
       }
 
       let results = [];
-      const subOpParams: OpParams = {
+      const subOpParams: OpParams<T> = {
         ...opOptions,
         noFlush: true,
         em: this.entityManager.fork(),
@@ -503,7 +503,7 @@ export class CrudService<T extends CrudEntity> {
   async $unsecure_saveBatch(
     toSave: Partial<T>[],
     ctx: CrudContext<T>,
-    opOptions: OpParams = { secure: true },
+    opOptions: OpParams<T> = { secure: true },
     inheritance?: Inheritance,
   ) {
     let data = toSave.map((d) => {
@@ -545,7 +545,7 @@ export class CrudService<T extends CrudEntity> {
     );
   }
 
-  async $find_(ctx: CrudContext): Promise<FindResponseDto<T>> {
+  async $find_(ctx: CrudContext<T>): Promise<FindResponseDto<T>> {
     return this.$find(ctx.query, ctx, {
       options: ctx.queryOptions,
     });
@@ -554,7 +554,7 @@ export class CrudService<T extends CrudEntity> {
   async $find(
     entity: Partial<T>,
     ctx: CrudContext<T>,
-    opOptions: OpParams = { secure: true },
+    opOptions: OpParams<T> = { secure: true },
     inheritance?: Inheritance,
   ): Promise<FindResponseDto<T>> {
     const opParams = this.getOpParams(opOptions, ctx);
@@ -597,21 +597,21 @@ export class CrudService<T extends CrudEntity> {
   async $findIds(
     entity: Partial<T>,
     ctx: CrudContext<T>,
-    opOptions: OpParams = { secure: true },
+    opOptions: OpParams<T> = { secure: true },
     inheritance?: Inheritance,
   ): Promise<string[]> {
-    const newOpts = {
+    const newOpts: OpParams<T> = {
       ...opOptions,
       options: {
         ...(opOptions.options || {}),
-        fields: [this.crudConfig.id_field],
+        fields: [this.crudConfig.id_field as any],
       },
     };
     const res = await this.$find(entity, ctx, newOpts);
     return res.data.map((d) => d[this.crudConfig.id_field]);
   }
 
-  async $findIn_(ctx: CrudContext) {
+  async $findIn_(ctx: CrudContext<T>) {
     return this.$findIn(ctx.ids, ctx.query, ctx, {
       options: ctx.queryOptions,
     });
@@ -621,7 +621,7 @@ export class CrudService<T extends CrudEntity> {
     ids: string[],
     entity: Partial<T>,
     ctx: CrudContext<T>,
-    opOptions: OpParams = { secure: true },
+    opOptions: OpParams<T> = { secure: true },
     inheritance?: Inheritance,
   ) {
     this.makeInQuery(ids, entity);
@@ -652,14 +652,14 @@ export class CrudService<T extends CrudEntity> {
     return key;
   }
 
-  async $findOne_(ctx: CrudContext) {
+  async $findOne_(ctx: CrudContext<T>) {
     return this.$findOne(ctx.query, ctx, { options: ctx.queryOptions });
   }
 
   async $findOne(
     entity: Partial<T>,
     ctx: CrudContext<T>,
-    opOptions: OpParams = { secure: true },
+    opOptions: OpParams<T> = { secure: true },
     inheritance?: Inheritance,
   ): Promise<T> {
     const opParams = this.getOpParams(opOptions, ctx);
@@ -689,14 +689,14 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
-  async $findOneCached_(ctx: CrudContext) {
+  async $findOneCached_(ctx: CrudContext<T>) {
     return this.$findOneCached(ctx.query, ctx, { options: ctx.queryOptions });
   }
 
   async $findOneCached(
     entity: Partial<T>,
     ctx: CrudContext<T>,
-    opOptions: OpParams = { secure: true },
+    opOptions: OpParams<T> = { secure: true },
     inheritance?: Inheritance,
   ) {
     const opParams = this.getOpParams(opOptions, ctx);
@@ -762,7 +762,7 @@ export class CrudService<T extends CrudEntity> {
     return entity;
   }
 
-  async $patch_(ctx: CrudContext) {
+  async $patch_(ctx: CrudContext<T>) {
     return this.$patch(ctx.query, ctx.data, ctx, {
       options: ctx.queryOptions,
     });
@@ -772,7 +772,7 @@ export class CrudService<T extends CrudEntity> {
     query: Partial<T>,
     data: Partial<T>,
     ctx: CrudContext<T>,
-    opOptions: OpParams = { secure: true },
+    opOptions: OpParams<T> = { secure: true },
     inheritance?: Inheritance,
   ): Promise<PatchResponseDto<T>> {
     const opParams = this.getOpParams(opOptions, ctx);
@@ -921,16 +921,19 @@ export class CrudService<T extends CrudEntity> {
     });
   }
 
-  protected getOpParams(opOptions: OpParams, ctx: CrudContext) {
+  protected getOpParams(
+    opOptions: OpParams<T>,
+    ctx: CrudContext<T>,
+  ): OpParams<T> {
     const res = { ...this._defaultOpParams, ...(opOptions || {}) };
-    return res;
+    return res as any;
   }
 
   async $patchOne(
     query: Partial<T>,
     data: Partial<T>,
     ctx: CrudContext<T>,
-    opOptions: OpParams = { secure: true },
+    opOptions: OpParams<T> = { secure: true },
     inheritance?: Inheritance,
   ): Promise<PatchResponseDto<T>> {
     const opParams = this.getOpParams(opOptions, ctx);
@@ -1078,14 +1081,14 @@ export class CrudService<T extends CrudEntity> {
     }
   }
 
-  async $delete_(ctx: CrudContext) {
+  async $delete_(ctx: CrudContext<T>) {
     return this.$delete(ctx.query, ctx, { options: ctx.queryOptions });
   }
 
   async $delete(
     query: Partial<T>,
     ctx: CrudContext<T>,
-    opOptions: OpParams = { secure: true },
+    opOptions: OpParams<T> = { secure: true },
     inheritance?: Inheritance,
   ): Promise<DeleteResponseDto<T>> {
     const opParams = this.getOpParams(opOptions, ctx);
@@ -1128,7 +1131,7 @@ export class CrudService<T extends CrudEntity> {
     this.dbAdapter.makeInQuery(IDs, finalQuery);
   }
 
-  async $deleteOne_(ctx: CrudContext) {
+  async $deleteOne_(ctx: CrudContext<T>) {
     return this.$deleteOne(ctx.query, ctx, {
       options: ctx.queryOptions,
     });
@@ -1137,7 +1140,7 @@ export class CrudService<T extends CrudEntity> {
   async $deleteOne(
     query: Partial<T>,
     ctx: CrudContext<T>,
-    opOptions: OpParams = { secure: true },
+    opOptions: OpParams<T> = { secure: true },
     inheritance?: Inheritance,
   ): Promise<DeleteResponseDto<T>> {
     const opParams = this.getOpParams(opOptions, ctx);

@@ -150,7 +150,7 @@ export class CrudSecurity<T = any, TRoleType extends string = string> {
    * @type {string[]}
    * @public
    */
-  alwaysExcludeFields?: string[];
+  alwaysExcludeFields?: (keyof T)[];
 
   /**
    * Max number of entities a user can create in the db

@@ -61,19 +61,19 @@ export function doesInheritRole(
   return parents.includes(role);
 }
 
-export function getEntityId(entity: any, idField = 'id'): any {
+export function getEntityId<T = string>(entity: any, idField = 'id'): T {
   if (!entity) {
     return entity;
   }
   if (typeof entity === 'string' || typeof entity === 'number') {
-    return entity;
+    return entity as T;
   }
   const id = entity?.[idField];
   if (typeof id === 'string' || typeof id === 'number') {
-    return id;
+    return id as T;
   }
   if (!id && entity?.toString) {
-    return entity.toString();
+    return entity.toString() as T;
   }
-  return id?.toString?.() || id;
+  return (id?.toString?.() || id) as T;
 }
