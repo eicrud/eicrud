@@ -113,6 +113,7 @@ export interface ClientOptions {
  */
 export class CrudClient<T> {
   JWT_STORAGE_KEY = 'eicrud-ljwt'; //local jwt
+  CSRF_STORAGE_KEY = 'eicrud-lcsrf'; //local jwt
   fetchNb = 0;
   sessionStorage = typeof document !== 'undefined' ? sessionStorage : null;
 
@@ -172,8 +173,8 @@ export class CrudClient<T> {
       }
     } else {
       const csrf =
-        this.config.csrfCookieGetter?.('eicrud-csrf') ||
-        Cookie.get('eicrud-csrf');
+        this.sessionStorage?.getItem(this.CSRF_STORAGE_KEY) ||
+        this.config.storage?.get(this.CSRF_STORAGE_KEY);
       if (csrf) {
         this._checkHttps();
         headers['eicrud-csrf'] = csrf;
@@ -256,17 +257,52 @@ export class CrudClient<T> {
   }
 
   setJwt(jwt: string, durationSeconds?: number) {
+    if (!jwt) return;
+
+    // Check if JWT contains CSRF token (format: jwt#csrf)
+    let actualJwt = jwt;
+    let csrfToken: string | undefined;
+
+    if (jwt.includes('#')) {
+      const parts = jwt.split('#');
+      actualJwt = parts[0];
+      csrfToken = parts[1];
+    }
+
     this.sessionStorage?.removeItem(this.JWT_STORAGE_KEY);
     if (this.config.storage) {
       if (durationSeconds || !this.sessionStorage) {
         this.config.storage.set(
           this.JWT_STORAGE_KEY,
-          jwt,
+          actualJwt,
           durationSeconds,
           true,
         );
-      } else if (jwt) {
-        this.sessionStorage.setItem(this.JWT_STORAGE_KEY, jwt);
+      } else {
+        this.sessionStorage.setItem(this.JWT_STORAGE_KEY, actualJwt);
+      }
+    }
+
+    // Set CSRF token if present
+    if (csrfToken) {
+      this.setCsrf(csrfToken, durationSeconds);
+    }
+  }
+
+  setCsrf(csrf: string, durationSeconds?: number) {
+    if (!csrf) return;
+
+    this.sessionStorage?.removeItem(this.CSRF_STORAGE_KEY);
+    if (this.config.storage) {
+      if (durationSeconds || !this.sessionStorage) {
+        this.config.storage.set(
+          this.CSRF_STORAGE_KEY,
+          csrf,
+          durationSeconds,
+          true,
+        );
+      } else {
+        this.sessionStorage.setItem(this.CSRF_STORAGE_KEY, csrf);
       }
     }
   }
