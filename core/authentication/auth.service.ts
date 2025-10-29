@@ -112,7 +112,7 @@ export class CrudAuthService {
       payload['csrf'] = csrf;
     }
     const expiresIn = expiresInSec === -1 ? undefined : expiresInSec || 60 * 30;
-    const token = await this.jwtService.signAsync(payload, {
+    let token = await this.jwtService.signAsync(payload, {
       secret: this.JWT_SECRET,
       expiresIn,
     });
@@ -134,6 +134,7 @@ export class CrudAuthService {
         ctx.setCookies['eicrud-jwt'].maxAge = expiresInSec;
         ctx.setCookies['eicrud-csrf'].maxAge = expiresInSec;
       }
+      token = token + '#' + csrf; // append csrf to token returned
     }
     return token;
   }
