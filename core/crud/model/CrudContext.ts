@@ -8,8 +8,9 @@ import { FastifyReply, FastifyRequest } from 'fastify';
 import { AuthType, CrudToken, JwtPayload } from '../../authentication';
 import { FindOptions } from '@mikro-orm/core';
 
-export type CrudOptionsType<T = any> = CrudOptions<T> &
-  Omit<FindOptions<any>, keyof CrudOptions>;
+export interface CrudOptionsType<T = any>
+  extends CrudOptions<T>,
+    Omit<FindOptions<any>, keyof CrudOptions> {}
 
 /**
  * A context assigned to every request.

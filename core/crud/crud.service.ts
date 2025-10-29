@@ -80,14 +80,13 @@ function getAllMethodNames(obj) {
   return methodNames;
 }
 
-interface _OpParams<T = any> {
+export interface OpParams<T = any> {
   options?: CrudOptionsType<T>;
   secure?: boolean;
   em?: EntityManager;
   noFlush?: boolean;
 }
 type ExcludedInheritanceKeys = 'hooks' | 'secure' | 'em' | 'noFlush';
-export type OpParams<T = any> = RequireAtLeastOne<_OpParams<T>>;
 
 export type Inheritance = {
   [key: string]: any;
