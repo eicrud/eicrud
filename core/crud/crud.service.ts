@@ -827,7 +827,7 @@ export class CrudService<T extends CrudEntity> {
   async $unsecure_incPatch(
     args: {
       query: Partial<T>;
-      increments: { [key: string]: number };
+      increments: { [K in keyof T]?: number };
       addPatch?: any;
     },
     ctx: CrudContext<T>,
